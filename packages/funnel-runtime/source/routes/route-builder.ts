@@ -4,7 +4,6 @@ import type {
   FunnelStep,
   SessionAnswers,
   StepAnswer,
-  StepType,
   VariantConfiguration,
 } from '@kelpie/contracts';
 import { RouteSteps } from './route-steps.js';
@@ -15,7 +14,6 @@ export class RouteBuilder {
   private readonly steps: FunnelStep[] = [];
   private readonly activeAnswers: Dictionary<string, StepAnswer> = {};
   private readonly selectedVariant: VariantConfiguration;
-  private readonly excludedTypes: ReadonlySet<StepType>;
   private isComplete = true;
   private questionCount = 0;
   private completedQuestionCount = 0;
@@ -26,7 +24,6 @@ export class RouteBuilder {
     private readonly answers: SessionAnswers,
   ) {
     this.selectedVariant = configuration.experiment.variants[variant];
-    this.excludedTypes = new Set(configuration.progress.excludeTypes);
   }
 
   static resolve(
@@ -65,7 +62,7 @@ export class RouteBuilder {
   }
 
   private updateProgress(step: FunnelStep, completed: boolean): void {
-    if (this.excludedTypes.has(step.type)) {
+    if (this.configuration.progress.excludeTypes.includes(step.type)) {
       return;
     }
 

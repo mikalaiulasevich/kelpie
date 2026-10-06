@@ -1,8 +1,9 @@
 import { isNil } from 'es-toolkit/predicate';
-import { isMatching, P } from 'ts-pattern';
 
 export const AnswerValues = {
-  isFiniteNumber: isMatching(P.number.finite()),
+  isFiniteNumber(value: unknown): value is number {
+    return Number.isFinite(value);
+  },
   isMissing(answer: unknown): answer is null | undefined | '' {
     return isNil(answer) || answer === '';
   },

@@ -33,7 +33,7 @@ export const StepValidation = {
     stepIdentifier: string,
     step: SelectionStep,
   ): void {
-    const optionValues = new Set(step.input.options.map((option) => option.value));
+    const optionValues = context.selectionValues(step);
 
     if (optionValues.size !== step.input.options.length) {
       context.report(
