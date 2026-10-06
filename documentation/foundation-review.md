@@ -4,6 +4,23 @@
 
 Review covers the application scaffold, configuration contracts/runtime, initial database schema, health endpoints, development startup, and dependency selection. Complete funnel behavior and public production deployment are outside this foundation milestone.
 
+## Security, resilience and diagnostics review, October 6
+
+Reviewed the implemented foundation separately for input handling, privacy, database failure behavior, process lifecycle and diagnostic usefulness. Independent review found no additional material blocker after the corrections below; this is not a penetration test or proof of production readiness.
+
+| Finding                                                     | Correction and evidence                                                                                                                                |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Unsupported request encodings were mapped to server errors  | Preserve parser 415; reject compressed JSON before inflation; integration cases cover charset/compression and existing malformed/oversized payloads    |
+| Startup exceptions could abort outside controlled handling  | Nest abortOnError is false; subprocess tests verify invalid settings and occupied ports exit nonzero with safe diagnostics                             |
+| Errors lacked correlation and useful failure categories     | Server-generated request UUID, structured severity/events/timing, safe codes/fingerprints, explicit readiness reasons and startup phases               |
+| Logging could expose payloads or grow memory under pressure | Allowlisted fields/messages, hashed bounded frames, tested multiline/accessor redaction, bounded stream backpressure with drop accounting              |
+| HTTP shutdown could wait for stalled connections            | Ten-second connection drain deadline; real partial-body/SIGTERM test verifies forced close and process exit; database disconnect follows HTTP disposal |
+| Development wrapper exit could leave orphan processes       | POSIX group tracking survives leader exit; external reproduction changed two surviving descendants to none, including descendants ignoring SIGTERM     |
+
+Full Node.js 24 verification passed 189 cases (74 backend, 5 frontend, 59 contracts, 51 runtime), strict TS/JS checks, lint, formatting, clean builds, original configuration integrity, test placement and Prisma validation. Backend tests include concurrent request correlation, client-ID replacement, log privacy, database failure/recovery, logger backpressure/error handling, startup failures and real shutdown. npm audit reported zero known vulnerabilities across 561 dependencies. No dependency was added.
+
+Operational limits remain explicit: SQLite's synchronous five-second busy wait can block the event loop under external write contention; the HTTP drain timer does not interrupt synchronous work. Log delivery is best-effort: a failed destination disables writes and backpressure drops records. Deployment must provide supervision, log rotation/retention/quotas, persistent storage and tested backups. Windows descendant cleanup was not verified. Authentication, CSRF, rate limits, command idempotency and analytics remain future feature/deployment checks rather than implemented capabilities. Node-level HTTP parser rejection precedes application correlation. See README for request-ID searches and failure triage.
+
 ## Pre-feature consistency review, October 6
 
 Completed three passes: domain inventory and corrections; a second review of the changed modules; independent cross-domain review and integrated verification. Scope includes authored source, test suites/support, compiler and tool configurations, scripts, Prisma schema and current documentation. Supplied documents remain checksum-protected; generated files and dependencies are not hand-edited.

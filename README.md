@@ -118,7 +118,7 @@ The primary metric is distinct sessions clicking the main CTA divided by distinc
 
 ## Diagnostics and failure recovery
 
-The backend writes structured JSON diagnostics to stderr with timestamps and `info`/`warn`/`error` levels. Every HTTP request receives a server-generated `x-request-id`; client-supplied identifiers are replaced. Completion records contain that identifier, the registered route template, method, status and duration. Aborted connections are recorded separately. Body-parser failures are correlated too.
+The backend writes structured JSON diagnostics to stderr with timestamps and `info`/`warn`/`error` levels. Every request reaching application middleware receives a server-generated `x-request-id`; client-supplied identifiers are replaced. Completion records contain that identifier, the registered route template, method, status and duration. Aborted connections are recorded separately. Body-parser failures are correlated too. HTTP parser failures rejected by Node before middleware do not have an application request identifier.
 
 Application diagnostics omit request bodies, raw URLs/query strings, cookies, authorization headers, error messages and absolute file paths. Errors expose an allowlisted code, a callsite fingerprint and bounded hashed stack locations with line/column numbers. Only exact predefined environment-validation messages are included as `safeMessage`. Fingerprints group matching callsites within the same deployment; keep the matching source/build when reproducing an error locally. They are not substitutes for inspecting code or reproducing the failure.
 
