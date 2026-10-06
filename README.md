@@ -36,6 +36,8 @@ Shared packages are built before development startup. Restart development after 
 
 Run production backend output after building and migrating with `npm run start --workspace=@kelpie/backend`. Deployment routing, TLS, secrets, storage persistence, and backups still require configuration. This command alone is not a production deployment.
 
+Run `npm run benchmark:runtime` to reproduce pure-function measurements across all configuration versions and variants. These measurements do not represent application throughput.
+
 ## Structure
 
 ```text
