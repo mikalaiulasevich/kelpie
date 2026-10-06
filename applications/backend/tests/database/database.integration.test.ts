@@ -42,6 +42,31 @@ describe('SQLite persistence invariants', () => {
     expect(await database.$queryRawUnsafe('PRAGMA foreign_keys')).toEqual([{ foreign_keys: 1n }]);
   });
 
+  it('scopes operation identifiers to their session while rejecting retries as new rows', async () => {
+    const database = backend.database;
+    const { session, otherSession } = await DatabaseRecords.createOperationOwners(database);
+    const operation = DatabaseRecords.operation(session.identifier);
+    await database.sessionOperation.create({ data: operation });
+    await database.sessionOperation.create({
+      data: DatabaseRecords.operation(otherSession.identifier),
+    });
+
+    await expect(database.sessionOperation.create({ data: operation })).rejects.toMatchObject({
+      code: 'P2002',
+    });
+    expect(await database.sessionOperation.count()).toBe(2);
+    expect(
+      await database.sessionOperation.findUnique({
+        where: {
+          sessionIdentifier_operationIdentifier: {
+            sessionIdentifier: session.identifier,
+            operationIdentifier: operation.operationIdentifier,
+          },
+        },
+      }),
+    ).toMatchObject(operation);
+  });
+
   it('rejects duplicate event identifiers and preserves historical version references', async () => {
     const database = backend.database;
     const { version, eventData } = await DatabaseRecords.createSession(database);

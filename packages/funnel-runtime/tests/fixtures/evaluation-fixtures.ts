@@ -1,6 +1,11 @@
 import { isUndefined } from 'es-toolkit/predicate';
 import { omit } from 'es-toolkit/object';
-import { StepRules, type FunnelConfiguration, type SessionAnswers, type StepAnswer } from '@kelpie/contracts';
+import {
+  StepRules,
+  type FunnelConfiguration,
+  type SessionAnswers,
+  type StepAnswer,
+} from '@kelpie/contracts';
 import { RuntimeAnswers, RuntimeFixtures } from './runtime-fixtures.js';
 import { FixtureMessages } from './fixture-messages.js';
 

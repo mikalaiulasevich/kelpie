@@ -1,6 +1,24 @@
 import type { DatabaseService } from '../../source/database/database.service.js';
 
 export const DatabaseRecords = {
+  async createOperationOwners(database: DatabaseService['client']) {
+    const { session } = await DatabaseRecords.createSession(database);
+    const otherSession = await database.session.create({
+      data: { ...session, identifier: 'other-session' },
+    });
+
+    return { session, otherSession };
+  },
+
+  operation(sessionIdentifier: string) {
+    return {
+      operationIdentifier: 'same-operation',
+      sessionIdentifier,
+      requestFingerprint: 'test-intent',
+      response: { revision: 1 },
+    };
+  },
+
   async createSession(database: DatabaseService['client']) {
     await database.funnel.create({ data: { identifier: 'test-funnel' } });
     const version = await database.funnelVersion.create({
@@ -26,6 +44,7 @@ export const DatabaseRecords = {
     });
 
     return {
+      session,
       version,
       eventData: {
         identifier: 'test-event',
