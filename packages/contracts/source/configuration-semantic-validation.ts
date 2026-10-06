@@ -3,6 +3,8 @@ import type { FunnelStep, InteractiveStep, NumberStep, SelectionStep } from './s
 import type { ConfigurationIssue, FunnelConfiguration } from './configuration-types.js';
 import { ConditionOperator, StepType } from './domain-values.js';
 import { configurationLimits } from './configuration-document-bounds.js';
+import { readOwnProperty } from './dictionary.js';
+import { resolveSelectionLimits } from './step-rules.js';
 
 interface ConfigurationValidationContext {
   readonly configuration: FunnelConfiguration;
@@ -96,10 +98,9 @@ function validateSelectionStep(
     );
   }
 
-  const minimum = step.validation.minSelections ?? (step.validation.required ? 1 : 0);
-  const maximum = step.validation.maxSelections ?? optionValues.size;
+  const limits = resolveSelectionLimits(step, optionValues.size);
 
-  if (minimum > maximum || maximum > optionValues.size) {
+  if (limits.minimum > limits.maximum || limits.maximum > optionValues.size) {
     reportIssue(
       context,
       `/steps/${stepIdentifier}/validation`,
@@ -211,9 +212,7 @@ function validateVariants(context: ConfigurationValidationContext): void {
     let resultCount = 0;
 
     for (const [position, stepIdentifier] of variant.stepSequence.entries()) {
-      const step = Object.hasOwn(configuration.steps, stepIdentifier)
-        ? configuration.steps[stepIdentifier]
-        : undefined;
+      const step = readOwnProperty(configuration.steps, stepIdentifier);
 
       if (step === undefined) {
         reportIssue(
@@ -224,9 +223,7 @@ function validateVariants(context: ConfigurationValidationContext): void {
         continue;
       }
 
-      const override = Object.hasOwn(variant.stepOverrides, stepIdentifier)
-        ? variant.stepOverrides[stepIdentifier]
-        : undefined;
+      const override = readOwnProperty(variant.stepOverrides, stepIdentifier);
 
       if (override !== undefined) {
         validateStepContent(

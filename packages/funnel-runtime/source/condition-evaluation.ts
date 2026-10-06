@@ -1,4 +1,9 @@
-import { ConditionOperator, type Condition, type SessionAnswers } from '@kelpie/contracts';
+import {
+  ConditionOperator,
+  readOwnProperty,
+  type Condition,
+  type SessionAnswers,
+} from '@kelpie/contracts';
 
 /** Missing or inactive answers never satisfy a predicate. */
 export function evaluateCondition(condition: Condition, answers: SessionAnswers): boolean {
@@ -10,7 +15,7 @@ export function evaluateCondition(condition: Condition, answers: SessionAnswers)
     return condition.any.some((child) => evaluateCondition(child, answers));
   }
 
-  const answer = Object.hasOwn(answers, condition.answer) ? answers[condition.answer] : undefined;
+  const answer = readOwnProperty(answers, condition.answer);
 
   if (answer === undefined) {
     return false;

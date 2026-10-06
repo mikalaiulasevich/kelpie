@@ -1,5 +1,6 @@
 import {
-  StepType,
+  isInteractiveStep,
+  readOwnProperty,
   type ExperimentVariant,
   type FunnelConfiguration,
   type FunnelResult,
@@ -17,15 +18,19 @@ function applyStepOverride(
   step: FunnelStep,
   variant: VariantConfiguration,
 ): FunnelStep {
-  const override = Object.hasOwn(variant.stepOverrides, stepIdentifier)
-    ? variant.stepOverrides[stepIdentifier]
-    : undefined;
+  const override = readOwnProperty(variant.stepOverrides, stepIdentifier);
 
   if (override === undefined) {
     return step;
   }
 
   return { ...step, content: { ...step.content, ...override.content } };
+}
+
+function applyResultOverride(result: FunnelResult, variant: VariantConfiguration): FunnelResult {
+  const override = readOwnProperty(variant.resultOverrides, result.id);
+
+  return { ...result, ...override };
 }
 
 export function resolveExperimentConfiguration(
@@ -42,10 +47,7 @@ export function resolveExperimentConfiguration(
   const results: Record<string, FunnelResult> = {};
 
   for (const [identifier, result] of Object.entries(configuration.results)) {
-    const override = Object.hasOwn(selectedVariant.resultOverrides, identifier)
-      ? selectedVariant.resultOverrides[identifier]
-      : undefined;
-    results[identifier] = { ...result, ...override };
+    results[identifier] = applyResultOverride(result, selectedVariant);
   }
 
   return { variant, stepSequence: selectedVariant.stepSequence, steps, results };
@@ -65,9 +67,7 @@ export function resolveAvailableSteps(
   const excludedTypes = new Set(configuration.progress.excludeTypes);
 
   for (const stepIdentifier of selectedVariant.stepSequence) {
-    const originalStep = Object.hasOwn(configuration.steps, stepIdentifier)
-      ? configuration.steps[stepIdentifier]
-      : undefined;
+    const originalStep = readOwnProperty(configuration.steps, stepIdentifier);
 
     if (originalStep === undefined) {
       throw new Error('Runtime requires a validated configuration.');
@@ -86,11 +86,11 @@ export function resolveAvailableSteps(
       questionCount += 1;
     }
 
-    if (step.type === StepType.Information || step.type === StepType.Result) {
+    if (!isInteractiveStep(step)) {
       continue;
     }
 
-    const answer = Object.hasOwn(answers, step.input.name) ? answers[step.input.name] : undefined;
+    const answer = readOwnProperty(answers, step.input.name);
 
     if (answer !== undefined && validateStepAnswer(step, answer).valid) {
       activeAnswers[step.input.name] = answer;
@@ -139,9 +139,8 @@ export function resolveFunnelResult(
 
   for (const step of route.steps) {
     if (
-      step.type !== StepType.Information &&
-      step.type !== StepType.Result &&
-      !validateStepAnswer(step, route.activeAnswers[step.input.name]).valid
+      isInteractiveStep(step) &&
+      !validateStepAnswer(step, readOwnProperty(route.activeAnswers, step.input.name)).valid
     ) {
       return undefined;
     }
@@ -150,17 +149,11 @@ export function resolveFunnelResult(
   const resultIdentifier =
     configuration.resultRules.find((rule) => evaluateCondition(rule.when, route.activeAnswers))
       ?.resultId ?? configuration.defaultResultId;
-  const result = Object.hasOwn(configuration.results, resultIdentifier)
-    ? configuration.results[resultIdentifier]
-    : undefined;
-  const overrides = configuration.experiment.variants[variant].resultOverrides;
-  const override = Object.hasOwn(overrides, resultIdentifier)
-    ? overrides[resultIdentifier]
-    : undefined;
+  const result = readOwnProperty(configuration.results, resultIdentifier);
 
   if (result === undefined) {
     return undefined;
   }
 
-  return { ...result, ...override };
+  return applyResultOverride(result, configuration.experiment.variants[variant]);
 }

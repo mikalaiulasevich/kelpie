@@ -25,10 +25,9 @@ export interface AnswerIssue {
   readonly message: string;
 }
 
-export interface AnswerValidationResult {
-  readonly valid: boolean;
-  readonly issues: readonly AnswerIssue[];
-}
+export type AnswerValidationResult =
+  | { readonly valid: true; readonly issues: readonly [] }
+  | { readonly valid: false; readonly issues: readonly AnswerIssue[] };
 
 export interface ResolvedExperimentConfiguration {
   readonly variant: ExperimentVariant;

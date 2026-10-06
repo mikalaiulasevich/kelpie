@@ -1,5 +1,8 @@
 import {
   StepType,
+  isInteractiveStep,
+  readOwnProperty,
+  resolveSelectionLimits,
   type AnswerValidation,
   type FunnelStep,
   type NumberStep,
@@ -16,9 +19,7 @@ function createIssue(
   code: AnswerIssueCode,
   fallbackMessage: string,
 ): AnswerIssue {
-  const customMessage = Object.hasOwn(validation.messages, code)
-    ? validation.messages[code]
-    : undefined;
+  const customMessage = readOwnProperty(validation.messages, code);
 
   return { code, message: customMessage ?? fallbackMessage };
 }
@@ -99,20 +100,19 @@ function validateMultipleSelections(
     issues.push(createIssue(validation, AnswerIssueCode.Option, 'Select an available option.'));
   }
 
-  const minimumSelections = validation.minSelections ?? (validation.required ? 1 : 0);
-  const maximumSelections = validation.maxSelections ?? input.options.length;
+  const { minimum, maximum } = resolveSelectionLimits(step);
 
-  if (answer.length < minimumSelections) {
+  if (answer.length < minimum) {
     issues.push(
       createIssue(
         validation,
         AnswerIssueCode.MinimumSelections,
-        `Choose at least ${minimumSelections} options.`,
+        `Choose at least ${minimum} options.`,
       ),
     );
   }
 
-  if (answer.length > maximumSelections) {
+  if (answer.length > maximum) {
     issues.push(createIssue(validation, AnswerIssueCode.MaximumSelections, 'Too many selections.'));
   }
 
@@ -120,11 +120,15 @@ function validateMultipleSelections(
 }
 
 function validationResult(issues: readonly AnswerIssue[]): AnswerValidationResult {
-  return { valid: issues.length === 0, issues };
+  if (issues.length === 0) {
+    return { valid: true, issues: [] };
+  }
+
+  return { valid: false, issues };
 }
 
 export function validateStepAnswer(step: FunnelStep, answer: unknown): AnswerValidationResult {
-  if (step.type === StepType.Information || step.type === StepType.Result) {
+  if (!isInteractiveStep(step)) {
     return validationResult([
       {
         code: AnswerIssueCode.NotInteractive,

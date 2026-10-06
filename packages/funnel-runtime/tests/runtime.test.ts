@@ -45,6 +45,53 @@ const completeAnswers: SessionAnswers = {
 };
 
 describe('pure funnel runtime', () => {
+  it.each([1, 2, 3])(
+    'applies the same result overrides through both resolvers in version %s',
+    (version) => {
+      const document = configuration(version);
+      const before = JSON.stringify(document);
+
+      for (const variant of [ExperimentVariant.A, ExperimentVariant.B]) {
+        const result = resolveFunnelResult(document, variant, completeAnswers);
+        const resolved = resolveExperimentConfiguration(document, variant);
+
+        expect(result).toBeDefined();
+
+        if (result === undefined) {
+          throw new Error('Complete fixture answers must produce a result.');
+        }
+
+        expect(result).toEqual(resolved.results[result.id]);
+      }
+
+      expect(JSON.stringify(document)).toBe(before);
+    },
+  );
+
+  it('ignores inherited result overrides in both resolvers', () => {
+    const document = configuration(1);
+    const resultOverrides = {};
+    Object.setPrototypeOf(resultOverrides, { balanced: { title: 'Inherited title' } });
+
+    const inheritedDocument: FunnelConfiguration = {
+      ...document,
+      experiment: {
+        ...document.experiment,
+        variants: {
+          ...document.experiment.variants,
+          B: { ...document.experiment.variants.B, resultOverrides },
+        },
+      },
+    };
+
+    expect(resolveFunnelResult(inheritedDocument, ExperimentVariant.B, completeAnswers)).toEqual(
+      document.results['balanced'],
+    );
+    expect(
+      resolveExperimentConfiguration(inheritedDocument, ExperimentVariant.B).results['balanced'],
+    ).toEqual(document.results['balanced']);
+  });
+
   it('resolves variant order and copy without changing the original document', () => {
     const document = configuration(1);
     const before = JSON.stringify(document);

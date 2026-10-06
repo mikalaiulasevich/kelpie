@@ -3,23 +3,31 @@ import { Button } from './components/button';
 import { ServiceHealthStatus } from './service-health/service-health';
 import { useServiceHealth } from './service-health/use-service-health';
 
-const serviceHealthLabels: Readonly<Record<ServiceHealthStatus, string>> = Object.freeze({
-  [ServiceHealthStatus.Checking]: 'Checking backend connection',
-  [ServiceHealthStatus.Ready]: 'Backend connection verified',
-  [ServiceHealthStatus.Unavailable]: 'Backend unavailable',
-});
+interface ServiceHealthPresentation {
+  readonly label: string;
+  readonly indicatorClassName: string;
+}
 
-const serviceHealthIndicatorClasses: Readonly<Record<ServiceHealthStatus, string>> = Object.freeze({
-  [ServiceHealthStatus.Checking]: 'bg-slate-400',
-  [ServiceHealthStatus.Ready]: 'bg-emerald-600',
-  [ServiceHealthStatus.Unavailable]: 'bg-amber-600',
-});
+const serviceHealthPresentations: Readonly<Record<ServiceHealthStatus, ServiceHealthPresentation>> =
+  Object.freeze({
+    [ServiceHealthStatus.Checking]: {
+      label: 'Checking backend connection',
+      indicatorClassName: 'bg-slate-400',
+    },
+    [ServiceHealthStatus.Ready]: {
+      label: 'Backend connection verified',
+      indicatorClassName: 'bg-emerald-600',
+    },
+    [ServiceHealthStatus.Unavailable]: {
+      label: 'Backend unavailable',
+      indicatorClassName: 'bg-amber-600',
+    },
+  });
 
 export function Application() {
   const [checkSequence, setCheckSequence] = useState(0);
   const serviceHealth = useServiceHealth(checkSequence);
-  const statusLabel = serviceHealthLabels[serviceHealth.status];
-  const indicatorClassName = serviceHealthIndicatorClasses[serviceHealth.status];
+  const presentation = serviceHealthPresentations[serviceHealth.status];
 
   return (
     <div className="min-h-screen">
@@ -53,9 +61,9 @@ export function Application() {
             <p className="flex items-center gap-3 text-sm font-medium">
               <span
                 aria-hidden="true"
-                className={`h-2.5 w-2.5 shrink-0 rounded-full ${indicatorClassName}`}
+                className={`h-2.5 w-2.5 shrink-0 rounded-full ${presentation.indicatorClassName}`}
               />
-              {statusLabel}
+              {presentation.label}
             </p>
             <p className="mt-3 text-sm leading-6 text-slate-600">
               {serviceHealth.status === ServiceHealthStatus.Ready && (

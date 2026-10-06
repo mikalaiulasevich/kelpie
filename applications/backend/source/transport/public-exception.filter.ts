@@ -17,17 +17,10 @@ function resolvePublicStatus(exception: unknown): number {
   if (
     exception instanceof Error &&
     'status' in exception &&
-    exception.status === HttpStatus.PAYLOAD_TOO_LARGE
+    (exception.status === HttpStatus.PAYLOAD_TOO_LARGE ||
+      exception.status === HttpStatus.BAD_REQUEST)
   ) {
-    return HttpStatus.PAYLOAD_TOO_LARGE;
-  }
-
-  if (
-    exception instanceof Error &&
-    'status' in exception &&
-    exception.status === HttpStatus.BAD_REQUEST
-  ) {
-    return HttpStatus.BAD_REQUEST;
+    return exception.status;
   }
 
   return HttpStatus.INTERNAL_SERVER_ERROR;
