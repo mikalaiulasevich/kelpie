@@ -88,4 +88,6 @@ Completed a separate security/resilience/diagnostics review. Added structured co
 
 Full npm run verify passed 189 cases (74 backend, 5 frontend, 59 contracts, 51 runtime) and all compiler/lint/format/build/schema/integrity checks. npm audit reported zero vulnerabilities across 561 dependencies. Independent final review found no further material blocker in the implemented foundation. No public deployment, full authentication, transactional command replay or production readiness is claimed.
 
+Repeated ownership review after user feedback found SQL/contracts still embedded in backend operations and mixed ownership in recently added test fixtures. Moved them to domain owners, preserved tests and recorded intentional local-type exceptions. Expanded AGENTS.md into an every-request quality workflow covering analogous cleanup, failure/security review and evidence boundaries. Added scoped ESLint regression guards; five negative examples failed as expected and one positive example passed. Independent review checked rule override ordering and syntax limits. Final npm run verify passed the existing 189 tests and all checks; no extra scenarios were added to inflate counts.
+
 This log records development milestones, not elapsed assignment time. No mutually agreed 48-hour start has been recorded.

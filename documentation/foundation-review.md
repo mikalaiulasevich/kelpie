@@ -4,6 +4,16 @@
 
 Review covers the application scaffold, configuration contracts/runtime, initial database schema, health endpoints, development startup, and dependency selection. Complete funnel behavior and public production deployment are outside this foundation milestone.
 
+## Follow-up ownership and enforcement review, October 6
+
+The follow-up found additional organizational inconsistencies despite earlier green checks: SQL embedded in migration operations, reusable database/health/context contracts embedded in implementation modules, and newly introduced test fixtures mixing several resource owners with policy/messages/types. These were moved to explicit owners and consumers migrated without compatibility aliases. Test scenarios and behavioral expectations were preserved.
+
+AGENTS.md now defines a required workflow for every coding request: inspect current work, search analogous violations, maintain encountered code within the authorized scope, review the final diff, exercise relevant failures and report evidence precisely. Existing narrow/read-only requests retain their edit boundaries. This is the repository contract, not a background automation.
+
+Scoped ESLint guards now reject direct literal/template arguments to the named built-in error constructors in source/tooling, direct inline arrays passed to each, Messages declarations in policy modules, and production imports from test directories. Five in-memory negative probes were rejected and a domain-message positive probe passed. The guards intentionally recognize syntax rather than prove semantic ownership; aliases, differently named catalogs and equivalent syntax still require review. An independent reviewer checked override ordering and documented limits.
+
+The final full npm run verify passed 189 unchanged cases plus types, lint, formatting, clean builds, supplied configuration integrity, test layout and Prisma validation. No new behavioral feature, dependency or performance improvement is claimed. Private single-component property interfaces and private traversal-state types remain local; schema-derived aliases stay with canonical schemas when appropriate. Those are deliberate cohesion choices, not unreported failed migrations. This pass does not establish that every possible violation or defect has been eliminated.
+
 ## Security, resilience and diagnostics review, October 6
 
 Reviewed the implemented foundation separately for input handling, privacy, database failure behavior, process lifecycle and diagnostic usefulness. Independent review found no additional material blocker after the corrections below; this is not a penetration test or proof of production readiness.
