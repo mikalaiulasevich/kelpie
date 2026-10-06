@@ -1,8 +1,11 @@
+import { isNil } from 'es-toolkit/predicate';
 import { isMatching, P } from 'ts-pattern';
 
 export const AnswerValues = {
   isFiniteNumber: isMatching(P.number.finite()),
-  isMissing: isMatching(P.union(P.nullish, '')),
+  isMissing(answer: unknown): answer is null | undefined | '' {
+    return isNil(answer) || answer === '';
+  },
 
   isBoundedSelection(answer: unknown, maximumLength: number): answer is ReadonlyList<string> {
     if (!Array.isArray(answer) || answer.length > maximumLength) {

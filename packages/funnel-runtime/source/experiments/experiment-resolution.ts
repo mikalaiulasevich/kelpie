@@ -1,9 +1,5 @@
-import type {
-  ExperimentVariant,
-  FunnelConfiguration,
-  FunnelResult,
-  FunnelStep,
-} from '@kelpie/contracts';
+import { mapValues } from 'es-toolkit/object';
+import type { ExperimentVariant, FunnelConfiguration } from '@kelpie/contracts';
 import { VariantOverrides } from './variant-overrides.js';
 import type { ResolvedExperimentConfiguration } from './experiment-types.js';
 
@@ -13,17 +9,12 @@ export const ExperimentResolution = {
     variant: ExperimentVariant,
   ): ResolvedExperimentConfiguration {
     const selectedVariant = configuration.experiment.variants[variant];
-    const steps: Dictionary<string, FunnelStep> = {};
-
-    for (const [identifier, step] of Object.entries(configuration.steps)) {
-      steps[identifier] = VariantOverrides.step(identifier, step, selectedVariant);
-    }
-
-    const results: Dictionary<string, FunnelResult> = {};
-
-    for (const [identifier, result] of Object.entries(configuration.results)) {
-      results[identifier] = VariantOverrides.result(result, selectedVariant);
-    }
+    const steps = mapValues(configuration.steps, (step, identifier) =>
+      VariantOverrides.step(identifier, step, selectedVariant),
+    );
+    const results = mapValues(configuration.results, (result) =>
+      VariantOverrides.result(result, selectedVariant),
+    );
 
     return { variant, stepSequence: selectedVariant.stepSequence, steps, results };
   },
