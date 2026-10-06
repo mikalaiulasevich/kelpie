@@ -1,3 +1,8 @@
+interface PendingDocumentValue {
+  readonly value: unknown;
+  readonly depth: number;
+}
+
 export const configurationLimits = Object.freeze({
   maximumDocumentBytes: 262144,
   maximumDepth: 24,
@@ -67,9 +72,4 @@ export function checkDocumentBounds(document: unknown): string | undefined {
   }
 
   return undefined;
-}
-
-interface PendingDocumentValue {
-  readonly value: unknown;
-  readonly depth: number;
 }

@@ -1,5 +1,5 @@
-import type { Condition } from './condition_types.js';
-import type { FunnelStep, NumberStep, SelectionStep } from './step_types.js';
+import type { AnswerCondition, Condition } from './condition_types.js';
+import type { FunnelStep, InteractiveStep, NumberStep, SelectionStep } from './step_types.js';
 import type { ConfigurationIssue, FunnelConfiguration } from './configuration_types.js';
 import { ConditionOperator, StepType } from './domain_values.js';
 import { configurationLimits } from './configuration_document_bounds.js';
@@ -7,7 +7,7 @@ import { configurationLimits } from './configuration_document_bounds.js';
 interface ConfigurationValidationContext {
   readonly configuration: FunnelConfiguration;
   readonly issues: ConfigurationIssue[];
-  readonly answerSteps: Map<string, FunnelStep>;
+  readonly answerSteps: Map<string, InteractiveStep>;
 }
 
 function reportIssue(context: ConfigurationValidationContext, path: string, message: string): void {
@@ -16,10 +16,7 @@ function reportIssue(context: ConfigurationValidationContext, path: string, mess
   }
 }
 
-function visitPredicates(
-  condition: Condition,
-  visit: (predicate: Extract<Condition, { answer: string }>) => void,
-): void {
+function visitPredicates(condition: Condition, visit: (predicate: AnswerCondition) => void): void {
   if ('all' in condition) {
     condition.all.forEach((child) => visitPredicates(child, visit));
   } else if ('any' in condition) {
@@ -164,11 +161,7 @@ function validateCondition(
   visitPredicates(condition, (predicate) => {
     const answerStep = context.answerSteps.get(predicate.answer);
 
-    if (
-      answerStep === undefined ||
-      answerStep.type === StepType.Information ||
-      answerStep.type === StepType.Result
-    ) {
+    if (answerStep === undefined) {
       reportIssue(context, path, `Unknown answer reference: ${predicate.answer}.`);
 
       return;

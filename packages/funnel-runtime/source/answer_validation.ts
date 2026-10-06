@@ -3,7 +3,8 @@ import {
   type AnswerValidation,
   type FunnelStep,
   type NumberStep,
-  type SelectionStep,
+  type SingleSelectionStep,
+  type MultipleSelectionStep,
 } from '@kelpie/contracts';
 import { AnswerIssueCode, type AnswerIssue, type AnswerValidationResult } from './runtime_types.js';
 
@@ -53,7 +54,10 @@ function validateNumberAnswer(step: NumberStep, answer: unknown): readonly Answe
   return issues;
 }
 
-function validateSingleSelection(step: SelectionStep, answer: unknown): readonly AnswerIssue[] {
+function validateSingleSelection(
+  step: SingleSelectionStep,
+  answer: unknown,
+): readonly AnswerIssue[] {
   const isAvailableOption =
     typeof answer === 'string' && step.input.options.some((option) => option.value === answer);
 
@@ -72,7 +76,10 @@ function isBoundedSelection(answer: unknown, maximumLength: number): answer is r
   );
 }
 
-function validateMultipleSelections(step: SelectionStep, answer: unknown): readonly AnswerIssue[] {
+function validateMultipleSelections(
+  step: MultipleSelectionStep,
+  answer: unknown,
+): readonly AnswerIssue[] {
   const { input, validation } = step;
 
   // Bound work before inspecting values or constructing membership sets.

@@ -21,6 +21,7 @@ export type {
   FunnelStep,
   InformationStep,
   InteractiveStep,
+  MultipleSelectionStep,
   NumberInput,
   NumberStep,
   ResultStep,
@@ -28,6 +29,7 @@ export type {
   SelectionOption,
   SelectionStep,
   SessionAnswers,
+  SingleSelectionStep,
   StepAnswer,
   StepContent,
 } from './step_types.js';

@@ -62,11 +62,20 @@ export interface SelectionInput {
   readonly options: readonly SelectionOption[];
 }
 
-export interface SelectionStep extends StepBase {
-  readonly type: typeof StepType.SingleSelect | typeof StepType.MultiSelect;
+interface SelectionStepBase extends StepBase {
   readonly input: SelectionInput;
   readonly validation: AnswerValidation;
 }
+
+export interface SingleSelectionStep extends SelectionStepBase {
+  readonly type: typeof StepType.SingleSelect;
+}
+
+export interface MultipleSelectionStep extends SelectionStepBase {
+  readonly type: typeof StepType.MultiSelect;
+}
+
+export type SelectionStep = SingleSelectionStep | MultipleSelectionStep;
 
 export type InteractiveStep = NumberStep | SelectionStep;
 

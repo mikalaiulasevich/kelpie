@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { readApplicationEnvironment } from './read-application_environment.js';
+import { readApplicationEnvironment } from './read_application_environment.js';
 
-export { readApplicationEnvironment } from './read-application_environment.js';
+export { readApplicationEnvironment } from './read_application_environment.js';
 
 @Injectable()
 export class ApplicationEnvironmentService {
