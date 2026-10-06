@@ -13,4 +13,3 @@ export const ShutdownFixture = {
     return { server, shutdown: new ApplicationShutdown(adapter) };
   },
 } as const;
-

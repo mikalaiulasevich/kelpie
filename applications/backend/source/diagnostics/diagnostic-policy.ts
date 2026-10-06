@@ -27,6 +27,7 @@ export const DiagnosticPolicy = {
     'P1001',
     'P1002',
     'P2024',
+    'P2010',
     'P2021',
     'P2022',
     'P2002',

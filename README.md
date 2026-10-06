@@ -116,6 +116,35 @@ Hypothesis: variant B increases the share of started sessions opening recommenda
 
 The primary metric is distinct sessions clicking the main CTA divided by distinct started sessions. Secondary metrics are result completion and CTA CTR among result viewers. Comparisons are within one version and experiment. Forced assignments are excluded from experiment comparison by default. Synthetic data is marked and supports calculation verification rather than hypothesis validation.
 
+## Diagnostics and failure recovery
+
+The backend writes structured JSON diagnostics to stderr with timestamps and `info`/`warn`/`error` levels. Every HTTP request receives a server-generated `x-request-id`; client-supplied identifiers are replaced. Completion records contain that identifier, the registered route template, method, status and duration. Aborted connections are recorded separately. Body-parser failures are correlated too.
+
+Application diagnostics omit request bodies, raw URLs/query strings, cookies, authorization headers, error messages and absolute file paths. Errors expose an allowlisted code, a callsite fingerprint and bounded hashed stack locations with line/column numbers. Only exact predefined environment-validation messages are included as `safeMessage`. Fingerprints group matching callsites within the same deployment; keep the matching source/build when reproducing an error locally. They are not substitutes for inspecting code or reproducing the failure.
+
+For a local diagnostic session after building/migrating, from the repository root:
+
+```sh
+cd applications/backend
+mkdir -p data
+umask 077
+node distribution/source/main.js 2>data/backend.jsonl
+```
+
+With `jq` installed, search a response's identifier or inspect failures:
+
+```sh
+jq -R 'fromjson? | select(.requestIdentifier == "REPLACE_WITH_RESPONSE_REQUEST_ID")' data/backend.jsonl
+jq -R 'fromjson? | select(.level == "error")' data/backend.jsonl
+```
+
+- `application_failed`: inspect `phase`, `error.code` and `error.safeMessage`; `EADDRINUSE` means the configured port is occupied. Correct the cause and restart.
+- `readiness_failed`: `migrations_incomplete` requires checking migration status; `database_query_failed` requires checking the safe error code, disk access/capacity and database contention. Liveness remains independent and readiness can recover without restarting.
+- `shutdown_deadline_exceeded`: HTTP connections did not drain within ten seconds and were closed. SQLite disconnects after HTTP shutdown. This is a socket-drain limit, not cancellation of synchronous database work.
+- `records_dropped`: the log destination applied backpressure. Records were dropped rather than queued without limit. A failed log destination disables further writes; monitor the collector/process stderr externally. Logs are operational diagnostics, not a durable audit ledger.
+
+Production log rotation, retention, disk quotas and supervisor restart policy remain deployment responsibilities. Nest's raw logger is disabled to prevent unsanitized startup exceptions; application lifecycle/error diagnostics use the structured sink. Compressed JSON bodies are intentionally unsupported (415), and unsupported charsets are client errors rather than server failures.
+
 ## Security and operating boundaries
 
 Backend startup validates environment settings, binds to loopback by default, limits JSON bodies, uses security headers, applies server timeouts, and redacts public exception responses. Readiness checks the database and expected migration state. There are no exposed administrator or mutation endpoints in this foundation.
