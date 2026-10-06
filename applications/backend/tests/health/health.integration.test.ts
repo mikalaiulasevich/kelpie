@@ -24,16 +24,19 @@ describe('Backend foundation with a real SQLite database', () => {
     expect(await readyResponse.json()).toEqual({ status: 'ready' });
   });
 
-  it.each(HealthRequestCases)('$name', async ({ body, expectedStatus, expectedResponse }) => {
-    const response = await backend.request('/api/health/live', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body,
-    });
+  it.each(HealthRequestCases)(
+    '$name',
+    async ({ body, headers, expectedStatus, expectedResponse }) => {
+      const response = await backend.request('/api/health/live', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', ...headers },
+        body,
+      });
 
-    expect(response.status).toBe(expectedStatus);
-    expect(await response.json()).toEqual(expectedResponse);
-  });
+      expect(response.status).toBe(expectedStatus);
+      expect(await response.json()).toEqual(expectedResponse);
+    },
+  );
 
   it('rejects unresolved migration attempts even with a successful initial migration', async () => {
     const database = backend.database;
@@ -42,6 +45,13 @@ describe('Backend foundation with a real SQLite database', () => {
     );
     const response = await backend.request('/api/health/ready');
     expect(response.status).toBe(503);
+    expect((await backend.request('/api/health/live')).status).toBe(200);
+
+    await database.$executeRawUnsafe(
+      'DELETE FROM "_prisma_migrations" WHERE "id" = ?',
+      'failed-migration',
+    );
+    expect((await backend.request('/api/health/ready')).status).toBe(200);
   });
 
   it('returns a redacted unavailable response when migration readiness is lost', async () => {

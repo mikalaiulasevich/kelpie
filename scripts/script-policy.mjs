@@ -1,6 +1,7 @@
 export const DevelopmentPolicy = /** @type {const} */ ({
   Workspaces: Object.freeze(['@kelpie/backend', '@kelpie/frontend']),
   ShutdownTimeoutMilliseconds: 5_000,
+  ShutdownInspectionMilliseconds: 100,
   WindowsPlatform: 'win32',
   MissingProcessCode: 'ESRCH',
   GracefulSignal: /** @type {const} */ ('SIGTERM'),

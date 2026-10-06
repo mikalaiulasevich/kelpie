@@ -1,4 +1,4 @@
-import { Inject, Injectable, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, type OnApplicationShutdown, type OnModuleInit } from '@nestjs/common';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import { PrismaClient } from '../../generated/prisma/client.js';
 import { ApplicationEnvironmentService } from '../environment/application-environment.js';
@@ -13,7 +13,7 @@ interface SQLiteForeignKeySetting {
 }
 
 @Injectable()
-export class DatabaseService implements OnModuleInit, OnModuleDestroy {
+export class DatabaseService implements OnModuleInit, OnApplicationShutdown {
   readonly client: PrismaClient;
   private readonly databaseUrl: string;
   private expectedMigrations: ReadonlyList<string> = [];
@@ -40,7 +40,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     return MigrationHistory.isComplete(this.expectedMigrations, migrations);
   }
 
-  async onModuleDestroy(): Promise<void> {
+  async onApplicationShutdown(): Promise<void> {
     await this.client.$disconnect();
   }
 

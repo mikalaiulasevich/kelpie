@@ -1,5 +1,5 @@
 import { Diagnostics } from '../diagnostics/diagnostics.js';
-import { DiagnosticEvents } from '../diagnostics/diagnostic-policy.js';
+import { DiagnosticEvents, DiagnosticReason } from '../diagnostics/diagnostic-policy.js';
 import { ErrorDiagnostics } from '../diagnostics/error-diagnostics.js';
 import { Controller, Get, Inject, ServiceUnavailableException } from '@nestjs/common';
 import { TransportMessages } from '../transport/transport-messages.js';
@@ -28,13 +28,16 @@ export class HealthController {
     } catch (error) {
       Diagnostics.write({
         event: DiagnosticEvents.ReadinessFailed,
-        reason: 'database_query_failed',
+        reason: DiagnosticReason.DatabaseQueryFailed,
         error: ErrorDiagnostics.describe(error),
       });
       throw new ServiceUnavailableException(TransportMessages.NotReady);
     }
 
-    Diagnostics.write({ event: DiagnosticEvents.ReadinessFailed, reason: 'migrations_incomplete' });
+    Diagnostics.write({
+      event: DiagnosticEvents.ReadinessFailed,
+      reason: DiagnosticReason.MigrationsIncomplete,
+    });
     throw new ServiceUnavailableException(TransportMessages.NotReady);
   }
 }

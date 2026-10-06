@@ -5,6 +5,10 @@ import { DevelopmentPolicy } from './script-policy.mjs';
 /** @type {Set<import('node:child_process').ChildProcess>} */
 const childProcesses = new Set();
 let shuttingDown = false;
+/** @type {ReturnType<typeof setTimeout> | undefined} */
+let shutdownDeadline;
+/** @type {ReturnType<typeof setInterval> | undefined} */
+let shutdownInspection;
 
 const DevelopmentProcesses = {
   /** @param {number} exitCode */
@@ -17,11 +21,35 @@ const DevelopmentProcesses = {
     process.exitCode = exitCode;
 
     DevelopmentProcesses.signal(DevelopmentPolicy.GracefulSignal);
-    const shutdownDeadline = setTimeout(
-      () => DevelopmentProcesses.signal(DevelopmentPolicy.ForcedSignal),
-      DevelopmentPolicy.ShutdownTimeoutMilliseconds,
-    );
-    shutdownDeadline.unref();
+    if (childProcesses.size === 0) {
+      return;
+    }
+
+    // Keep the supervisor alive even when npm exits before its descendants.
+    shutdownDeadline = setTimeout(() => {
+      DevelopmentProcesses.signal(DevelopmentPolicy.ForcedSignal);
+      DevelopmentProcesses.finish();
+    }, DevelopmentPolicy.ShutdownTimeoutMilliseconds);
+    shutdownInspection = setInterval(() => {
+      DevelopmentProcesses.inspect();
+    }, DevelopmentPolicy.ShutdownInspectionMilliseconds);
+  },
+
+  finish() {
+    clearTimeout(shutdownDeadline);
+    clearInterval(shutdownInspection);
+    childProcesses.clear();
+  },
+
+  inspect() {
+    if (process.platform !== DevelopmentPolicy.WindowsPlatform) {
+      // Retire vanished groups promptly to avoid retaining stale group identifiers.
+      DevelopmentProcesses.signal(0);
+    }
+
+    if (childProcesses.size === 0) {
+      DevelopmentProcesses.finish();
+    }
   },
 
   /** @param {unknown} error */
@@ -33,7 +61,7 @@ const DevelopmentProcesses = {
     );
   },
 
-  /** @param {NodeJS.Signals} signal */
+  /** @param {NodeJS.Signals | 0} signal */
   signal(signal) {
     for (const childProcess of childProcesses) {
       try {
@@ -43,7 +71,9 @@ const DevelopmentProcesses = {
           process.kill(-childProcess.pid, signal);
         }
       } catch (error) {
-        if (!DevelopmentProcesses.isMissing(error)) {
+        if (DevelopmentProcesses.isMissing(error)) {
+          childProcesses.delete(childProcess);
+        } else {
           console.error(DevelopmentMessages.SignalFailed, error);
         }
       }
@@ -60,10 +90,17 @@ for (const workspaceName of DevelopmentPolicy.Workspaces) {
   childProcesses.add(childProcess);
   childProcess.on('error', (error) => {
     console.error(DevelopmentMessages.startFailed(workspaceName), error.message);
+    if (childProcess.pid === undefined) {
+      childProcesses.delete(childProcess);
+    }
+
     DevelopmentProcesses.stop(DevelopmentPolicy.FailureExitCode);
   });
   childProcess.on('exit', (exitCode) => {
-    childProcesses.delete(childProcess);
+    if (process.platform === DevelopmentPolicy.WindowsPlatform) {
+      childProcesses.delete(childProcess);
+    }
+
     if (!shuttingDown) {
       DevelopmentProcesses.stop(exitCode ?? DevelopmentPolicy.FailureExitCode);
     }

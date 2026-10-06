@@ -1,12 +1,7 @@
 import { createHash } from 'node:crypto';
-import { DiagnosticPolicy } from './diagnostic-policy.js';
+import { DiagnosticPolicy, ErrorClassification } from './diagnostic-policy.js';
 
-export interface ErrorDescription {
-  readonly classification: 'error' | 'unknown';
-  readonly code: Optional<string>;
-  readonly fingerprint: string;
-  readonly frames: ReadonlyList<Readonly<{ location: string; line: number; column: number }>>;
-}
+import type { ErrorDescription } from './diagnostics-types.js';
 
 export const ErrorDiagnostics = {
   fingerprint(value: string): string {
@@ -16,6 +11,19 @@ export const ErrorDiagnostics = {
       .slice(0, DiagnosticPolicy.FingerprintCharacters);
   },
   describe(error: unknown): ErrorDescription {
+    try {
+      return this.inspect(error);
+    } catch {
+      // Error subclasses can override stack/code accessors; diagnostics cannot trust them.
+      return {
+        classification: ErrorClassification.Unknown,
+        code: undefined,
+        fingerprint: this.fingerprint('unreadable'),
+        frames: [],
+      };
+    }
+  },
+  inspect(error: unknown): ErrorDescription {
     const stack =
       error instanceof Error
         ? (error.stack?.slice(0, DiagnosticPolicy.MaximumStackCharacters) ?? '')
@@ -43,7 +51,8 @@ export const ErrorDiagnostics = {
         : undefined;
 
     return {
-      classification: error instanceof Error ? 'error' : 'unknown',
+      classification:
+        error instanceof Error ? ErrorClassification.Error : ErrorClassification.Unknown,
       code,
       fingerprint: this.fingerprint(stackLines.join('\n')),
       frames,

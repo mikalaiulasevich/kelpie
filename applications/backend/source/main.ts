@@ -1,19 +1,19 @@
 import 'dotenv/config';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { ApplicationPolicy } from './application/application-policy.js';
-import { Diagnostics, type DiagnosticRecord } from './diagnostics/diagnostics.js';
-import { DiagnosticEvents } from './diagnostics/diagnostic-policy.js';
+import { Diagnostics } from './diagnostics/diagnostics.js';
+import { DiagnosticEvents, DiagnosticPhase } from './diagnostics/diagnostic-policy.js';
 import { ErrorDiagnostics } from './diagnostics/error-diagnostics.js';
 import { ApplicationFactory } from './application/create-application.js';
 import { ApplicationEnvironmentService } from './environment/application-environment.js';
 
 let application: Optional<NestExpressApplication>;
-let phase: DiagnosticRecord['phase'] = 'creation';
+let phase: ValueOf<typeof DiagnosticPhase> = DiagnosticPhase.Creation;
 
 try {
   application = await ApplicationFactory.create();
   const environment = application.get(ApplicationEnvironmentService).values;
-  phase = 'listen';
+  phase = DiagnosticPhase.Listen;
   await application.listen(environment.port, environment.host);
   Diagnostics.write({ event: DiagnosticEvents.ApplicationStarted });
 } catch (error) {
@@ -22,7 +22,7 @@ try {
   } catch (cleanupError) {
     Diagnostics.write({
       event: DiagnosticEvents.ApplicationCleanupFailed,
-      phase: 'cleanup',
+      phase: DiagnosticPhase.Cleanup,
       error: ErrorDiagnostics.describe(cleanupError),
     });
   }

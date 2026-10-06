@@ -1,3 +1,4 @@
+import { ApplicationShutdown } from './application-shutdown.js';
 import { Module, type DynamicModule } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service.js';
 import {
@@ -9,7 +10,7 @@ import { HealthController } from '../health/health.controller.js';
 
 @Module({
   controllers: [HealthController],
-  providers: [ApplicationEnvironmentService, DatabaseService],
+  providers: [ApplicationEnvironmentService, DatabaseService, ApplicationShutdown],
 })
 export class ApplicationModule {
   static register(environment: ApplicationEnvironment): DynamicModule {

@@ -31,6 +31,7 @@ export const RequestDiagnostics = {
         durationMilliseconds: Math.round(performance.now() - started),
       });
     };
+
     response.once('finish', complete);
     response.once('close', complete);
     RequestContext.run({ requestIdentifier }, next);

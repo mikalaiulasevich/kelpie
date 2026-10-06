@@ -1,41 +1,36 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { DiagnosticEvents } from './diagnostic-policy.js';
-import type { ErrorDescription } from './error-diagnostics.js';
-
-export interface DiagnosticRecord {
-  readonly event: ValueOf<typeof DiagnosticEvents>;
-  readonly requestIdentifier?: string;
-  readonly method?: string;
-  readonly route?: string;
-  readonly status?: number;
-  readonly durationMilliseconds?: number;
-  readonly reason?: 'database_query_failed' | 'migrations_incomplete';
-  readonly phase?: 'creation' | 'listen' | 'cleanup';
-  readonly error?: ErrorDescription;
-  readonly droppedRecords?: number;
-}
+import type { Writable } from 'node:stream';
+import type { DiagnosticRecord } from './diagnostics-types.js';
 
 export const RequestContext = new AsyncLocalStorage<Readonly<{ requestIdentifier: string }>>();
 
-class DiagnosticSink {
+export class DiagnosticSink {
   private blocked = false;
   private droppedRecords = 0;
+  private failed = false;
+
+  constructor(private readonly destination: Writable) {
+    this.destination.on('error', () => {
+      this.failed = true;
+    });
+  }
 
   write(record: DiagnosticRecord): void {
-    if (this.blocked) {
+    if (this.blocked || this.failed) {
       this.droppedRecords = Math.min(Number.MAX_SAFE_INTEGER, this.droppedRecords + 1);
 
       return;
     }
 
     try {
-      const ready = process.stderr.write(
+      const ready = this.destination.write(
         `${JSON.stringify({ timestamp: new Date().toISOString(), ...RequestContext.getStore(), ...record })}\n`,
       );
 
       if (!ready) {
         this.blocked = true;
-        process.stderr.once('drain', () => this.resume());
+        this.destination.once('drain', () => this.resume());
       }
     } catch {
       // Logging must never replace the original request/startup failure.
@@ -54,4 +49,4 @@ class DiagnosticSink {
   }
 }
 
-export const Diagnostics = new DiagnosticSink();
+export const Diagnostics = new DiagnosticSink(process.stderr);
