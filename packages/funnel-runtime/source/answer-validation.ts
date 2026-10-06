@@ -143,7 +143,7 @@ function validationResult(issues: readonly AnswerIssue[]): AnswerValidationResul
   return { valid: false, issues };
 }
 
-export const AnswerValidation = Object.freeze({
+export const AnswerValidation = {
   validate(step: FunnelStep, answer: unknown): AnswerValidationResult {
     if (!StepRules.isInteractive(step)) {
       return validationResult([
@@ -176,4 +176,4 @@ export const AnswerValidation = Object.freeze({
 
     return validationResult(issues);
   },
-});
+} as const;

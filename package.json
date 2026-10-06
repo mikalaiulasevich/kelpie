@@ -22,7 +22,7 @@
     "development": "npm run build:packages && npm run database:generate && node scripts/development.mjs",
     "build:packages": "npm run build --workspace=@kelpie/contracts && npm run build --workspace=@kelpie/funnel-runtime",
     "build": "npm run build:packages && npm run database:generate && npm run build --workspace=@kelpie/backend && npm run build --workspace=@kelpie/frontend",
-    "typecheck": "npm run build:packages && npm run database:generate && npm run typecheck --workspaces --if-present",
+    "typecheck": "npm run build:packages && npm run database:generate && npm run typecheck --workspaces --if-present && tsc -p tsconfig.json",
     "test": "npm run test --workspaces --if-present",
     "lint": "eslint . --max-warnings=0",
     "format": "prettier . --write",

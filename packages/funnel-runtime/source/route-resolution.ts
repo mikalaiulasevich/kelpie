@@ -22,7 +22,7 @@ function adjacent(
   return route.steps[position + direction];
 }
 
-export const RouteResolution = Object.freeze({
+export const RouteResolution = {
   /** One ordered traversal: only earlier visible, valid answers activate branches. */
   resolve(
     configuration: FunnelConfiguration,
@@ -39,4 +39,4 @@ export const RouteResolution = Object.freeze({
   previous(route: AvailableRoute, identifier: string): Optional<FunnelStep> {
     return adjacent(route, identifier, RouteDirection.Previous);
   },
-});
+} as const;

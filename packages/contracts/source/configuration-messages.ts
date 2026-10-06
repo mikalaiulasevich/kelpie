@@ -1,5 +1,5 @@
 // Authored validation text is owned here; schema-engine diagnostics remain with Ajv.
-export const ConfigurationMessages = Object.freeze({
+export const ConfigurationMessages = {
   InvalidConfiguration: 'Invalid configuration.',
   DocumentTraversalLimit: 'Document exceeds nesting or node limits.',
   FiniteNumbersRequired: 'Numbers must be finite.',
@@ -43,4 +43,4 @@ export const ConfigurationMessages = Object.freeze({
   UnsupportedEventProperty: (propertyName: string): string =>
     `Unsupported event property: ${propertyName}.`,
   MissingRequiredEvent: (eventName: string): string => `Required event missing: ${eventName}.`,
-});
+} as const;

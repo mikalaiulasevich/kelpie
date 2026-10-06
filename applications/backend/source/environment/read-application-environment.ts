@@ -17,13 +17,13 @@ export interface ApplicationEnvironment {
 }
 
 const schemaCompiler = new Ajv({ strict: true, coerceTypes: false });
-const environmentValidators = Object.freeze({
+const environmentValidators = {
   mode: schemaCompiler.compile<Static<typeof EnvironmentSchemas.Mode>>(EnvironmentSchemas.Mode),
   portText: schemaCompiler.compile<string>(EnvironmentSchemas.PortText),
   port: schemaCompiler.compile<number>(EnvironmentSchemas.Port),
   host: schemaCompiler.compile<string>(EnvironmentSchemas.Host),
   databaseUrl: schemaCompiler.compile<string>(EnvironmentSchemas.DatabaseUrl),
-});
+} as const;
 
 function validate<Value>(
   validator: ValidateFunction<Value>,

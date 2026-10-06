@@ -5,7 +5,7 @@ import type {
   SessionAnswers,
 } from '@kelpie/contracts';
 
-export const AnswerIssueCode = Object.freeze({
+export const AnswerIssueCode = {
   NotInteractive: 'not_interactive',
   Required: 'required',
   Type: 'type',
@@ -16,7 +16,7 @@ export const AnswerIssueCode = Object.freeze({
   Duplicate: 'duplicate',
   MinimumSelections: 'minSelections',
   MaximumSelections: 'maxSelections',
-} as const);
+} as const;
 
 export type AnswerIssueCode = ValueOf<typeof AnswerIssueCode>;
 

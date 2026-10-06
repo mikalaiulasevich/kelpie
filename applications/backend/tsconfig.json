@@ -5,11 +5,9 @@
     "moduleResolution": "NodeNext",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "rootDir": ".",
-    "outDir": "distribution",
     "types": ["node"],
-    "noEmit": false
+    "noEmit": true
   },
-  "include": ["source/**/*.ts", "generated/prisma/**/*.ts"],
-  "exclude": ["distribution", "node_modules", "tests"]
+  "include": ["source/**/*.ts", "tests/**/*.ts", "*.config.ts", "generated/prisma/**/*.ts"],
+  "exclude": ["distribution", "node_modules"]
 }

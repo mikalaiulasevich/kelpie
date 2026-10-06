@@ -7,7 +7,7 @@ export interface SelectionLimits {
   readonly maximum: number;
 }
 
-export const StepRules = Object.freeze({
+export const StepRules = {
   isInteractive: isMatching({
     type: P.union(StepType.Number, StepType.SingleSelect, StepType.MultiSelect),
   }),
@@ -24,4 +24,4 @@ export const StepRules = Object.freeze({
   },
 
   hasSelectionLimits: isMatching(P.union({ minSelections: P.number }, { maxSelections: P.number })),
-});
+} as const;

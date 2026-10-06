@@ -12,7 +12,7 @@ import { ConditionEvaluation } from './condition-evaluation.js';
 import { RuntimeMessages } from './runtime-messages.js';
 import { VariantOverrides } from './variant-overrides.js';
 
-export const RouteSteps = Object.freeze({
+export const RouteSteps = {
   resolve(
     configuration: FunnelConfiguration,
     variant: VariantConfiguration,
@@ -54,7 +54,7 @@ export const RouteSteps = Object.freeze({
 
     return AnswerValidation.validate(step, readOwnProperty(answers, step.input.name)).valid;
   },
-});
+} as const;
 
 interface AcceptedStepAnswer {
   readonly name: string;

@@ -11,7 +11,7 @@ import { RouteSteps } from './route-steps.js';
 import { VariantOverrides } from './variant-overrides.js';
 
 /** Rules are ordered: stop at the first match and never evaluate later rules. */
-const ResultRules = Object.freeze({
+const ResultRules = {
   selectIdentifier(configuration: FunnelConfiguration, answers: SessionAnswers): string {
     for (const rule of configuration.resultRules) {
       if (ConditionEvaluation.evaluate(rule.when, answers)) {
@@ -21,9 +21,9 @@ const ResultRules = Object.freeze({
 
     return configuration.defaultResultId;
   },
-});
+} as const;
 
-export const ResultResolution = Object.freeze({
+export const ResultResolution = {
   resolve(
     configuration: FunnelConfiguration,
     variant: ExperimentVariant,
@@ -47,4 +47,4 @@ export const ResultResolution = Object.freeze({
 
     return VariantOverrides.result(result, configuration.experiment.variants[variant]);
   },
-});
+} as const;

@@ -7,7 +7,7 @@ import type {
 import { VariantOverrides } from './variant-overrides.js';
 import type { ResolvedExperimentConfiguration } from './runtime-types.js';
 
-export const ExperimentResolution = Object.freeze({
+export const ExperimentResolution = {
   resolve(
     configuration: FunnelConfiguration,
     variant: ExperimentVariant,
@@ -27,4 +27,4 @@ export const ExperimentResolution = Object.freeze({
 
     return { variant, stepSequence: selectedVariant.stepSequence, steps, results };
   },
-});
+} as const;

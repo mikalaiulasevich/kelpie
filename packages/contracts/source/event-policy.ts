@@ -1,4 +1,4 @@
-export const EventPolicy = Object.freeze({
+export const EventPolicy = {
   properties: Object.freeze([
     'step_type',
     'visible_step_index',
@@ -33,4 +33,4 @@ export const EventPolicy = Object.freeze({
     'result_viewed',
     'cta_clicked',
   ]),
-});
+} as const;

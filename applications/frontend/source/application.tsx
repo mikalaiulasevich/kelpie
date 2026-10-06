@@ -9,7 +9,7 @@ interface ServiceHealthPresentation {
 }
 
 const serviceHealthPresentations: Readonly<Record<ServiceHealthStatus, ServiceHealthPresentation>> =
-  Object.freeze({
+  {
     [ServiceHealthStatus.Checking]: {
       label: 'Checking backend connection',
       indicatorClassName: 'bg-slate-400',
@@ -22,7 +22,7 @@ const serviceHealthPresentations: Readonly<Record<ServiceHealthStatus, ServiceHe
       label: 'Backend unavailable',
       indicatorClassName: 'bg-amber-600',
     },
-  });
+  } as const;
 
 export function Application(): UIElement {
   const [checkSequence, setCheckSequence] = useState(0);

@@ -30,7 +30,7 @@ function evaluateAnswerCondition(condition: AnswerCondition, answers: SessionAns
 }
 
 /** Missing or inactive answers never satisfy a predicate. */
-export const ConditionEvaluation = Object.freeze({
+export const ConditionEvaluation = {
   evaluate(condition: Condition, answers: SessionAnswers): boolean {
     return match(condition)
       .with({ all: P._ }, ({ all }) =>
@@ -42,4 +42,4 @@ export const ConditionEvaluation = Object.freeze({
       .with({ answer: P.string }, (predicate) => evaluateAnswerCondition(predicate, answers))
       .exhaustive();
   },
-});
+} as const;

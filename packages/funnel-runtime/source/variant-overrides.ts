@@ -7,7 +7,7 @@ import {
 } from '@kelpie/contracts';
 import { match, P } from 'ts-pattern';
 
-export const VariantOverrides = Object.freeze({
+export const VariantOverrides = {
   step(stepIdentifier: string, step: FunnelStep, variant: VariantConfiguration): FunnelStep {
     const override = readOwnProperty(variant.stepOverrides, stepIdentifier);
 
@@ -39,4 +39,4 @@ export const VariantOverrides = Object.freeze({
 
     return { ...result, ...override };
   },
-});
+} as const;

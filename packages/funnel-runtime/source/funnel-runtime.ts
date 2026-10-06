@@ -5,10 +5,10 @@ import { ResultResolution } from './result-resolution.js';
 import { RouteResolution } from './route-resolution.js';
 
 /** Grouped domain entry points. */
-export const FunnelRuntime = Object.freeze({
+export const FunnelRuntime = {
   Answers: AnswerValidation,
   Conditions: ConditionEvaluation,
   Experiments: ExperimentResolution,
   Results: ResultResolution,
   Routes: RouteResolution,
-});
+} as const;

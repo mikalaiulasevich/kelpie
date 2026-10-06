@@ -4,10 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc --project tsconfig.json",
-    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json",
     "start": "node distribution/source/main.js",
-    "development": "npm run build && concurrently --kill-others-on-fail \"tsc --project tsconfig.json --watch --preserveWatchOutput\" \"node --watch distribution/source/main.js\"",
+    "development": "npm run build && concurrently --kill-others-on-fail \"tsc --project tsconfig.build.json --watch --preserveWatchOutput\" \"node --watch distribution/source/main.js\"",
     "database:generate": "prisma generate",
     "database:migrate": "tsx source/database/prepare-database-directory.ts && prisma migrate deploy",
     "database:validate": "prisma validate",

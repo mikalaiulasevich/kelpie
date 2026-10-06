@@ -90,7 +90,7 @@ describe('condition evaluation', () => {
   it('short circuits conjunctions and alternatives', () => {
     const answers: SessionAnswers = {
       mode: 'remote',
-      get untouched() {
+      get untouched(): never {
         throw new Error('Short-circuited answers must not be inspected.');
       },
     };

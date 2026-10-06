@@ -1,5 +1,10 @@
 {
   "extends": "../../typescript.base.json",
-  "compilerOptions": { "rootDir": "source", "outDir": "distribution", "declaration": true },
-  "include": ["source/**/*.ts"]
+  "compilerOptions": {
+    "declaration": true,
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": ["source/**/*.ts", "tests/**/*.ts", "*.config.ts"],
+  "exclude": ["distribution", "node_modules"]
 }

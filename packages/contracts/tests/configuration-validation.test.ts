@@ -118,7 +118,12 @@ describe('configuration validation', () => {
   });
 
   it('rejects inherited configuration fields', () => {
-    const inherited: unknown = Object.create(originalConfiguration(1));
+    const parsed = FunnelConfigurations.validate(originalConfiguration(1));
+    if (!parsed.valid) {
+      throw new Error('The original configuration must be valid.');
+    }
+
+    const inherited: unknown = Object.create(parsed.configuration);
     expect(FunnelConfigurations.validate(inherited)).toMatchObject({ valid: false });
   });
 

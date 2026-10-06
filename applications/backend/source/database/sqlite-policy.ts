@@ -1,4 +1,4 @@
-export const SQLitePolicy = Object.freeze({
+export const SQLitePolicy = {
   FileUrlPrefix: 'file:',
   BusyTimeoutMilliseconds: 5_000,
-});
+} as const;

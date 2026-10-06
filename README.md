@@ -96,7 +96,7 @@ See [the development log](documentation/development-log.md) for actual implement
 
 ## Type conventions and module imports
 
-Related operations belong to frozen domain objects, exported whole: `FunnelConfigurations.validate(document)`, `AnswerValidation.validate(step, answer)`, `RouteResolution.resolve(configuration, variant, answers)`, and `ResultResolution.resolve(configuration, variant, answers)`. `FunnelRuntime` groups these same objects for callers using several runtime domains. Standalone method aliases are not exported. All in-repository consumers use the grouped API; objects are constructed once.
+Related operations belong to domain objects, exported whole: `FunnelConfigurations.validate(document)`, `AnswerValidation.validate(step, answer)`, `RouteResolution.resolve(configuration, variant, answers)`, and `ResultResolution.resolve(configuration, variant, answers)`. `FunnelRuntime` groups these same objects for callers using several runtime domains. Standalone method aliases are not exported. All in-repository consumers use the grouped API; objects use `as const` to retain readonly types. Runtime freezing is reserved for shared policy arrays and JavaScript script policies.
 
 Domain policy files own configuration limits and schema constraints, environment defaults, SQLite settings, transport timeouts, numeric tolerances, and readiness settings. Environment inputs use compiled TypeBox/Ajv schemas. Named rules encapsulate condition compatibility and selection constraints. Computed values remain local; message catalogs and policies remain with the subsystem that owns them.
 
@@ -107,3 +107,5 @@ Backend and shared packages compile using TypeScript NodeNext and execute as Nod
 An additional collection utility dependency is not currently required by the bounded runtime loops. Remeda's `pipe` API is a candidate when concrete data-transformation pipelines emerge; it would not replace configuration validation or domain branching.
 
 These ambient types are a private monorepo convention: generated package declarations rely on the shared root declaration file being included by the consumer's TypeScript program. Before publishing packages independently, package and reference that declaration vocabulary explicitly. Ambient declarations emit no JavaScript; NominalIdentity is a type-level marker and must not be accessed at runtime.
+
+Workspace `tsconfig.json` files cover source, tests, and tool configurations so the editor and `npm run typecheck` use the same strict settings and ambient types. Backend/shared package `tsconfig.build.json` files emit only application/library code into the existing output paths. The root `tsconfig.json` owns JavaScript tooling; `checkJs` is disabled and ESLint checks these files. There is no competing jsconfig. VS Code-compatible editors are configured to offer the repository TypeScript version.

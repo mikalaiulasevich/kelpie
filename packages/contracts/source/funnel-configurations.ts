@@ -9,7 +9,7 @@ import { funnelConfigurationSchema } from './configuration-schema.js';
 const structuralValidator =
   configurationSchemaCompiler.compile<FunnelConfiguration>(funnelConfigurationSchema);
 
-export const FunnelConfigurations = Object.freeze({
+export const FunnelConfigurations = {
   limits: configurationLimits,
 
   validate(document: unknown): ConfigurationValidationResult {
@@ -40,4 +40,4 @@ export const FunnelConfigurations = Object.freeze({
 
     return { valid: true, configuration, issues: [] };
   },
-});
+} as const;

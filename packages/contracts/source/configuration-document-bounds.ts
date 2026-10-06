@@ -76,7 +76,7 @@ function inspectValue(
     .otherwise(() => ConfigurationMessages.JsonValuesRequired);
 }
 
-export const ConfigurationDocumentBounds = Object.freeze({
+export const ConfigurationDocumentBounds = {
   check(document: unknown): Optional<string> {
     const traversal: DocumentTraversal = {
       pending: [{ value: document, depth: 0 }],
@@ -114,4 +114,4 @@ export const ConfigurationDocumentBounds = Object.freeze({
 
     return undefined;
   },
-});
+} as const;

@@ -80,7 +80,7 @@ describe('pure funnel runtime', () => {
         { resultId: 'async_native', when: matchingCondition },
         {
           resultId: 'office_core',
-          get when() {
+          get when(): never {
             throw new Error('A later rule must not be evaluated after a match.');
           },
         },

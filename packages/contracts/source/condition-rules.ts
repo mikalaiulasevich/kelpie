@@ -26,9 +26,9 @@ function values(condition: AnswerCondition): ReadonlyList<string | number> {
     .otherwise(({ value }) => [value]);
 }
 
-export const ConditionRules = Object.freeze({
+export const ConditionRules = {
   values,
   acceptsNumericOperands: numericOperands,
   acceptsSelectionOperator: (step: SelectionStep, condition: AnswerCondition): boolean =>
     selectionOperators[step.type].includes(condition.operator),
-});
+} as const;

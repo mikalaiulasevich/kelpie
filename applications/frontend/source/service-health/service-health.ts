@@ -1,8 +1,8 @@
-export const ServiceHealthStatus = Object.freeze({
+export const ServiceHealthStatus = {
   Checking: 'checking',
   Ready: 'ready',
   Unavailable: 'unavailable',
-} as const);
+} as const;
 
 export type ServiceHealthStatus = ValueOf<typeof ServiceHealthStatus>;
 

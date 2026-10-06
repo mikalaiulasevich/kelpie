@@ -1,14 +1,14 @@
 import { SQLitePolicy } from '../database/sqlite-policy.js';
 
-export const ApplicationMode = Object.freeze({
+export const ApplicationMode = {
   Development: 'development',
   Test: 'test',
   Production: 'production',
-} as const);
+} as const;
 
 export type ApplicationMode = ValueOf<typeof ApplicationMode>;
 
-export const EnvironmentPolicy = Object.freeze({
+export const EnvironmentPolicy = {
   DefaultMode: ApplicationMode.Development,
   DefaultPort: '3000',
   DefaultHost: '127.0.0.1',
@@ -18,4 +18,4 @@ export const EnvironmentPolicy = Object.freeze({
   PortPattern: '^\\d{1,5}$',
   HostPattern: '^[a-zA-Z0-9.:-]{1,253}$',
   DatabaseUrlPattern: `^${SQLitePolicy.FileUrlPrefix}[^?#\\u0000]+$`,
-});
+} as const;
