@@ -5,9 +5,6 @@ import {
   type FunnelResult,
   type FunnelStep,
   type InformationStep,
-  type Optional,
-  type Nullable,
-  type Maybe,
   type ResultRule,
 } from '../../source/index.js';
 
@@ -125,5 +122,18 @@ export const maybeValues: readonly Maybe<string>[] = ['present', null, undefined
 // @ts-expect-error Optional does not add null to the allowed values.
 export const invalidOptionalValue: Optional<string> = null;
 
-// @ts-expect-error Nullable does not add undefined to the allowed values.
-export const invalidNullableValue: Nullable<string> = undefined;
+export const undefinedNullableValue: Nullable<string> = undefined;
+
+// Global utility declarations must be available without a utility-type import.
+declare const sessionIdentifier: Nominal<string, 'SessionIdentifier'>;
+export const sessionIdentifierText: string = sessionIdentifier;
+
+// @ts-expect-error Distinct nominal identities must not be interchangeable.
+export const configurationIdentifier: Nominal<string, 'ConfigurationIdentifier'> =
+  sessionIdentifier;
+
+export const conditionOperator: ValueOf<typeof ConditionOperator> = ConditionOperator.Equal;
+export const textDictionary: ReadonlyDictionary<string, string> = { key: 'value' };
+
+// @ts-expect-error Global readonly dictionaries cannot be mutated.
+textDictionary['key'] = 'changed';

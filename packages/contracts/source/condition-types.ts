@@ -6,7 +6,6 @@ import type {
   includedConditionSchema,
   minimumConditionSchema,
 } from './condition-schema.js';
-import type { DeepReadonly } from './schema-primitives.js';
 
 // Explicit recursive edges prevent TypeBox's recursive inference depth from widening to any.
 export interface AllConditions {

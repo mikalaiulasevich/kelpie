@@ -7,7 +7,7 @@ export const ApplicationMode = Object.freeze({
   Production: 'production',
 } as const);
 
-export type ApplicationMode = (typeof ApplicationMode)[keyof typeof ApplicationMode];
+export type ApplicationMode = ValueOf<typeof ApplicationMode>;
 
 export interface ApplicationEnvironment {
   readonly mode: ApplicationMode;

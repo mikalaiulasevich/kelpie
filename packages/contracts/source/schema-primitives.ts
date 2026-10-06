@@ -1,9 +1,5 @@
 import { Type, type TSchema } from 'typebox';
 
-export type DeepReadonly<Value> = Value extends object
-  ? { readonly [Key in keyof Value]: DeepReadonly<Value[Key]> }
-  : Value;
-
 export const identifierSchema = Type.String({
   minLength: 1,
   maxLength: 100,

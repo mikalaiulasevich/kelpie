@@ -1,4 +1,3 @@
-import type { Optional } from './optional-types.js';
 import { ConfigurationMessages } from './configuration-messages.js';
 
 interface PendingDocumentValue {

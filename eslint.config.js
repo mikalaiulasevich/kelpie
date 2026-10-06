@@ -43,6 +43,13 @@ export default typescript.config(
     },
   },
   {
+    files: ['global-types.d.ts', 'applications/frontend/source/ui-types.d.ts'],
+    rules: {
+      // Ambient declarations are consumed by other files through TypeScript's program scope.
+      '@typescript-eslint/no-unused-vars': 'off',
+    },
+  },
+  {
     files: ['applications/frontend/**/*.{ts,tsx}'],
     languageOptions: { globals: globals.browser },
     plugins: { 'react-hooks': reactHooks, 'react-refresh': reactRefresh },

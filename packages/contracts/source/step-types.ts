@@ -1,7 +1,6 @@
 import type { Static, TSchema } from 'typebox';
 
 import type { Condition } from './condition-types.js';
-import type { DeepReadonly } from './schema-primitives.js';
 import type {
   answerValidationSchema,
   informationStepSchema,
@@ -16,7 +15,7 @@ import type {
 } from './step-schema.js';
 
 export type StepAnswer = string | number | readonly string[];
-export type SessionAnswers = Readonly<Record<string, StepAnswer>>;
+export type SessionAnswers = ReadonlyDictionary<string, StepAnswer>;
 export type StepContent = DeepReadonly<Static<typeof stepContentSchema>>;
 export type AnswerValidation = DeepReadonly<Static<typeof answerValidationSchema>>;
 export type NumberInput = DeepReadonly<Static<typeof numberInputSchema>>;

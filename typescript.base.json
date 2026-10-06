@@ -17,5 +17,6 @@
     "skipLibCheck": true,
     "declaration": true,
     "sourceMap": true
-  }
+  },
+  "files": ["./global-types.d.ts"]
 }

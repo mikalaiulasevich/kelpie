@@ -6,7 +6,6 @@ import {
   type FunnelConfiguration,
   type FunnelResult,
   type FunnelStep,
-  type Optional,
   type SessionAnswers,
   type StepAnswer,
   type VariantConfiguration,

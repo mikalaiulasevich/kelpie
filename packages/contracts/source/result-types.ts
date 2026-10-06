@@ -7,7 +7,6 @@ import type {
   resultOverrideSchema,
   resultRuleSchema,
 } from './result-schema.js';
-import type { DeepReadonly } from './schema-primitives.js';
 
 export type PrimaryAction = DeepReadonly<Static<typeof primaryActionSchema>>;
 export type FunnelResult = DeepReadonly<Static<typeof funnelResultSchema>>;

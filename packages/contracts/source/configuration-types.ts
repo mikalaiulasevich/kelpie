@@ -12,7 +12,6 @@ import type {
   variantConfigurationSchema,
 } from './configuration-schema.js';
 import type { ResultRule } from './result-types.js';
-import type { DeepReadonly } from './schema-primitives.js';
 import type { FunnelStep } from './step-types.js';
 
 export type StepOverride = DeepReadonly<Static<typeof stepOverrideSchema>>;
@@ -29,7 +28,7 @@ export type EventsConfiguration = DeepReadonly<Static<typeof eventsConfiguration
 export type FunnelConfiguration = DeepReadonly<
   Omit<Static<typeof funnelConfigurationSchema>, 'steps' | 'resultRules'>
 > & {
-  readonly steps: Readonly<Record<string, FunnelStep>>;
+  readonly steps: ReadonlyDictionary<string, FunnelStep>;
   readonly resultRules: readonly ResultRule[];
 };
 

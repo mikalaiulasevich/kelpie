@@ -18,7 +18,7 @@ export const AnswerIssueCode = Object.freeze({
   MaximumSelections: 'maxSelections',
 } as const);
 
-export type AnswerIssueCode = (typeof AnswerIssueCode)[keyof typeof AnswerIssueCode];
+export type AnswerIssueCode = ValueOf<typeof AnswerIssueCode>;
 
 export interface AnswerIssue {
   readonly code: AnswerIssueCode;
@@ -32,8 +32,8 @@ export type AnswerValidationResult =
 export interface ResolvedExperimentConfiguration {
   readonly variant: ExperimentVariant;
   readonly stepSequence: readonly string[];
-  readonly steps: Readonly<Record<string, FunnelStep>>;
-  readonly results: Readonly<Record<string, FunnelResult>>;
+  readonly steps: ReadonlyDictionary<string, FunnelStep>;
+  readonly results: ReadonlyDictionary<string, FunnelResult>;
 }
 
 export interface AvailableRoute {

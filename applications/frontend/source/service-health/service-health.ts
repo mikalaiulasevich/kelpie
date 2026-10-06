@@ -4,7 +4,7 @@ export const ServiceHealthStatus = Object.freeze({
   Unavailable: 'unavailable',
 } as const);
 
-export type ServiceHealthStatus = (typeof ServiceHealthStatus)[keyof typeof ServiceHealthStatus];
+export type ServiceHealthStatus = ValueOf<typeof ServiceHealthStatus>;
 
 export type CompletedServiceHealth =
   | Readonly<{ status: typeof ServiceHealthStatus.Ready; checkedAt: Date }>

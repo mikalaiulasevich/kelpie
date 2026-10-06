@@ -4,7 +4,7 @@ export const ExperimentVariant = Object.freeze({
   B: 'B',
 } as const);
 
-export type ExperimentVariant = (typeof ExperimentVariant)[keyof typeof ExperimentVariant];
+export type ExperimentVariant = ValueOf<typeof ExperimentVariant>;
 
 export const StepType = Object.freeze({
   Information: 'info',
@@ -14,7 +14,7 @@ export const StepType = Object.freeze({
   Result: 'result',
 } as const);
 
-export type StepType = (typeof StepType)[keyof typeof StepType];
+export type StepType = ValueOf<typeof StepType>;
 
 export const ConditionOperator = Object.freeze({
   Equal: 'eq',
@@ -23,11 +23,11 @@ export const ConditionOperator = Object.freeze({
   GreaterThanOrEqual: 'gte',
 } as const);
 
-export type ConditionOperator = (typeof ConditionOperator)[keyof typeof ConditionOperator];
+export type ConditionOperator = ValueOf<typeof ConditionOperator>;
 
 export const ConfigurationStatus = Object.freeze({
   Draft: 'draft',
   Published: 'published',
 } as const);
 
-export type ConfigurationStatus = (typeof ConfigurationStatus)[keyof typeof ConfigurationStatus];
+export type ConfigurationStatus = ValueOf<typeof ConfigurationStatus>;

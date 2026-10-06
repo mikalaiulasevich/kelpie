@@ -1,6 +1,5 @@
 import { match, P } from 'ts-pattern';
 
-import type { Optional } from './optional-types.js';
 import { ConfigurationMessages } from './configuration-messages.js';
 import type { ConfigurationIssue } from './configuration-types.js';
 import { informationContentSchema, interactiveContentSchema } from './configuration-schema.js';

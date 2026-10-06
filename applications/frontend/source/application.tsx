@@ -24,7 +24,7 @@ const serviceHealthPresentations: Readonly<Record<ServiceHealthStatus, ServiceHe
     },
   });
 
-export function Application() {
+export function Application(): UIElement {
   const [checkSequence, setCheckSequence] = useState(0);
   const serviceHealth = useServiceHealth(checkSequence);
   const presentation = serviceHealthPresentations[serviceHealth.status];
