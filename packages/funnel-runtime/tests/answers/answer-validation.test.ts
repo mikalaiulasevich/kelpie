@@ -18,6 +18,23 @@ describe('answer validation boundaries', () => {
     },
   );
 
+  it.each(AnswerCases.presentNonNumeric)(
+    'validates present optional answers instead of treating them as missing: $description',
+    ({ answer }) => {
+      const step = AnswerFixtures.number({ required: false });
+
+      const result = AnswerValidation.validate(step, answer);
+
+      expect(result.issues.map((issue) => issue.code)).toEqual(['type']);
+    },
+  );
+
+  it('accepts zero as a present numeric answer', () => {
+    const result = AnswerValidation.validate(AnswerFixtures.number(), 0);
+
+    expect(result).toEqual({ valid: true, issues: [] });
+  });
+
   it('accepts floating point rounding noise but rejects values between increments', () => {
     const step = AnswerFixtures.number();
 

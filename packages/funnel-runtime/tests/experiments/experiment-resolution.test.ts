@@ -44,6 +44,23 @@ describe('experiments', () => {
     ).toEqual(document.results['balanced']);
   });
 
+  it('maps own dictionary entries in order without retaining inherited entries', () => {
+    const document = RuntimeFixtures.configuration(1);
+    Object.setPrototypeOf(document.steps, { inheritedStep: document.steps['intro'] });
+    Object.setPrototypeOf(document.results, { inheritedResult: document.results['balanced'] });
+    const originalDocument = structuredClone(document);
+
+    const resolved = ExperimentResolution.resolve(document, ExperimentVariant.B);
+
+    expect(Object.keys(resolved.steps)).toEqual(Object.keys(document.steps));
+    expect(Object.keys(resolved.results)).toEqual(Object.keys(document.results));
+    expect(resolved.steps).not.toHaveProperty('inheritedStep');
+    expect(resolved.results).not.toHaveProperty('inheritedResult');
+    expect(resolved.steps).not.toBe(document.steps);
+    expect(resolved.results).not.toBe(document.results);
+    expect(document).toEqual(originalDocument);
+  });
+
   it('resolves variant order and copy without changing the original document', () => {
     const document = RuntimeFixtures.configuration(1);
     const originalDocument = structuredClone(document);

@@ -38,6 +38,13 @@ export const AnswerCases = {
     { description: 'empty string', answer: '' },
   ],
 
+  presentNonNumeric: [
+    { description: 'false', answer: false },
+    { description: 'NaN', answer: NaN },
+    { description: 'empty array', answer: [] },
+    { description: 'whitespace', answer: ' ' },
+  ],
+
   invalidNumbers: [
     { description: 'NaN', answer: NaN },
     { description: 'infinity', answer: Infinity },
