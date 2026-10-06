@@ -1,6 +1,6 @@
 # Foundation engineering review
 
-This document explains current foundation decisions and their evidence. Feature scope and acceptance gates belong to [the implementation plan](../IMPLEMENTATION_PLAN.md); actual milestones belong to [the development log](development-log.md). The [file inventory](file-audit.json) records reviewed paths and hashes. Earlier review chronology remains in Git; raw benchmark reports remain in this repository.
+This document explains current foundation decisions and their evidence. Feature scope and acceptance gates belong to [the implementation plan](../IMPLEMENTATION_PLAN.md); actual milestones belong to [the development log](development-log.md). The [file inventory](file-audit.json) records current paths and hashes; it is not a claim that every line was re-reviewed in the latest pass. Earlier review chronology remains in Git; raw benchmark reports remain in this repository.
 
 ## Implemented boundaries
 
@@ -58,6 +58,8 @@ Keep reviewed transitive overrides while Prisma remains at its selected version:
 | shell-quote  | 1.12.0          | Command injection in development process tooling                          |
 
 Advisory references: [DeepmergeTS](https://github.com/advisories/GHSA-ggr8-5vv4-36mx), [MySQL authentication](https://github.com/advisories/GHSA-3f6p-5ww8-9rcr), [MySQL decompression](https://github.com/advisories/GHSA-rgwj-5xj2-c3m3), [shell-quote](https://github.com/advisories/GHSA-pqg4-j6r4-53mv). This records the override rationale, not a fresh advisory audit. The deepmerge-ts override crosses a major version: changes require Prisma configuration/generation/schema/migration and integration checks. These tooling dependencies do not imply an exposed MySQL service.
+
+Unused `@nestjs/testing` was removed from the backend manifest and both lockfiles. Pinned npm 11.19.1 still reports five missing transitive dependencies under optional `@tailwindcss/oxide-wasm32-wasi` during `npm ls --all --package-lock-only`. The earlier isolated npm installation and installed-tree check passed; the WASM path has not been verified. Bun frozen lockfile validation checks dependency consistency only, not backend runtime compatibility.
 
 ## Benchmark method
 
@@ -126,6 +128,6 @@ A route-position index would help repeated navigation over one resolved route, b
 
 ## Verification evidence
 
-The most recent recorded full Node.js 24.16.0 check before documentation consolidation passed `npm run verify`: 231 tests (80 backend, 12 frontend, 65 contracts, 74 runtime), strict types, lint, formatting, clean builds, configuration checksums, test layout and Prisma validation. Consult the development log for subsequent checks; benchmark assertions are separate from test counts.
+After documentation consolidation, route-type cleanup and removal of unused test tooling, the full Node.js 24.16.0 check passed `npm run verify`: 231 tests (80 backend, 12 frontend, 65 contracts, 74 runtime), strict types, lint, formatting, clean builds, configuration checksums, test layout and Prisma validation. This section owns verification updates; benchmark assertions are separate from test counts.
 
 The last documented remote workflow [failed at startup](https://github.com/mikalaiulasevich/kelpie/actions/runs/37486945771) before jobs were created. A current remote CI result, Bun compatibility, public deployment and current browser acceptance are not established by these local results.

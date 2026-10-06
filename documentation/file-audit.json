@@ -5,7 +5,14 @@
   "verification": {
     "command": "npm run verify",
     "runtime": "Node.js 24.16.0",
-    "status": "pending final cleanup verification"
+    "status": "passed",
+    "testCases": {
+      "backend": 80,
+      "frontend": 12,
+      "contracts": 65,
+      "funnelRuntime": 74,
+      "total": 231
+    }
   },
   "changes": [
     "Consolidated current documentation and removed repeated historical review prose.",
@@ -44,7 +51,7 @@
     ".vscode/settings.json": "971a8b30b05a95f1f45e414b4513c120d339067fefb86519aca9edbb00435377",
     "AGENTS.md": "d7c23462db2c13b2183d260643e622cf1dc8f62b2f76641159b58d07d011752d",
     "IMPLEMENTATION_PLAN.md": "60cae657b6446c2a4cf1f674d3d7bdd524de02501f8fb33dc0fcfda68d9a63f7",
-    "README.md": "4f48efd71f6d20d0f0c0c1e209e23e34edabf6c5a2104c60beecd670d370bb3d",
+    "README.md": "353b413f1f1c3cfb755d5983a0a2a1f6564217d31feb5f5f239074d87e6da13a",
     "applications/backend/.env.example": "879f4bd1fb795509b09563aa3cd50356d8c251917174ed05f7560c28272bdec5",
     "applications/backend/package.json": "49319f0c2ce591e46c5df01165353b94d11a3ea962d4998fb258d02769b322c3",
     "applications/backend/prisma.config.ts": "caaf806e39c8aa2fa4c5a10b3091a2964c3531d6ca5b8a6905e8107c131f62de",
@@ -152,8 +159,8 @@
     "configurations/funnel-v1.json": "88a8bd55b01cea7c8611c570ccaf80cd6b57f3be3ea663ba2eac1cb831ed8802",
     "configurations/funnel-v2.json": "4019d83f72598f9486c654bb841ebc90e8e872ebcee6494e2d8817976553ca0a",
     "configurations/funnel-v3.json": "9f05f959a8035e724f93a0bc955daa9d45f5f698a7db3f0221c0596a216b88fe",
-    "documentation/development-log.md": "377261a14f14e1f621708b0d5ceaa62fffecd417108289232b37edf6e4c13efd",
-    "documentation/foundation-review.md": "f1d2ce7905cd420b4ede6c1e984f1ccf685f3732f1519355191ca6eefe757007",
+    "documentation/development-log.md": "8f7a6440e90eb91e04e10bcbc8e1f9f9433c36e44d31860f7b48efc28fb019b6",
+    "documentation/foundation-review.md": "6c66a2fc94fe313739af6a4214ba72175635bdca99472a5fc541bde4eec6dd34",
     "eslint.config.js": "2f4930a8fe864ab9f7caa58072b8fb839523c347bbf4623f6cd3830ed91e1074",
     "global-types.d.ts": "b3468f2efc5f05d57b7fd6b40acf3db67d809a9b693eb17ca4abd8c2deae43c9",
     "package-lock.json": "ff5ea4f25c961ef699c5de3e667f5bc26cdb9f6435767ec71950af0fbe50e319",
