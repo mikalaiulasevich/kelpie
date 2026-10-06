@@ -1,5 +1,6 @@
+import { EnvironmentCases } from '../cases/environment-cases.js';
 import { describe, expect, it } from 'vitest';
-import { ApplicationEnvironmentReader } from '../source/environment/read-application-environment.js';
+import { ApplicationEnvironmentReader } from '../../source/environment/read-application-environment.js';
 
 describe('Application environment validation', () => {
   it('uses loopback and an application-relative SQLite file by default', () => {
@@ -11,11 +12,11 @@ describe('Application environment validation', () => {
     );
   });
 
-  it.each(['0', '65536', '3000suffix', '1.5', '-1'])('rejects invalid port %s', (port) => {
+  it.each(EnvironmentCases.invalidPorts)('rejects invalid port %s', (port) => {
     expect(() => ApplicationEnvironmentReader.read({ PORT: port })).toThrow('PORT');
   });
 
-  it.each(['postgresql://localhost/example', 'file:', 'file:./example?mode=ro'])(
+  it.each(EnvironmentCases.unsupportedDatabaseUrls)(
     'rejects unsupported database URL %s',
     (databaseUrl) => {
       expect(() => ApplicationEnvironmentReader.read({ DATABASE_URL: databaseUrl })).toThrow(
@@ -30,42 +31,33 @@ describe('Application environment validation', () => {
 });
 
 describe('Application environment boundary compatibility', () => {
-  it.each(['development', 'test', 'production'])('accepts mode %s', (mode) => {
+  it.each(EnvironmentCases.acceptedModes)('accepts mode %s', (mode) => {
     expect(ApplicationEnvironmentReader.read({ NODE_ENV: mode }).mode).toBe(mode);
   });
 
-  it.each(['1', '00001', '65535'])('preserves valid port %j', (port) => {
+  it.each(EnvironmentCases.acceptedPorts)('preserves valid port %j', (port) => {
     expect(ApplicationEnvironmentReader.read({ PORT: port }).port).toBe(Number(port));
   });
 
-  it.each(['', '000001', ' 3000', '3e3', 'NaN', 'Infinity', '+3000', '3000\n'])(
-    'rejects malformed port %j',
-    (port) => {
-      expect(() => ApplicationEnvironmentReader.read({ PORT: port })).toThrow('PORT');
-    },
-  );
+  it.each(EnvironmentCases.malformedPorts)('rejects malformed port %j', (port) => {
+    expect(() => ApplicationEnvironmentReader.read({ PORT: port })).toThrow('PORT');
+  });
 
-  it.each(['localhost', '::1', 'a'.repeat(253)])('preserves accepted host %j', (host) => {
+  it.each(EnvironmentCases.acceptedHosts)('preserves accepted host %j', (host) => {
     expect(ApplicationEnvironmentReader.read({ HOST: host }).host).toBe(host);
   });
 
-  it.each(['', 'a'.repeat(254), 'example/path', 'example host', 'localhost\n'])(
-    'rejects unsupported host %j',
-    (host) => {
-      expect(() => ApplicationEnvironmentReader.read({ HOST: host })).toThrow('HOST');
-    },
-  );
+  it.each(EnvironmentCases.unsupportedHosts)('rejects unsupported host %j', (host) => {
+    expect(() => ApplicationEnvironmentReader.read({ HOST: host })).toThrow('HOST');
+  });
 
-  it.each(['file:./example#fragment', 'file:./example\0', 'file:', 'https://example'])(
-    'rejects unsafe database URL %j',
-    (databaseUrl) => {
-      expect(() => ApplicationEnvironmentReader.read({ DATABASE_URL: databaseUrl })).toThrow(
-        'DATABASE_URL',
-      );
-    },
-  );
+  it.each(EnvironmentCases.unsafeDatabaseUrls)('rejects unsafe database URL %j', (databaseUrl) => {
+    expect(() => ApplicationEnvironmentReader.read({ DATABASE_URL: databaseUrl })).toThrow(
+      'DATABASE_URL',
+    );
+  });
 
-  it.each(['file:/tmp/kelpie.sqlite', 'file:/tmp/kelpie\n.sqlite'])(
+  it.each(EnvironmentCases.absoluteDatabaseUrls)(
     'preserves supported absolute database URL %j',
     (databaseUrl) => {
       expect(ApplicationEnvironmentReader.read({ DATABASE_URL: databaseUrl }).databaseUrl).toBe(

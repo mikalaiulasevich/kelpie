@@ -1,20 +1,20 @@
 import { describe, expect, it } from 'vitest';
+import { DocumentFixtures } from '../fixtures/document-fixtures.js';
+import { DocumentCases } from '../cases/document-cases.js';
 
-import { ConfigurationDocumentBounds } from '../source/configurations/validation/configuration-document-bounds.js';
-import { ConfigurationMessages } from '../source/configurations/configuration-messages.js';
-import { configurationLimits, DocumentAccountingPolicy } from '../source/configurations/configuration-policy.js';
+import { ConfigurationDocumentBounds } from '../../source/configurations/validation/configuration-document-bounds.js';
+import { ConfigurationMessages } from '../../source/configurations/configuration-messages.js';
+import {
+  configurationLimits,
+  DocumentAccountingPolicy,
+} from '../../source/configurations/configuration-policy.js';
 
 describe('configuration document bounds', () => {
-  it.each([undefined, () => undefined, Symbol('value'), BigInt(1)])(
-    'rejects non-JSON primitives: %s',
-    (value) => {
-      expect(ConfigurationDocumentBounds.check(value)).toBe(
-        ConfigurationMessages.JsonValuesRequired,
-      );
-    },
-  );
+  it.each(DocumentCases.nonJsonValues)('rejects non-JSON primitives: $name', ({ value }) => {
+    expect(ConfigurationDocumentBounds.check(value)).toBe(ConfigurationMessages.JsonValuesRequired);
+  });
 
-  it.each([NaN, Infinity, -Infinity])('rejects non-finite numbers: %s', (value) => {
+  it.each(DocumentCases.nonFiniteNumbers)('rejects non-finite numbers: $name', ({ value }) => {
     expect(ConfigurationDocumentBounds.check(value)).toBe(
       ConfigurationMessages.FiniteNumbersRequired,
     );
@@ -36,8 +36,7 @@ describe('configuration document bounds', () => {
 
   it('rejects both cycles and shared references', () => {
     const shared = { answer: 1 };
-    const cycle: Record<string, unknown> = {};
-    cycle['self'] = cycle;
+    const cycle = DocumentFixtures.circular();
     expect(ConfigurationDocumentBounds.check(cycle)).toBe(
       ConfigurationMessages.AcyclicDocumentRequired,
     );
@@ -46,16 +45,13 @@ describe('configuration document bounds', () => {
     );
   });
 
-  it.each([new Date(), new Map(), Object.create({ inherited: true })])(
-    'rejects non-plain objects',
-    (value) => {
-      expect(ConfigurationDocumentBounds.check(value)).toBe(
-        ConfigurationMessages.PlainObjectsRequired,
-      );
-    },
-  );
+  it.each(DocumentCases.nonPlainObjects)('rejects non-plain objects: $name', ({ value }) => {
+    expect(ConfigurationDocumentBounds.check(value)).toBe(
+      ConfigurationMessages.PlainObjectsRequired,
+    );
+  });
 
-  it.each(DocumentAccountingPolicy.reservedKeys)('rejects reserved key %s', (key) => {
+  it.each(DocumentCases.reservedKeys)('rejects reserved key %s', (key) => {
     expect(ConfigurationDocumentBounds.check({ [key]: null })).toBe(
       ConfigurationMessages.ReservedObjectKeys,
     );
@@ -78,11 +74,7 @@ describe('configuration document bounds', () => {
   });
 
   it('bounds depth before examining values beyond the limit', () => {
-    let value: unknown = Infinity;
-
-    for (let depth = 0; depth <= configurationLimits.maximumDepth; depth += 1) {
-      value = { child: value };
-    }
+    const value = DocumentFixtures.nested(configurationLimits.maximumDepth + 1, Infinity);
 
     expect(ConfigurationDocumentBounds.check(value)).toBe(
       ConfigurationMessages.DocumentTraversalLimit,
@@ -99,10 +91,7 @@ describe('configuration document bounds', () => {
   });
 
   it('bounds total visited nodes across nested containers', () => {
-    const createTree = (depth: number): unknown =>
-      depth === 0 ? null : Array.from({ length: 8 }, () => createTree(depth - 1));
-
-    expect(ConfigurationDocumentBounds.check(createTree(5))).toBe(
+    expect(ConfigurationDocumentBounds.check(DocumentFixtures.tree(5))).toBe(
       ConfigurationMessages.DocumentTraversalLimit,
     );
   });

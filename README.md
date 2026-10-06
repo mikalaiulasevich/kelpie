@@ -52,6 +52,34 @@ scripts                    Development launcher and configuration integrity chec
 documentation              Development evidence and engineering decisions
 ```
 
+Source files are grouped by domain:
+
+```text
+packages/contracts/source/
+  configurations/          Configuration format, schema, paths and policies
+    validation/            Document bounds and validation orchestration
+  conditions/              Condition types, schema and rules
+  steps/                   Step types, schema and validation
+  results/                 Result contracts and validation
+  experiments/             Variant validation
+  events/                  Event vocabulary and validation
+  shared/                  Dictionary access and shared schema primitives
+  index.ts                 Explicit public exports
+
+packages/funnel-runtime/source/
+  answers/                 Answer types, policies and validation
+  conditions/              Condition evaluation
+  experiments/             Variant resolution, overrides and types
+  routes/                  Route traversal, navigation and types
+  results/                 Result selection
+  funnel-runtime.ts        Grouped runtime API
+  index.ts                 Explicit public exports
+```
+
+Applications keep bootstrap/composition in `source/application/`, alongside their existing feature directories. Entry files and ambient declarations remain at the source root. Domain modules import their owners directly; public package imports continue through the root entry point.
+
+Every workspace keeps tests outside source, under `tests/<domain>/`, with reusable setup/data in `tests/fixtures/` and named input tables in `tests/cases/`. Contracts also keep compiler regressions in `tests/typechecks/`. `npm run tests:layout` enforces placement as part of verification; ESLint rejects Vitest imports from source. Integration tests use isolated temporary SQLite databases, real migrations and application startup, with guaranteed teardown. Type checking includes suites, fixtures, cases and test configurations.
+
 Authored identifiers use full names. Original JSON fields and dependency/tool conventions remain compatible at external boundaries.
 
 ## Configurations and iteration sequence
@@ -67,6 +95,12 @@ Configuration schemas are authored with TypeBox and validated by Ajv. Public fie
 All use schema version 1.0. The shared validator checks structure, references, condition operand types and ordering, merged text overrides, result rules, experiment weights, and event declarations. It limits document size, nesting, node count, and reported issues. Unknown executable constructs are rejected. Human-readable trigger strings are never executed.
 
 The pure runtime excludes hidden, omitted, and invalid answers from active route decisions and results. It resolves result rules in order and applies variant overrides. Confirmation of retained answers after reopening a branch belongs to the upcoming session command layer; pure routing cannot establish that confirmation by itself.
+
+## Construction and domain patterns
+
+`ApplicationFactory` is the backend composition boundary: it reads the environment once by default, or accepts validated settings explicitly, then assembles Nest providers and HTTP policies. The environment service receives an application-local snapshot through dependency injection. Tests use the same factory without patching global readers. `BackendApplicationFixture.create()` owns asynchronous setup and returns a running, migrated server; failed setup cleans up its resources and repeated closure is safe.
+
+`RouteBuilder` owns mutable state for one traversal, preventing answers and progress from leaking between calls. Step-specific answer validators act as strategies, selected through exhaustive discriminated matching rather than a loosely typed registry. `FunnelRuntime` is the public facade over domain operations. These patterns address existing boundaries; repositories, generic base classes, event buses and additional factory layers should be introduced only with a concrete requirement.
 
 ## Persistence and event design
 

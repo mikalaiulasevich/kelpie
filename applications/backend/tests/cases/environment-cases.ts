@@ -1,0 +1,11 @@
+export const EnvironmentCases = {
+  invalidPorts: ['0', '65536', '3000suffix', '1.5', '-1'],
+  unsupportedDatabaseUrls: ['postgresql://localhost/example', 'file:', 'file:./example?mode=ro'],
+  acceptedModes: ['development', 'test', 'production'],
+  acceptedPorts: ['1', '00001', '65535'],
+  malformedPorts: ['', '000001', ' 3000', '3e3', 'NaN', 'Infinity', '+3000', '3000\n'],
+  acceptedHosts: ['localhost', '::1', 'a'.repeat(253)],
+  unsupportedHosts: ['', 'a'.repeat(254), 'example/path', 'example host', 'localhost\n'],
+  unsafeDatabaseUrls: ['file:./example#fragment', 'file:./example\0', 'file:', 'https://example'],
+  absoluteDatabaseUrls: ['file:/tmp/kelpie.sqlite', 'file:/tmp/kelpie\n.sqlite'],
+} as const;

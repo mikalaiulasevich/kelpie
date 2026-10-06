@@ -34,7 +34,12 @@ export type {
   StepContent,
 } from './steps/step-types.js';
 
-export type { FunnelResult, PrimaryAction, ResultOverride, ResultRule } from './results/result-types.js';
+export type {
+  FunnelResult,
+  PrimaryAction,
+  ResultOverride,
+  ResultRule,
+} from './results/result-types.js';
 
 export type {
   ConfigurationIssue,

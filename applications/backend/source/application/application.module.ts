@@ -1,10 +1,21 @@
-import { Module } from '@nestjs/common';
+import { Module, type DynamicModule } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service.js';
-import { ApplicationEnvironmentService } from '../environment/application-environment.js';
+import {
+  ApplicationEnvironmentService,
+  EnvironmentInjection,
+} from '../environment/application-environment.js';
+import type { ApplicationEnvironment } from '../environment/read-application-environment.js';
 import { HealthController } from '../health/health.controller.js';
 
 @Module({
   controllers: [HealthController],
   providers: [ApplicationEnvironmentService, DatabaseService],
 })
-export class ApplicationModule {}
+export class ApplicationModule {
+  static register(environment: ApplicationEnvironment): DynamicModule {
+    return {
+      module: ApplicationModule,
+      providers: [{ provide: EnvironmentInjection.Values, useValue: { ...environment } }],
+    };
+  }
+}

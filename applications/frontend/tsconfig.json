@@ -6,7 +6,10 @@
     "jsx": "react-jsx",
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "noEmit": true,
-    "paths": { "@/*": ["./source/*"] }
+    "paths": {
+      "@/*": ["./source/*"]
+    },
+    "types": ["node", "vite/client"]
   },
-  "include": ["source", "vite.config.ts"]
+  "include": ["source", "tests", "*.config.ts"]
 }

@@ -30,6 +30,7 @@ Apply the readability and ownership principles reviewed in the Template referenc
 
 - Use `PascalCase` for exported types, components, and enum-like domain objects; use `camelCase` for functions and ordinary values.
 - Keep the original `kebab-case` naming for authored multiword source filenames and feature directories. Preserve names required by tools (`vite.config.ts`, `prisma.config.ts`, `index.ts`) and supplied configuration files.
+- Organize source by domain. Keep domain types, policies, messages, schemas and operations together; reserve source roots for public entry points, application entry files and ambient declarations. Use shared folders only for genuinely cross-domain primitives. Do not introduce forwarding files at old paths or per-folder barrel exports solely to hide the new layout.
 - Use `as const` objects with derived value-union types for reusable domain vocabularies. Preserve serialized values. Do not duplicate those values as unrelated string unions or create constants for every one-off string.
 - Define named contracts for meaningful inputs, overrides, policies, and outputs. Keep them with their domain owner. Keep `unknown` at untrusted input boundaries and narrow it with validation.
 - Define structural contracts with TypeBox and derive their TypeScript types from schemas. Ajv compiles validation once; keep partial override schemas separate from required resolved content. Preserve explicit recursive type edges where library inference would widen to any.
@@ -54,6 +55,8 @@ Apply the readability and ownership principles reviewed in the Template referenc
 ESLint enforces braces, explicit exports, no nested ternaries, no parameter reassignment, no non-null assertions, and spacing before returns and after blocks. Naming, module cohesion, security, and algorithmic complexity remain mandatory code-review responsibilities; passing formatting checks alone does not prove readability.
 
 ## Mandatory review
+
+Keep every test, type regression, fixture and case catalog under its workspace `tests/` directory, never inside source. Group suites by domain, reusable fresh data/setup in `tests/fixtures`, and named table inputs in `tests/cases`. Suites should show arrange/action/assert intent without repeated loading/guard boilerplate. Keep expected outputs independent of implementation constants where they verify a serialized contract. Do not hide scenarios behind a generic test DSL or mutate shared fixtures. Integration resources must be isolated and released even after setup/assertion failure. Every Vitest configuration restricts discovery to tests; workspace TypeScript includes test support and compile-time regressions.
 
 Review every behavior change for:
 

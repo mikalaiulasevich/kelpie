@@ -61,6 +61,17 @@ export default typescript.config(
     },
   },
   {
+    files: ['applications/*/source/**/*.{ts,tsx}', 'packages/*/source/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [{ name: 'vitest', message: 'Keep test code and Vitest imports inside tests/.' }],
+        },
+      ],
+    },
+  },
+  {
     files: ['global-types.d.ts', 'applications/frontend/source/ui-types.d.ts'],
     rules: {
       // Ambient declarations are consumed by other files through TypeScript's program scope.
