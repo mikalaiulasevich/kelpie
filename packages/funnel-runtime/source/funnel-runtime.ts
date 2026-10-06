@@ -1,22 +1,14 @@
 import { validateStepAnswer } from './answer-validation.js';
 import { evaluateCondition } from './condition-evaluation.js';
-import {
-  resolveAvailableSteps,
-  resolveExperimentConfiguration,
-  resolveFunnelResult,
-  resolveNextStep,
-  resolvePreviousStep,
-} from './route-resolution.js';
+import { ExperimentResolution } from './experiment-resolution.js';
+import { ResultResolution } from './result-resolution.js';
+import { RouteResolution } from './route-resolution.js';
 
-/** Domain entry points; each group owns one coherent runtime responsibility. */
+/** Domain entry points share implementations with the compatibility exports. */
 export const FunnelRuntime = Object.freeze({
   Answers: Object.freeze({ validate: validateStepAnswer }),
   Conditions: Object.freeze({ evaluate: evaluateCondition }),
-  Experiments: Object.freeze({ resolve: resolveExperimentConfiguration }),
-  Results: Object.freeze({ resolve: resolveFunnelResult }),
-  Routes: Object.freeze({
-    resolve: resolveAvailableSteps,
-    next: resolveNextStep,
-    previous: resolvePreviousStep,
-  }),
+  Experiments: ExperimentResolution,
+  Results: ResultResolution,
+  Routes: RouteResolution,
 });

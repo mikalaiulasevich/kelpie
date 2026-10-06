@@ -40,6 +40,10 @@ Apply the readability and ownership principles reviewed in the Template referenc
 - Keep package exports explicit. Import another package through its public entry point.
 - Always use braces for control-flow blocks. Separate guards, calculations, and returns with blank lines. Do not nest ternary expressions.
 - Give distinct validation phases and step-specific rules named functions. Prefer straightforward dispatch and guard clauses over long mixed-purpose functions.
+- Treat concise domain operations and declarative schemas as design principles across the entire owning module, not isolated fixes to examples. Name repeated compound predicates and keep their implementation in one place. Do not hide necessary boundary checks behind unchecked assertions.
+- Group related operations in small frozen domain facades, such as `FunnelRuntime.Routes`, when this improves discovery and imports. Do not manufacture namespaces for unrelated helpers or single functions solely for symmetry. Keep package exports explicit and preserve existing public contracts during migration.
+- Put limits, timeouts, defaults, protocol policies, and meaningful numeric tolerances in domain-owned policy files. Keep computed values and local working state beside their use. Avoid a global constants bag and aliases for obvious array indexes or arithmetic identities.
+- Measure declarative dispatch in hot paths. DSL syntax is a readability preference, not evidence of better performance; record material overhead and preserve bounded work.
 - Preserve exhaustive discriminated unions and runtime validation; more types must not become unchecked assertions.
 - Keep framework-specific infrastructure appropriate to NestJS and React. Reference conventions do not authorize copying Template's mobile wrappers, globals, dependencies, or application architecture.
 
