@@ -60,6 +60,8 @@ The supplied configuration files are preserved byte for byte:
 - Version 2 adds meeting hours and a meeting-heavy result.
 - Version 3 adds the compliance branch, omits tool count from variant B, and declares `recommendation_expanded`.
 
+Configuration schemas are authored with TypeBox and validated by Ajv. Public field types derive from the schemas; explicit recursive condition edges preserve safe recursion and readonly guarantees. Required screen content is declarative, and partial variant content is validated again after merging with the base screen. The contracts typecheck also checks deliberate invalid assignments to prevent accidental widening. Runtime dispatch uses exhaustive ts-pattern matching where type alternatives benefit from it.
+
 All use schema version 1.0. The shared validator checks structure, references, condition operand types and ordering, merged text overrides, result rules, experiment weights, and event declarations. It limits document size, nesting, node count, and reported issues. Unknown executable constructs are rejected. Human-readable trigger strings are never executed.
 
 The pure runtime excludes hidden, omitted, and invalid answers from active route decisions and results. It resolves result rules in order and applies variant overrides. Confirmation of retained answers after reopening a branch belongs to the upcoming session command layer; pure routing cannot establish that confirmation by itself.

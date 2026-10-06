@@ -65,3 +65,17 @@ These are local pure-function measurements, not server throughput, worst-case in
 GitHub Actions targets Node.js 24 and 26, but push and manual runs returned `startup_failure` before creating jobs. No execution logs or check-run annotations were provided. The workflow passed independent `actionlint` 1.7.12 validation, and both pinned action commits were confirmed through GitHub's API. The cause remains undetermined; remote Linux verification is not confirmed. See [the manual run](https://github.com/mikalaiulasevich/kelpie/actions/runs/37486945771).
 
 Generated outputs, local databases, and secrets remain outside version control.
+
+## TypeBox and ts-pattern migration verification
+
+On October 6, the final Node.js 24.16.0 verification passed 82 tests and the added compile-time contract regressions. TypeBox 1.3.36 owns structural schemas and ts-pattern 5.9.0 provides exhaustive dispatch. Bounds checks still precede Ajv; closed objects, own-property lookup, privacy allowlists, and immutable input handling remain enforced. Recursive condition types use explicit edges to avoid upstream recursive inference widening. Base screen requirements are checked structurally, with the same schemas used for merged variant content. Historical configurations retain their acceptance behavior; structural error formatting is not byte-identical.
+
+The pure-function benchmark on the same Apple M4 / Node.js 24.16.0 used 12 scenarios and seven samples. The previous pass versus final migration medians were:
+
+| Operation                | Operations per sample |    Before |     After |
+| ------------------------ | --------------------: | --------: | --------: |
+| Configuration validation |                 1,000 | 53.710 ms | 59.206 ms |
+| Route resolution         |                10,000 |  7.107 ms | 35.967 ms |
+| Result resolution        |                10,000 | 12.218 ms | 75.781 ms |
+
+Pattern matching introduces a measurable constant-factor cost in this workload. Simple recursive guards were retained to reduce it. Final route/result costs average approximately 3.6/7.6 microseconds per operation within each median sample; these figures are not application throughput measurements. No claim of a 30–40% total code reduction or performance improvement is made. If production throughput requires it, a separately measured immutable-configuration compilation approach should be evaluated rather than adding an unbounded or stale-prone cache.

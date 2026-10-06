@@ -32,6 +32,8 @@ Apply the readability and ownership principles reviewed in the Template referenc
 - Keep the original `kebab-case` naming for authored multiword source filenames and feature directories. Preserve names required by tools (`vite.config.ts`, `prisma.config.ts`, `index.ts`) and supplied configuration files.
 - Use frozen `as const` objects with derived value-union types for reusable domain vocabularies. Preserve serialized values. Do not duplicate those values as unrelated string unions or create constants for every one-off string.
 - Define named contracts for meaningful inputs, overrides, policies, and outputs. Keep them with their domain owner. Keep `unknown` at untrusted input boundaries and narrow it with validation.
+- Define structural contracts with TypeBox and derive their TypeScript types from schemas. Ajv compiles validation once; keep partial override schemas separate from required resolved content. Preserve explicit recursive type edges where library inference would widen to any.
+- Use ts-pattern with exhaustive matching for meaningful discriminated alternatives. Keep straightforward guards simple and measure hot-path overhead before expanding pattern matching.
 - Keep package exports explicit. Import another package through its public entry point.
 - Always use braces for control-flow blocks. Separate guards, calculations, and returns with blank lines. Do not nest ternary expressions.
 - Give distinct validation phases and step-specific rules named functions. Prefer straightforward dispatch and guard clauses over long mixed-purpose functions.
