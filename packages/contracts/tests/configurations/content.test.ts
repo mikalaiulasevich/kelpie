@@ -16,7 +16,10 @@ describe('content', () => {
           ...configuration,
           steps: {
             ...configuration.steps,
-            intro: { ...introductionStep, content: { ...introductionStep.content, [field]: value } },
+            intro: {
+              ...introductionStep,
+              content: { ...introductionStep.content, [field]: value },
+            },
           },
         }),
       ).toMatchObject({ valid: false });
