@@ -84,7 +84,7 @@ const BenchmarkIdentity = {
 } as const;
 
 const BenchmarkTable = {
-  escape(value: string | number): string {
+  escape(value: TextOrNumber): string {
     return `"${String(value).replaceAll('"', '""')}"`;
   },
 

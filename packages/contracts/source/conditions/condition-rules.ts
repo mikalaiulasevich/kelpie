@@ -15,7 +15,7 @@ const numericOperands = isMatching({
 });
 
 export const ConditionRules = {
-  values(condition: AnswerCondition): ReadonlyList<string | number> {
+  values(condition: AnswerCondition): ReadonlyList<TextOrNumber> {
     return match(condition)
       .with({ operator: ConditionOperator.In }, ({ value }) => value)
       .otherwise(({ value }) => [value]);

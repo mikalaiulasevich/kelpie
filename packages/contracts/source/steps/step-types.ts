@@ -14,7 +14,7 @@ import type {
   stepContentSchema,
 } from './step-schema.js';
 
-export type StepAnswer = string | number | readonly string[];
+export type StepAnswer = TextOrNumber | ReadonlyList<string>;
 export type SessionAnswers = ReadonlyDictionary<string, StepAnswer>;
 export type StepContent = DeepReadonly<Static<typeof stepContentSchema>>;
 export type AnswerValidation = DeepReadonly<Static<typeof answerValidationSchema>>;

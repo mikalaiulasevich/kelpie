@@ -47,6 +47,7 @@ type FunctionWithOptionalSecondArgument<First, Second, Result> = {
 };
 
 type TextValue = string;
+type TextOrNumber = TextValue | number;
 type TextIdentifier = TextValue;
 type TextDictionary<Value = unknown> = ReadonlyDictionary<TextValue, Value>;
 type ColorValue = string;

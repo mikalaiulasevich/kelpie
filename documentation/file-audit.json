@@ -1807,6 +1807,95 @@
           "sha256": "573eda32d3528be3af2c610229c41dcd7c1cbf464e6e4d50daf8756f9da13c12"
         }
       ]
+    },
+    {
+      "name": "Benchmark statistics readability correction",
+      "reviewDate": "2026-10-06",
+      "verification": "npm run verify passed 225 tests and all checks; runtime benchmark completed 79 cases. Independent read-only review completed.",
+      "files": [
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/benchmark-measurement.ts",
+          "reason": "Library median and direct extrema replace manual statistics; scenario and samples travel together.",
+          "sha256": "8a5979612c36e42a159e26bfad75b6051606d0015214e865b5ac822548830129"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/measurement-types.ts",
+          "reason": "Named scenario/sample collection contract.",
+          "sha256": "796ef694496fd9ba0e3bce7a4211c0b9fc8fc71d331e4d2563c0ab5ca9026f54"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/benchmark-measurement.test.ts",
+          "reason": "Independent summary expectations, immutable inputs, empty rejection and runner counts.",
+          "sha256": "c927db1b124dbdf1069b2a9c9b27806ebd28442540b6b256956c84674fd7ed03"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/cases/measurement-cases.ts",
+          "reason": "Named odd/even/singleton statistics cases.",
+          "sha256": "47790d2c2df2b901104c20f6d0b6d4ce208069348499d4d4f3d64f52a7f19ee9"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/fixtures/measurement-fixtures.ts",
+          "reason": "Fresh scenario factory with observable callbacks.",
+          "sha256": "c1ec3ff36a40cedc27eeebf96a42b604772a7a21e85ad84257d9973860adb499"
+        },
+        {
+          "path": "documentation/development-log.md",
+          "reason": "Recorded correction, semantic boundary and verified checks.",
+          "sha256": "b341779f83756966314610364f5dfc6d99565e26d8100bd04e8609751819b07b"
+        }
+      ]
+    },
+    {
+      "name": "Shared primitive union vocabulary",
+      "reviewDate": "2026-10-06",
+      "verification": "Full npm run verify passed 225 tests and all checks; four negative and one positive lint probes passed; independent review found no blocking issue.",
+      "files": [
+        {
+          "path": "global-types.d.ts",
+          "reason": "Canonical ambient TextOrNumber composition from TextValue and number.",
+          "sha256": "b3468f2efc5f05d57b7fd6b40acf3db67d809a9b693eb17ca4abd8c2deae43c9"
+        },
+        {
+          "path": "AGENTS.md",
+          "reason": "Explicit repeated primitive-union reuse convention and mechanical guard.",
+          "sha256": "681fa4e25b9b89967fceeff24b9dbb6ba10d26e7bceb9b69c56b6ac84442e451"
+        },
+        {
+          "path": "eslint.config.js",
+          "reason": "Rejects direct string/number unions across shared lint configurations.",
+          "sha256": "04b7eadf2ba253db3e1b863a1f010f14c96555d5c37e5968db46bae3161dd6a4"
+        },
+        {
+          "path": "packages/contracts/source/steps/step-types.ts",
+          "reason": "Composes existing StepAnswer contract from shared aliases without widening.",
+          "sha256": "c126bbd673e22f0747ed17813fe2db8ec8e6abde71125b83f12ef0408f375d64"
+        },
+        {
+          "path": "packages/contracts/source/conditions/condition-rules.ts",
+          "reason": "Reuses scalar alias for condition operands.",
+          "sha256": "06972cdd7c43c92ac67389c2ffc191ceda16b81ffdf73c77e9da874b9037c100"
+        },
+        {
+          "path": "packages/contracts/source/configurations/validation/configuration-validation-context.ts",
+          "reason": "Reuses scalar alias for validation option indexes.",
+          "sha256": "6b7973583761ff36fb712397dfe31ab3fd3520ba4ffe89a0de67cd8d7f9b921f"
+        },
+        {
+          "path": "packages/contracts/tests/typechecks/global-utilities.typecheck.ts",
+          "reason": "Positive scalar and negative boolean/null/list compiler assertions.",
+          "sha256": "452f204c890db54af12acf6d30f4cac920cbebdae7603a992140198cc1ab745d"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/benchmark-report.ts",
+          "reason": "Reuses ambient scalar alias for CSV values.",
+          "sha256": "bed5e60076fdb57d039b73db3163b9aa18577862d347e366ec8d385ae4d05a72"
+        },
+        {
+          "path": "documentation/development-log.md",
+          "reason": "Recorded migration, lint probes and verification.",
+          "sha256": "bb3f187e095779743ecfa43a84187ad641394ac336205b3e828d5aedecc610aa"
+        }
+      ]
     }
   ]
 }

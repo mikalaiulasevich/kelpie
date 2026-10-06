@@ -24,3 +24,15 @@ export const textDictionary: ReadonlyDictionary<string, string> = { key: 'value'
 
 // @ts-expect-error Global readonly dictionaries cannot be mutated.
 textDictionary['key'] = 'changed';
+
+export const textValue: TextOrNumber = 'value';
+export const numberValue: TextOrNumber = 42;
+
+// @ts-expect-error TextOrNumber does not accept booleans.
+export const invalidBooleanValue: TextOrNumber = false;
+
+// @ts-expect-error TextOrNumber does not include missing values.
+export const invalidNullValue: TextOrNumber = null;
+
+// @ts-expect-error Lists remain separate from scalar values.
+export const invalidListValue: TextOrNumber = ['value'];

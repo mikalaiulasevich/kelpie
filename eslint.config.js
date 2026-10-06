@@ -6,6 +6,11 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 
 const restrictedSyntax = [
   {
+    selector: 'TSUnionType:has(> TSStringKeyword):has(> TSNumberKeyword)',
+    message:
+      'Use the shared TextOrNumber alias or an existing domain type instead of repeating primitive unions.',
+  },
+  {
     selector:
       'CallExpression[callee.type="MemberExpression"][callee.property.name="each"] > ArrayExpression.arguments',
     message: 'Move scenario tables into the owning tests/cases catalog.',

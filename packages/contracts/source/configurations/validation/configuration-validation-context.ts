@@ -6,18 +6,18 @@ import type { InteractiveStep, SelectionStep } from '../../steps/step-types.js';
 export class ConfigurationValidationContext {
   readonly issues: ConfigurationIssue[] = [];
   readonly answerSteps = new Map<string, InteractiveStep>();
-  private readonly selectionIndexes = new Map<SelectionStep, ReadonlySet<string | number>>();
+  private readonly selectionIndexes = new Map<SelectionStep, ReadonlySet<TextOrNumber>>();
 
   constructor(readonly configuration: FunnelConfiguration) {}
 
-  selectionValues(step: SelectionStep): ReadonlySet<string | number> {
+  selectionValues(step: SelectionStep): ReadonlySet<TextOrNumber> {
     const existingValues = this.selectionIndexes.get(step);
 
     if (existingValues !== undefined) {
       return existingValues;
     }
 
-    const values = new Set<string | number>(step.input.options.map((option) => option.value));
+    const values = new Set<TextOrNumber>(step.input.options.map((option) => option.value));
     this.selectionIndexes.set(step, values);
 
     return values;

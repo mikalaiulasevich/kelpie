@@ -24,7 +24,7 @@ describe('benchmark measurement', () => {
     );
   });
 
-  it('keeps each scenario paired with its samples and verifies before and after measurement', () => {
+  it('collects every sample and verifies each scenario before and after measurement', () => {
     const first = MeasurementFixtures.scenario();
     const second = MeasurementFixtures.scenario({ name: 'measurement.second' });
 
