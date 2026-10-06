@@ -16,7 +16,7 @@ npm run database:migrate
 npm run development
 ```
 
-Open the frontend at http://127.0.0.1:5173. The development server proxies `/api` to the backend at http://127.0.0.1:3000. The frontend reports actual backend readiness; it does not simulate a working funnel.
+Open the frontend at http://127.0.0.1:5173. The development server proxies `/api` to the backend at http://127.0.0.1:3000. The frontend reports actual backend readiness; it does not simulate a working funnel. Frontend HTTP requests use pinned Ky with retries disabled, same-origin credentials, no-store caching and a five-second total deadline including JSON reading. React-if owns conditional status text while exhaustive domain matching preserves typed access to the ready timestamp. Native fetch remains only in backend integration-test probes and frontend transport mocks.
 
 The default database location is `applications/backend/data/funnel-runtime.sqlite`. To customize backend settings, copy `applications/backend/.env.example` to `applications/backend/.env`. Relative database paths resolve from the backend application directory. Local data, environment files, dependencies, and generated outputs are ignored by Git.
 

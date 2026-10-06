@@ -62,12 +62,13 @@ describe('service readiness', () => {
 
   it('clears the deadline after a network rejection', async () => {
     vi.useFakeTimers();
-    ServiceReadinessFixture.networkFailure();
+    const fetch = ServiceReadinessFixture.networkFailure();
 
     await expect(ServiceReadiness.request(new AbortController().signal)).rejects.toThrow(
       NetworkError,
     );
 
+    expect(fetch).toHaveBeenCalledTimes(1);
     expect(vi.getTimerCount()).toBe(0);
   });
 

@@ -19,13 +19,13 @@ export const ServiceReadinessFixture = {
     vi.stubGlobal('fetch', vi.fn<typeof globalThis.fetch>().mockResolvedValue(new Response('{')));
   },
 
-  networkFailure(): void {
-    vi.stubGlobal(
-      'fetch',
-      vi
-        .fn<typeof globalThis.fetch>()
-        .mockRejectedValue(new TypeError(ServiceReadinessFixtureMessages.NetworkUnavailable)),
-    );
+  networkFailure(): Mock<typeof globalThis.fetch> {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockRejectedValue(new TypeError(ServiceReadinessFixtureMessages.NetworkUnavailable));
+    vi.stubGlobal('fetch', fetch);
+
+    return fetch;
   },
 
   stalledBody(): void {
