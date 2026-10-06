@@ -3,7 +3,7 @@ import type { ConfigurationIssue } from './configuration-types.js';
 import { informationContentSchema, interactiveContentSchema } from './configuration-schema.js';
 import { configurationSchemaCompiler } from './configuration-schema-compiler.js';
 import { StepType } from './domain-values.js';
-import type { FunnelStep } from './step-types.js';
+import type { StepContent } from './step-types.js';
 
 const informationContentRequirement = {
   validate: configurationSchemaCompiler.compile(informationContentSchema),
@@ -18,10 +18,11 @@ const interactiveContentRequirement = {
 };
 
 export function validateStepContent(
-  step: FunnelStep,
+  stepType: StepType,
+  content: StepContent,
   path: string,
 ): ConfigurationIssue | undefined {
-  const requirement = match(step.type)
+  const requirement = match(stepType)
     .with(StepType.Information, () => informationContentRequirement)
     .with(StepType.Result, () => undefined)
     .with(
@@ -30,7 +31,7 @@ export function validateStepContent(
     )
     .exhaustive();
 
-  if (requirement === undefined || requirement.validate(step.content)) {
+  if (requirement === undefined || requirement.validate(content)) {
     return undefined;
   }
 

@@ -1,4 +1,5 @@
 import {
+  StepType,
   isInteractiveStep,
   readOwnProperty,
   type ExperimentVariant,
@@ -9,6 +10,7 @@ import {
   type StepAnswer,
   type VariantConfiguration,
 } from '@kelpie/contracts';
+import { match, P } from 'ts-pattern';
 import { validateStepAnswer } from './answer-validation.js';
 import { evaluateCondition } from './condition-evaluation.js';
 import type { AvailableRoute, ResolvedExperimentConfiguration } from './runtime-types.js';
@@ -24,7 +26,23 @@ function applyStepOverride(
     return step;
   }
 
-  return { ...step, content: { ...step.content, ...override.content } };
+  return match(step)
+    .with({ type: StepType.Information }, (informationStep) => ({
+      ...informationStep,
+      content: { ...informationStep.content, ...override.content },
+    }))
+    .with({ type: StepType.Result }, (resultStep) => ({
+      ...resultStep,
+      content: { ...resultStep.content, ...override.content },
+    }))
+    .with(
+      { type: P.union(StepType.Number, StepType.SingleSelect, StepType.MultiSelect) },
+      (interactiveStep) => ({
+        ...interactiveStep,
+        content: { ...interactiveStep.content, ...override.content },
+      }),
+    )
+    .exhaustive();
 }
 
 function applyResultOverride(result: FunnelResult, variant: VariantConfiguration): FunnelResult {

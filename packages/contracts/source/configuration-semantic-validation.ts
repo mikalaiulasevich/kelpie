@@ -1,7 +1,7 @@
 import { match, P } from 'ts-pattern';
 import { validateStepContent } from './step-content-validation.js';
 import type { AnswerCondition, Condition } from './condition-types.js';
-import type { FunnelStep, InteractiveStep, NumberStep, SelectionStep } from './step-types.js';
+import type { InteractiveStep, NumberStep, SelectionStep } from './step-types.js';
 import type { ConfigurationIssue, FunnelConfiguration } from './configuration-types.js';
 import { ConditionOperator, StepType } from './domain-values.js';
 import { configurationLimits } from './configuration-document-bounds.js';
@@ -26,18 +26,6 @@ function visitPredicates(condition: Condition, visit: (predicate: AnswerConditio
     .with({ any: P._ }, ({ any }) => any.forEach((child) => visitPredicates(child, visit)))
     .with({ answer: P.string }, visit)
     .exhaustive();
-}
-
-function reportStepContentIssue(
-  context: ConfigurationValidationContext,
-  step: FunnelStep,
-  path: string,
-): void {
-  const issue = validateStepContent(step, path);
-
-  if (issue !== undefined) {
-    reportIssue(context, issue.path, issue.message);
-  }
 }
 
 function validateNumericStep(
@@ -110,8 +98,6 @@ function validateSteps(context: ConfigurationValidationContext): void {
         'Step identifier must match its dictionary key.',
       );
     }
-
-    reportStepContentIssue(context, step, `/steps/${stepIdentifier}/content`);
 
     if (step.type === StepType.Information) {
       continue;
@@ -216,11 +202,15 @@ function validateVariants(context: ConfigurationValidationContext): void {
       const override = readOwnProperty(variant.stepOverrides, stepIdentifier);
 
       if (override !== undefined) {
-        reportStepContentIssue(
-          context,
-          { ...step, content: { ...step.content, ...override.content } },
+        const issue = validateStepContent(
+          step.type,
+          { ...step.content, ...override.content },
           `/experiment/variants/${variantIdentifier}/stepOverrides/${stepIdentifier}/content`,
         );
+
+        if (issue !== undefined) {
+          reportIssue(context, issue.path, issue.message);
+        }
       }
 
       if (step.visibleWhen !== undefined) {

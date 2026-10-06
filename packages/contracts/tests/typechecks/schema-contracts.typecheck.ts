@@ -4,6 +4,7 @@ import {
   type FunnelConfiguration,
   type FunnelResult,
   type FunnelStep,
+  type InformationStep,
   type ResultRule,
 } from '../../source/index.js';
 
@@ -105,3 +106,11 @@ result.recommendations.push('extra-recommendation');
 
 // @ts-expect-error Recursive configuration edges must remain readonly.
 configuration.resultRules.push({ resultId: 'result', when: deeplyNestedCondition });
+
+declare const informationStep: InformationStep;
+
+export const informationTitle: string = informationStep.content.title;
+export const informationBody: string = informationStep.content.body;
+
+// @ts-expect-error Information content must include all required fields from its schema.
+export const incompleteInformationContent: InformationStep['content'] = { title: 'Only a title' };

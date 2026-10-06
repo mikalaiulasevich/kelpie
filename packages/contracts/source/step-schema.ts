@@ -90,6 +90,7 @@ export const informationStepSchema = Type.Object(
   {
     ...commonStepProperties,
     type: Type.Literal(StepType.Information),
+    content: informationContentSchema,
   },
   { additionalProperties: false },
 );
@@ -107,6 +108,7 @@ export const numberStepSchema = Type.Object(
   {
     ...commonStepProperties,
     type: Type.Literal(StepType.Number),
+    content: interactiveContentSchema,
     input: numberInputSchema,
     validation: answerValidationSchema,
   },
@@ -115,6 +117,7 @@ export const numberStepSchema = Type.Object(
 
 const commonSelectionProperties = {
   ...commonStepProperties,
+  content: interactiveContentSchema,
   input: selectionInputSchema,
   validation: answerValidationSchema,
 };
