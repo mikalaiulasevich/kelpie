@@ -1,3 +1,4 @@
+import { isUndefined } from 'es-toolkit/predicate';
 import {
   StepRules,
   DictionaryAccess,
@@ -20,7 +21,7 @@ export const RouteSteps = {
   ): FunnelStep {
     const step = DictionaryAccess.readOwn(configuration.steps, identifier);
 
-    if (step === undefined) {
+    if (isUndefined(step)) {
       throw new Error(RouteMessages.ValidatedConfigurationRequired);
     }
 
@@ -28,9 +29,7 @@ export const RouteSteps = {
   },
 
   isVisible(step: FunnelStep, answers: SessionAnswers): boolean {
-    return (
-      step.visibleWhen === undefined || ConditionEvaluation.evaluate(step.visibleWhen, answers)
-    );
+    return isUndefined(step.visibleWhen) || ConditionEvaluation.evaluate(step.visibleWhen, answers);
   },
 
   evaluateAnswer(step: FunnelStep, answers: SessionAnswers): StepAnswerEvaluation {
@@ -39,7 +38,7 @@ export const RouteSteps = {
     }
 
     const value = DictionaryAccess.readOwn(answers, step.input.name);
-    const accepted = value !== undefined && AnswerValidation.validate(step, value).valid;
+    const accepted = !isUndefined(value) && AnswerValidation.validate(step, value).valid;
 
     // Rejected optional answers are inactive and do not prevent a result.
     return {

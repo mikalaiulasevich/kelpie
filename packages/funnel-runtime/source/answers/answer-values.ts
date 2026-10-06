@@ -1,4 +1,4 @@
-import { isNil } from 'es-toolkit/predicate';
+import { isNil, isString } from 'es-toolkit/predicate';
 
 export const AnswerValues = {
   isFiniteNumber(value: unknown): value is number {
@@ -15,7 +15,7 @@ export const AnswerValues = {
 
     // Array iteration exposes sparse slots as undefined; every() would skip them.
     for (const value of answer) {
-      if (typeof value !== 'string') {
+      if (!isString(value)) {
         return false;
       }
     }

@@ -1,3 +1,4 @@
+import { isString } from 'es-toolkit/predicate';
 import { randomUUID } from 'node:crypto';
 import type { NextFunction, Request, Response } from 'express';
 import { DiagnosticEvents, DiagnosticPolicy } from './diagnostic-policy.js';
@@ -27,7 +28,7 @@ export const RequestDiagnostics = {
           : DiagnosticEvents.RequestAborted,
         requestIdentifier,
         method,
-        route: typeof route === 'string' ? route : DiagnosticPolicy.UnmatchedRoute,
+        route: isString(route) ? route : DiagnosticPolicy.UnmatchedRoute,
         status: response.statusCode,
         durationMilliseconds: Math.round(performance.now() - started),
       });

@@ -1,3 +1,4 @@
+import { isUndefined } from 'es-toolkit/predicate';
 import type {
   ExperimentVariant,
   FunnelConfiguration,
@@ -52,11 +53,11 @@ export class RouteBuilder {
     const evaluation = RouteSteps.evaluateAnswer(step, this.answers);
     this.isComplete = this.isComplete && evaluation.isComplete;
     this.activateAnswer(evaluation.acceptedAnswer);
-    this.updateProgress(step, evaluation.acceptedAnswer !== undefined);
+    this.updateProgress(step, !isUndefined(evaluation.acceptedAnswer));
   }
 
   private activateAnswer(answer: Optional<AcceptedStepAnswer>): void {
-    if (answer !== undefined) {
+    if (!isUndefined(answer)) {
       this.activeAnswers[answer.name] = answer.value;
     }
   }

@@ -1,3 +1,4 @@
+import { isUndefined } from 'es-toolkit/predicate';
 import { ConfigurationPaths } from './configuration-paths.js';
 import { ConfigurationMessages } from './configuration-messages.js';
 import { configurationSchemaCompiler } from './validation/configuration-schema-compiler.js';
@@ -16,7 +17,7 @@ export const FunnelConfigurations = {
   validate(document: unknown): ConfigurationValidationResult {
     const boundsError = ConfigurationDocumentBounds.check(document);
 
-    if (boundsError !== undefined) {
+    if (!isUndefined(boundsError)) {
       return { valid: false, issues: [{ path: ConfigurationPaths.Root, message: boundsError }] };
     }
 

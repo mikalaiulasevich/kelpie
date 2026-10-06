@@ -1,3 +1,4 @@
+import { isUndefined } from 'es-toolkit/predicate';
 import { readFileSync } from 'node:fs';
 import {
   FunnelConfigurations,
@@ -17,7 +18,7 @@ export const RuntimeFixtures = {
   step(identifier: string): FunnelStep {
     const step = RuntimeFixtures.configuration(1).steps[identifier];
 
-    if (step === undefined) {
+    if (isUndefined(step)) {
       throw new Error(FixtureMessages.MissingStep(identifier));
     }
 

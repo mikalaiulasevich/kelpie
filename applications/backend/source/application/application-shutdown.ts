@@ -1,3 +1,4 @@
+import { isUndefined } from 'es-toolkit/predicate';
 import {
   Inject,
   Injectable,
@@ -17,7 +18,7 @@ export class ApplicationShutdown implements BeforeApplicationShutdown, OnApplica
   constructor(@Inject(HttpAdapterHost) private readonly adapter: HttpAdapterHost) {}
 
   beforeApplicationShutdown(): void {
-    if (this.deadline !== undefined) {
+    if (!isUndefined(this.deadline)) {
       return;
     }
 

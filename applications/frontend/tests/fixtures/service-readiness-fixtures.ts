@@ -1,3 +1,4 @@
+import { isUndefined } from 'es-toolkit/predicate';
 import { vi, type Mock } from 'vitest';
 import { ServiceReadinessFixtureMessages } from './service-readiness-messages';
 
@@ -41,7 +42,7 @@ export const ServiceReadinessFixture = {
         new Promise<Response>((_resolve, reject) => {
           const signal = input instanceof Request ? input.signal : undefined;
 
-          if (signal === undefined) {
+          if (isUndefined(signal)) {
             throw new Error(ServiceReadinessFixtureMessages.CancellationRequired);
           }
 

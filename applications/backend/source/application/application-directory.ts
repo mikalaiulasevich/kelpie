@@ -1,3 +1,4 @@
+import { isUndefined } from 'es-toolkit/predicate';
 import { existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -12,7 +13,7 @@ const candidateDirectories = [
 const resolvedDirectory = candidateDirectories.find((directory) =>
   existsSync(resolve(directory, DatabasePaths.Schema)),
 );
-if (resolvedDirectory === undefined) {
+if (isUndefined(resolvedDirectory)) {
   throw new Error(ApplicationMessages.DirectoryUnavailable);
 }
 

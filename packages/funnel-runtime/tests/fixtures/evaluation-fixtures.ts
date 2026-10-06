@@ -1,3 +1,4 @@
+import { isUndefined } from 'es-toolkit/predicate';
 import { StepRules, type FunnelConfiguration, type SessionAnswers } from '@kelpie/contracts';
 import { RuntimeAnswers, RuntimeFixtures } from './runtime-fixtures.js';
 import { FixtureMessages } from './fixture-messages.js';
@@ -7,7 +8,7 @@ export const EvaluationFixtures = {
     const configuration = RuntimeFixtures.configuration(1);
     const step = configuration.steps['team_size'];
 
-    if (step === undefined || !StepRules.isInteractive(step)) {
+    if (isUndefined(step) || !StepRules.isInteractive(step)) {
       throw new Error(FixtureMessages.MissingStep('team_size'));
     }
 
@@ -24,6 +25,6 @@ export const EvaluationFixtures = {
     const answers = { ...RuntimeAnswers.complete() };
     delete answers['team_size'];
 
-    return teamSize === undefined ? answers : { ...answers, team_size: teamSize };
+    return isUndefined(teamSize) ? answers : { ...answers, team_size: teamSize };
   },
 } as const;

@@ -1,3 +1,4 @@
+import { isUndefined } from 'es-toolkit/predicate';
 import { match, P } from 'ts-pattern';
 
 import { ConfigurationPaths } from '../configurations/configuration-paths.js';
@@ -33,7 +34,7 @@ export const StepContentValidation = {
       )
       .exhaustive();
 
-    if (requirement === undefined || requirement.validate(content)) {
+    if (isUndefined(requirement) || requirement.validate(content)) {
       return undefined;
     }
 

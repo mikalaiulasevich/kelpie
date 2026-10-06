@@ -1,3 +1,4 @@
+import { isUndefined } from 'es-toolkit/predicate';
 import { HttpStatus } from '@nestjs/common';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import type { Writable } from 'node:stream';
@@ -11,11 +12,11 @@ import type { DiagnosticRecord, RequestDiagnosticContext } from './diagnostics-t
 
 const DiagnosticLevels = {
   resolve(record: DiagnosticRecord): ValueOf<typeof DiagnosticSeverity> {
-    if (record.status !== undefined && record.status >= HttpStatus.INTERNAL_SERVER_ERROR) {
+    if (!isUndefined(record.status) && record.status >= HttpStatus.INTERNAL_SERVER_ERROR) {
       return DiagnosticSeverity.Error;
     }
 
-    if (record.status !== undefined && record.status >= HttpStatus.BAD_REQUEST) {
+    if (!isUndefined(record.status) && record.status >= HttpStatus.BAD_REQUEST) {
       return DiagnosticSeverity.Warning;
     }
 

@@ -1,3 +1,4 @@
+import { isUndefined } from 'es-toolkit/predicate';
 import {
   StepType,
   DictionaryAccess,
@@ -11,7 +12,7 @@ export const VariantOverrides = {
   step(stepIdentifier: string, step: FunnelStep, variant: VariantConfiguration): FunnelStep {
     const override = DictionaryAccess.readOwn(variant.stepOverrides, stepIdentifier);
 
-    if (override === undefined) {
+    if (isUndefined(override)) {
       return step;
     }
 

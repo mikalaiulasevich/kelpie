@@ -1,3 +1,4 @@
+import { isNull, isString, isUndefined } from 'es-toolkit/predicate';
 import 'reflect-metadata';
 import { execFile } from 'node:child_process';
 import { mkdtemp, rm } from 'node:fs/promises';
@@ -40,7 +41,7 @@ export class BackendApplicationFixture {
   }
 
   async request(path: string, options?: RequestInit): Promise<Response> {
-    if (this.baseUrl === undefined) {
+    if (isUndefined(this.baseUrl)) {
       throw new Error(BackendFixtureMessages.Closed);
     }
 
@@ -72,7 +73,7 @@ export class BackendApplicationFixture {
   }
 
   private async removeDirectory(): Promise<void> {
-    if (this.temporaryDirectory === undefined) {
+    if (isUndefined(this.temporaryDirectory)) {
       return;
     }
 
@@ -136,7 +137,7 @@ export class BackendApplicationFixture {
 
     const address = server.address();
 
-    if (address === null || typeof address === 'string') {
+    if (isNull(address) || isString(address)) {
       throw new Error(BackendFixtureMessages.AddressUnavailable);
     }
 

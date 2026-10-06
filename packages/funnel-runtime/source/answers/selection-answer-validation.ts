@@ -1,3 +1,4 @@
+import { isString } from 'es-toolkit/predicate';
 import { StepRules, type MultipleSelectionStep, type SingleSelectionStep } from '@kelpie/contracts';
 import { AnswerIssueCollection, AnswerIssues } from './answer-issues.js';
 import { AnswerMessages } from './answer-messages.js';
@@ -46,7 +47,7 @@ const SelectionIssues = {
 export const SelectionAnswerValidation = {
   single(step: SingleSelectionStep, answer: unknown): ReadonlyList<AnswerIssue> {
     const isAvailableOption =
-      typeof answer === 'string' && step.input.options.some((option) => option.value === answer);
+      isString(answer) && step.input.options.some((option) => option.value === answer);
 
     if (!isAvailableOption) {
       return [

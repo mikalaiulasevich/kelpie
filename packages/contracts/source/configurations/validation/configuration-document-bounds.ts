@@ -1,3 +1,4 @@
+import { isNull, isUndefined } from 'es-toolkit/predicate';
 import { match, P } from 'ts-pattern';
 
 import { ConfigurationMessages } from '../configuration-messages.js';
@@ -16,13 +17,13 @@ interface DocumentTraversal {
 
 const DocumentInspection = {
   isObject(value: unknown): value is object {
-    return value !== null && typeof value === 'object';
+    return !isNull(value) && typeof value === 'object';
   },
 
   isPlainContainer(value: object): boolean {
     const prototype: unknown = Object.getPrototypeOf(value);
 
-    return Array.isArray(value) || prototype === Object.prototype || prototype === null;
+    return Array.isArray(value) || prototype === Object.prototype || isNull(prototype);
   },
 
   inspectContainer(value: object, depth: number, traversal: DocumentTraversal): Optional<string> {
@@ -85,7 +86,7 @@ export const ConfigurationDocumentBounds = {
     while (traversal.pending.length > 0) {
       const current = traversal.pending.pop();
 
-      if (current === undefined) {
+      if (isUndefined(current)) {
         break;
       }
 
@@ -100,7 +101,7 @@ export const ConfigurationDocumentBounds = {
 
       const issue = DocumentInspection.inspectValue(current, traversal);
 
-      if (issue !== undefined) {
+      if (!isUndefined(issue)) {
         return issue;
       }
 

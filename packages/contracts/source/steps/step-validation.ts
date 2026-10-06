@@ -1,3 +1,4 @@
+import { isUndefined } from 'es-toolkit/predicate';
 import { ConfigurationPaths } from '../configurations/configuration-paths.js';
 import { ConfigurationMessages } from '../configurations/configuration-messages.js';
 import type { ConfigurationValidationContext } from '../configurations/validation/configuration-validation-context.js';
@@ -94,7 +95,7 @@ export const StepValidation = {
     }
 
     if (step.type === StepType.Result) {
-      if (step.visibleWhen !== undefined) {
+      if (!isUndefined(step.visibleWhen)) {
         context.report(
           ConfigurationPaths.step(stepIdentifier).visibility,
           ConfigurationMessages.UnconditionalResultRequired,

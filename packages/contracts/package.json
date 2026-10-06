@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "ajv": "8.20.0",
+    "es-toolkit": "1.52.0",
     "ts-pattern": "5.9.0",
     "typebox": "1.3.36"
   }

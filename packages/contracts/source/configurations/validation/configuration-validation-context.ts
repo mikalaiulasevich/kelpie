@@ -1,3 +1,4 @@
+import { isUndefined } from 'es-toolkit/predicate';
 import { ConfigurationLimits } from '../configuration-policy.js';
 import type { ConfigurationIssue, FunnelConfiguration } from '../configuration-types.js';
 import type { InteractiveStep, SelectionStep } from '../../steps/step-types.js';
@@ -13,7 +14,7 @@ export class ConfigurationValidationContext {
   selectionValues(step: SelectionStep): ReadonlySet<TextOrNumber> {
     const existingValues = this.selectionIndexes.get(step);
 
-    if (existingValues !== undefined) {
+    if (!isUndefined(existingValues)) {
       return existingValues;
     }
 

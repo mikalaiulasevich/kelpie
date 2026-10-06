@@ -1,3 +1,4 @@
+import { isUndefined } from 'es-toolkit/predicate';
 import {
   ConditionOperator,
   DictionaryAccess,
@@ -12,7 +13,7 @@ const AnswerConditions = {
   evaluate(condition: AnswerCondition, answers: SessionAnswers): boolean {
     const answer = DictionaryAccess.readOwn(answers, condition.answer);
 
-    if (answer === undefined) {
+    if (isUndefined(answer)) {
       return false;
     }
 

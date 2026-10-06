@@ -1,3 +1,4 @@
+import { isUndefined } from 'es-toolkit/predicate';
 import { match, P } from 'ts-pattern';
 
 import type { InteractiveStep, SelectionStep } from '../steps/step-types.js';
@@ -62,13 +63,13 @@ export const ConditionValidation = {
     ConditionValidation.visitPredicates(condition, (predicate) => {
       const answerStep = context.answerSteps.get(predicate.answer);
 
-      if (answerStep === undefined) {
+      if (isUndefined(answerStep)) {
         context.report(path, ConfigurationMessages.UnknownAnswer(predicate.answer));
 
         return;
       }
 
-      if (earlierAnswers !== undefined && !earlierAnswers.has(predicate.answer)) {
+      if (!isUndefined(earlierAnswers) && !earlierAnswers.has(predicate.answer)) {
         context.report(path, ConfigurationMessages.AnswerOrder(predicate.answer));
       }
 

@@ -1,3 +1,4 @@
+import { isUndefined } from 'es-toolkit/predicate';
 import {
   DictionaryAccess,
   type FunnelConfiguration,
@@ -38,7 +39,7 @@ export const ResultSelection = {
     );
     const result = DictionaryAccess.readOwn(configuration.results, resultIdentifier);
 
-    if (result === undefined) {
+    if (isUndefined(result)) {
       return undefined;
     }
 

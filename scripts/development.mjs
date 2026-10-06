@@ -1,3 +1,4 @@
+import { isUndefined } from 'es-toolkit/predicate';
 import { spawn } from 'node:child_process';
 
 import { DevelopmentMessages } from './script-messages.mjs';
@@ -68,7 +69,7 @@ const DevelopmentProcesses = {
       try {
         if (process.platform === DevelopmentPolicy.WindowsPlatform) {
           childProcess.kill(signal);
-        } else if (childProcess.pid !== undefined) {
+        } else if (!isUndefined(childProcess.pid)) {
           process.kill(-childProcess.pid, signal);
         }
       } catch (error) {
@@ -95,7 +96,7 @@ for (const workspaceName of DevelopmentPolicy.Workspaces) {
   childProcesses.add(childProcess);
   childProcess.on('error', (error) => {
     console.error(DevelopmentMessages.startFailed(workspaceName), error.message);
-    if (childProcess.pid === undefined) {
+    if (isUndefined(childProcess.pid)) {
       childProcesses.delete(childProcess);
     }
 

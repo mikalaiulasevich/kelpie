@@ -1,3 +1,4 @@
+import { isNull, isString } from 'es-toolkit/predicate';
 import { createServer, type Server } from 'node:net';
 import { StartupProcessPolicy } from './startup-policy.js';
 import { StartupProcessMessages } from './startup-messages.js';
@@ -16,7 +17,7 @@ export class StartupPortFixture {
     });
     const address = server.address();
 
-    if (address === null || typeof address === 'string') {
+    if (isNull(address) || isString(address)) {
       server.close();
       throw new Error(StartupProcessMessages.AddressUnavailable);
     }

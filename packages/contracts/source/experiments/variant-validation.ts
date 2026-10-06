@@ -1,3 +1,4 @@
+import { isUndefined } from 'es-toolkit/predicate';
 import { ConfigurationPaths } from '../configurations/configuration-paths.js';
 import { ConditionValidation } from '../conditions/condition-validation.js';
 import { ConfigurationMessages } from '../configurations/configuration-messages.js';
@@ -38,7 +39,7 @@ class VariantSequenceValidation {
   private validateStep(stepIdentifier: string, position: number): void {
     const step = DictionaryAccess.readOwn(this.context.configuration.steps, stepIdentifier);
 
-    if (step === undefined) {
+    if (isUndefined(step)) {
       this.context.report(this.paths.sequence, ConfigurationMessages.UnknownStep(stepIdentifier));
 
       return;
@@ -52,7 +53,7 @@ class VariantSequenceValidation {
   private validateContent(stepIdentifier: string, step: FunnelStep): void {
     const override = DictionaryAccess.readOwn(this.variant.stepOverrides, stepIdentifier);
 
-    if (override === undefined) {
+    if (isUndefined(override)) {
       return;
     }
 
@@ -62,13 +63,13 @@ class VariantSequenceValidation {
       this.paths.stepOverrideContent(stepIdentifier),
     );
 
-    if (issue !== undefined) {
+    if (!isUndefined(issue)) {
       this.context.report(issue.path, issue.message);
     }
   }
 
   private validateVisibility(stepIdentifier: string, step: FunnelStep): void {
-    if (step.visibleWhen === undefined) {
+    if (isUndefined(step.visibleWhen)) {
       return;
     }
 

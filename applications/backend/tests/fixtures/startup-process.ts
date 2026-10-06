@@ -1,3 +1,4 @@
+import { isNull } from 'es-toolkit/predicate';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -91,7 +92,7 @@ export class StartupProcessFixture {
     const deadline = Date.now() + StartupProcessPolicy.TimeoutMilliseconds;
 
     while (Date.now() < deadline) {
-      if (this.process.exitCode !== null || this.process.signalCode !== null) {
+      if (!isNull(this.process.exitCode) || !isNull(this.process.signalCode)) {
         throw new Error(StartupProcessMessages.PrematureExit);
       }
 
