@@ -51,7 +51,7 @@ export class StartupProcessFixture {
         throw new AggregateError(
           [setupError, cleanupError],
           StartupProcessMessages.SetupCleanupFailed,
-          { cause: setupError },
+          { cause: cleanupError },
         );
       }
 
@@ -125,7 +125,7 @@ export class StartupProcessFixture {
         throw new AggregateError(
           [exitError, cleanupError],
           StartupProcessMessages.ExitCleanupFailed,
-          { cause: exitError },
+          { cause: cleanupError },
         );
       }
 
