@@ -1,4 +1,6 @@
 export const StartupProcessMessages = {
+  SetupCleanupFailed: 'Startup fixture setup failed and cleanup also failed.',
+  ExitCleanupFailed: 'Startup process exit failed and cleanup also failed.',
   AddressUnavailable: 'Test listener has no network address.',
   ExitTimeout: 'Backend process did not exit within the test deadline.',
   StartupTimeout: 'Backend process did not become live within the test deadline.',

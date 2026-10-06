@@ -8,7 +8,8 @@ export const RequestDiagnostics = {
     const requestIdentifier = randomUUID();
     const started = performance.now();
     const method =
-      DiagnosticPolicy.Methods.find((candidate) => candidate === request.method) ?? 'OTHER';
+      DiagnosticPolicy.Methods.find((candidate) => candidate === request.method) ??
+      DiagnosticPolicy.UnknownMethod;
     let recorded = false;
     response.setHeader(DiagnosticPolicy.RequestIdentifierHeader, requestIdentifier);
 
@@ -26,7 +27,7 @@ export const RequestDiagnostics = {
           : DiagnosticEvents.RequestAborted,
         requestIdentifier,
         method,
-        route: typeof route === 'string' ? route : 'unmatched',
+        route: typeof route === 'string' ? route : DiagnosticPolicy.UnmatchedRoute,
         status: response.statusCode,
         durationMilliseconds: Math.round(performance.now() - started),
       });

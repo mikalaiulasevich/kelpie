@@ -1,69 +1,89 @@
-import { EnvironmentMessages } from '../environment/environment-messages.js';
 import { createHash } from 'node:crypto';
+import { EnvironmentMessages } from '../environment/environment-messages.js';
 import { DiagnosticPolicy, ErrorClassification } from './diagnostic-policy.js';
+import type { ErrorDescription, ErrorFrame } from './diagnostics-types.js';
 
-import type { ErrorDescription } from './diagnostics-types.js';
-
-export const ErrorDiagnostics = {
-  fingerprint(value: string): string {
-    return createHash('sha256')
+const DiagnosticFingerprint = {
+  create(value: string): string {
+    return createHash(DiagnosticPolicy.FingerprintAlgorithm)
       .update(value)
-      .digest('hex')
+      .digest(DiagnosticPolicy.FingerprintEncoding)
       .slice(0, DiagnosticPolicy.FingerprintCharacters);
   },
-  describe(error: unknown): ErrorDescription {
-    try {
-      return this.inspect(error);
-    } catch {
-      // Error subclasses can override stack/code accessors; diagnostics cannot trust them.
-      return {
-        classification: ErrorClassification.Unknown,
-        safeMessage: undefined,
-        code: undefined,
-        fingerprint: this.fingerprint('unreadable'),
-        frames: [],
-      };
-    }
+} as const;
+
+const ErrorDetails = {
+  stackLines(error: Error): ReadonlyList<string> {
+    const stack = error.stack?.slice(0, DiagnosticPolicy.MaximumStackCharacters) ?? '';
+
+    // The first line contains the message, which may contain credentials.
+    return stack.split('\n').slice(1, DiagnosticPolicy.MaximumFrames + 1);
   },
-  inspect(error: unknown): ErrorDescription {
-    const stack =
-      error instanceof Error
-        ? (error.stack?.slice(0, DiagnosticPolicy.MaximumStackCharacters) ?? '')
-        : '';
-    // Exclude the first line: it contains the error message and may hold credentials.
-    const stackLines = stack.split('\n').slice(1, DiagnosticPolicy.MaximumFrames + 1);
-    const frames = stackLines.flatMap((frame) => {
-      const location = /(.+):(\d+):(\d+)\)?$/.exec(frame);
 
-      if (!location) {
-        return [];
-      }
+  frame(value: string): ReadonlyList<ErrorFrame> {
+    const location = DiagnosticPolicy.StackLocationPattern.exec(value);
 
-      return [
-        {
-          location: this.fingerprint(location[1] ?? ''),
-          line: Number(location[2]),
-          column: Number(location[3]),
-        },
-      ];
-    });
-    const code =
-      error instanceof Error && 'code' in error
-        ? DiagnosticPolicy.ErrorCodes.find((candidate) => candidate === error.code)
-        : undefined;
+    if (!location) {
+      return [];
+    }
 
-    const safeMessage =
-      error instanceof Error
-        ? Object.values(EnvironmentMessages).find((message) => message === error.message)
-        : undefined;
+    const [, source, line, column] = location;
+
+    return [
+      {
+        location: DiagnosticFingerprint.create(source ?? ''),
+        line: Number(line),
+        column: Number(column),
+      },
+    ];
+  },
+
+  code(error: Error): Optional<string> {
+    if (!('code' in error)) {
+      return undefined;
+    }
+
+    return DiagnosticPolicy.ErrorCodes.find((candidate) => candidate === error.code);
+  },
+
+  safeMessage(error: Error): Optional<string> {
+    return Object.values(EnvironmentMessages).find((message) => message === error.message);
+  },
+} as const;
+
+const ErrorDescriptions = {
+  unknown(fingerprintValue: string): ErrorDescription {
+    return {
+      classification: ErrorClassification.Unknown,
+      safeMessage: undefined,
+      code: undefined,
+      fingerprint: DiagnosticFingerprint.create(fingerprintValue),
+      frames: [],
+    };
+  },
+
+  known(error: Error): ErrorDescription {
+    const stackLines = ErrorDetails.stackLines(error);
 
     return {
-      safeMessage,
-      classification:
-        error instanceof Error ? ErrorClassification.Error : ErrorClassification.Unknown,
-      code,
-      fingerprint: this.fingerprint(stackLines.join('\n')),
-      frames,
+      classification: ErrorClassification.Error,
+      safeMessage: ErrorDetails.safeMessage(error),
+      code: ErrorDetails.code(error),
+      fingerprint: DiagnosticFingerprint.create(stackLines.join('\n')),
+      frames: stackLines.flatMap(ErrorDetails.frame),
     };
+  },
+} as const;
+
+export const ErrorDiagnostics = {
+  describe(error: unknown): ErrorDescription {
+    try {
+      return error instanceof Error
+        ? ErrorDescriptions.known(error)
+        : ErrorDescriptions.unknown('');
+    } catch {
+      // Error subclasses may override accessors; diagnostic failures must not escape.
+      return ErrorDescriptions.unknown(DiagnosticPolicy.UnreadableErrorFingerprint);
+    }
   },
 } as const;

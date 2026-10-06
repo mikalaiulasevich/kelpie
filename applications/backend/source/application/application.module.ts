@@ -1,5 +1,6 @@
-import { ApplicationShutdown } from './application-shutdown.js';
 import { Module, type DynamicModule } from '@nestjs/common';
+
+import { ApplicationShutdown } from './application-shutdown.js';
 import { DatabaseService } from '../database/database.service.js';
 import {
   ApplicationEnvironmentService,

@@ -1,11 +1,11 @@
+import { Controller, Get, Inject, ServiceUnavailableException } from '@nestjs/common';
+
 import { Diagnostics } from '../diagnostics/diagnostics.js';
 import { DiagnosticEvents, DiagnosticReason } from '../diagnostics/diagnostic-policy.js';
 import { ErrorDiagnostics } from '../diagnostics/error-diagnostics.js';
-import { Controller, Get, Inject, ServiceUnavailableException } from '@nestjs/common';
 import { TransportMessages } from '../transport/transport-messages.js';
 import { DatabaseService } from '../database/database.service.js';
 import { HealthRoutes, HealthStatus } from './health-policy.js';
-
 import type { HealthResponse } from './health-types.js';
 
 @Controller(HealthRoutes.Controller)

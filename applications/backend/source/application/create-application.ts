@@ -2,8 +2,9 @@ import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
-import { RequestDiagnostics } from '../diagnostics/request-diagnostics.js';
 import { Server } from 'node:http';
+
+import { RequestDiagnostics } from '../diagnostics/request-diagnostics.js';
 import { ApplicationMessages } from './application-messages.js';
 import { ApplicationEnvironmentReader } from '../environment/read-application-environment.js';
 import type { ApplicationEnvironment } from '../environment/environment-schemas.js';

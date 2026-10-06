@@ -1,11 +1,12 @@
 import { HttpStatus } from '@nestjs/common';
 import { AsyncLocalStorage } from 'node:async_hooks';
+import type { Writable } from 'node:stream';
+
 import {
   DiagnosticEvents,
   DiagnosticEventSeverity,
   DiagnosticSeverity,
 } from './diagnostic-policy.js';
-import type { Writable } from 'node:stream';
 import type { DiagnosticRecord, RequestDiagnosticContext } from './diagnostics-types.js';
 
 const DiagnosticLevels = {
@@ -24,6 +25,19 @@ const DiagnosticLevels = {
 
 export const RequestContext = new AsyncLocalStorage<RequestDiagnosticContext>();
 
+const DiagnosticRecords = {
+  serialize(record: DiagnosticRecord): string {
+    const entry = {
+      timestamp: new Date().toISOString(),
+      level: DiagnosticLevels.resolve(record),
+      ...RequestContext.getStore(),
+      ...record,
+    };
+
+    return `${JSON.stringify(entry)}\n`;
+  },
+} as const;
+
 export class DiagnosticSink {
   private blocked = false;
   private droppedRecords = 0;
@@ -37,15 +51,13 @@ export class DiagnosticSink {
 
   write(record: DiagnosticRecord): void {
     if (this.blocked || this.failed) {
-      this.droppedRecords = Math.min(Number.MAX_SAFE_INTEGER, this.droppedRecords + 1);
+      this.dropRecord();
 
       return;
     }
 
     try {
-      const ready = this.destination.write(
-        `${JSON.stringify({ timestamp: new Date().toISOString(), level: DiagnosticLevels.resolve(record), ...RequestContext.getStore(), ...record })}\n`,
-      );
+      const ready = this.destination.write(DiagnosticRecords.serialize(record));
 
       if (!ready) {
         this.blocked = true;
@@ -53,8 +65,12 @@ export class DiagnosticSink {
       }
     } catch {
       // Logging must never replace the original request/startup failure.
-      this.droppedRecords = Math.min(Number.MAX_SAFE_INTEGER, this.droppedRecords + 1);
+      this.dropRecord();
     }
+  }
+
+  private dropRecord(): void {
+    this.droppedRecords = Math.min(Number.MAX_SAFE_INTEGER, this.droppedRecords + 1);
   }
 
   private resume(): void {

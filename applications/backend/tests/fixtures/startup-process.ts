@@ -3,6 +3,8 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
+import { SQLitePolicy } from '../../source/database/sqlite-policy.js';
+import { ApplicationMode, EnvironmentFields } from '../../source/environment/environment-policy.js';
 import { applicationDirectory } from '../../source/application/application-directory.js';
 import type { StartupExit } from './startup-types.js';
 import { StartupProcessPolicy } from './startup-policy.js';
@@ -27,24 +29,33 @@ export class StartupProcessFixture {
 
   static async create(environment: NodeJS.ProcessEnv): Promise<StartupProcessFixture> {
     const directory = await mkdtemp(resolve(tmpdir(), StartupProcessPolicy.DirectoryPrefix));
-    const databaseUrl = `file:${resolve(directory, StartupProcessPolicy.DatabaseFilename)}`;
+    const databaseUrl = `${SQLitePolicy.FileUrlPrefix}${resolve(directory, StartupProcessPolicy.DatabaseFilename)}`;
     try {
-      const process = spawn(globalThis.process.execPath, ['--import', 'tsx', 'source/main.ts'], {
+      const process = spawn(globalThis.process.execPath, [...StartupProcessPolicy.EntryArguments], {
         cwd: applicationDirectory,
         env: {
           ...globalThis.process.env,
-          NODE_ENV: 'test',
-          HOST: StartupProcessPolicy.Host,
-          DATABASE_URL: databaseUrl,
+          [EnvironmentFields.Mode]: ApplicationMode.Test,
+          [EnvironmentFields.Host]: StartupProcessPolicy.Host,
+          [EnvironmentFields.DatabaseUrl]: databaseUrl,
           ...environment,
         },
-        stdio: ['ignore', 'pipe', 'pipe'],
+        stdio: [...StartupProcessPolicy.StandardStreams],
       });
 
       return new StartupProcessFixture(process, directory, databaseUrl);
-    } catch (error) {
-      await rm(directory, { recursive: true, force: true });
-      throw error;
+    } catch (setupError) {
+      try {
+        await rm(directory, { recursive: true, force: true });
+      } catch (cleanupError) {
+        throw new AggregateError(
+          [setupError, cleanupError],
+          StartupProcessMessages.SetupCleanupFailed,
+          { cause: setupError },
+        );
+      }
+
+      throw setupError;
     }
   }
 
@@ -53,7 +64,7 @@ export class StartupProcessFixture {
   }
 
   terminate(): void {
-    this.process.kill('SIGTERM');
+    this.process.kill(StartupProcessPolicy.TerminationSignal);
   }
 
   async waitForExit(
@@ -66,7 +77,7 @@ export class StartupProcessFixture {
         this.exited,
         new Promise<never>((_, rejectDeadline) => {
           deadline = setTimeout(() => {
-            this.process.kill('SIGKILL');
+            this.process.kill(StartupProcessPolicy.ForcedTerminationSignal);
             rejectDeadline(new Error(StartupProcessMessages.ExitTimeout));
           }, timeoutMilliseconds);
         }),
@@ -84,9 +95,12 @@ export class StartupProcessFixture {
         throw new Error(StartupProcessMessages.PrematureExit);
       }
 
-      const response = await fetch(`http://${StartupProcessPolicy.Host}:${port}/api/health/live`, {
-        signal: AbortSignal.timeout(StartupProcessPolicy.RequestTimeoutMilliseconds),
-      }).catch(() => undefined);
+      const response = await fetch(
+        `${StartupProcessPolicy.HttpScheme}//${StartupProcessPolicy.Host}:${port}${StartupProcessPolicy.LivenessPath}`,
+        {
+          signal: AbortSignal.timeout(StartupProcessPolicy.RequestTimeoutMilliseconds),
+        },
+      ).catch(() => undefined);
       await response?.body?.cancel();
 
       if (response?.ok) {
@@ -100,13 +114,25 @@ export class StartupProcessFixture {
   }
 
   async close(): Promise<void> {
-    this.process.kill('SIGKILL');
+    this.process.kill(StartupProcessPolicy.ForcedTerminationSignal);
 
     try {
       await this.waitForExit();
-    } finally {
-      await rm(this.directory, { recursive: true, force: true });
+    } catch (exitError) {
+      try {
+        await rm(this.directory, { recursive: true, force: true });
+      } catch (cleanupError) {
+        throw new AggregateError(
+          [exitError, cleanupError],
+          StartupProcessMessages.ExitCleanupFailed,
+          { cause: exitError },
+        );
+      }
+
+      throw exitError;
     }
+
+    await rm(this.directory, { recursive: true, force: true });
   }
 
   private capture(chunk: Buffer): void {

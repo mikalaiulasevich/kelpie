@@ -12,6 +12,12 @@ export const DiagnosticEvents = {
 
 export const DiagnosticPolicy = {
   RequestIdentifierHeader: 'x-request-id',
+  UnknownMethod: 'OTHER',
+  UnmatchedRoute: 'unmatched',
+  FingerprintAlgorithm: 'sha256',
+  FingerprintEncoding: 'hex',
+  UnreadableErrorFingerprint: 'unreadable',
+  StackLocationPattern: /(.+):(\d+):(\d+)\)?$/,
   MaximumStackCharacters: 8_192,
   MaximumFrames: 6,
   FingerprintCharacters: 20,
