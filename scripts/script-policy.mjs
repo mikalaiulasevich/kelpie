@@ -14,3 +14,11 @@ export const BenchmarkPolicy = Object.freeze({
   runtimeIterations: 10_000,
   decimalPlaces: 3,
 });
+
+export const BuildPolicy = Object.freeze({
+  outputDirectories: Object.freeze([
+    'packages/contracts/distribution',
+    'packages/funnel-runtime/distribution',
+    'applications/backend/distribution',
+  ]),
+});

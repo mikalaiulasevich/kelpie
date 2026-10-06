@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "node ../../scripts/clean-build.mjs && tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json",
     "start": "node distribution/source/main.js",
     "development": "npm run build && concurrently --kill-others-on-fail \"tsc --project tsconfig.build.json --watch --preserveWatchOutput\" \"node --watch distribution/source/main.js\"",
