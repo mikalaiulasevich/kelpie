@@ -1,5 +1,5 @@
 import {
-  readOwnProperty,
+  DictionaryAccess,
   type ExperimentVariant,
   type FunnelConfiguration,
   type FunnelResult,
@@ -39,7 +39,7 @@ export const ResultResolution = {
     }
 
     const resultIdentifier = ResultRules.selectIdentifier(configuration, route.activeAnswers);
-    const result = readOwnProperty(configuration.results, resultIdentifier);
+    const result = DictionaryAccess.readOwn(configuration.results, resultIdentifier);
 
     if (result === undefined) {
       return undefined;

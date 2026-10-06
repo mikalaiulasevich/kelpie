@@ -2,14 +2,16 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { FunnelConfigurations } from '../source/index.js';
 
-function originalConfiguration(version: number): unknown {
-  return JSON.parse(
-    readFileSync(
-      new URL(`../../../configurations/funnel-v${version}.json`, import.meta.url),
-      'utf8',
-    ),
-  );
-}
+const ConfigurationFixtures = {
+  original(version: number): unknown {
+    return JSON.parse(
+      readFileSync(
+        new URL(`../../../configurations/funnel-v${version}.json`, import.meta.url),
+        'utf8',
+      ),
+    );
+  },
+} as const;
 
 describe('configuration validation', () => {
   it.each(
@@ -19,7 +21,7 @@ describe('configuration validation', () => {
   )(
     'rejects blank information content $field: $value in base and merged variants',
     ({ field, value }) => {
-      const parsed = FunnelConfigurations.validate(originalConfiguration(1));
+      const parsed = FunnelConfigurations.validate(ConfigurationFixtures.original(1));
 
       if (!parsed.valid) {
         throw new Error('Invalid fixture.');
@@ -64,7 +66,7 @@ describe('configuration validation', () => {
   );
 
   it('accepts partial content overrides without trimming or mutating the configuration', () => {
-    const parsed = FunnelConfigurations.validate(originalConfiguration(1));
+    const parsed = FunnelConfigurations.validate(ConfigurationFixtures.original(1));
 
     if (!parsed.valid) {
       throw new Error('Invalid fixture.');
@@ -91,7 +93,7 @@ describe('configuration validation', () => {
   });
 
   it.each([1, 2, 3])('accepts preserved version %s', (version) => {
-    expect(FunnelConfigurations.validate(originalConfiguration(version))).toMatchObject({
+    expect(FunnelConfigurations.validate(ConfigurationFixtures.original(version))).toMatchObject({
       valid: true,
     });
   });
@@ -118,7 +120,7 @@ describe('configuration validation', () => {
   });
 
   it('rejects inherited configuration fields', () => {
-    const parsed = FunnelConfigurations.validate(originalConfiguration(1));
+    const parsed = FunnelConfigurations.validate(ConfigurationFixtures.original(1));
     if (!parsed.valid) {
       throw new Error('The original configuration must be valid.');
     }
@@ -128,7 +130,7 @@ describe('configuration validation', () => {
   });
 
   it('rejects unknown fields instead of silently deleting them', () => {
-    const document: unknown = originalConfiguration(1);
+    const document: unknown = ConfigurationFixtures.original(1);
     expect(
       FunnelConfigurations.validate({
         ...(typeof document === 'object' ? document : {}),
@@ -138,7 +140,7 @@ describe('configuration validation', () => {
   });
 
   it('rejects future branch dependencies in either variant', () => {
-    const parsed = FunnelConfigurations.validate(originalConfiguration(1));
+    const parsed = FunnelConfigurations.validate(ConfigurationFixtures.original(1));
     if (!parsed.valid) {
       throw new Error('Invalid fixture.');
     }
@@ -161,7 +163,7 @@ describe('configuration validation', () => {
   });
 
   it('rejects invalid option references', () => {
-    const parsed = FunnelConfigurations.validate(originalConfiguration(1));
+    const parsed = FunnelConfigurations.validate(ConfigurationFixtures.original(1));
     if (!parsed.valid) {
       throw new Error('Invalid fixture.');
     }
@@ -179,7 +181,7 @@ describe('configuration validation', () => {
   });
 
   it('rejects unequal identity keys and invalid experiment weights', () => {
-    const parsed = FunnelConfigurations.validate(originalConfiguration(1));
+    const parsed = FunnelConfigurations.validate(ConfigurationFixtures.original(1));
     if (!parsed.valid) {
       throw new Error('Invalid fixture.');
     }
@@ -198,7 +200,7 @@ describe('configuration validation', () => {
   });
 
   it('validates merged variant content instead of only the base step', () => {
-    const parsed = FunnelConfigurations.validate(originalConfiguration(1));
+    const parsed = FunnelConfigurations.validate(ConfigurationFixtures.original(1));
     if (!parsed.valid) {
       throw new Error('Invalid fixture.');
     }
@@ -226,7 +228,7 @@ describe('configuration validation', () => {
   it.each(['constructor', 'toString', 'hasOwnProperty'])(
     'rejects inherited step and result reference %s without throwing',
     (reference) => {
-      const parsed = FunnelConfigurations.validate(originalConfiguration(1));
+      const parsed = FunnelConfigurations.validate(ConfigurationFixtures.original(1));
       if (!parsed.valid) {
         throw new Error('Invalid fixture.');
       }
@@ -259,7 +261,7 @@ describe('configuration validation', () => {
 
 describe('semantic validation phases', () => {
   it('preserves step, variant, result, and event issue ordering', () => {
-    const parsed = FunnelConfigurations.validate(originalConfiguration(1));
+    const parsed = FunnelConfigurations.validate(ConfigurationFixtures.original(1));
 
     if (!parsed.valid) {
       throw new Error('Invalid fixture.');
@@ -293,11 +295,11 @@ describe('semantic validation phases', () => {
       '/events/baseProperties',
     ]);
     // A failed traversal must not leak diagnostics or indexes into the next document.
-    expect(FunnelConfigurations.validate(originalConfiguration(1)).valid).toBe(true);
+    expect(FunnelConfigurations.validate(ConfigurationFixtures.original(1)).valid).toBe(true);
   });
 
   it('keeps a bounded diagnostic prefix for many semantic failures', () => {
-    const parsed = FunnelConfigurations.validate(originalConfiguration(1));
+    const parsed = FunnelConfigurations.validate(ConfigurationFixtures.original(1));
 
     if (!parsed.valid) {
       throw new Error('Invalid fixture.');

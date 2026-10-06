@@ -50,7 +50,7 @@ export type {
   VariantConfiguration,
 } from './configuration-types.js';
 
-export { readOwnProperty } from './dictionary.js';
+export { DictionaryAccess } from './dictionary.js';
 export type { SelectionLimits } from './step-rules.js';
 
 export { FunnelConfigurations } from './funnel-configurations.js';

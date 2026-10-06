@@ -14,11 +14,13 @@ export const identifierListSchema = Type.Array(identifierSchema, {
   uniqueItems: true,
 });
 
-export function dictionarySchema<Value extends TSchema>(values: Value, minimum = 0) {
-  return Type.Record(Type.String(), values, {
-    propertyNames: identifierSchema,
-    minProperties: minimum,
-    maxProperties: ConfigurationSchemaPolicy.maximumDictionaryEntries,
-    additionalProperties: false,
-  });
-}
+export const SchemaPrimitives = {
+  dictionary<Value extends TSchema>(values: Value, minimum = 0) {
+    return Type.Record(Type.String(), values, {
+      propertyNames: identifierSchema,
+      minProperties: minimum,
+      maxProperties: ConfigurationSchemaPolicy.maximumDictionaryEntries,
+      additionalProperties: false,
+    });
+  },
+} as const;

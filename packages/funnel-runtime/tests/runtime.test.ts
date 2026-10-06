@@ -16,7 +16,8 @@ import {
   AnswerValidation,
 } from '../source/index.js';
 
-function configuration(version: number): FunnelConfiguration {
+const RuntimeFixtures = {
+  configuration(version: number): FunnelConfiguration {
   const result = FunnelConfigurations.validate(
     JSON.parse(
       readFileSync(
@@ -30,7 +31,8 @@ function configuration(version: number): FunnelConfiguration {
   }
 
   return result.configuration;
-}
+  },
+} as const;
 
 const completeAnswers: SessionAnswers = {
   team_size: 10,
@@ -45,7 +47,7 @@ const completeAnswers: SessionAnswers = {
 
 describe('pure funnel runtime', () => {
   it('keeps route state isolated across repeated resolutions and variants', () => {
-    const document = configuration(1);
+    const document = RuntimeFixtures.configuration(1);
     const originalDocument = structuredClone(document);
     const originalAnswers = structuredClone(completeAnswers);
     const firstRoute = FunnelRuntime.Routes.resolve(document, ExperimentVariant.A, completeAnswers);
@@ -68,7 +70,7 @@ describe('pure funnel runtime', () => {
   });
 
   it('selects the first matching result rule without evaluating later rules', () => {
-    const document = configuration(1);
+    const document = RuntimeFixtures.configuration(1);
     const matchingCondition = {
       answer: 'team_size',
       operator: ConditionOperator.Equal,
@@ -93,7 +95,7 @@ describe('pure funnel runtime', () => {
   });
 
   it('uses the default result when no result rule matches', () => {
-    const document = configuration(1);
+    const document = RuntimeFixtures.configuration(1);
     const unmatchedDocument: FunnelConfiguration = {
       ...document,
       resultRules: [
@@ -112,7 +114,7 @@ describe('pure funnel runtime', () => {
   it.each([1, 2, 3])(
     'applies the same result overrides through both resolvers in version %s',
     (version) => {
-      const document = configuration(version);
+      const document = RuntimeFixtures.configuration(version);
       const before = JSON.stringify(document);
 
       for (const variant of [ExperimentVariant.A, ExperimentVariant.B]) {
@@ -133,7 +135,7 @@ describe('pure funnel runtime', () => {
   );
 
   it('ignores inherited result overrides in both resolvers', () => {
-    const document = configuration(1);
+    const document = RuntimeFixtures.configuration(1);
     const resultOverrides = {};
     Object.setPrototypeOf(resultOverrides, { balanced: { title: 'Inherited title' } });
 
@@ -157,7 +159,7 @@ describe('pure funnel runtime', () => {
   });
 
   it('resolves variant order and copy without changing the original document', () => {
-    const document = configuration(1);
+    const document = RuntimeFixtures.configuration(1);
     const before = JSON.stringify(document);
     const resolved = ExperimentResolution.resolve(document, ExperimentVariant.B);
     expect(resolved.stepSequence[1]).toBe('work_mode');
@@ -166,7 +168,7 @@ describe('pure funnel runtime', () => {
   });
 
   it('omits office days for remote work and excludes retained answers', () => {
-    const route = RouteResolution.resolve(configuration(1), ExperimentVariant.A, completeAnswers);
+    const route = RouteResolution.resolve(RuntimeFixtures.configuration(1), ExperimentVariant.A, completeAnswers);
     expect(route.steps.some((step) => step.id === 'office_days')).toBe(false);
     expect(route.activeAnswers['office_days']).toBeUndefined();
     expect(route.questionCount).toBe(6);
@@ -174,7 +176,7 @@ describe('pure funnel runtime', () => {
   });
 
   it('restores the available office branch when the user changes work mode', () => {
-    const route = RouteResolution.resolve(configuration(1), ExperimentVariant.A, {
+    const route = RouteResolution.resolve(RuntimeFixtures.configuration(1), ExperimentVariant.A, {
       ...completeAnswers,
       work_mode: 'hybrid',
     });
@@ -186,13 +188,13 @@ describe('pure funnel runtime', () => {
   });
 
   it('excludes tool_count in version three variant B', () => {
-    const route = RouteResolution.resolve(configuration(3), ExperimentVariant.B, completeAnswers);
+    const route = RouteResolution.resolve(RuntimeFixtures.configuration(3), ExperimentVariant.B, completeAnswers);
     expect(route.activeAnswers['tool_count']).toBeUndefined();
     expect(route.steps.some((step) => step.id === 'tool_count')).toBe(false);
   });
 
   it('resolves compliance priority first and ignores inactive compliance answers', () => {
-    const document = configuration(3);
+    const document = RuntimeFixtures.configuration(3);
     expect(
       ResultResolution.resolve(document, ExperimentVariant.A, {
         ...completeAnswers,
@@ -211,16 +213,16 @@ describe('pure funnel runtime', () => {
 
   it('requires all active required answers before resolving a result', () => {
     expect(
-      ResultResolution.resolve(configuration(1), ExperimentVariant.A, { work_mode: 'remote' }),
+      ResultResolution.resolve(RuntimeFixtures.configuration(1), ExperimentVariant.A, { work_mode: 'remote' }),
     ).toBeUndefined();
     expect(
-      ResultResolution.resolve(configuration(1), ExperimentVariant.B, completeAnswers)?.cta.label,
+      ResultResolution.resolve(RuntimeFixtures.configuration(1), ExperimentVariant.B, completeAnswers)?.cta.label,
     ).toBe('See the 30-day action list');
   });
 
   it('does not let invalid answers activate branches', () => {
     expect(
-      RouteResolution.resolve(configuration(3), ExperimentVariant.A, {
+      RouteResolution.resolve(RuntimeFixtures.configuration(3), ExperimentVariant.A, {
         ...completeAnswers,
         priorities: ['compliance', 'unknown'],
       }).activeAnswers['security_constraints'],
@@ -234,7 +236,7 @@ describe('pure funnel runtime', () => {
   });
 
   it('rejects invalid numeric and multi-select answers', () => {
-    const document = configuration(1);
+    const document = RuntimeFixtures.configuration(1);
     const numberStep = document.steps['team_size'];
     const selectionStep = document.steps['priorities'];
     if (!numberStep || !selectionStep) {

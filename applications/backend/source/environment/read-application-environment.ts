@@ -23,55 +23,53 @@ const environmentValidators = {
   databaseUrl: schemaCompiler.compile<string>(EnvironmentSchemas.DatabaseUrl),
 } as const;
 
-function validate<Value>(
-  validator: ValidateFunction<Value>,
-  value: unknown,
-  message: string,
-): Value {
-  if (!validator(value)) {
-    throw new Error(message);
-  }
+const EnvironmentValues = {
+  validate<Value>(validator: ValidateFunction<Value>, value: unknown, message: string): Value {
+    if (!validator(value)) {
+      throw new Error(message);
+    }
 
-  return value;
-}
+    return value;
+  },
 
-function resolveDatabaseUrl(databaseUrl: string): string {
-  const databasePath = databaseUrl.slice(SQLitePolicy.FileUrlPrefix.length);
-  const absolutePath = isAbsolute(databasePath)
-    ? databasePath
-    : resolve(applicationDirectory, databasePath);
+  resolveDatabaseUrl(databaseUrl: string): string {
+    const databasePath = databaseUrl.slice(SQLitePolicy.FileUrlPrefix.length);
+    const absolutePath = isAbsolute(databasePath)
+      ? databasePath
+      : resolve(applicationDirectory, databasePath);
 
-  return `${SQLitePolicy.FileUrlPrefix}${absolutePath}`;
-}
+    return `${SQLitePolicy.FileUrlPrefix}${absolutePath}`;
+  },
+} as const;
 
-export function readApplicationEnvironment(
-  values: ReadonlyDictionary<string, Optional<string>>,
-): ApplicationEnvironment {
-  const mode = validate(
-    environmentValidators.mode,
-    values['NODE_ENV'] ?? EnvironmentPolicy.DefaultMode,
-    EnvironmentMessages.InvalidMode,
-  );
-  const portText = validate(
-    environmentValidators.portText,
-    values['PORT'] ?? EnvironmentPolicy.DefaultPort,
-    EnvironmentMessages.InvalidPort,
-  );
-  const port = validate(
-    environmentValidators.port,
-    Number(portText),
-    EnvironmentMessages.InvalidPort,
-  );
-  const host = validate(
-    environmentValidators.host,
-    values['HOST'] ?? EnvironmentPolicy.DefaultHost,
-    EnvironmentMessages.InvalidHost,
-  );
-  const databaseUrl = validate(
-    environmentValidators.databaseUrl,
-    values['DATABASE_URL'] ?? EnvironmentPolicy.DefaultDatabaseUrl,
-    EnvironmentMessages.InvalidDatabaseUrl,
-  );
+export const ApplicationEnvironmentReader = {
+  read(values: ReadonlyDictionary<string, Optional<string>>): ApplicationEnvironment {
+    const mode = EnvironmentValues.validate(
+      environmentValidators.mode,
+      values['NODE_ENV'] ?? EnvironmentPolicy.DefaultMode,
+      EnvironmentMessages.InvalidMode,
+    );
+    const portText = EnvironmentValues.validate(
+      environmentValidators.portText,
+      values['PORT'] ?? EnvironmentPolicy.DefaultPort,
+      EnvironmentMessages.InvalidPort,
+    );
+    const port = EnvironmentValues.validate(
+      environmentValidators.port,
+      Number(portText),
+      EnvironmentMessages.InvalidPort,
+    );
+    const host = EnvironmentValues.validate(
+      environmentValidators.host,
+      values['HOST'] ?? EnvironmentPolicy.DefaultHost,
+      EnvironmentMessages.InvalidHost,
+    );
+    const databaseUrl = EnvironmentValues.validate(
+      environmentValidators.databaseUrl,
+      values['DATABASE_URL'] ?? EnvironmentPolicy.DefaultDatabaseUrl,
+      EnvironmentMessages.InvalidDatabaseUrl,
+    );
 
-  return { mode, host, port, databaseUrl: resolveDatabaseUrl(databaseUrl) };
-}
+    return { mode, host, port, databaseUrl: EnvironmentValues.resolveDatabaseUrl(databaseUrl) };
+  },
+} as const;

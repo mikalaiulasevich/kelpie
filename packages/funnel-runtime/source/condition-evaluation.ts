@@ -1,6 +1,6 @@
 import {
   ConditionOperator,
-  readOwnProperty,
+  DictionaryAccess,
   type AnswerCondition,
   type Condition,
   type SessionAnswers,
@@ -8,8 +8,9 @@ import {
 import { match, P } from 'ts-pattern';
 import { AnswerValues } from './answer-values.js';
 
-function evaluateAnswerCondition(condition: AnswerCondition, answers: SessionAnswers): boolean {
-  const answer = readOwnProperty(answers, condition.answer);
+const AnswerConditions = {
+  evaluate(condition: AnswerCondition, answers: SessionAnswers): boolean {
+  const answer = DictionaryAccess.readOwn(answers, condition.answer);
 
   if (answer === undefined) {
     return false;
@@ -27,7 +28,8 @@ function evaluateAnswerCondition(condition: AnswerCondition, answers: SessionAns
       ({ value }) => AnswerValues.isFiniteNumber(answer) && answer >= value,
     )
     .exhaustive();
-}
+  },
+} as const;
 
 /** Missing or inactive answers never satisfy a predicate. */
 export const ConditionEvaluation = {
@@ -39,7 +41,7 @@ export const ConditionEvaluation = {
       .with({ any: P._ }, ({ any }) =>
         any.some((child) => ConditionEvaluation.evaluate(child, answers)),
       )
-      .with({ answer: P.string }, (predicate) => evaluateAnswerCondition(predicate, answers))
+      .with({ answer: P.string }, (predicate) => AnswerConditions.evaluate(predicate, answers))
       .exhaustive();
   },
 } as const;

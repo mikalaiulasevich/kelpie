@@ -1,4 +1,4 @@
-import { readOwnProperty, type AnswerValidation } from '@kelpie/contracts';
+import { DictionaryAccess, type AnswerValidation } from '@kelpie/contracts';
 import type { AnswerIssue, AnswerIssueCode, AnswerValidationResult } from './runtime-types.js';
 
 export const AnswerIssues = {
@@ -7,7 +7,7 @@ export const AnswerIssues = {
     code: AnswerIssueCode,
     fallbackMessage: string,
   ): AnswerIssue {
-    const customMessage = readOwnProperty(validation.messages, code);
+    const customMessage = DictionaryAccess.readOwn(validation.messages, code);
 
     return { code, message: customMessage ?? fallbackMessage };
   },

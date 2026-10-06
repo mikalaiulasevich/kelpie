@@ -4,6 +4,28 @@
 
 Review covers the application scaffold, configuration contracts/runtime, initial database schema, health endpoints, development startup, and dependency selection. Complete funnel behavior and public production deployment are outside this foundation milestone.
 
+## Whole-codebase review, October 6
+
+Reviewed authored source, tests, type declarations, package/compiler configuration, Prisma schema/migration, scripts, workflow, and current documentation. Final inventories contain 35 contracts files, 24 runtime files, 32 backend files, 20 frontend files, and four scripts, plus root tooling/documentation. Generated code and dependencies were not manually polished; original JSON fixtures remain checksum-protected. Independent domain reviews were integrated and the resulting changes inspected together.
+
+| Finding                                                                   | Resolution                                                                                  |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Semantic validation mixed unrelated phases in one 391-line module         | Ordered orchestration, domain validators, per-call diagnostic context and variant traversal |
+| Answer validation mixed formatting, numeric rules and selections          | Separate domain operations with bounded selection validation                                |
+| Sparse selection arrays bypassed Array.every checks                       | Explicit bounded iteration; regression rejects missing array slots                          |
+| Database lifecycle duplicated directory preparation and readiness queries | Shared SQLite preparation, migration owner, one readiness query                             |
+| Error-path and migration-completeness coverage was incomplete             | Malformed JSON redaction test and five migration-state cases                                |
+| Readiness state rendering was embedded in the application shell           | Dedicated connection component and exhaustive state rendering                               |
+| JS tooling was outside strict type checking                               | checkJs enabled, JSDoc contracts and checked collection access                              |
+| Vite defaults were duplicated in the npm command                          | Development command uses the existing Vite configuration                                    |
+| Documentation mixed initial results with current state                    | Historical evidence labeled; completed tooling decisions updated                            |
+
+The full Node.js 24.16.0 verification passes 145 tests (52 backend, 4 frontend, 56 contracts, 33 runtime), strict TS/JS checks, lint, formatting, builds, fixture checksums and Prisma validation. A 584-input differential comparison preserves configuration acceptance and exact diagnostic order/path/text. A local development-launcher smoke check confirms SIGTERM cleanup and sibling termination on failure, including exit status. Windows process-tree shutdown was not exercised.
+
+The same 12-scenario benchmark on Apple M4 reports median samples of 186.154 ms/1,000 validations, 88.212 ms/10,000 routes, and 202.975 ms/10,000 results. Typed benchmark assertions add small work inside measured callbacks, so these remain approximate local comparisons, not an optimization claim. Frontend JavaScript is 82.34 kB gzip (previously 81.92 kB); exhaustive presentation matching adds a small bundle cost. No new dependency was added.
+
+The configuration boundary expects parsed JSON; arbitrary JavaScript accessors/proxies can still execute or throw during enumeration. Runtime operations assume validated configurations. Session authorization, transactional publication, event retry semantics and analytics cannot be verified as implemented behavior because their application layers remain pending. This pass does not claim production readiness, browser visual acceptance, or a new remote CI result.
+
 ## Requirements and correctness
 
 Preserve all supplied configuration bytes. Validate original versions and malformed fixtures. Exercise A/B ordering, conditional office and compliance branches, omitted variant steps, numeric increments, first-match results, and hidden-answer exclusion.

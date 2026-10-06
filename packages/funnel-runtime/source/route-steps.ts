@@ -1,6 +1,6 @@
 import {
   StepRules,
-  readOwnProperty,
+  DictionaryAccess,
   type FunnelConfiguration,
   type FunnelStep,
   type SessionAnswers,
@@ -18,7 +18,7 @@ export const RouteSteps = {
     variant: VariantConfiguration,
     identifier: string,
   ): FunnelStep {
-    const step = readOwnProperty(configuration.steps, identifier);
+    const step = DictionaryAccess.readOwn(configuration.steps, identifier);
 
     if (step === undefined) {
       throw new Error(RuntimeMessages.ValidatedConfigurationRequired);
@@ -38,7 +38,7 @@ export const RouteSteps = {
       return undefined;
     }
 
-    const value = readOwnProperty(answers, step.input.name);
+    const value = DictionaryAccess.readOwn(answers, step.input.name);
 
     if (value === undefined || !AnswerValidation.validate(step, value).valid) {
       return undefined;
@@ -52,7 +52,7 @@ export const RouteSteps = {
       return true;
     }
 
-    return AnswerValidation.validate(step, readOwnProperty(answers, step.input.name)).valid;
+    return AnswerValidation.validate(step, DictionaryAccess.readOwn(answers, step.input.name)).valid;
   },
 } as const;
 

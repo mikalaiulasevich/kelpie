@@ -3,7 +3,7 @@ import { ConfigurationMessages } from './configuration-messages.js';
 import { ConfigurationSchemaPolicy } from './configuration-policy.js';
 import type { ConfigurationValidationContext } from './configuration-validation-context.js';
 import type { VariantConfiguration } from './configuration-types.js';
-import { readOwnProperty } from './dictionary.js';
+import { DictionaryAccess } from './dictionary.js';
 import { StepType } from './domain-values.js';
 import { StepContentValidation } from './step-content-validation.js';
 import type { FunnelStep } from './step-types.js';
@@ -35,7 +35,7 @@ class VariantSequenceValidation {
   }
 
   private validateStep(stepIdentifier: string, position: number): void {
-    const step = readOwnProperty(this.context.configuration.steps, stepIdentifier);
+    const step = DictionaryAccess.readOwn(this.context.configuration.steps, stepIdentifier);
 
     if (step === undefined) {
       this.context.report(
@@ -52,7 +52,7 @@ class VariantSequenceValidation {
   }
 
   private validateContent(stepIdentifier: string, step: FunnelStep): void {
-    const override = readOwnProperty(this.variant.stepOverrides, stepIdentifier);
+    const override = DictionaryAccess.readOwn(this.variant.stepOverrides, stepIdentifier);
 
     if (override === undefined) {
       return;

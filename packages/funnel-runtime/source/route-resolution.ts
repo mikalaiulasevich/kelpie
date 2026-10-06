@@ -8,7 +8,8 @@ import { RouteBuilder } from './route-builder.js';
 import { RouteDirection } from './runtime-policy.js';
 import type { AvailableRoute } from './runtime-types.js';
 
-function adjacent(
+const RouteNavigation = {
+  adjacent(
   route: AvailableRoute,
   identifier: string,
   direction: RouteDirection,
@@ -20,7 +21,8 @@ function adjacent(
   }
 
   return route.steps[position + direction];
-}
+  },
+} as const;
 
 export const RouteResolution = {
   /** One ordered traversal: only earlier visible, valid answers activate branches. */
@@ -33,10 +35,10 @@ export const RouteResolution = {
   },
 
   next(route: AvailableRoute, identifier: string): Optional<FunnelStep> {
-    return adjacent(route, identifier, RouteDirection.Next);
+    return RouteNavigation.adjacent(route, identifier, RouteDirection.Next);
   },
 
   previous(route: AvailableRoute, identifier: string): Optional<FunnelStep> {
-    return adjacent(route, identifier, RouteDirection.Previous);
+    return RouteNavigation.adjacent(route, identifier, RouteDirection.Previous);
   },
 } as const;

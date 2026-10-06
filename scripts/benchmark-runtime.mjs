@@ -20,11 +20,12 @@ for (const version of BenchmarkPolicy.configurationVersions) {
   configurations.push(validation.configuration);
 }
 
+const BenchmarkFixtures = {
 /**
  * @param {import('@kelpie/contracts').FunnelConfiguration} configuration
  * @param {boolean} includeCompliance
  */
-function buildSyntheticAnswers(configuration, includeCompliance) {
+answers(configuration, includeCompliance) {
   /** @type {Record<string, import('@kelpie/contracts').StepAnswer>} */
   const answers = {};
   for (const step of Object.values(configuration.steps)) {
@@ -44,24 +45,26 @@ function buildSyntheticAnswers(configuration, includeCompliance) {
   }
 
   return answers;
-}
+},
+};
 
 const scenarios = configurations.flatMap((configuration) =>
   Object.values(ExperimentVariant).flatMap((variant) =>
     [false, true].map((includeCompliance) => ({
       configuration,
       variant,
-      answers: buildSyntheticAnswers(configuration, includeCompliance),
+      answers: BenchmarkFixtures.answers(configuration, includeCompliance),
     })),
   ),
 );
 
+const BenchmarkMeasurement = {
 /**
  * @param {string} name
  * @param {number} iterations
  * @param {(position: number) => void} operation
  */
-function measure(name, iterations, operation) {
+measure(name, iterations, operation) {
   for (let position = 0; position < BenchmarkPolicy.warmupIterations; position += 1) {
     operation(position);
   }
@@ -89,10 +92,11 @@ function measure(name, iterations, operation) {
     medianSampleMilliseconds: Number(median.toFixed(BenchmarkPolicy.decimalPlaces)),
     maximumSampleMilliseconds: Number(maximum.toFixed(BenchmarkPolicy.decimalPlaces)),
   };
-}
+},
+};
 
 const results = [
-  measure('configuration validation', BenchmarkPolicy.configurationIterations, (position) => {
+  BenchmarkMeasurement.measure('configuration validation', BenchmarkPolicy.configurationIterations, (position) => {
     const validation = FunnelConfigurations.validate(
       configurations[position % configurations.length],
     );
@@ -100,7 +104,7 @@ const results = [
       throw new Error('Configuration validation failed during measurement.');
     }
   }),
-  measure('route resolution', BenchmarkPolicy.runtimeIterations, (position) => {
+  BenchmarkMeasurement.measure('route resolution', BenchmarkPolicy.runtimeIterations, (position) => {
     const scenario = scenarios[position % scenarios.length];
     assert.ok(scenario, 'At least one benchmark scenario is required.');
     const route = FunnelRuntime.Routes.resolve(
@@ -112,7 +116,7 @@ const results = [
       throw new Error('Route resolution failed during measurement.');
     }
   }),
-  measure('result resolution', BenchmarkPolicy.runtimeIterations, (position) => {
+  BenchmarkMeasurement.measure('result resolution', BenchmarkPolicy.runtimeIterations, (position) => {
     const scenario = scenarios[position % scenarios.length];
     assert.ok(scenario, 'At least one benchmark scenario is required.');
     const result = FunnelRuntime.Results.resolve(

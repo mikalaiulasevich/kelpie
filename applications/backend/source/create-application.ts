@@ -8,28 +8,30 @@ import { TransportMessages } from './transport/transport-messages.js';
 import { TransportPolicy } from './transport/transport-policy.js';
 import { PublicExceptionFilter } from './transport/public-exception.filter.js';
 
-export async function createApplication(): Promise<NestExpressApplication> {
-  const application = await NestFactory.create<NestExpressApplication>(ApplicationModule, {
-    bodyParser: false,
-    logger: ['log', 'warn'],
-  });
+export const ApplicationFactory = {
+  async create(): Promise<NestExpressApplication> {
+    const application = await NestFactory.create<NestExpressApplication>(ApplicationModule, {
+      bodyParser: false,
+      logger: ['log', 'warn'],
+    });
 
-  application.disable('x-powered-by');
-  application.setGlobalPrefix(TransportPolicy.ApiPrefix);
-  application.use(helmet());
-  application.useBodyParser('json', { limit: TransportPolicy.JsonBodyLimit, strict: true });
-  application.useGlobalFilters(new PublicExceptionFilter());
-  application.enableShutdownHooks();
+    application.disable('x-powered-by');
+    application.setGlobalPrefix(TransportPolicy.ApiPrefix);
+    application.use(helmet());
+    application.useBodyParser('json', { limit: TransportPolicy.JsonBodyLimit, strict: true });
+    application.useGlobalFilters(new PublicExceptionFilter());
+    application.enableShutdownHooks();
 
-  const server: unknown = application.getHttpServer();
+    const server: unknown = application.getHttpServer();
 
-  if (!(server instanceof Server)) {
-    throw new Error(TransportMessages.UnsupportedServer);
-  }
+    if (!(server instanceof Server)) {
+      throw new Error(TransportMessages.UnsupportedServer);
+    }
 
-  server.requestTimeout = TransportPolicy.RequestTimeoutMilliseconds;
-  server.headersTimeout = TransportPolicy.HeadersTimeoutMilliseconds;
-  server.keepAliveTimeout = TransportPolicy.KeepAliveTimeoutMilliseconds;
+    server.requestTimeout = TransportPolicy.RequestTimeoutMilliseconds;
+    server.headersTimeout = TransportPolicy.HeadersTimeoutMilliseconds;
+    server.keepAliveTimeout = TransportPolicy.KeepAliveTimeoutMilliseconds;
 
-  return application;
-}
+    return application;
+  },
+} as const;

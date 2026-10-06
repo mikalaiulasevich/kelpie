@@ -8,7 +8,7 @@ import { Server } from 'node:http';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { applicationDirectory } from '../source/application-directory.js';
-import { createApplication } from '../source/create-application.js';
+import { ApplicationFactory } from '../source/create-application.js';
 import { DatabaseService } from '../source/database/database.service.js';
 
 const executeFile = promisify(execFile);
@@ -30,7 +30,7 @@ describe('Backend foundation with a real SQLite database', () => {
     });
     process.env['DATABASE_URL'] = `file:${databasePath}`;
     process.env['NODE_ENV'] = 'test';
-    application = await createApplication();
+    application = await ApplicationFactory.create();
     await application.listen(0, '127.0.0.1');
     const server: unknown = application.getHttpServer();
     if (!(server instanceof Server)) {

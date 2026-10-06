@@ -1,6 +1,6 @@
 import {
   StepType,
-  readOwnProperty,
+  DictionaryAccess,
   type FunnelResult,
   type FunnelStep,
   type VariantConfiguration,
@@ -9,7 +9,7 @@ import { match, P } from 'ts-pattern';
 
 export const VariantOverrides = {
   step(stepIdentifier: string, step: FunnelStep, variant: VariantConfiguration): FunnelStep {
-    const override = readOwnProperty(variant.stepOverrides, stepIdentifier);
+    const override = DictionaryAccess.readOwn(variant.stepOverrides, stepIdentifier);
 
     if (override === undefined) {
       return step;
@@ -35,7 +35,7 @@ export const VariantOverrides = {
   },
 
   result(result: FunnelResult, variant: VariantConfiguration): FunnelResult {
-    const override = readOwnProperty(variant.resultOverrides, result.id);
+    const override = DictionaryAccess.readOwn(variant.resultOverrides, result.id);
 
     return { ...result, ...override };
   },

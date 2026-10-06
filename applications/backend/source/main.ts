@@ -1,10 +1,10 @@
 import 'dotenv/config';
 import { ApplicationMessages } from './application-messages.js';
-import { createApplication } from './create-application.js';
+import { ApplicationFactory } from './create-application.js';
 import { ApplicationEnvironmentService } from './environment/application-environment.js';
 
 try {
-  const application = await createApplication();
+  const application = await ApplicationFactory.create();
   const environment = application.get(ApplicationEnvironmentService).values;
   await application.listen(environment.port, environment.host);
 } catch {

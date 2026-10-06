@@ -4,7 +4,7 @@ import { ConfigurationSchemaPolicy } from './configuration-policy.js';
 import { conditionReferenceSchema } from './condition-schema.js';
 import { StepType } from './domain-values.js';
 import {
-  dictionarySchema,
+  SchemaPrimitives,
   identifierSchema,
   nonBlankTextSchema,
   textSchema,
@@ -49,7 +49,7 @@ export const answerValidationSchema = Type.Object(
     required: Type.Boolean(),
     minSelections: Type.Optional(Type.Integer(ConfigurationSchemaPolicy.minimumSelections)),
     maxSelections: Type.Optional(Type.Integer(ConfigurationSchemaPolicy.maximumSelections)),
-    messages: dictionarySchema(textSchema),
+    messages: SchemaPrimitives.dictionary(textSchema),
   },
   { additionalProperties: false },
 );

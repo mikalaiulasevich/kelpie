@@ -5,7 +5,7 @@ import { conditionSchema } from './condition-schema.js';
 import { ConfigurationStatus, ExperimentVariant, StepType } from './domain-values.js';
 import { funnelResultSchema, resultOverrideSchema, resultRuleSchema } from './result-schema.js';
 import {
-  dictionarySchema,
+  SchemaPrimitives,
   identifierListSchema,
   identifierSchema,
   textSchema,
@@ -23,8 +23,8 @@ export const variantConfigurationSchema = Type.Object(
   {
     weight: Type.Number(ConfigurationSchemaPolicy.variantWeight),
     stepSequence: Type.Array(identifierSchema, ConfigurationSchemaPolicy.stepSequence),
-    stepOverrides: dictionarySchema(stepOverrideSchema),
-    resultOverrides: dictionarySchema(resultOverrideSchema),
+    stepOverrides: SchemaPrimitives.dictionary(stepOverrideSchema),
+    resultOverrides: SchemaPrimitives.dictionary(resultOverrideSchema),
   },
   { additionalProperties: false },
 );
@@ -103,10 +103,10 @@ export const funnelConfigurationSchema = Type.Object(
     session: sessionConfigurationSchema,
     progress: progressConfigurationSchema,
     experiment: experimentConfigurationSchema,
-    steps: dictionarySchema(funnelStepSchema, 1),
+    steps: SchemaPrimitives.dictionary(funnelStepSchema, 1),
     resultRules: Type.Array(resultRuleSchema, ConfigurationSchemaPolicy.resultRules),
     defaultResultId: identifierSchema,
-    results: dictionarySchema(funnelResultSchema, 1),
+    results: SchemaPrimitives.dictionary(funnelResultSchema, 1),
     events: eventsConfigurationSchema,
   },
   {

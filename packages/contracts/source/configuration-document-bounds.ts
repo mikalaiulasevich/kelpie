@@ -14,67 +14,64 @@ interface DocumentTraversal {
   estimatedBytes: number;
 }
 
-function isObject(value: unknown): value is object {
-  return value !== null && typeof value === 'object';
-}
+const DocumentInspection = {
+  isObject(value: unknown): value is object {
+    return value !== null && typeof value === 'object';
+  },
 
-function isPlainContainer(value: object): boolean {
-  const prototype: unknown = Object.getPrototypeOf(value);
+  isPlainContainer(value: object): boolean {
+    const prototype: unknown = Object.getPrototypeOf(value);
 
-  return Array.isArray(value) || prototype === Object.prototype || prototype === null;
-}
+    return Array.isArray(value) || prototype === Object.prototype || prototype === null;
+  },
 
-function inspectContainer(
-  value: object,
-  depth: number,
-  traversal: DocumentTraversal,
-): Optional<string> {
-  if (!isPlainContainer(value)) {
-    return ConfigurationMessages.PlainObjectsRequired;
-  }
-
-  if (traversal.visitedObjects.has(value)) {
-    return ConfigurationMessages.AcyclicDocumentRequired;
-  }
-
-  traversal.visitedObjects.add(value);
-
-  if (Object.keys(value).length > configurationLimits.maximumNodes) {
-    return ConfigurationMessages.DocumentPropertyLimit;
-  }
-
-  for (const [key, child] of Object.entries(value)) {
-    if (DocumentAccountingPolicy.reservedKeys.includes(key)) {
-      return ConfigurationMessages.ReservedObjectKeys;
+  inspectContainer(value: object, depth: number, traversal: DocumentTraversal): Optional<string> {
+    if (!DocumentInspection.isPlainContainer(value)) {
+      return ConfigurationMessages.PlainObjectsRequired;
     }
 
-    traversal.estimatedBytes +=
-      key.length * DocumentAccountingPolicy.bytesPerCharacter +
-      DocumentAccountingPolicy.propertyOverheadBytes;
-    traversal.pending.push({ value: child, depth: depth + 1 });
-  }
+    if (traversal.visitedObjects.has(value)) {
+      return ConfigurationMessages.AcyclicDocumentRequired;
+    }
 
-  return undefined;
-}
+    traversal.visitedObjects.add(value);
 
-function inspectValue(
-  current: PendingDocumentValue,
-  traversal: DocumentTraversal,
-): Optional<string> {
-  return match(current.value)
-    .with(P.string, (value) => {
-      traversal.estimatedBytes += value.length * DocumentAccountingPolicy.bytesPerCharacter;
+    if (Object.keys(value).length > configurationLimits.maximumNodes) {
+      return ConfigurationMessages.DocumentPropertyLimit;
+    }
 
-      return undefined;
-    })
-    .with(P.number, (value) =>
-      Number.isFinite(value) ? undefined : ConfigurationMessages.FiniteNumbersRequired,
-    )
-    .with(P.boolean, () => undefined)
-    .with(null, () => undefined)
-    .with(P.when(isObject), (value) => inspectContainer(value, current.depth, traversal))
-    .otherwise(() => ConfigurationMessages.JsonValuesRequired);
-}
+    for (const [key, child] of Object.entries(value)) {
+      if (DocumentAccountingPolicy.reservedKeys.includes(key)) {
+        return ConfigurationMessages.ReservedObjectKeys;
+      }
+
+      traversal.estimatedBytes +=
+        key.length * DocumentAccountingPolicy.bytesPerCharacter +
+        DocumentAccountingPolicy.propertyOverheadBytes;
+      traversal.pending.push({ value: child, depth: depth + 1 });
+    }
+
+    return undefined;
+  },
+
+  inspectValue(current: PendingDocumentValue, traversal: DocumentTraversal): Optional<string> {
+    return match(current.value)
+      .with(P.string, (value) => {
+        traversal.estimatedBytes += value.length * DocumentAccountingPolicy.bytesPerCharacter;
+
+        return undefined;
+      })
+      .with(P.number, (value) =>
+        Number.isFinite(value) ? undefined : ConfigurationMessages.FiniteNumbersRequired,
+      )
+      .with(P.boolean, () => undefined)
+      .with(null, () => undefined)
+      .with(P.when(DocumentInspection.isObject), (value) =>
+        DocumentInspection.inspectContainer(value, current.depth, traversal),
+      )
+      .otherwise(() => ConfigurationMessages.JsonValuesRequired);
+  },
+} as const;
 
 export const ConfigurationDocumentBounds = {
   check(document: unknown): Optional<string> {
@@ -101,7 +98,7 @@ export const ConfigurationDocumentBounds = {
         return ConfigurationMessages.DocumentTraversalLimit;
       }
 
-      const issue = inspectValue(current, traversal);
+      const issue = DocumentInspection.inspectValue(current, traversal);
 
       if (issue !== undefined) {
         return issue;
