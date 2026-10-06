@@ -2,7 +2,7 @@ import {
   StepType,
   StepRules,
   readOwnProperty,
-  type AnswerValidation,
+  type AnswerValidation as AnswerValidationRules,
   type FunnelStep,
   type NumberStep,
   type SingleSelectionStep,
@@ -17,7 +17,7 @@ import { AnswerIssueCode, type AnswerIssue, type AnswerValidationResult } from '
 import { RuntimePolicy } from './runtime-policy.js';
 
 function createIssue(
-  validation: AnswerValidation,
+  validation: AnswerValidationRules,
   code: AnswerIssueCode,
   fallbackMessage: string,
 ): AnswerIssue {

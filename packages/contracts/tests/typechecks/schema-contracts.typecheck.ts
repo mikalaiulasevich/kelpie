@@ -109,8 +109,10 @@ configuration.resultRules.push({ resultId: 'result', when: deeplyNestedCondition
 
 declare const informationStep: InformationStep;
 
-export const informationTitle: string = informationStep.content.title;
-export const informationBody: string = informationStep.content.body;
+export const informationContent: Readonly<{ title: string; body: string }> = {
+  title: informationStep.content.title,
+  body: informationStep.content.body,
+};
 
 // @ts-expect-error Information content must include all required fields from its schema.
 export const incompleteInformationContent: InformationStep['content'] = { title: 'Only a title' };
@@ -132,7 +134,9 @@ export const sessionIdentifierText: string = sessionIdentifier;
 export const configurationIdentifier: Nominal<string, 'ConfigurationIdentifier'> =
   sessionIdentifier;
 
-export const conditionOperator: ValueOf<typeof ConditionOperator> = ConditionOperator.Equal;
+export const conditionVocabulary: Readonly<{ operator: ValueOf<typeof ConditionOperator> }> = {
+  operator: ConditionOperator.Equal,
+};
 export const textDictionary: ReadonlyDictionary<string, string> = { key: 'value' };
 
 // @ts-expect-error Global readonly dictionaries cannot be mutated.
