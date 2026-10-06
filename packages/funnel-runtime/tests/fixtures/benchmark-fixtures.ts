@@ -189,6 +189,7 @@ export const BenchmarkFixtures = {
         },
       },
     };
+
     return BenchmarkFixtures.validated({ configuration, answers });
   },
 } as const;

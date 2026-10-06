@@ -1,4 +1,7 @@
 export const MeasurementMessages = {
+  Scope:
+    'Compiled pure-function microbenchmarks. Batch averages, not request latency percentiles or application capacity. No timing gate on shared CI.',
+  SamplingOrder: 'Rotating case order; each sample is a timed batch average.',
   ChangedInputs:
     'Benchmark source or compiled artifacts changed during measurement; results were not saved.',
   MissingSamples: 'Benchmark measurement requires duration samples.',

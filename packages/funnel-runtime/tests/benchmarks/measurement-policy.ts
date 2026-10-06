@@ -26,8 +26,6 @@ export const MeasurementPolicy = {
   TextEncoding: 'utf8',
   GitArguments: ['rev-parse', 'HEAD'],
   GitStatusArguments: ['status', '--porcelain'],
-  Scope:
-    'Compiled pure-function microbenchmarks. Batch averages, not request latency percentiles or application capacity. No timing gate on shared CI.',
   HistoryHeader:
     'run,revision,sourceHash,operation,size,iterations,samples,medianNanosecondsPerOperation,minimumNanosecondsPerOperation,maximumNanosecondsPerOperation',
 } as const;

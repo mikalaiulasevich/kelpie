@@ -1,0 +1,1463 @@
+{
+  "run": "2026-10-06T18-05-44.892Z-f3271246-c357-4c86-b877-901649a5cd20",
+  "scope": "Compiled pure-function microbenchmarks. Batch averages, not request latency percentiles or application capacity. No timing gate on shared CI.",
+  "warmupIterations": 200,
+  "samplingOrder": "Rotating case order over nine rounds; each sample is a timed batch average.",
+  "environment": {
+    "node": "v24.16.0",
+    "v8": "13.6.233.17-node.49",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "processor": "Apple M4",
+    "revision": "445e8d32e27947abba2f1f9b528c4fe8d5400dbf",
+    "workingTreeChanged": true,
+    "sourceHash": "62a25309b68a9bda45fc8c245c475dae63c0277fb134996382b2398a5ea645dd",
+    "compiledHash": "9e9112efc8b9a26e5c5a37f09ad6cc313d30288f5015d983efc9533477346ea7"
+  },
+  "results": [
+    {
+      "name": "configuration.valid",
+      "size": 8,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        104692.71000000049,
+        101071.46000000057,
+        103449.999999998,
+        104579.37500000298,
+        101471.2499999996,
+        99737.29000000276,
+        108118.54000000039,
+        100262.91499999844,
+        100079.37499999572
+      ],
+      "medianNanosecondsPerOperation": 101471.2499999996,
+      "minimumNanosecondsPerOperation": 99737.29000000276,
+      "maximumNanosecondsPerOperation": 108118.54000000039
+    },
+    {
+      "name": "configuration.invalid-reference",
+      "size": 8,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        104694.16499999966,
+        102667.7099999995,
+        100527.91500000011,
+        103629.16999999926,
+        100145.83500000297,
+        99951.66500000322,
+        109697.08500000251,
+        99610.0000000024,
+        100169.78999999992
+      ],
+      "medianNanosecondsPerOperation": 100527.91500000011,
+      "minimumNanosecondsPerOperation": 99610.0000000024,
+      "maximumNanosecondsPerOperation": 109697.08500000251
+    },
+    {
+      "name": "experiment.resolve",
+      "size": 8,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        1194.3750000000364,
+        428.33500000028835,
+        307.7050000001691,
+        291.2500000002183,
+        286.0400000008667,
+        291.04000000188535,
+        294.37500000312866,
+        292.0849999964048,
+        287.5000000040018
+      ],
+      "medianNanosecondsPerOperation": 292.0849999964048,
+      "minimumNanosecondsPerOperation": 286.0400000008667,
+      "maximumNanosecondsPerOperation": 1194.3750000000364
+    },
+    {
+      "name": "route.resolve",
+      "size": 8,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        5839.579999999387,
+        5590.830000001006,
+        5690.624999999727,
+        5820.000000001073,
+        5729.16499999792,
+        5505.2100000011715,
+        5473.124999998617,
+        5483.125000000654,
+        5422.50000000422
+      ],
+      "medianNanosecondsPerOperation": 5590.830000001006,
+      "minimumNanosecondsPerOperation": 5422.50000000422,
+      "maximumNanosecondsPerOperation": 5839.579999999387
+    },
+    {
+      "name": "result.resolve",
+      "size": 8,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        6399.790000000394,
+        6744.165000000066,
+        6441.874999998163,
+        6220.000000000709,
+        6275.415000000066,
+        6539.999999999964,
+        6190.624999999272,
+        6094.170000001213,
+        6213.7499999971615
+      ],
+      "medianNanosecondsPerOperation": 6275.415000000066,
+      "minimumNanosecondsPerOperation": 6094.170000001213,
+      "maximumNanosecondsPerOperation": 6744.165000000066
+    },
+    {
+      "name": "funnel.evaluate",
+      "size": 8,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        6569.375000000265,
+        6408.544999999322,
+        6175.000000000637,
+        6208.334999998897,
+        6047.914999999193,
+        6053.959999999278,
+        8909.999999996217,
+        6284.165000001849,
+        6051.665000004506
+      ],
+      "medianNanosecondsPerOperation": 6208.334999998897,
+      "minimumNanosecondsPerOperation": 6047.914999999193,
+      "maximumNanosecondsPerOperation": 8909.999999996217
+    },
+    {
+      "name": "route.next-tail",
+      "size": 8,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        53.98633333334146,
+        61.583333333298164,
+        23.2223333332513,
+        23.25000000003759,
+        22.972000000057353,
+        23.95833333351523,
+        24.15299999999358,
+        25.23599999979827,
+        23.87500000016492
+      ],
+      "medianNanosecondsPerOperation": 23.95833333351523,
+      "minimumNanosecondsPerOperation": 22.972000000057353,
+      "maximumNanosecondsPerOperation": 61.583333333298164
+    },
+    {
+      "name": "route.previous-tail",
+      "size": 8,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        50.66666666660543,
+        54.11133333336693,
+        15.18033333331914,
+        15.055333333293675,
+        15.208333333551613,
+        16.027666666559526,
+        15.999999999924816,
+        15.235999999883157,
+        19.69433333336686
+      ],
+      "medianNanosecondsPerOperation": 15.999999999924816,
+      "minimumNanosecondsPerOperation": 15.055333333293675,
+      "maximumNanosecondsPerOperation": 54.11133333336693
+    },
+    {
+      "name": "configuration.valid",
+      "size": 32,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        263780.415,
+        257815.41500000004,
+        261611.6650000004,
+        261801.2500000009,
+        259766.0399999995,
+        260548.12500000026,
+        253646.2500000016,
+        271569.3749999991,
+        253832.49999999863
+      ],
+      "medianNanosecondsPerOperation": 260548.12500000026,
+      "minimumNanosecondsPerOperation": 253646.2500000016,
+      "maximumNanosecondsPerOperation": 271569.3749999991
+    },
+    {
+      "name": "configuration.invalid-reference",
+      "size": 32,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        257744.99999999988,
+        257600.20999999938,
+        252131.87500000003,
+        273513.95500000083,
+        255747.9149999972,
+        259421.25000000035,
+        258255.2100000021,
+        262160.6249999968,
+        255865.41500000295
+      ],
+      "medianNanosecondsPerOperation": 257744.99999999988,
+      "minimumNanosecondsPerOperation": 252131.87500000003,
+      "maximumNanosecondsPerOperation": 273513.95500000083
+    },
+    {
+      "name": "experiment.resolve",
+      "size": 32,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        5022.290000000567,
+        3205.4149999999026,
+        2721.6649999991205,
+        2937.294999999267,
+        2743.749999999636,
+        2829.374999996617,
+        2817.915000000539,
+        2835.414999999557,
+        2767.085000004954
+      ],
+      "medianNanosecondsPerOperation": 2829.374999996617,
+      "minimumNanosecondsPerOperation": 2721.6649999991205,
+      "maximumNanosecondsPerOperation": 5022.290000000567
+    },
+    {
+      "name": "route.resolve",
+      "size": 32,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        26571.249999999513,
+        25800.835000000006,
+        24745.625000000477,
+        25256.875000000036,
+        24881.669999999758,
+        32415.000000000877,
+        25194.580000002134,
+        24677.914999997487,
+        25145.834999993895
+      ],
+      "medianNanosecondsPerOperation": 25194.580000002134,
+      "minimumNanosecondsPerOperation": 24677.914999997487,
+      "maximumNanosecondsPerOperation": 32415.000000000877
+    },
+    {
+      "name": "result.resolve",
+      "size": 32,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        26278.545000000122,
+        25834.99999999958,
+        25173.12499999889,
+        26463.33499999855,
+        25340.204999997695,
+        25579.789999997047,
+        26813.124999998763,
+        26217.289999999593,
+        24786.249999997384
+      ],
+      "medianNanosecondsPerOperation": 25834.99999999958,
+      "minimumNanosecondsPerOperation": 24786.249999997384,
+      "maximumNanosecondsPerOperation": 26813.124999998763
+    },
+    {
+      "name": "funnel.evaluate",
+      "size": 32,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        26102.91500000017,
+        25786.03999999814,
+        26038.329999998954,
+        25627.079999999296,
+        25456.045000000813,
+        26060.625000000073,
+        25798.540000000685,
+        25563.959999999497,
+        25008.124999994834
+      ],
+      "medianNanosecondsPerOperation": 25786.03999999814,
+      "minimumNanosecondsPerOperation": 25008.124999994834,
+      "maximumNanosecondsPerOperation": 26102.91500000017
+    },
+    {
+      "name": "route.next-tail",
+      "size": 32,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        176.9446666666378,
+        68.80566666662465,
+        71.20833333344005,
+        75.41666666672124,
+        73.26366666651059,
+        73.36100000005293,
+        71.12500000008974,
+        71.87499999993936,
+        80.94433333280904
+      ],
+      "medianNanosecondsPerOperation": 73.26366666651059,
+      "minimumNanosecondsPerOperation": 68.80566666662465,
+      "maximumNanosecondsPerOperation": 176.9446666666378
+    },
+    {
+      "name": "route.previous-tail",
+      "size": 32,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        176.2223333333471,
+        45.58333333337335,
+        41.06933333332563,
+        44.236333333325696,
+        40.69433333340081,
+        41.388999999981024,
+        42.74999999991754,
+        43.26366666676525,
+        41.666666666666664
+      ],
+      "medianNanosecondsPerOperation": 42.74999999991754,
+      "minimumNanosecondsPerOperation": 40.69433333340081,
+      "maximumNanosecondsPerOperation": 176.2223333333471
+    },
+    {
+      "name": "configuration.valid",
+      "size": 96,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        667015.2100000007,
+        661077.7099999995,
+        675449.5850000012,
+        685885.0000000007,
+        655998.1249999964,
+        674655.4150000019,
+        662277.5000000001,
+        681331.6699999996,
+        655325.2100000009
+      ],
+      "medianNanosecondsPerOperation": 667015.2100000007,
+      "minimumNanosecondsPerOperation": 655325.2100000009,
+      "maximumNanosecondsPerOperation": 685885.0000000007
+    },
+    {
+      "name": "configuration.invalid-reference",
+      "size": 96,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        658081.8750000003,
+        669289.7900000003,
+        702040.6249999997,
+        685577.4999999994,
+        828901.0399999961,
+        673492.7100000004,
+        663453.5400000005,
+        680533.7499999995,
+        654086.6699999969
+      ],
+      "medianNanosecondsPerOperation": 673492.7100000004,
+      "minimumNanosecondsPerOperation": 654086.6699999969,
+      "maximumNanosecondsPerOperation": 828901.0399999961
+    },
+    {
+      "name": "experiment.resolve",
+      "size": 96,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        10767.295000000559,
+        10282.91500000023,
+        10416.2499999984,
+        9523.124999998345,
+        8880.834999999934,
+        9006.039999999302,
+        8768.749999999272,
+        8708.125000002838,
+        9221.87500000291
+      ],
+      "medianNanosecondsPerOperation": 9221.87500000291,
+      "minimumNanosecondsPerOperation": 8708.125000002838,
+      "maximumNanosecondsPerOperation": 10767.295000000559
+    },
+    {
+      "name": "route.resolve",
+      "size": 96,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        79244.37500000067,
+        78152.50000000105,
+        82975.83500000201,
+        77932.71000000005,
+        78034.58500000034,
+        80268.96000000306,
+        80249.58500000139,
+        84030.41500000199,
+        77448.1250000008
+      ],
+      "medianNanosecondsPerOperation": 79244.37500000067,
+      "minimumNanosecondsPerOperation": 77448.1250000008,
+      "maximumNanosecondsPerOperation": 84030.41500000199
+    },
+    {
+      "name": "result.resolve",
+      "size": 96,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        80961.45999999976,
+        78528.33000000146,
+        80650.00000000055,
+        78769.99999999952,
+        77222.2899999997,
+        80660.62500000044,
+        126866.87500000061,
+        82480.83500000121,
+        78298.12500000116
+      ],
+      "medianNanosecondsPerOperation": 80650.00000000055,
+      "minimumNanosecondsPerOperation": 77222.2899999997,
+      "maximumNanosecondsPerOperation": 126866.87500000061
+    },
+    {
+      "name": "funnel.evaluate",
+      "size": 96,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        78400.00000000032,
+        77640.83000000028,
+        79428.33500000006,
+        79202.50000000124,
+        77122.08500000088,
+        81454.37499999843,
+        89060.83500000022,
+        81089.99999999924,
+        78830.62500000051
+      ],
+      "medianNanosecondsPerOperation": 79202.50000000124,
+      "minimumNanosecondsPerOperation": 77122.08500000088,
+      "maximumNanosecondsPerOperation": 89060.83500000022
+    },
+    {
+      "name": "route.next-tail",
+      "size": 96,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        521.5416666666594,
+        245.72200000011435,
+        251.444666666733,
+        267.45833333340363,
+        246.50000000019642,
+        270.62500000010914,
+        275.4303333334368,
+        248.1803333333422,
+        246.3750000000194
+      ],
+      "medianNanosecondsPerOperation": 251.444666666733,
+      "minimumNanosecondsPerOperation": 245.72200000011435,
+      "maximumNanosecondsPerOperation": 521.5416666666594
+    },
+    {
+      "name": "route.previous-tail",
+      "size": 96,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        453.5416666666757,
+        119.33333333339154,
+        128.88900000007197,
+        119.38900000010715,
+        121.87500000012126,
+        159.1249999998278,
+        127.70833333312719,
+        129.2639999998452,
+        120.41666666724875
+      ],
+      "medianNanosecondsPerOperation": 127.70833333312719,
+      "minimumNanosecondsPerOperation": 119.33333333339154,
+      "maximumNanosecondsPerOperation": 453.5416666666757
+    },
+    {
+      "name": "answer.single-valid-tail",
+      "size": 8,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        679.9723333332773,
+        682.9583333333176,
+        646.3470000000295,
+        629.3473333334987,
+        626.0696666668082,
+        652.208333333571,
+        637.5833333331684,
+        874.1530000000541,
+        634.5000000001164
+      ],
+      "medianNanosecondsPerOperation": 646.3470000000295,
+      "minimumNanosecondsPerOperation": 626.0696666668082,
+      "maximumNanosecondsPerOperation": 874.1530000000541
+    },
+    {
+      "name": "answer.single-invalid",
+      "size": 8,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        682.8886666666373,
+        634.9719999999858,
+        711.6666666665878,
+        621.9443333332796,
+        622.1526666668069,
+        643.8193333333402,
+        624.6109999998831,
+        626.0696666668082,
+        615.5139999997724
+      ],
+      "medianNanosecondsPerOperation": 626.0696666668082,
+      "minimumNanosecondsPerOperation": 615.5139999997724,
+      "maximumNanosecondsPerOperation": 711.6666666665878
+    },
+    {
+      "name": "answer.multiple-valid",
+      "size": 8,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        1094.2223333333156,
+        994.1946666667717,
+        988.2916666665551,
+        1031.0553333332184,
+        992.1386666668088,
+        993.7223333333046,
+        1016.9443333334129,
+        1033.7083333330763,
+        991.6806666666768
+      ],
+      "medianNanosecondsPerOperation": 994.1946666667717,
+      "minimumNanosecondsPerOperation": 988.2916666665551,
+      "maximumNanosecondsPerOperation": 1094.2223333333156
+    },
+    {
+      "name": "answer.multiple-oversized",
+      "size": 8,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        778.2916666666703,
+        771.9166666665842,
+        760.7223333332817,
+        771.9446666666652,
+        774.0693333335001,
+        861.1389999999423,
+        758.5000000002159,
+        780.3609999997813,
+        762.3333333334206
+      ],
+      "medianNanosecondsPerOperation": 771.9446666666652,
+      "minimumNanosecondsPerOperation": 758.5000000002159,
+      "maximumNanosecondsPerOperation": 861.1389999999423
+    },
+    {
+      "name": "answer.multiple-invalid",
+      "size": 8,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        1141.8333333332764,
+        1037.2640000000501,
+        989.7359999999935,
+        1005.8193333334202,
+        1014.3333333332217,
+        1045.9306666668151,
+        1003.0833333333552,
+        1046.8193333332845,
+        1043.6113333331982
+      ],
+      "medianNanosecondsPerOperation": 1037.2640000000501,
+      "minimumNanosecondsPerOperation": 989.7359999999935,
+      "maximumNanosecondsPerOperation": 1141.8333333332764
+    },
+    {
+      "name": "answer.single-valid-tail",
+      "size": 32,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        789.1806666666525,
+        675.1250000000558,
+        661.3193333332674,
+        666.4166666666158,
+        658.0279999998311,
+        707.2360000001936,
+        675.5279999997583,
+        698.8610000001547,
+        684.3890000000101
+      ],
+      "medianNanosecondsPerOperation": 675.5279999997583,
+      "minimumNanosecondsPerOperation": 658.0279999998311,
+      "maximumNanosecondsPerOperation": 789.1806666666525
+    },
+    {
+      "name": "answer.single-invalid",
+      "size": 32,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        673.1946666667076,
+        672.1803333333204,
+        687.0973333334405,
+        663.9166666667128,
+        657.4999999999515,
+        654.6806666665361,
+        675.2640000001217,
+        827.7363333333293,
+        639.7640000001653
+      ],
+      "medianNanosecondsPerOperation": 672.1803333333204,
+      "minimumNanosecondsPerOperation": 639.7640000001653,
+      "maximumNanosecondsPerOperation": 827.7363333333293
+    },
+    {
+      "name": "answer.multiple-valid",
+      "size": 32,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        1851.6250000000127,
+        1747.624999999971,
+        1861.111000000013,
+        1794.9166666667224,
+        1761.0279999998966,
+        1800.6109999999655,
+        1788.1250000000364,
+        1838.1110000000265,
+        1801.9166666666329
+      ],
+      "medianNanosecondsPerOperation": 1800.6109999999655,
+      "minimumNanosecondsPerOperation": 1747.624999999971,
+      "maximumNanosecondsPerOperation": 1861.111000000013
+    },
+    {
+      "name": "answer.multiple-oversized",
+      "size": 32,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        805.6526666666741,
+        783.402666666613,
+        770.5693333333936,
+        765.5276666664578,
+        776.4723333333071,
+        795.4026666666322,
+        762.3613333335016,
+        765.0693333334858,
+        760.6943333333522
+      ],
+      "medianNanosecondsPerOperation": 770.5693333333936,
+      "minimumNanosecondsPerOperation": 760.6943333333522,
+      "maximumNanosecondsPerOperation": 805.6526666666741
+    },
+    {
+      "name": "answer.multiple-invalid",
+      "size": 32,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        2079.7083333333526,
+        1881.1803333333044,
+        1821.43033333341,
+        1828.8749999998497,
+        1840.6526666664527,
+        1989.4166666666329,
+        1823.013999999906,
+        1941.3886666667775,
+        1860.2500000003297
+      ],
+      "medianNanosecondsPerOperation": 1860.2500000003297,
+      "minimumNanosecondsPerOperation": 1821.43033333341,
+      "maximumNanosecondsPerOperation": 2079.7083333333526
+    },
+    {
+      "name": "answer.single-valid-tail",
+      "size": 96,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        841.5140000000367,
+        858.1806666666125,
+        841.0276666666808,
+        828.2916666667006,
+        851.4166666667128,
+        866.2916666668632,
+        839.7916666666182,
+        866.652666666899,
+        833.1249999998059
+      ],
+      "medianNanosecondsPerOperation": 841.5140000000367,
+      "minimumNanosecondsPerOperation": 828.2916666667006,
+      "maximumNanosecondsPerOperation": 866.652666666899
+    },
+    {
+      "name": "answer.single-invalid",
+      "size": 96,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        738.3056666666713,
+        753.5556666666707,
+        724.9166666667103,
+        751.7359999998614,
+        729.4583333332412,
+        733.8889999997871,
+        719.597333333392,
+        729.0696666665705,
+        709.7359999994902
+      ],
+      "medianNanosecondsPerOperation": 729.4583333332412,
+      "minimumNanosecondsPerOperation": 709.7359999994902,
+      "maximumNanosecondsPerOperation": 753.5556666666707
+    },
+    {
+      "name": "answer.multiple-valid",
+      "size": 96,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        4137.79166666662,
+        4151.666666666642,
+        4258.791666666639,
+        4238.583333333433,
+        4291.735999999825,
+        4308.875000000019,
+        4204.972333333292,
+        4259.4446666665435,
+        4201.7360000002855
+      ],
+      "medianNanosecondsPerOperation": 4238.583333333433,
+      "minimumNanosecondsPerOperation": 4137.79166666662,
+      "maximumNanosecondsPerOperation": 4308.875000000019
+    },
+    {
+      "name": "answer.multiple-oversized",
+      "size": 96,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        766.9166666667023,
+        808.9860000000043,
+        835.3333333334376,
+        779.0556666665603,
+        791.4306666665046,
+        809.9723333334623,
+        766.8473333333167,
+        817.6390000001751,
+        763.472333333387
+      ],
+      "medianNanosecondsPerOperation": 791.4306666665046,
+      "minimumNanosecondsPerOperation": 763.472333333387,
+      "maximumNanosecondsPerOperation": 835.3333333334376
+    },
+    {
+      "name": "answer.multiple-invalid",
+      "size": 96,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        4332.333333333281,
+        4219.9443333333875,
+        4292.472000000089,
+        4307.305333333413,
+        4294.653000000229,
+        5022.430666666878,
+        4181.305666666655,
+        4373.208333333423,
+        4265.819333333032
+      ],
+      "medianNanosecondsPerOperation": 4294.653000000229,
+      "minimumNanosecondsPerOperation": 4181.305666666655,
+      "maximumNanosecondsPerOperation": 5022.430666666878
+    },
+    {
+      "name": "condition.all-early",
+      "size": 4,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        752.3193333333894,
+        740.1389999999992,
+        797.2500000000764,
+        725.9303333333568,
+        746.180666666684,
+        779.347333333135,
+        727.4999999999637,
+        726.0696666668688,
+        741.5276666670252
+      ],
+      "medianNanosecondsPerOperation": 741.5276666670252,
+      "minimumNanosecondsPerOperation": 725.9303333333568,
+      "maximumNanosecondsPerOperation": 797.2500000000764
+    },
+    {
+      "name": "condition.all-worst",
+      "size": 4,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        2431.639000000056,
+        2408.6113333334347,
+        2488.24999999988,
+        2386.3609999998516,
+        2373.4026666667587,
+        2531.0693333334107,
+        2345.666666666754,
+        2434.9166666667466,
+        2341.597333333387
+      ],
+      "medianNanosecondsPerOperation": 2408.6113333334347,
+      "minimumNanosecondsPerOperation": 2341.597333333387,
+      "maximumNanosecondsPerOperation": 2531.0693333334107
+    },
+    {
+      "name": "condition.any-early",
+      "size": 4,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        847.3333333333054,
+        837.555666666655,
+        820.8056666667289,
+        855.4999999999685,
+        831.9583333332048,
+        850.3056666668272,
+        845.9859999999633,
+        840.889000000061,
+        834.7776666669234
+      ],
+      "medianNanosecondsPerOperation": 840.889000000061,
+      "minimumNanosecondsPerOperation": 820.8056666667289,
+      "maximumNanosecondsPerOperation": 855.4999999999685
+    },
+    {
+      "name": "condition.any-worst",
+      "size": 4,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        2542.6390000000083,
+        2485.041666666651,
+        2582.5696666665863,
+        2483.916666666725,
+        2493.180666666679,
+        2537.4166666667106,
+        2455.986333333385,
+        2502.514000000095,
+        2491.0416666668125
+      ],
+      "medianNanosecondsPerOperation": 2493.180666666679,
+      "minimumNanosecondsPerOperation": 2455.986333333385,
+      "maximumNanosecondsPerOperation": 2582.5696666665863
+    },
+    {
+      "name": "condition.all-early",
+      "size": 24,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        743.1249999999637,
+        770.4166666665817,
+        735.4719999999968,
+        762.8333333335225,
+        709.7223333333507,
+        745.4306666668344,
+        725.305333333381,
+        776.0556666665556,
+        715.6526666664528
+      ],
+      "medianNanosecondsPerOperation": 743.1249999999637,
+      "minimumNanosecondsPerOperation": 709.7223333333507,
+      "maximumNanosecondsPerOperation": 776.0556666665556
+    },
+    {
+      "name": "condition.all-worst",
+      "size": 24,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        13418.555333333341,
+        13589.111333333372,
+        13470.235999999963,
+        13270.305666666598,
+        13223.527666666694,
+        13905.708333333072,
+        13262.652666666629,
+        13623.444666666426,
+        13349.916666666102
+      ],
+      "medianNanosecondsPerOperation": 13418.555333333341,
+      "minimumNanosecondsPerOperation": 13223.527666666694,
+      "maximumNanosecondsPerOperation": 13905.708333333072
+    },
+    {
+      "name": "condition.any-early",
+      "size": 24,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        826.0416666666212,
+        835.5556666667022,
+        835.4859999999463,
+        827.7916666665986,
+        832.3333333334328,
+        848.8193333335705,
+        830.2223333333434,
+        844.5276666667875,
+        828.5276666665595
+      ],
+      "medianNanosecondsPerOperation": 832.3333333334328,
+      "minimumNanosecondsPerOperation": 826.0416666666212,
+      "maximumNanosecondsPerOperation": 848.8193333335705
+    },
+    {
+      "name": "condition.any-worst",
+      "size": 24,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        13537.152666666694,
+        13548.25000000013,
+        13784.944333333291,
+        22603.514000000054,
+        13327.9583333333,
+        13584.930666666878,
+        13310.514000000087,
+        13510.735999999875,
+        13365.778000000015
+      ],
+      "medianNanosecondsPerOperation": 13537.152666666694,
+      "minimumNanosecondsPerOperation": 13310.514000000087,
+      "maximumNanosecondsPerOperation": 22603.514000000054
+    },
+    {
+      "name": "condition.in-tail",
+      "size": 8,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        737.6943333333656,
+        736.569333333288,
+        802.291666666709,
+        774.583333333491,
+        706.5416666667563,
+        728.8333333332654,
+        713.6530000000978,
+        719.2083333332752,
+        709.1110000001207
+      ],
+      "medianNanosecondsPerOperation": 728.8333333332654,
+      "minimumNanosecondsPerOperation": 706.5416666667563,
+      "maximumNanosecondsPerOperation": 802.291666666709
+    },
+    {
+      "name": "condition.contains-tail",
+      "size": 8,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        840.3056666666089,
+        852.3749999999383,
+        844.5139999998901,
+        844.7360000000116,
+        831.4583333334061,
+        832.3196666666869,
+        826.2360000001839,
+        831.6666666666304,
+        816.5276666671465
+      ],
+      "medianNanosecondsPerOperation": 832.3196666666869,
+      "minimumNanosecondsPerOperation": 816.5276666671465,
+      "maximumNanosecondsPerOperation": 852.3749999999383
+    },
+    {
+      "name": "condition.in-tail",
+      "size": 32,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        866.6526666666716,
+        762.764000000061,
+        753.1250000000302,
+        779.5693333331049,
+        740.6389999999495,
+        754.8056666667737,
+        756.6806666667011,
+        755.0136666665518,
+        769.0556666669484
+      ],
+      "medianNanosecondsPerOperation": 756.6806666667011,
+      "minimumNanosecondsPerOperation": 740.6389999999495,
+      "maximumNanosecondsPerOperation": 866.6526666666716
+    },
+    {
+      "name": "condition.contains-tail",
+      "size": 32,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        901.014000000032,
+        867.6943333334748,
+        894.6526666666916,
+        857.833333333474,
+        861.027666666511,
+        873.0416666667223,
+        844.7499999999005,
+        841.0833333333964,
+        857.8193333335851
+      ],
+      "medianNanosecondsPerOperation": 861.027666666511,
+      "minimumNanosecondsPerOperation": 841.0833333333964,
+      "maximumNanosecondsPerOperation": 901.014000000032
+    },
+    {
+      "name": "condition.in-tail",
+      "size": 96,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        1162.1529999999893,
+        1003.9026666666662,
+        1056.4999999999905,
+        944.0693333332698,
+        916.6386666665858,
+        920.6250000000484,
+        916.8333333333674,
+        934.4443333332796,
+        945.3750000005433
+      ],
+      "medianNanosecondsPerOperation": 944.0693333332698,
+      "minimumNanosecondsPerOperation": 916.6386666665858,
+      "maximumNanosecondsPerOperation": 1162.1529999999893
+    },
+    {
+      "name": "condition.contains-tail",
+      "size": 96,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        979.4166666666418,
+        1000.2640000000914,
+        1045.7360000000335,
+        987.0696666663814,
+        984.9443333335633,
+        993.097333333329,
+        969.0280000001318,
+        974.2916666667346,
+        966.9030000004568
+      ],
+      "medianNanosecondsPerOperation": 984.9443333335633,
+      "minimumNanosecondsPerOperation": 966.9030000004568,
+      "maximumNanosecondsPerOperation": 1045.7360000000335
+    },
+    {
+      "name": "condition.nested-all",
+      "size": 2,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        888.1806666666611,
+        899.0276666666734,
+        977.388666666684,
+        880.4443333334954,
+        886.33333333352,
+        867.7916666665624,
+        902.5140000000345,
+        881.9999999999103,
+        898.4306666667787
+      ],
+      "medianNanosecondsPerOperation": 888.1806666666611,
+      "minimumNanosecondsPerOperation": 867.7916666665624,
+      "maximumNanosecondsPerOperation": 977.388666666684
+    },
+    {
+      "name": "condition.nested-all",
+      "size": 8,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        1860.736333333307,
+        1971.5140000001459,
+        1901.6390000000079,
+        1911.1806666666478,
+        1935.2776666667828,
+        1860.8469999999215,
+        1852.7083333331877,
+        1916.0833333332143,
+        1840.8053333332643
+      ],
+      "medianNanosecondsPerOperation": 1901.6390000000079,
+      "minimumNanosecondsPerOperation": 1840.8053333332643,
+      "maximumNanosecondsPerOperation": 1971.5140000001459
+    },
+    {
+      "name": "route.hidden-branch",
+      "size": 8,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        5307.295000000067,
+        5809.374999998908,
+        5385.209999999461,
+        5304.79000000014,
+        5533.125000001746,
+        5479.579999996531,
+        5373.540000000503,
+        5366.040000003522,
+        5330.4149999985375
+      ],
+      "medianNanosecondsPerOperation": 5373.540000000503,
+      "minimumNanosecondsPerOperation": 5304.79000000014,
+      "maximumNanosecondsPerOperation": 5809.374999998908
+    },
+    {
+      "name": "funnel.incomplete",
+      "size": 8,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        5076.874999999745,
+        4925.000000000637,
+        5074.584999999843,
+        5024.164999999812,
+        4892.500000000837,
+        5367.085000002589,
+        4886.664999999084,
+        4801.250000000437,
+        4922.084999998333
+      ],
+      "medianNanosecondsPerOperation": 4925.000000000637,
+      "minimumNanosecondsPerOperation": 4801.250000000437,
+      "maximumNanosecondsPerOperation": 5367.085000002589
+    },
+    {
+      "name": "route.hidden-branch",
+      "size": 32,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        25153.334999999974,
+        29787.710000000516,
+        25979.374999999436,
+        24576.874999997926,
+        25281.24999999818,
+        24134.579999999914,
+        24510.83500000095,
+        24798.540000001594,
+        24994.585000004008
+      ],
+      "medianNanosecondsPerOperation": 24994.585000004008,
+      "minimumNanosecondsPerOperation": 24134.579999999914,
+      "maximumNanosecondsPerOperation": 29787.710000000516
+    },
+    {
+      "name": "funnel.incomplete",
+      "size": 32,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        24138.54000000015,
+        30380.210000000716,
+        26740.210000000385,
+        24346.04500000205,
+        24822.70999999855,
+        24596.874999997453,
+        24361.46000000008,
+        25457.92000000347,
+        24204.165000001012
+      ],
+      "medianNanosecondsPerOperation": 24596.874999997453,
+      "minimumNanosecondsPerOperation": 24138.54000000015,
+      "maximumNanosecondsPerOperation": 30380.210000000716
+    },
+    {
+      "name": "route.hidden-branch",
+      "size": 96,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        79152.9150000008,
+        152825.83499999874,
+        81587.50000000055,
+        79077.49999999852,
+        81059.99999999767,
+        79251.04500000089,
+        78300.41500000334,
+        78600.62499999913,
+        78433.96000000212
+      ],
+      "medianNanosecondsPerOperation": 79152.9150000008,
+      "minimumNanosecondsPerOperation": 78300.41500000334,
+      "maximumNanosecondsPerOperation": 152825.83499999874
+    },
+    {
+      "name": "funnel.incomplete",
+      "size": 96,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        76140.20500000038,
+        90285.83000000026,
+        79967.91499999972,
+        75512.92000000103,
+        78096.04000000036,
+        75974.58000000188,
+        76405.41499999927,
+        76632.91500000014,
+        77943.7499999949
+      ],
+      "medianNanosecondsPerOperation": 76632.91500000014,
+      "minimumNanosecondsPerOperation": 75512.92000000103,
+      "maximumNanosecondsPerOperation": 90285.83000000026
+    },
+    {
+      "name": "result.last-rule",
+      "size": 8,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        10210.624999999709,
+        11240.419999999176,
+        10267.70999999826,
+        10261.875000001055,
+        10268.959999998515,
+        10019.585000000006,
+        10158.335000000989,
+        10142.704999998386,
+        10193.959999996878
+      ],
+      "medianNanosecondsPerOperation": 10210.624999999709,
+      "minimumNanosecondsPerOperation": 10019.585000000006,
+      "maximumNanosecondsPerOperation": 11240.419999999176
+    },
+    {
+      "name": "result.no-rule",
+      "size": 8,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        10330.414999999675,
+        10472.71000000137,
+        10673.335000001316,
+        10140.20999999957,
+        10126.87499999629,
+        10422.499999999673,
+        10269.999999995889,
+        10184.165000000576,
+        10240.835000004154
+      ],
+      "medianNanosecondsPerOperation": 10269.999999995889,
+      "minimumNanosecondsPerOperation": 10126.87499999629,
+      "maximumNanosecondsPerOperation": 10673.335000001316
+    },
+    {
+      "name": "result.last-rule",
+      "size": 32,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        23892.71000000008,
+        37532.915000001594,
+        24342.08500000068,
+        23034.999999999854,
+        23491.249999997308,
+        23272.914999997738,
+        23568.954999996095,
+        23393.959999998515,
+        23805.624999995416
+      ],
+      "medianNanosecondsPerOperation": 23568.954999996095,
+      "minimumNanosecondsPerOperation": 23034.999999999854,
+      "maximumNanosecondsPerOperation": 37532.915000001594
+    },
+    {
+      "name": "result.no-rule",
+      "size": 32,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        23807.91999999928,
+        37102.915000000394,
+        24080.62499999914,
+        23803.335000002335,
+        23720.210000001316,
+        23372.28999999752,
+        23400.830000000497,
+        23498.955000000024,
+        24842.500000004293
+      ],
+      "medianNanosecondsPerOperation": 23803.335000002335,
+      "minimumNanosecondsPerOperation": 23372.28999999752,
+      "maximumNanosecondsPerOperation": 37102.915000000394
+    },
+    {
+      "name": "result.last-rule",
+      "size": 96,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        61347.07999999932,
+        60319.79500000035,
+        58803.750000001855,
+        59091.87499999916,
+        58886.87500000288,
+        59062.29000000167,
+        58510.62499999898,
+        58330.00000000084,
+        57998.74999999702
+      ],
+      "medianNanosecondsPerOperation": 58886.87500000288,
+      "minimumNanosecondsPerOperation": 57998.74999999702,
+      "maximumNanosecondsPerOperation": 61347.07999999932
+    },
+    {
+      "name": "result.no-rule",
+      "size": 96,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        59176.045000000384,
+        59857.50000000053,
+        60329.999999999025,
+        58845.000000001164,
+        59683.5400000009,
+        59430.835000002844,
+        60023.54000000196,
+        58650.000000002365,
+        58642.71000000372
+      ],
+      "medianNanosecondsPerOperation": 59430.835000002844,
+      "minimumNanosecondsPerOperation": 58642.71000000372,
+      "maximumNanosecondsPerOperation": 60329.999999999025
+    },
+    {
+      "name": "historical.v1.A",
+      "size": 9,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        10885.415000000194,
+        12374.999999999545,
+        11140.414999999848,
+        11046.664999998939,
+        10994.375000000218,
+        10784.374999998363,
+        11476.874999998472,
+        10903.330000001006,
+        11114.585000004809
+      ],
+      "medianNanosecondsPerOperation": 11046.664999998939,
+      "minimumNanosecondsPerOperation": 10784.374999998363,
+      "maximumNanosecondsPerOperation": 12374.999999999545
+    },
+    {
+      "name": "historical.v1.B",
+      "size": 9,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        12830.415000000812,
+        12284.789999998793,
+        12930.83499999966,
+        12480.419999997139,
+        12397.085000002335,
+        12420.419999998556,
+        12215.835000001789,
+        12314.78999999581,
+        12259.585000001607
+      ],
+      "medianNanosecondsPerOperation": 12397.085000002335,
+      "minimumNanosecondsPerOperation": 12215.835000001789,
+      "maximumNanosecondsPerOperation": 12930.83499999966
+    },
+    {
+      "name": "historical.v2.A",
+      "size": 10,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        12926.874999999427,
+        12798.124999999345,
+        13314.789999999448,
+        13116.039999999884,
+        13410.414999998466,
+        12699.79499999863,
+        12919.165000002975,
+        13033.33500000008,
+        13085.829999999985
+      ],
+      "medianNanosecondsPerOperation": 13033.33500000008,
+      "minimumNanosecondsPerOperation": 12699.79499999863,
+      "maximumNanosecondsPerOperation": 13410.414999998466
+    },
+    {
+      "name": "historical.v2.B",
+      "size": 10,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        14459.584999999606,
+        14618.329999998423,
+        16846.665000000485,
+        14451.25000000189,
+        14650.834999997642,
+        14266.459999998915,
+        14529.789999996867,
+        14684.579999998277,
+        14350.000000004002
+      ],
+      "medianNanosecondsPerOperation": 14529.789999996867,
+      "minimumNanosecondsPerOperation": 14266.459999998915,
+      "maximumNanosecondsPerOperation": 16846.665000000485
+    },
+    {
+      "name": "historical.v3.A",
+      "size": 11,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        14959.165000000212,
+        15735.420000000884,
+        15227.500000000873,
+        14775.83500000037,
+        15012.289999999666,
+        14771.459999997205,
+        15373.329999997623,
+        14979.79000000214,
+        14933.124999997744
+      ],
+      "medianNanosecondsPerOperation": 14979.79000000214,
+      "minimumNanosecondsPerOperation": 14771.459999997205,
+      "maximumNanosecondsPerOperation": 15735.420000000884
+    },
+    {
+      "name": "historical.v3.B",
+      "size": 11,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        15528.12499999959,
+        15786.874999998872,
+        15494.999999998527,
+        15311.250000004293,
+        15468.33500000048,
+        15636.045000001104,
+        20716.2500000004,
+        16083.95499999915,
+        15556.875000002037
+      ],
+      "medianNanosecondsPerOperation": 15556.875000002037,
+      "minimumNanosecondsPerOperation": 15311.250000004293,
+      "maximumNanosecondsPerOperation": 20716.2500000004
+    },
+    {
+      "name": "answer.number-valid",
+      "size": 1,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        555.4303333333337,
+        557.1806666666816,
+        540.8193333332747,
+        585.5136666668841,
+        540.8609999997983,
+        539.73633333347,
+        592.3056666667131,
+        609.7639999998137,
+        546.3749999998981
+      ],
+      "medianNanosecondsPerOperation": 555.4303333333337,
+      "minimumNanosecondsPerOperation": 539.73633333347,
+      "maximumNanosecondsPerOperation": 609.7639999998137
+    },
+    {
+      "name": "answer.number-invalid",
+      "size": 1,
+      "iterations": 3000,
+      "samplesNanosecondsPerOperation": [
+        637.264000000035,
+        558.2639999999325,
+        565.9723333333204,
+        590.9306666668878,
+        571.4583333331879,
+        552.4999999997817,
+        569.7360000000723,
+        562.0693333333595,
+        556.3750000001164
+      ],
+      "medianNanosecondsPerOperation": 565.9723333333204,
+      "minimumNanosecondsPerOperation": 552.4999999997817,
+      "maximumNanosecondsPerOperation": 637.264000000035
+    },
+    {
+      "name": "configuration.repeated-selection-references",
+      "size": 96,
+      "iterations": 200,
+      "samplesNanosecondsPerOperation": [
+        461157.4999999993,
+        459053.54499999934,
+        482202.7100000014,
+        462106.8749999995,
+        475676.8749999992,
+        454421.669999997,
+        483494.37500000023,
+        455295.4150000005,
+        453847.50000000163
+      ],
+      "medianNanosecondsPerOperation": 461157.4999999993,
+      "minimumNanosecondsPerOperation": 453847.50000000163,
+      "maximumNanosecondsPerOperation": 483494.37500000023
+    }
+  ]
+}

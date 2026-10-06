@@ -115,9 +115,9 @@ export const BenchmarkReport = {
   async prepare(): Promise<Omit<BenchmarkReportData, 'results'>> {
     return {
       run: `${new Date().toISOString().replaceAll(':', '-')}-${randomUUID()}`,
-      scope: MeasurementPolicy.Scope,
+      scope: MeasurementMessages.Scope,
       warmupIterations: MeasurementPolicy.WarmupIterations,
-      samplingOrder: 'Rotating case order over nine rounds; each sample is a timed batch average.',
+      samplingOrder: MeasurementMessages.SamplingOrder,
       environment: await BenchmarkIdentity.environment(),
     };
   },
