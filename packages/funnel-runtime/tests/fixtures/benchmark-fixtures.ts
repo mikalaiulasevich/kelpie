@@ -5,6 +5,7 @@ import {
   FunnelConfigurations,
   StepType,
   type FunnelStep,
+  type Condition,
   type FunnelConfiguration,
   type MultipleSelectionStep,
   type NumberStep,
@@ -15,6 +16,16 @@ import { BenchmarkPolicy } from '../benchmarks/benchmark-policy.js';
 import { RuntimeFixtures } from './runtime-fixtures.js';
 
 export const BenchmarkFixtures = {
+  validated(fixture: BenchmarkFunnel): BenchmarkFunnel {
+    const validation = FunnelConfigurations.validate(fixture.configuration);
+
+    if (!validation.valid) {
+      assert.fail(JSON.stringify(validation.issues));
+    }
+
+    return fixture;
+  },
+
   number(identifier = 'quantity'): NumberStep {
     return {
       id: identifier,
@@ -82,6 +93,67 @@ export const BenchmarkFixtures = {
     };
   },
 
+  nestedCondition(depth: number): Condition {
+    let condition: Condition = {
+      answer: 'quantity',
+      operator: ConditionOperator.Equal,
+      value: BenchmarkPolicy.AnswerValue,
+    };
+
+    for (let level = 0; level < depth; level += 1) {
+      condition = { all: [condition] };
+    }
+
+    return condition;
+  },
+
+  hiddenBranch(size: number): BenchmarkFunnel {
+    const fixture = BenchmarkFixtures.funnel(size);
+    const identifier = `question_${size - 3}`;
+    const question = fixture.configuration.steps[identifier];
+    assert.ok(question);
+
+    return BenchmarkFixtures.validated({
+      ...fixture,
+      configuration: {
+        ...fixture.configuration,
+        steps: {
+          ...fixture.configuration.steps,
+          [identifier]: {
+            ...question,
+            visibleWhen: {
+              answer: 'question_0',
+              operator: ConditionOperator.Equal,
+              value: BenchmarkPolicy.UnmatchedValue,
+            },
+          },
+        },
+      },
+    });
+  },
+
+  resultRules(size: number, finalMatch: boolean): BenchmarkFunnel {
+    const fixture = BenchmarkFixtures.funnel(BenchmarkPolicy.ReferenceFunnelSize);
+
+    return BenchmarkFixtures.validated({
+      ...fixture,
+      configuration: {
+        ...fixture.configuration,
+        resultRules: Array.from({ length: size }, (_, position) => ({
+          resultId: 'async_native',
+          when: {
+            answer: 'question_0',
+            operator: ConditionOperator.Equal,
+            value:
+              finalMatch && position === size - 1
+                ? BenchmarkPolicy.AnswerValue
+                : BenchmarkPolicy.UnmatchedValue,
+          },
+        })),
+      },
+    });
+  },
+
   funnel(size: number): BenchmarkFunnel {
     const original = RuntimeFixtures.configuration(1);
     const introduction = original.steps['intro'];
@@ -117,12 +189,6 @@ export const BenchmarkFixtures = {
         },
       },
     };
-    const validation = FunnelConfigurations.validate(configuration);
-
-    if (!validation.valid) {
-      assert.fail(JSON.stringify(validation.issues));
-    }
-
-    return { configuration: validation.configuration, answers };
+    return BenchmarkFixtures.validated({ configuration, answers });
   },
 } as const;

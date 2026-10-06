@@ -94,6 +94,7 @@ const BenchmarkCaseFactory = {
     const single = BenchmarkFixtures.singleSelection(size);
     const multiple = BenchmarkFixtures.selection(size);
     const validSelections = multiple.input.options.map((option) => option.value);
+    const oversizedSelections = [...validSelections, 'overflow_option'];
     const invalidSelections = [...validSelections.slice(1), 'missing_option'];
     const iterations = BenchmarkPolicy.SimpleIterations;
     const lastOption = `option_${size - 1}`;
@@ -119,6 +120,13 @@ const BenchmarkCaseFactory = {
         iterations,
         () => FunnelRuntime.Answers.validate(multiple, validSelections).valid,
         true,
+      ),
+      BenchmarkCaseFactory.checked(
+        'answer.multiple-oversized',
+        size,
+        iterations,
+        () => FunnelRuntime.Answers.validate(multiple, oversizedSelections).valid,
+        false,
       ),
       BenchmarkCaseFactory.checked(
         'answer.multiple-invalid',
@@ -174,6 +182,104 @@ const BenchmarkCaseFactory = {
     ];
   },
 
+  memberships(size: number): ReadonlyList<BenchmarkCase> {
+    const values = Array.from({ length: size }, (_, position) => `option_${position}`);
+    const answer = values.at(-1);
+    assert.ok(answer);
+    const included: Condition = {
+      answer: 'choice',
+      operator: ConditionOperator.In,
+      value: values,
+    };
+    const contains: Condition = {
+      answer: 'choices',
+      operator: ConditionOperator.Contains,
+      value: answer,
+    };
+    const singleAnswer = { choice: answer };
+    const multipleAnswers = { choices: values };
+
+    return [
+      BenchmarkCaseFactory.checked(
+        'condition.in-tail',
+        size,
+        BenchmarkPolicy.SimpleIterations,
+        () => FunnelRuntime.Conditions.evaluate(included, singleAnswer),
+        true,
+      ),
+      BenchmarkCaseFactory.checked(
+        'condition.contains-tail',
+        size,
+        BenchmarkPolicy.SimpleIterations,
+        () => FunnelRuntime.Conditions.evaluate(contains, multipleAnswers),
+        true,
+      ),
+    ];
+  },
+
+  nested(depth: number): BenchmarkCase {
+    const condition = BenchmarkFixtures.nestedCondition(depth);
+    const answers = { quantity: BenchmarkPolicy.AnswerValue };
+
+    return BenchmarkCaseFactory.checked(
+      'condition.nested-all',
+      depth,
+      BenchmarkPolicy.SimpleIterations,
+      () => FunnelRuntime.Conditions.evaluate(condition, answers),
+      true,
+    );
+  },
+
+  branches(size: number): ReadonlyList<BenchmarkCase> {
+    const hidden = BenchmarkFixtures.hiddenBranch(size);
+    const { configuration, answers } = BenchmarkFixtures.funnel(size);
+    const incompleteAnswers = { ...answers };
+    delete incompleteAnswers['question_0'];
+    const variant = ExperimentVariant.A;
+
+    return [
+      BenchmarkCaseFactory.checked(
+        'route.hidden-branch',
+        size,
+        BenchmarkPolicy.ComplexIterations,
+        () =>
+          FunnelRuntime.Routes.resolve(hidden.configuration, variant, hidden.answers).steps.length,
+        size - 1,
+      ),
+      BenchmarkCaseFactory.checked(
+        'funnel.incomplete',
+        size,
+        BenchmarkPolicy.ComplexIterations,
+        () => FunnelRuntime.Evaluation.evaluate(configuration, variant, incompleteAnswers).result,
+        undefined,
+      ),
+    ];
+  },
+
+  resultRules(size: number): ReadonlyList<BenchmarkCase> {
+    const finalMatch = BenchmarkFixtures.resultRules(size, true);
+    const noMatch = BenchmarkFixtures.resultRules(size, false);
+    const variant = ExperimentVariant.A;
+
+    return [
+      BenchmarkCaseFactory.checked(
+        'result.last-rule',
+        size,
+        BenchmarkPolicy.ComplexIterations,
+        () =>
+          FunnelRuntime.Results.resolve(finalMatch.configuration, variant, finalMatch.answers)?.id,
+        'async_native',
+      ),
+      BenchmarkCaseFactory.checked(
+        'result.no-rule',
+        size,
+        BenchmarkPolicy.ComplexIterations,
+        () => FunnelRuntime.Results.resolve(noMatch.configuration, variant, noMatch.answers)?.id,
+        'balanced',
+      ),
+    ];
+  },
+
   historical(version: number): ReadonlyList<BenchmarkCase> {
     const configuration = RuntimeFixtures.configuration(version);
     const answers = RuntimeAnswers.complete();
@@ -210,6 +316,10 @@ export const BenchmarkCases = {
       ...BenchmarkPolicy.FunnelSizes.flatMap(BenchmarkCaseFactory.funnels),
       ...BenchmarkPolicy.FunnelSizes.flatMap(BenchmarkCaseFactory.selections),
       ...BenchmarkPolicy.ConditionSizes.flatMap(BenchmarkCaseFactory.conditions),
+      ...BenchmarkPolicy.FunnelSizes.flatMap(BenchmarkCaseFactory.memberships),
+      ...BenchmarkPolicy.ConditionDepths.map(BenchmarkCaseFactory.nested),
+      ...BenchmarkPolicy.FunnelSizes.flatMap(BenchmarkCaseFactory.branches),
+      ...BenchmarkPolicy.FunnelSizes.flatMap(BenchmarkCaseFactory.resultRules),
       ...BenchmarkPolicy.HistoricalVersions.flatMap(BenchmarkCaseFactory.historical),
       BenchmarkCaseFactory.checked(
         'answer.number-valid',

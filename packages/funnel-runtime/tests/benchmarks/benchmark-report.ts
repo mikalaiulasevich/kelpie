@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict';
 import { createHash, randomUUID } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { appendFile, mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
@@ -15,10 +16,13 @@ import type {
 const repositoryDirectory = fileURLToPath(new URL('../../../../', import.meta.url));
 
 const BenchmarkIdentity = {
-  async sourceHash(): Promise<string> {
-    const paths: string[] = [...MeasurementPolicy.IdentityFiles];
+  async hash(
+    directories: ReadonlyList<string>,
+    identityFiles: ReadonlyList<string> = [],
+  ): Promise<string> {
+    const paths: string[] = [...identityFiles];
 
-    for (const directory of MeasurementPolicy.SourceDirectories) {
+    for (const directory of directories) {
       const entries = await readdir(resolve(repositoryDirectory, directory), {
         recursive: true,
         withFileTypes: true,
@@ -69,7 +73,11 @@ const BenchmarkIdentity = {
       processor: cpus()[0]?.model,
       revision,
       workingTreeChanged,
-      sourceHash: await BenchmarkIdentity.sourceHash(),
+      sourceHash: await BenchmarkIdentity.hash(
+        MeasurementPolicy.SourceDirectories,
+        MeasurementPolicy.IdentityFiles,
+      ),
+      compiledHash: await BenchmarkIdentity.hash(MeasurementPolicy.CompiledDirectories),
     };
   },
 } as const;
@@ -108,6 +116,8 @@ export const BenchmarkReport = {
     return {
       run: `${new Date().toISOString().replaceAll(':', '-')}-${randomUUID()}`,
       scope: MeasurementPolicy.Scope,
+      warmupIterations: MeasurementPolicy.WarmupIterations,
+      samplingOrder: 'Rotating case order over nine rounds; each sample is a timed batch average.',
       environment: await BenchmarkIdentity.environment(),
     };
   },
@@ -116,6 +126,16 @@ export const BenchmarkReport = {
     metadata: Omit<BenchmarkReportData, 'results'>,
     results: ReadonlyList<BenchmarkMeasurementResult>,
   ): Promise<string> {
+    const sourceHash = await BenchmarkIdentity.hash(
+      MeasurementPolicy.SourceDirectories,
+      MeasurementPolicy.IdentityFiles,
+    );
+    const compiledHash = await BenchmarkIdentity.hash(MeasurementPolicy.CompiledDirectories);
+    assert.ok(
+      sourceHash === metadata.environment.sourceHash &&
+        compiledHash === metadata.environment.compiledHash,
+      MeasurementMessages.ChangedInputs,
+    );
     const report: BenchmarkReportData = { ...metadata, results };
     const directory = resolve(repositoryDirectory, MeasurementPolicy.OutputDirectory);
     await mkdir(directory, { recursive: true });

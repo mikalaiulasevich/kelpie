@@ -29,9 +29,7 @@ export const ConditionValidation = {
       context.report(path, ConfigurationMessages.ConditionOperatorMismatch);
     }
 
-    const availableValues = new Set<string | number>(
-      step.input.options.map((option) => option.value),
-    );
+    const availableValues = context.selectionValues(step);
 
     if (ConditionRules.values(predicate).some((value) => !availableValues.has(value))) {
       context.report(path, ConfigurationMessages.UnavailableConditionOption);

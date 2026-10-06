@@ -2,9 +2,28 @@ import { describe, expect, it } from 'vitest';
 
 import { FunnelConfigurations } from '../../source/index.js';
 import { ConfigurationFixtures } from '../fixtures/configuration-fixtures.js';
+import { SelectionFixtures } from '../fixtures/selection-fixtures.js';
 import { ConfigurationCases } from '../cases/configuration-cases.js';
 
 describe('semantic validation', () => {
+  it('reports every invalid predicate and rebuilds selection indexes for each validation', () => {
+    const { configuration, options } = SelectionFixtures.repeatedOptionReferences();
+
+    const rejected = FunnelConfigurations.validate(configuration);
+    options.push({ value: 'teleportation', label: 'Teleportation' });
+    const accepted = FunnelConfigurations.validate(configuration);
+    options.pop();
+    const rejectedAgain = FunnelConfigurations.validate(configuration);
+
+    expect(rejected.valid).toBe(false);
+    expect(rejected.issues.map((issue) => issue.path)).toEqual([
+      '/resultRules/0/when',
+      '/resultRules/1/when',
+    ]);
+    expect(accepted.valid).toBe(true);
+    expect(rejectedAgain).toEqual(rejected);
+  });
+
   it('rejects future branch dependencies in either variant', () => {
     const configuration = ConfigurationFixtures.valid();
 

@@ -17,11 +17,14 @@ export interface BenchmarkEnvironment {
   readonly revision: string;
   readonly workingTreeChanged: boolean;
   readonly sourceHash: string;
+  readonly compiledHash: string;
 }
 
 export interface BenchmarkReportData {
   readonly run: string;
   readonly scope: string;
+  readonly warmupIterations: number;
+  readonly samplingOrder: string;
   readonly environment: BenchmarkEnvironment;
   readonly results: ReadonlyList<BenchmarkMeasurementResult>;
 }

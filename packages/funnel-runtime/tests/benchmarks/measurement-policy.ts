@@ -11,6 +11,7 @@ export const MeasurementPolicy = {
     'packages/funnel-runtime/source',
     'packages/funnel-runtime/tests',
   ],
+  CompiledDirectories: ['packages/contracts/distribution', 'packages/funnel-runtime/distribution'],
   IdentityFiles: [
     'package-lock.json',
     'configurations/funnel-v1.json',
