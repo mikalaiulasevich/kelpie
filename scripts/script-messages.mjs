@@ -15,19 +15,6 @@ export const ConfigurationIntegrityMessages = /** @type {const} */ ({
   },
 });
 
-export const BenchmarkMessages = /** @type {const} */ ({
-  MissingOptions: 'Validated selection steps must contain options.',
-  MissingSamples: 'At least one sample is required.',
-  MissingScenarios: 'At least one benchmark scenario is required.',
-  InvalidConfiguration: 'Configuration validation failed during measurement.',
-  InvalidRoute: 'Route resolution failed during measurement.',
-  InvalidResult: 'Result resolution failed during measurement.',
-  /** @param {number} version */
-  invalidFixture(version) {
-    return `Supplied configuration ${version} is invalid.`;
-  },
-});
-
 export const DevelopmentMessages = /** @type {const} */ ({
   SignalFailed: 'Unable to signal development process:',
   /** @param {string} workspaceName */

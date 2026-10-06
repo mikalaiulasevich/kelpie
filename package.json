@@ -31,7 +31,7 @@
     "database:migrate": "npm run database:migrate --workspace=@kelpie/backend",
     "database:validate": "npm run database:validate --workspace=@kelpie/backend",
     "configurations:verify": "node scripts/verify-configurations.mjs",
-    "benchmark:runtime": "npm run build:packages && node scripts/benchmark-runtime.mjs",
+    "benchmark:runtime": "npm run build:packages && tsx packages/funnel-runtime/tests/benchmarks/run-benchmarks.ts",
     "verify": "npm run configurations:verify && npm run tests:layout && npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build && npm run database:validate",
     "tests:layout": "node scripts/verify-test-layout.mjs"
   },
