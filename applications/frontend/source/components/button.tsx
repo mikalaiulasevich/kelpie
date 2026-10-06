@@ -1,9 +1,9 @@
 // Adapted from the official shadcn/ui New York button registry (MIT):
 // https://ui.shadcn.com/r/styles/new-york/button.json
-import * as React from 'react';
+import { forwardRef, type ButtonHTMLAttributes } from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { combineClassNames } from '../styling/combine-class-names';
+import { combineClassNames } from '../styling/combine_class_names';
 
 const buttonVariants = cva(
   'inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
@@ -29,13 +29,14 @@ const buttonVariants = cva(
 );
 
 export interface ButtonProperties
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
+  extends ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   asChild?: boolean;
 }
 
-export const Button = React.forwardRef<HTMLButtonElement, ButtonProperties>(
+export const Button = forwardRef<HTMLButtonElement, ButtonProperties>(
   ({ className, variant, size, asChild = false, ...properties }, reference) => {
     const Component = asChild ? Slot : 'button';
+
     return (
       <Component
         className={combineClassNames(buttonVariants({ variant, size, className }))}

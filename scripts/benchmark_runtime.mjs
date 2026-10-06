@@ -10,15 +10,19 @@ for (const version of [1, 2, 3]) {
     await readFile(new URL(`../configurations/funnel-v${version}.json`, import.meta.url), 'utf8'),
   );
   const validation = validateFunnelConfiguration(document);
-  if (!validation.valid) throw new Error(`Supplied configuration ${version} is invalid.`);
+  if (!validation.valid) {
+    throw new Error(`Supplied configuration ${version} is invalid.`);
+  }
+
   configurations.push(validation.configuration);
 }
 
 function buildSyntheticAnswers(configuration, includeCompliance) {
   const answers = {};
   for (const step of Object.values(configuration.steps)) {
-    if (step.type === 'number') answers[step.input.name] = step.input.min;
-    else if (step.type === 'single-select') {
+    if (step.type === 'number') {
+      answers[step.input.name] = step.input.min;
+    } else if (step.type === 'single-select') {
       answers[step.input.name] = step.input.options[0].value;
     } else if (step.type === 'multi-select') {
       const complianceOption = step.input.options.find((option) => option.value === 'compliance');
@@ -27,6 +31,7 @@ function buildSyntheticAnswers(configuration, includeCompliance) {
       answers[step.input.name] = [selectedOption.value];
     }
   }
+
   return answers;
 }
 
@@ -41,14 +46,22 @@ const scenarios = configurations.flatMap((configuration) =>
 );
 
 function measure(name, iterations, operation) {
-  for (let position = 0; position < 1000; position += 1) operation(position);
+  for (let position = 0; position < 1000; position += 1) {
+    operation(position);
+  }
+
   const durationSamples = [];
   for (let sample = 0; sample < 7; sample += 1) {
     const startedAt = performance.now();
-    for (let position = 0; position < iterations; position += 1) operation(position);
+    for (let position = 0; position < iterations; position += 1) {
+      operation(position);
+    }
+
     durationSamples.push(performance.now() - startedAt);
   }
+
   durationSamples.sort((left, right) => left - right);
+
   return {
     name,
     iterationsPerSample: iterations,
@@ -63,17 +76,23 @@ const results = [
     const validation = validateFunnelConfiguration(
       configurations[position % configurations.length],
     );
-    if (!validation.valid) throw new Error('Configuration validation failed during measurement.');
+    if (!validation.valid) {
+      throw new Error('Configuration validation failed during measurement.');
+    }
   }),
   measure('route resolution', 10000, (position) => {
     const scenario = scenarios[position % scenarios.length];
     const route = resolveAvailableSteps(scenario.configuration, scenario.variant, scenario.answers);
-    if (route.steps.length === 0) throw new Error('Route resolution failed during measurement.');
+    if (route.steps.length === 0) {
+      throw new Error('Route resolution failed during measurement.');
+    }
   }),
   measure('result resolution', 10000, (position) => {
     const scenario = scenarios[position % scenarios.length];
     const result = resolveFunnelResult(scenario.configuration, scenario.variant, scenario.answers);
-    if (result === undefined) throw new Error('Result resolution failed during measurement.');
+    if (result === undefined) {
+      throw new Error('Result resolution failed during measurement.');
+    }
   }),
 ];
 

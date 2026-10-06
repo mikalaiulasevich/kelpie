@@ -24,6 +24,22 @@ Use request and response names such as SubmitStepAnswerRequest rather than abbre
 
 Use strict TypeScript, explicit domain types, small cohesive modules, and established patterns. Avoid unchecked type assertions, unexplained any types, swallowed errors, speculative abstractions, and duplicated business rules. Comments should explain a reason or invariant.
 
+### Readability conventions
+
+Apply the naming and ownership principles reviewed in the Template reference project:
+
+- Use `PascalCase` for exported types, components, and enum-like domain objects; use `camelCase` for functions and ordinary values.
+- Use `snake_case` for authored multiword source filenames and feature directories. Preserve names required by tools (`vite.config.ts`, `prisma.config.ts`, `index.ts`) and supplied configuration files.
+- Use frozen `as const` objects with derived value-union types for reusable domain vocabularies. Preserve serialized values. Do not duplicate those values as unrelated string unions or create constants for every one-off string.
+- Define named contracts for meaningful inputs, overrides, policies, and outputs. Keep them with their domain owner. Keep `unknown` at untrusted input boundaries and narrow it with validation.
+- Keep package exports explicit. Import another package through its public entry point.
+- Always use braces for control-flow blocks. Separate guards, calculations, and returns with blank lines. Do not nest ternary expressions.
+- Give distinct validation phases and step-specific rules named functions. Prefer straightforward dispatch and guard clauses over long mixed-purpose functions.
+- Preserve exhaustive discriminated unions and runtime validation; more types must not become unchecked assertions.
+- Keep framework-specific infrastructure appropriate to NestJS and React. Reference conventions do not authorize copying Template's mobile wrappers, globals, dependencies, or application architecture.
+
+ESLint enforces braces, explicit exports, no nested ternaries, no parameter reassignment, no non-null assertions, and spacing before returns and after blocks. Naming, module cohesion, security, and algorithmic complexity remain mandatory code-review responsibilities; passing formatting checks alone does not prove readability.
+
 ## Mandatory review
 
 Review every behavior change for:

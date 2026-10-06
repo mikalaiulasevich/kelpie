@@ -26,7 +26,10 @@ describe('configuration validation', () => {
 
   it('bounds nesting and does not overflow the call stack', () => {
     let nested: unknown = {};
-    for (let depth = 0; depth < 1000; depth += 1) nested = { all: [nested] };
+    for (let depth = 0; depth < 1000; depth += 1) {
+      nested = { all: [nested] };
+    }
+
     expect(validateFunnelConfiguration(nested)).toMatchObject({ valid: false });
   });
 
@@ -53,7 +56,10 @@ describe('configuration validation', () => {
 
   it('rejects future branch dependencies in either variant', () => {
     const parsed = validateFunnelConfiguration(originalConfiguration(1));
-    if (!parsed.valid) throw new Error('Invalid fixture.');
+    if (!parsed.valid) {
+      throw new Error('Invalid fixture.');
+    }
+
     const document = {
       ...parsed.configuration,
       steps: {
@@ -66,13 +72,17 @@ describe('configuration validation', () => {
     };
     const result = validateFunnelConfiguration(document);
     expect(result.valid).toBe(false);
-    if (!result.valid)
+    if (!result.valid) {
       expect(result.issues.some((issue) => issue.message.includes('earlier'))).toBe(true);
+    }
   });
 
   it('rejects invalid option references', () => {
     const parsed = validateFunnelConfiguration(originalConfiguration(1));
-    if (!parsed.valid) throw new Error('Invalid fixture.');
+    if (!parsed.valid) {
+      throw new Error('Invalid fixture.');
+    }
+
     const document = {
       ...parsed.configuration,
       resultRules: [
@@ -87,7 +97,10 @@ describe('configuration validation', () => {
 
   it('rejects unequal identity keys and invalid experiment weights', () => {
     const parsed = validateFunnelConfiguration(originalConfiguration(1));
-    if (!parsed.valid) throw new Error('Invalid fixture.');
+    if (!parsed.valid) {
+      throw new Error('Invalid fixture.');
+    }
+
     const document = {
       ...parsed.configuration,
       experiment: {
@@ -103,7 +116,10 @@ describe('configuration validation', () => {
 
   it('validates merged variant content instead of only the base step', () => {
     const parsed = validateFunnelConfiguration(originalConfiguration(1));
-    if (!parsed.valid) throw new Error('Invalid fixture.');
+    if (!parsed.valid) {
+      throw new Error('Invalid fixture.');
+    }
+
     const document = {
       ...parsed.configuration,
       experiment: {
@@ -119,15 +135,19 @@ describe('configuration validation', () => {
     };
     const result = validateFunnelConfiguration(document);
     expect(result.valid).toBe(false);
-    if (!result.valid)
+    if (!result.valid) {
       expect(result.issues.some((issue) => issue.path.includes('stepOverrides'))).toBe(true);
+    }
   });
 
   it.each(['constructor', 'toString', 'hasOwnProperty'])(
     'rejects inherited step and result reference %s without throwing',
     (reference) => {
       const parsed = validateFunnelConfiguration(originalConfiguration(1));
-      if (!parsed.valid) throw new Error('Invalid fixture.');
+      if (!parsed.valid) {
+        throw new Error('Invalid fixture.');
+      }
+
       const document = {
         ...parsed.configuration,
         defaultResultId: reference,

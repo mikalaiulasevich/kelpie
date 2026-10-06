@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { requestServiceReadiness } from './request-service-readiness';
+import { requestServiceReadiness } from './request_service_readiness';
 
 afterEach(() => {
   vi.unstubAllGlobals();

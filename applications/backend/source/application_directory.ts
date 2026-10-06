@@ -10,4 +10,5 @@ const resolvedDirectory = candidateDirectories.find((directory) =>
 if (resolvedDirectory === undefined) {
   throw new Error('Cannot locate the backend application directory.');
 }
+
 export const applicationDirectory = resolvedDirectory;

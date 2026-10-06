@@ -1,15 +1,25 @@
 import { useState } from 'react';
 import { Button } from './components/button';
-import { useServiceHealth } from './service-health/use-service-health';
+import { ServiceHealthStatus } from './service_health/service_health';
+import { useServiceHealth } from './service_health/use_service_health';
+
+const serviceHealthLabels: Readonly<Record<ServiceHealthStatus, string>> = Object.freeze({
+  [ServiceHealthStatus.Checking]: 'Checking backend connection',
+  [ServiceHealthStatus.Ready]: 'Backend connection verified',
+  [ServiceHealthStatus.Unavailable]: 'Backend unavailable',
+});
+
+const serviceHealthIndicatorClasses: Readonly<Record<ServiceHealthStatus, string>> = Object.freeze({
+  [ServiceHealthStatus.Checking]: 'bg-slate-400',
+  [ServiceHealthStatus.Ready]: 'bg-emerald-600',
+  [ServiceHealthStatus.Unavailable]: 'bg-amber-600',
+});
 
 export function Application() {
   const [checkSequence, setCheckSequence] = useState(0);
   const serviceHealth = useServiceHealth(checkSequence);
-  const statusLabel = {
-    checking: 'Checking backend connection',
-    ready: 'Backend connection verified',
-    unavailable: 'Backend unavailable',
-  }[serviceHealth.status];
+  const statusLabel = serviceHealthLabels[serviceHealth.status];
+  const indicatorClassName = serviceHealthIndicatorClasses[serviceHealth.status];
 
   return (
     <div className="min-h-screen">
@@ -43,18 +53,12 @@ export function Application() {
             <p className="flex items-center gap-3 text-sm font-medium">
               <span
                 aria-hidden="true"
-                className={`h-2.5 w-2.5 shrink-0 rounded-full ${
-                  serviceHealth.status === 'ready'
-                    ? 'bg-emerald-600'
-                    : serviceHealth.status === 'unavailable'
-                      ? 'bg-amber-600'
-                      : 'bg-slate-400'
-                }`}
+                className={`h-2.5 w-2.5 shrink-0 rounded-full ${indicatorClassName}`}
               />
               {statusLabel}
             </p>
             <p className="mt-3 text-sm leading-6 text-slate-600">
-              {serviceHealth.status === 'ready' && (
+              {serviceHealth.status === ServiceHealthStatus.Ready && (
                 <>
                   Verified at{' '}
                   <time dateTime={serviceHealth.checkedAt.toISOString()}>
@@ -63,8 +67,9 @@ export function Application() {
                   . This check confirms backend readiness only.
                 </>
               )}
-              {serviceHealth.status === 'checking' && 'Waiting for a readiness response.'}
-              {serviceHealth.status === 'unavailable' &&
+              {serviceHealth.status === ServiceHealthStatus.Checking &&
+                'Waiting for a readiness response.'}
+              {serviceHealth.status === ServiceHealthStatus.Unavailable &&
                 'The readiness check did not succeed. Start the backend and try again.'}
             </p>
           </div>
@@ -72,7 +77,7 @@ export function Application() {
             type="button"
             variant="outline"
             className="mt-6"
-            disabled={serviceHealth.status === 'checking'}
+            disabled={serviceHealth.status === ServiceHealthStatus.Checking}
             onClick={() => setCheckSequence((previousSequence) => previousSequence + 1)}
           >
             Check connection

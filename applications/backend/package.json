@@ -9,7 +9,7 @@
     "start": "node distribution/source/main.js",
     "development": "npm run build && concurrently --kill-others-on-fail \"tsc --project tsconfig.json --watch --preserveWatchOutput\" \"node --watch distribution/source/main.js\"",
     "database:generate": "prisma generate",
-    "database:migrate": "tsx source/database/prepare-database-directory.ts && prisma migrate deploy",
+    "database:migrate": "tsx source/database/prepare_database_directory.ts && prisma migrate deploy",
     "database:validate": "prisma validate",
     "test": "vitest run"
   },

@@ -22,6 +22,22 @@ export default typescript.config(
     },
     rules: {
       'no-console': ['error', { allow: ['warn', 'error', 'info'] }],
+      curly: ['error', 'all'],
+      'no-nested-ternary': 'error',
+      'no-param-reassign': 'error',
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'ExportAllDeclaration',
+          message: 'List public exports explicitly so ownership remains visible.',
+        },
+      ],
+      'padding-line-between-statements': [
+        'error',
+        { blankLine: 'always', prev: '*', next: 'return' },
+        { blankLine: 'always', prev: 'block-like', next: '*' },
+      ],
+      '@typescript-eslint/no-non-null-assertion': 'error',
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/consistent-type-imports': 'error',
     },

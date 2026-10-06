@@ -5,7 +5,10 @@ const childProcesses = new Set();
 let shuttingDown = false;
 
 function stopChildren(exitCode) {
-  if (shuttingDown) return;
+  if (shuttingDown) {
+    return;
+  }
+
   shuttingDown = true;
   process.exitCode = exitCode;
 
@@ -16,7 +19,9 @@ function stopChildren(exitCode) {
       try {
         process.kill(-childProcess.pid, 'SIGTERM');
       } catch (error) {
-        if (error.code !== 'ESRCH') console.error('Unable to stop development process:', error);
+        if (error.code !== 'ESRCH') {
+          console.error('Unable to stop development process:', error);
+        }
       }
     }
   }
@@ -27,7 +32,9 @@ function stopChildren(exitCode) {
         try {
           process.kill(-childProcess.pid, 'SIGKILL');
         } catch (error) {
-          if (error.code !== 'ESRCH') console.error('Unable to terminate process:', error);
+          if (error.code !== 'ESRCH') {
+            console.error('Unable to terminate process:', error);
+          }
         }
       } else {
         childProcess.kill('SIGKILL');
@@ -50,7 +57,9 @@ for (const workspaceName of workspaceNames) {
   });
   childProcess.on('exit', (exitCode) => {
     childProcesses.delete(childProcess);
-    if (!shuttingDown) stopChildren(exitCode ?? 1);
+    if (!shuttingDown) {
+      stopChildren(exitCode ?? 1);
+    }
   });
 }
 

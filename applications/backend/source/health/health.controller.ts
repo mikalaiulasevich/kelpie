@@ -17,10 +17,13 @@ export class HealthController {
   @Get('ready')
   async ready(): Promise<HealthResponse> {
     try {
-      if (await this.database.checkReadiness()) return { status: 'ready' };
+      if (await this.database.checkReadiness()) {
+        return { status: 'ready' };
+      }
     } catch {
       // Database errors can include paths and queries; expose only availability.
     }
+
     throw new ServiceUnavailableException('Application is not ready.');
   }
 }

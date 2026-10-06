@@ -12,9 +12,9 @@
   },
   "aliases": {
     "components": "@/components",
-    "utils": "@/styling/combine-class-names",
+    "utils": "@/styling/combine_class_names",
     "ui": "@/components",
     "lib": "@/styling",
-    "hooks": "@/service-health"
+    "hooks": "@/service_health"
   }
 }

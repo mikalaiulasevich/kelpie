@@ -7,8 +7,8 @@ import { resolve } from 'node:path';
 import { Server } from 'node:http';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { applicationDirectory } from '../source/application-directory.js';
-import { createApplication } from '../source/create-application.js';
+import { applicationDirectory } from '../source/application_directory.js';
+import { createApplication } from '../source/create_application.js';
 import { DatabaseService } from '../source/database/database.service.js';
 
 const executeFile = promisify(execFile);
@@ -33,21 +33,35 @@ describe('Backend foundation with a real SQLite database', () => {
     application = await createApplication();
     await application.listen(0, '127.0.0.1');
     const server: unknown = application.getHttpServer();
-    if (!(server instanceof Server)) throw new Error('Test HTTP server adapter is unsupported.');
+    if (!(server instanceof Server)) {
+      throw new Error('Test HTTP server adapter is unsupported.');
+    }
+
     const address = server.address();
-    if (address === null || typeof address === 'string')
+    if (address === null || typeof address === 'string') {
       throw new Error('Test server has no network address.');
+    }
+
     baseUrl = `http://127.0.0.1:${address.port}`;
   });
 
   afterAll(async () => {
     await application?.close();
-    if (temporaryDirectory !== undefined)
+    if (temporaryDirectory !== undefined) {
       await rm(temporaryDirectory, { recursive: true, force: true });
-    if (originalDatabaseUrl === undefined) delete process.env['DATABASE_URL'];
-    else process.env['DATABASE_URL'] = originalDatabaseUrl;
-    if (originalMode === undefined) delete process.env['NODE_ENV'];
-    else process.env['NODE_ENV'] = originalMode;
+    }
+
+    if (originalDatabaseUrl === undefined) {
+      delete process.env['DATABASE_URL'];
+    } else {
+      process.env['DATABASE_URL'] = originalDatabaseUrl;
+    }
+
+    if (originalMode === undefined) {
+      delete process.env['NODE_ENV'];
+    } else {
+      process.env['NODE_ENV'] = originalMode;
+    }
   });
 
   it('reports liveness and real database readiness with security headers', async () => {

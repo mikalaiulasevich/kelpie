@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { DatabaseService } from './database/database.service.js';
-import { ApplicationEnvironmentService } from './environment/application-environment.js';
+import { ApplicationEnvironmentService } from './environment/application_environment.js';
 import { HealthController } from './health/health.controller.js';
 
 @Module({
