@@ -1,6 +1,7 @@
 import { isMatching, match, P } from 'ts-pattern';
 
-import { ConditionOperator, StepType } from '../shared/domain-values.js';
+import { ConditionOperator } from '../shared/domain-values.js';
+import { ConditionPolicy } from './condition-policy.js';
 import type { AnswerCondition } from './condition-types.js';
 import type { SelectionStep } from '../steps/step-types.js';
 
@@ -13,14 +14,6 @@ const numericOperands = isMatching({
   value: P.union(P.number, P.array(P.number)),
 });
 
-const selectionOperators: ReadonlyDictionary<
-  SelectionStep['type'],
-  ReadonlyList<ConditionOperator>
-> = {
-  [StepType.SingleSelect]: [ConditionOperator.Equal, ConditionOperator.In],
-  [StepType.MultiSelect]: [ConditionOperator.Contains],
-};
-
 export const ConditionRules = {
   values(condition: AnswerCondition): ReadonlyList<string | number> {
     return match(condition)
@@ -30,5 +23,5 @@ export const ConditionRules = {
 
   acceptsNumericOperands: numericOperands,
   acceptsSelectionOperator: (step: SelectionStep, condition: AnswerCondition): boolean =>
-    selectionOperators[step.type].includes(condition.operator),
+    ConditionPolicy.SelectionOperators[step.type].includes(condition.operator),
 } as const;

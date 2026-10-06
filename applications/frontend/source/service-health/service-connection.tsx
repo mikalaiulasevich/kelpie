@@ -1,4 +1,5 @@
-import { ServiceHealthContent, ServiceHealthElements } from './service-health-content';
+import { ServiceHealthContent } from './service-health-content';
+import { ServiceHealthElements } from './service-health-policy';
 import { useState } from 'react';
 import { Button } from '../components/button';
 import { ServiceHealthStatus } from './service-health';

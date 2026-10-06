@@ -1,9 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { ApplicationEnvironment } from './environment-schemas.js';
-
-export const EnvironmentInjection = {
-  Values: Symbol('ApplicationEnvironment'),
-} as const;
+import { EnvironmentInjection } from './environment-policy.js';
 
 @Injectable()
 export class ApplicationEnvironmentService {

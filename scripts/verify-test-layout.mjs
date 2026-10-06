@@ -1,19 +1,9 @@
-import { TestLayoutMessages } from './script-messages.mjs';
 import { readdir } from 'node:fs/promises';
 import { join, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const TestLayoutPolicy = {
-  Workspaces: [
-    'applications/backend',
-    'applications/frontend',
-    'packages/contracts',
-    'packages/funnel-runtime',
-  ],
-  IgnoredDirectories: new Set(['node_modules', 'distribution', 'generated', 'coverage']),
-  TestFilePattern: /[.-](?:test|spec|fixture|fixtures|case|cases|typecheck)\.[cm]?[jt]sx?$/,
-  Directory: 'tests',
-};
+import { TestLayoutMessages } from './script-messages.mjs';
+import { TestLayoutPolicy } from './script-policy.mjs';
 
 const TestLayout = {
   /** @param {string} directory @param {string} testDirectory */
@@ -42,4 +32,4 @@ for (const workspace of TestLayoutPolicy.Workspaces) {
   );
 }
 
-console.info('All test suites, fixtures, cases and typecheck files are inside tests/.');
+console.info(TestLayoutMessages.Passed);

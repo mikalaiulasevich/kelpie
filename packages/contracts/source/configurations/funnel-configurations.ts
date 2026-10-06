@@ -3,7 +3,7 @@ import { ConfigurationMessages } from './configuration-messages.js';
 import { configurationSchemaCompiler } from './validation/configuration-schema-compiler.js';
 import type { ConfigurationValidationResult, FunnelConfiguration } from './configuration-types.js';
 import { ConfigurationDocumentBounds } from './validation/configuration-document-bounds.js';
-import { configurationLimits } from './configuration-policy.js';
+import { ConfigurationLimits } from './configuration-policy.js';
 import { ConfigurationSemantics } from './validation/configuration-semantic-validation.js';
 import { funnelConfigurationSchema } from './configuration-schema.js';
 
@@ -11,22 +11,22 @@ const structuralValidator =
   configurationSchemaCompiler.compile<FunnelConfiguration>(funnelConfigurationSchema);
 
 export const FunnelConfigurations = {
-  limits: configurationLimits,
+  limits: ConfigurationLimits,
 
   validate(document: unknown): ConfigurationValidationResult {
     const boundsError = ConfigurationDocumentBounds.check(document);
 
     if (boundsError !== undefined) {
-      return { valid: false, issues: [{ path: ConfigurationPaths.root, message: boundsError }] };
+      return { valid: false, issues: [{ path: ConfigurationPaths.Root, message: boundsError }] };
     }
 
     if (!structuralValidator(document)) {
       return {
         valid: false,
         issues: (structuralValidator.errors ?? [])
-          .slice(0, configurationLimits.maximumIssues)
+          .slice(0, ConfigurationLimits.maximumIssues)
           .map((error) => ({
-            path: error.instancePath || ConfigurationPaths.root,
+            path: error.instancePath || ConfigurationPaths.Root,
             message: error.message ?? ConfigurationMessages.InvalidConfiguration,
           })),
       };

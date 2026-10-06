@@ -1,11 +1,12 @@
-import { BenchmarkMessages } from './script-messages.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { performance } from 'node:perf_hooks';
 import { platform, arch, cpus } from 'node:os';
 import { FunnelConfigurations, StepType, ExperimentVariant } from '@kelpie/contracts';
-import { BenchmarkPolicy, ConfigurationFiles } from './script-policy.mjs';
 import { FunnelRuntime } from '@kelpie/funnel-runtime';
+
+import { BenchmarkMessages } from './script-messages.mjs';
+import { BenchmarkPolicy, ConfigurationFiles } from './script-policy.mjs';
 
 /** @type {import('@kelpie/contracts').FunnelConfiguration[]} */
 const configurations = [];

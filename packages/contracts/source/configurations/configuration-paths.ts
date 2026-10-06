@@ -1,10 +1,10 @@
 /** Serialized diagnostic paths belong here; validators select a named domain location. */
 export const ConfigurationPaths = {
-  root: '/',
-  variants: '/experiment/variants',
-  defaultResult: '/defaultResultId',
-  allowedEvents: '/events/allowed',
-  baseEventProperties: '/events/baseProperties',
+  Root: '/',
+  Variants: '/experiment/variants',
+  DefaultResult: '/defaultResultId',
+  AllowedEvents: '/events/allowed',
+  BaseEventProperties: '/events/baseProperties',
 
   step(identifier: string) {
     const path = `/steps/${identifier}` as const;
@@ -20,7 +20,7 @@ export const ConfigurationPaths = {
   },
 
   variant(identifier: string) {
-    const path = `${ConfigurationPaths.variants}/${identifier}` as const;
+    const path = `${ConfigurationPaths.Variants}/${identifier}` as const;
 
     return {
       sequence: `${path}/stepSequence`,

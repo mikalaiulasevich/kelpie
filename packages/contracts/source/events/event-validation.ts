@@ -11,7 +11,7 @@ export const EventValidation = {
     for (const property of context.configuration.events.baseProperties) {
       if (!supportedBaseProperties.has(property)) {
         context.report(
-          ConfigurationPaths.baseEventProperties,
+          ConfigurationPaths.BaseEventProperties,
           ConfigurationMessages.UnsupportedBaseEventProperty(property),
         );
       }
@@ -23,7 +23,7 @@ export const EventValidation = {
       for (const property of event.properties) {
         if (!supportedProperties.has(property)) {
           context.report(
-            ConfigurationPaths.allowedEvents,
+            ConfigurationPaths.AllowedEvents,
             ConfigurationMessages.UnsupportedEventProperty(property),
           );
         }
@@ -35,7 +35,7 @@ export const EventValidation = {
     for (const name of EventPolicy.RequiredEvents) {
       if (!eventNames.has(name)) {
         context.report(
-          ConfigurationPaths.allowedEvents,
+          ConfigurationPaths.AllowedEvents,
           ConfigurationMessages.MissingRequiredEvent(name),
         );
       }
@@ -48,7 +48,7 @@ export const EventValidation = {
 
     if (eventNames.size !== declarations.length) {
       context.report(
-        ConfigurationPaths.allowedEvents,
+        ConfigurationPaths.AllowedEvents,
         ConfigurationMessages.UniqueEventNamesRequired,
       );
     }

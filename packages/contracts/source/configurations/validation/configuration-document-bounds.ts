@@ -1,7 +1,7 @@
 import { match, P } from 'ts-pattern';
 
 import { ConfigurationMessages } from '../configuration-messages.js';
-import { configurationLimits, DocumentAccountingPolicy } from '../configuration-policy.js';
+import { ConfigurationLimits, DocumentAccountingPolicy } from '../configuration-policy.js';
 
 interface PendingDocumentValue {
   readonly value: unknown;
@@ -36,7 +36,7 @@ const DocumentInspection = {
 
     traversal.visitedObjects.add(value);
 
-    if (Object.keys(value).length > configurationLimits.maximumNodes) {
+    if (Object.keys(value).length > ConfigurationLimits.maximumNodes) {
       return ConfigurationMessages.DocumentPropertyLimit;
     }
 
@@ -92,8 +92,8 @@ export const ConfigurationDocumentBounds = {
       nodeCount += 1;
 
       if (
-        nodeCount > configurationLimits.maximumNodes ||
-        current.depth > configurationLimits.maximumDepth
+        nodeCount > ConfigurationLimits.maximumNodes ||
+        current.depth > ConfigurationLimits.maximumDepth
       ) {
         return ConfigurationMessages.DocumentTraversalLimit;
       }
@@ -104,7 +104,7 @@ export const ConfigurationDocumentBounds = {
         return issue;
       }
 
-      if (traversal.estimatedBytes > configurationLimits.maximumDocumentBytes) {
+      if (traversal.estimatedBytes > ConfigurationLimits.maximumDocumentBytes) {
         return ConfigurationMessages.DocumentSizeLimit;
       }
     }

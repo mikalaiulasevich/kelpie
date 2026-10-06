@@ -128,7 +128,7 @@ export const VariantValidation = {
     }
 
     if (variants.A.weight + variants.B.weight !== ConfigurationSchemaPolicy.TotalExperimentWeight) {
-      context.report(ConfigurationPaths.variants, ConfigurationMessages.InvalidVariantWeightTotal);
+      context.report(ConfigurationPaths.Variants, ConfigurationMessages.InvalidVariantWeightTotal);
     }
   },
 } as const;

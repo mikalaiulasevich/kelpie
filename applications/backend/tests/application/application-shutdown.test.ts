@@ -24,6 +24,24 @@ describe('HTTP shutdown drain', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
+  it('owns only one deadline when shutdown is requested repeatedly', async () => {
+    vi.useFakeTimers();
+    const { server, shutdown } = ShutdownFixture.create();
+    const close = vi.spyOn(server, 'closeAllConnections');
+
+    const diagnostics = vi.spyOn(Diagnostics, 'write').mockImplementation(() => undefined);
+    shutdown.beforeApplicationShutdown();
+    await vi.advanceTimersByTimeAsync(5_000);
+    shutdown.beforeApplicationShutdown();
+    expect(vi.getTimerCount()).toBe(1);
+    await vi.advanceTimersByTimeAsync(5_000);
+
+    expect(close).toHaveBeenCalledOnce();
+    expect(diagnostics).toHaveBeenCalledOnce();
+    shutdown.onApplicationShutdown();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
   it('clears the deadline after a successful graceful close', async () => {
     vi.useFakeTimers();
     const { server, shutdown } = ShutdownFixture.create();

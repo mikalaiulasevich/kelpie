@@ -1,5 +1,8 @@
 import type { Static } from 'typebox';
 
+import type { ConditionOperator } from '../shared/domain-values.js';
+import type { SelectionStep } from '../steps/step-types.js';
+
 import type {
   containsConditionSchema,
   equalConditionSchema,
@@ -23,3 +26,8 @@ export type MinimumCondition = DeepReadonly<Static<typeof minimumConditionSchema
 export type AnswerCondition =
   EqualCondition | IncludedCondition | ContainsCondition | MinimumCondition;
 export type Condition = AllConditions | AnyCondition | AnswerCondition;
+
+export type SelectionConditionOperators = ReadonlyDictionary<
+  SelectionStep['type'],
+  ReadonlyList<ConditionOperator>
+>;

@@ -52,14 +52,32 @@ export class BackendApplicationFixture {
 
     try {
       await this.application?.close();
+    } catch (applicationError) {
+      try {
+        await this.removeDirectory();
+      } catch (directoryError) {
+        throw new AggregateError(
+          [applicationError, directoryError],
+          BackendFixtureMessages.CloseCleanupFailed,
+          { cause: directoryError },
+        );
+      }
+
+      throw applicationError;
     } finally {
       this.application = undefined;
-
-      if (this.temporaryDirectory) {
-        await rm(this.temporaryDirectory, { recursive: true, force: true });
-        this.temporaryDirectory = undefined;
-      }
     }
+
+    await this.removeDirectory();
+  }
+
+  private async removeDirectory(): Promise<void> {
+    if (this.temporaryDirectory === undefined) {
+      return;
+    }
+
+    await rm(this.temporaryDirectory, { recursive: true, force: true });
+    this.temporaryDirectory = undefined;
   }
 
   private async start(): Promise<void> {

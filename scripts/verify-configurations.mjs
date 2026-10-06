@@ -1,6 +1,7 @@
-import { ConfigurationIntegrityMessages } from './script-messages.mjs';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
+
+import { ConfigurationIntegrityMessages } from './script-messages.mjs';
 import { ConfigurationFiles } from './script-policy.mjs';
 
 const configurationsDirectory = new URL(ConfigurationFiles.Directory, import.meta.url);

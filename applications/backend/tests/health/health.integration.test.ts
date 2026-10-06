@@ -1,3 +1,4 @@
+import { MigrationFixtures } from '../fixtures/migration-history.js';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { BackendApplicationFixture } from '../fixtures/backend-application.js';
 import { HealthRequestCases } from '../cases/health-request-cases.js';
@@ -40,22 +41,17 @@ describe('Backend foundation with a real SQLite database', () => {
 
   it('rejects unresolved migration attempts even with a successful initial migration', async () => {
     const database = backend.database;
-    await database.$executeRawUnsafe(
-      'INSERT INTO "_prisma_migrations" ("id", "checksum", "migration_name") VALUES (\'failed-migration\', \'test-checksum\', \'failed_migration\')',
-    );
+    await MigrationFixtures.insertFailedAttempt(database);
     const response = await backend.request('/api/health/ready');
     expect(response.status).toBe(503);
     expect((await backend.request('/api/health/live')).status).toBe(200);
 
-    await database.$executeRawUnsafe(
-      'DELETE FROM "_prisma_migrations" WHERE "id" = ?',
-      'failed-migration',
-    );
+    await MigrationFixtures.removeFailedAttempt(database);
     expect((await backend.request('/api/health/ready')).status).toBe(200);
   });
 
   it('returns a redacted unavailable response when migration readiness is lost', async () => {
-    await backend.database.$executeRawUnsafe('DELETE FROM "_prisma_migrations"');
+    await MigrationFixtures.clearHistory(backend.database);
     const response = await backend.request('/api/health/ready');
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({

@@ -9,6 +9,8 @@ const ServiceReadinessResponse = {
 
 export const ServiceReadiness = {
   async request(cancellationSignal: AbortSignal): Promise<void> {
+    cancellationSignal.throwIfAborted();
+
     const timeoutController = new AbortController();
     const timeoutIdentifier = setTimeout(() => {
       timeoutController.abort(new Error(ServiceHealthMessages.TimedOut));

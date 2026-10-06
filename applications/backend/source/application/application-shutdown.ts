@@ -17,6 +17,10 @@ export class ApplicationShutdown implements BeforeApplicationShutdown, OnApplica
   constructor(@Inject(HttpAdapterHost) private readonly adapter: HttpAdapterHost) {}
 
   beforeApplicationShutdown(): void {
+    if (this.deadline !== undefined) {
+      return;
+    }
+
     const server: unknown = this.adapter.httpAdapter?.getHttpServer();
 
     if (!(server instanceof Server)) {

@@ -5,7 +5,7 @@ import { DocumentCases } from '../cases/document-cases.js';
 import { ConfigurationDocumentBounds } from '../../source/configurations/validation/configuration-document-bounds.js';
 import { ConfigurationMessages } from '../../source/configurations/configuration-messages.js';
 import {
-  configurationLimits,
+  ConfigurationLimits,
   DocumentAccountingPolicy,
 } from '../../source/configurations/configuration-policy.js';
 
@@ -58,7 +58,7 @@ describe('configuration document bounds', () => {
   });
 
   it('preserves reserved-key precedence over estimated-size failures', () => {
-    const oversizedKey = 'a'.repeat(configurationLimits.maximumDocumentBytes);
+    const oversizedKey = 'a'.repeat(ConfigurationLimits.maximumDocumentBytes);
     expect(ConfigurationDocumentBounds.check({ [oversizedKey]: null, constructor: null })).toBe(
       ConfigurationMessages.ReservedObjectKeys,
     );
@@ -74,7 +74,7 @@ describe('configuration document bounds', () => {
   });
 
   it('bounds depth before examining values beyond the limit', () => {
-    const value = DocumentFixtures.nested(configurationLimits.maximumDepth + 1, Infinity);
+    const value = DocumentFixtures.nested(ConfigurationLimits.maximumDepth + 1, Infinity);
 
     expect(ConfigurationDocumentBounds.check(value)).toBe(
       ConfigurationMessages.DocumentTraversalLimit,
@@ -83,7 +83,7 @@ describe('configuration document bounds', () => {
 
   it('bounds object property counts before visiting children', () => {
     const oversized = Object.fromEntries(
-      Array.from({ length: configurationLimits.maximumNodes + 1 }, (_, index) => [index, null]),
+      Array.from({ length: ConfigurationLimits.maximumNodes + 1 }, (_, index) => [index, null]),
     );
     expect(ConfigurationDocumentBounds.check(oversized)).toBe(
       ConfigurationMessages.DocumentPropertyLimit,
@@ -98,7 +98,7 @@ describe('configuration document bounds', () => {
 
   it('enforces conservative string byte accounting at the boundary', () => {
     const maximumCharacters = Math.floor(
-      configurationLimits.maximumDocumentBytes / DocumentAccountingPolicy.BytesPerCharacter,
+      ConfigurationLimits.maximumDocumentBytes / DocumentAccountingPolicy.BytesPerCharacter,
     );
     expect(ConfigurationDocumentBounds.check('a'.repeat(maximumCharacters))).toBeUndefined();
     expect(ConfigurationDocumentBounds.check('a'.repeat(maximumCharacters + 1))).toBe(

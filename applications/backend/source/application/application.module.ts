@@ -2,10 +2,8 @@ import { Module, type DynamicModule } from '@nestjs/common';
 
 import { ApplicationShutdown } from './application-shutdown.js';
 import { DatabaseService } from '../database/database.service.js';
-import {
-  ApplicationEnvironmentService,
-  EnvironmentInjection,
-} from '../environment/application-environment.js';
+import { ApplicationEnvironmentService } from '../environment/application-environment.js';
+import { EnvironmentInjection } from '../environment/environment-policy.js';
 import type { ApplicationEnvironment } from '../environment/environment-schemas.js';
 import { HealthController } from '../health/health.controller.js';
 

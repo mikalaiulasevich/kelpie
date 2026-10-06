@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { ConditionOperator, type Condition, type SessionAnswers } from '@kelpie/contracts';
 import { ConditionCases } from '../cases/condition-cases.js';
 import { ConditionEvaluation } from '../../source/index.js';
+import { FixtureMessages } from '../fixtures/fixture-messages.js';
 
 describe('condition evaluation', () => {
   it.each(ConditionCases)('$description', ({ condition, answers, expected }) => {
@@ -24,7 +25,7 @@ describe('condition evaluation', () => {
     const answers: SessionAnswers = {
       mode: 'remote',
       get untouched(): never {
-        throw new Error('Short-circuited answers must not be inspected.');
+        throw new Error(FixtureMessages.UnexpectedAnswerRead);
       },
     };
     const matching: Condition = {

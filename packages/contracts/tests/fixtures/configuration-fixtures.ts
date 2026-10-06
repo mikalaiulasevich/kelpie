@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 
 import {
   FunnelConfigurations,
+  StepType,
   type FunnelConfiguration,
   type InformationStep,
   type NumberStep,
@@ -28,7 +29,7 @@ export const ConfigurationFixtures = {
   },
   informationStep(configuration: FunnelConfiguration): InformationStep {
     const step = configuration.steps['intro'];
-    if (step?.type !== 'info') {
+    if (step?.type !== StepType.Information) {
       throw new Error(FixtureMessages.InformationIntroductionRequired);
     }
 
@@ -50,7 +51,7 @@ export const ConfigurationFixtures = {
   },
   numberStep(configuration: FunnelConfiguration): NumberStep {
     const step = configuration.steps['team_size'];
-    if (step?.type !== 'number') {
+    if (step?.type !== StepType.Number) {
       throw new Error(FixtureMessages.NumericTeamSizeRequired);
     }
 

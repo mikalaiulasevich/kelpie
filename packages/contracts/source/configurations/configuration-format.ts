@@ -6,4 +6,5 @@ export const ConfigurationFormat = {
   ConditionReference: '#/$defs/condition',
   ExperimentAssignment: 'server',
   ResultSource: 'resultRules',
+  PrimaryAction: 'expand_recommendation',
 } as const;

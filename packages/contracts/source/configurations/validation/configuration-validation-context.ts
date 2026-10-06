@@ -1,4 +1,4 @@
-import { configurationLimits } from '../configuration-policy.js';
+import { ConfigurationLimits } from '../configuration-policy.js';
 import type { ConfigurationIssue, FunnelConfiguration } from '../configuration-types.js';
 import type { InteractiveStep } from '../../steps/step-types.js';
 
@@ -10,7 +10,7 @@ export class ConfigurationValidationContext {
   constructor(readonly configuration: FunnelConfiguration) {}
 
   report(path: string, message: string): void {
-    if (this.issues.length < configurationLimits.maximumIssues) {
+    if (this.issues.length < ConfigurationLimits.maximumIssues) {
       this.issues.push({ path, message });
     }
   }

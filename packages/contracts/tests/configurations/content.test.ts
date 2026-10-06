@@ -9,14 +9,14 @@ describe('content', () => {
     'rejects blank information content $field with $name in base and merged variants',
     ({ field, value }) => {
       const configuration = ConfigurationFixtures.valid();
-      const intro = ConfigurationFixtures.informationStep(configuration);
+      const introductionStep = ConfigurationFixtures.informationStep(configuration);
 
       expect(
         FunnelConfigurations.validate({
           ...configuration,
           steps: {
             ...configuration.steps,
-            intro: { ...intro, content: { ...intro.content, [field]: value } },
+            intro: { ...introductionStep, content: { ...introductionStep.content, [field]: value } },
           },
         }),
       ).toMatchObject({ valid: false });

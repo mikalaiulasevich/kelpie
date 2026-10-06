@@ -11,6 +11,19 @@ export const ServiceReadinessFixture = {
     return fetch;
   },
 
+  malformedResponse(): void {
+    vi.stubGlobal('fetch', vi.fn<typeof globalThis.fetch>().mockResolvedValue(new Response('{')));
+  },
+
+  networkFailure(): void {
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn<typeof globalThis.fetch>()
+        .mockRejectedValue(new TypeError(ServiceReadinessFixtureMessages.NetworkUnavailable)),
+    );
+  },
+
   stalledResponse(): void {
     vi.stubGlobal(
       'fetch',

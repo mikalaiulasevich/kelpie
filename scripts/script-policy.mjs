@@ -1,5 +1,9 @@
 export const DevelopmentPolicy = /** @type {const} */ ({
+  // Protect the shared process-launch list from accidental mutation.
   Workspaces: Object.freeze(['@kelpie/backend', '@kelpie/frontend']),
+  PackageManager: 'npm',
+  DevelopmentArguments: ['run', 'development'],
+  StandardStreams: 'inherit',
   ShutdownTimeoutMilliseconds: 5_000,
   ShutdownInspectionMilliseconds: 100,
   WindowsPlatform: 'win32',
@@ -24,6 +28,7 @@ export const BenchmarkPolicy = /** @type {const} */ ({
 export const BuildPolicy = /** @type {const} */ ({
   RepositoryRelativePath: '../',
   OutputDirectoryName: 'distribution',
+  // Cleanup targets are an immutable allowlist, not caller-provided paths.
   OutputDirectories: Object.freeze([
     'packages/contracts/distribution',
     'packages/funnel-runtime/distribution',
@@ -32,6 +37,7 @@ export const BuildPolicy = /** @type {const} */ ({
 });
 
 export const ConfigurationFiles = /** @type {const} */ ({
+  // All integrity consumers must verify the same supplied version set.
   Versions: Object.freeze([1, 2, 3]),
   Directory: '../configurations/',
   ManifestName: 'checksums.json',
@@ -42,4 +48,16 @@ export const ConfigurationFiles = /** @type {const} */ ({
   fileName(version) {
     return `funnel-v${version}.json`;
   },
+});
+
+export const TestLayoutPolicy = /** @type {const} */ ({
+  Workspaces: [
+    'applications/backend',
+    'applications/frontend',
+    'packages/contracts',
+    'packages/funnel-runtime',
+  ],
+  IgnoredDirectories: new Set(['node_modules', 'distribution', 'generated', 'coverage']),
+  TestFilePattern: /[.-](?:test|spec|fixture|fixtures|case|cases|typecheck)\.[cm]?[jt]sx?$/,
+  Directory: 'tests',
 });

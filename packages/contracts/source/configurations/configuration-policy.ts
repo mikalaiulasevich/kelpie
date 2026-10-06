@@ -1,4 +1,5 @@
-export const configurationLimits = {
+// Member names are the published FunnelConfigurations.limits data contract.
+export const ConfigurationLimits = {
   maximumDocumentBytes: 262144,
   maximumDepth: 24,
   maximumNodes: 20000,
@@ -35,4 +36,12 @@ export const ConfigurationSchemaPolicy = {
   ConditionValues: { minItems: 1, maxItems: 100, uniqueItems: true },
   ConditionChildren: { minItems: 1, maxItems: 30 },
   Recommendations: { minItems: 1, maxItems: 30 },
+} as const;
+
+// Schema validation must inspect own fields without mutating incoming documents.
+export const ConfigurationCompilerPolicy = {
+  AllErrors: false,
+  Strict: true,
+  AllowUnionTypes: true,
+  OwnProperties: true,
 } as const;

@@ -19,7 +19,7 @@ export const ResultValidation = {
     const { configuration } = context;
 
     if (!Object.hasOwn(configuration.results, configuration.defaultResultId)) {
-      context.report(ConfigurationPaths.defaultResult, ConfigurationMessages.UnknownDefaultResult);
+      context.report(ConfigurationPaths.DefaultResult, ConfigurationMessages.UnknownDefaultResult);
     }
   },
 

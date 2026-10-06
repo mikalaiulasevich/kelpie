@@ -37,6 +37,7 @@ export const DevelopmentMessages = /** @type {const} */ ({
 });
 
 export const TestLayoutMessages = /** @type {const} */ ({
+  Passed: 'Recognized test, fixture, case and typecheck filenames are inside tests/.',
   /** @param {string} path */
   misplacedFile(path) {
     return `Test support and suites must be inside tests/: ${path}`;

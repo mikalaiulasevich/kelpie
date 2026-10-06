@@ -27,3 +27,7 @@ export const EnvironmentPolicy = {
   HostPattern: '^[a-zA-Z0-9.:-]{1,253}$',
   DatabaseUrlPattern: `^${SQLitePolicy.FileUrlPrefix}[^?#\\u0000]+$`,
 } as const;
+
+export const EnvironmentInjection = {
+  Values: Symbol('ApplicationEnvironment'),
+} as const;

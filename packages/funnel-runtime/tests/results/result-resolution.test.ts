@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { ConditionOperator, ExperimentVariant, type FunnelConfiguration } from '@kelpie/contracts';
 import { FunnelRuntime, ResultResolution } from '../../source/index.js';
 import { RuntimeFixtures, RuntimeAnswers } from '../fixtures/runtime-fixtures.js';
+import { FixtureMessages } from '../fixtures/fixture-messages.js';
 
 describe('results', () => {
   it('selects the first matching result rule without evaluating later rules', () => {
@@ -18,7 +19,7 @@ describe('results', () => {
         {
           resultId: 'office_core',
           get when(): never {
-            throw new Error('A later rule must not be evaluated after a match.');
+            throw new Error(FixtureMessages.UnexpectedRuleRead);
           },
         },
       ],

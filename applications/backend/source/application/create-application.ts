@@ -6,6 +6,7 @@ import { Server } from 'node:http';
 
 import { RequestDiagnostics } from '../diagnostics/request-diagnostics.js';
 import { ApplicationMessages } from './application-messages.js';
+import { ApplicationCreationOptions } from './application-policy.js';
 import { ApplicationEnvironmentReader } from '../environment/read-application-environment.js';
 import type { ApplicationEnvironment } from '../environment/environment-schemas.js';
 import { ApplicationModule } from './application.module.js';
@@ -45,7 +46,7 @@ export const ApplicationFactory = {
   ): Promise<NestExpressApplication> {
     const application = await NestFactory.create<NestExpressApplication>(
       ApplicationModule.register(environment),
-      { bodyParser: false, logger: false, abortOnError: false },
+      ApplicationCreationOptions,
     );
 
     try {

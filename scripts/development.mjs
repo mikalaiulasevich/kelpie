@@ -1,7 +1,8 @@
-import { DevelopmentMessages } from './script-messages.mjs';
 import { spawn } from 'node:child_process';
 
+import { DevelopmentMessages } from './script-messages.mjs';
 import { DevelopmentPolicy } from './script-policy.mjs';
+
 /** @type {Set<import('node:child_process').ChildProcess>} */
 const childProcesses = new Set();
 let shuttingDown = false;
@@ -82,11 +83,15 @@ const DevelopmentProcesses = {
 };
 
 for (const workspaceName of DevelopmentPolicy.Workspaces) {
-  const childProcess = spawn('npm', ['run', 'development', `--workspace=${workspaceName}`], {
-    stdio: 'inherit',
-    detached: process.platform !== DevelopmentPolicy.WindowsPlatform,
-    shell: process.platform === DevelopmentPolicy.WindowsPlatform,
-  });
+  const childProcess = spawn(
+    DevelopmentPolicy.PackageManager,
+    [...DevelopmentPolicy.DevelopmentArguments, `--workspace=${workspaceName}`],
+    {
+      stdio: DevelopmentPolicy.StandardStreams,
+      detached: process.platform !== DevelopmentPolicy.WindowsPlatform,
+      shell: process.platform === DevelopmentPolicy.WindowsPlatform,
+    },
+  );
   childProcesses.add(childProcess);
   childProcess.on('error', (error) => {
     console.error(DevelopmentMessages.startFailed(workspaceName), error.message);

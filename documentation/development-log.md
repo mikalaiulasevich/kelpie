@@ -1,5 +1,7 @@
 # Development log
 
+Entries below are chronological milestone evidence. Earlier conventions and counts may be superseded by later entries; AGENTS.md defines the current rules.
+
 ## October 6 2026
 
 The user approved a NestJS, React/Vite, Prisma/SQLite, Tailwind/shadcn foundation after selecting session persistence, explicit navigation, local input drafts, inactive-answer retention, and protected configuration administration.
@@ -89,5 +91,7 @@ Completed a separate security/resilience/diagnostics review. Added structured co
 Full npm run verify passed 189 cases (74 backend, 5 frontend, 59 contracts, 51 runtime) and all compiler/lint/format/build/schema/integrity checks. npm audit reported zero vulnerabilities across 561 dependencies. Independent final review found no further material blocker in the implemented foundation. No public deployment, full authentication, transactional command replay or production readiness is claimed.
 
 Repeated ownership review after user feedback found SQL/contracts still embedded in backend operations and mixed ownership in recently added test fixtures. Moved them to domain owners, preserved tests and recorded intentional local-type exceptions. Expanded AGENTS.md into an every-request quality workflow covering analogous cleanup, failure/security review and evidence boundaries. Added scoped ESLint regression guards; five negative examples failed as expected and one positive example passed. Independent review checked rule override ordering and syntax limits. Final npm run verify passed the existing 189 tests and all checks; no extra scenarios were added to inflate counts.
+
+Corrected violations in recently introduced diagnostics and startup fixtures: split mixed error inspection into private named operations, kept only describe public, separated readable log serialization, removed repeated dropped-record accounting and moved meaningful diagnostic/startup literals to their owners. Startup fixture cleanup now preserves primary failures when directory removal also fails; three focused failure-path regressions were added. Full npm run verify passed 192 tests and all checks. No further quality rules were added in this correction.
 
 This log records development milestones, not elapsed assignment time. No mutually agreed 48-hour start has been recorded.
