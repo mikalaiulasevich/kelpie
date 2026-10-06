@@ -3347,6 +3347,94 @@
         }
       ],
       "reviewedFileCount": 219
+    },
+    {
+      "name": "Broader es-toolkit collection and state operations",
+      "reviewDate": "2026-10-06",
+      "scope": "Reviewed transformation/predicate candidates across all four authored workspaces and scripts; accepted semantic-preserving helpers and retained native security/short-circuit boundaries. Detailed accepted/rejected candidate ledger is in foundation-review.md.",
+      "verification": "npm run verify: 231 tests and all checks; three 79-case benchmark runs; independent cross-review; Error predicate negative/positive ESLint probes. Final object-like narrowing trial reverted and bounded test response tail restored.",
+      "files": [
+        {
+          "path": "applications/backend/source/database/migration-history.ts",
+          "sha256": "bac180472023ab85938d2d3d98b6b6a1cb4fa26fbac5a29ecc5be258ddb92c72"
+        },
+        {
+          "path": "applications/backend/source/diagnostics/error-diagnostics.ts",
+          "sha256": "d0b45fce1a2b7b448d18c2a4ca053878448cda6d9ae2c7a09194a027a922bb01"
+        },
+        {
+          "path": "applications/backend/source/diagnostics/request-diagnostics.ts",
+          "sha256": "f29a5e52d761cc1e46d1169a31ba264e8eef2b3f5783793910fc13ed752a5683"
+        },
+        {
+          "path": "applications/backend/source/transport/public-exception.filter.ts",
+          "sha256": "d5c9fab86739dcf4bd1c077e5ccdc942c5024bd485baf098108a674d6da880d8"
+        },
+        {
+          "path": "packages/contracts/source/configurations/validation/configuration-validation-context.ts",
+          "sha256": "4d21216b891d6291266f16020e0f97ea9664f440f79d77f8fb458ab5bf8802b0"
+        },
+        {
+          "path": "packages/contracts/source/events/event-validation.ts",
+          "sha256": "b4b81e536ea1962c25427820f69158f50bc32bbb5a5a92095867c9cc31bdb7cd"
+        },
+        {
+          "path": "packages/contracts/source/steps/step-content-validation.ts",
+          "sha256": "d8e8c33671a8bcb7bd019e9a05ced09bc5c5950c3d882393be5e43eee6228beb"
+        },
+        {
+          "path": "packages/contracts/tests/configurations/diagnostics.test.ts",
+          "sha256": "094d9a0504fc0c9ee233d0c72aac40146d3f95b55389433b4a7a041843de2379"
+        },
+        {
+          "path": "packages/contracts/tests/fixtures/diagnostic-fixtures.ts",
+          "sha256": "92f979d0870ef50ae71b779a4a5bdcb3ac5cafaf7f4a46d1704ae267ff0a376c"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/benchmark-report.ts",
+          "sha256": "ddbdec29761f9615eef488d4dd3470cd6821bc1dfd491335344e1ab73a1dae27"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/cases/benchmark-cases.ts",
+          "sha256": "900f4d5fe6f36872368f759df744685fe76a2dd41a53d255d24646b92bcfba1a"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/fixtures/evaluation-fixtures.ts",
+          "sha256": "cb1890b1aed438ebea456f39d375b0feb73dc1bff31abcdccd7917b9ffdca425"
+        },
+        {
+          "path": "scripts/development.mjs",
+          "sha256": "ea7d35dc83af7659ecc3df352783396f272f9a67e71e01a548a66925b3afd203"
+        },
+        {
+          "path": "applications/backend/tests/fixtures/incomplete-request.ts",
+          "sha256": "9fc5091f180d21e5ba4a2fdab01f827c8fbb733a53a5cf7256d36448198c5084"
+        },
+        {
+          "path": "packages/contracts/source/configurations/validation/configuration-document-bounds.ts",
+          "sha256": "a5b1e3033a2d9332883399b54fd710acb234acfa48dd560dd9cf66b2fc701d49"
+        },
+        {
+          "path": "eslint.config.js",
+          "sha256": "2f4930a8fe864ab9f7caa58072b8fb839523c347bbf4623f6cd3830ed91e1074"
+        },
+        {
+          "path": "AGENTS.md",
+          "sha256": "d700cbd4d4900f89d49ae9a42ec0e5ce9287ed5d28b1c5bca1b605e405d04676"
+        },
+        {
+          "path": "README.md",
+          "sha256": "14cceaea706806820261dc7d40f19fd7dfc561b1f1f451998185b1494f42b163"
+        },
+        {
+          "path": "documentation/foundation-review.md",
+          "sha256": "0f91e3f608d90b546da3e33084f43bee106b906adb4b7a36a3bea376814e5c6c"
+        },
+        {
+          "path": "documentation/development-log.md",
+          "sha256": "cd3601c069cd4c468ef9bd178155c2f61e8c54c08d4eadf9e129ac4248aa8bf6"
+        }
+      ]
     }
   ]
 }

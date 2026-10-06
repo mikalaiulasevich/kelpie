@@ -310,3 +310,36 @@ Explicit dependency ownership now includes contracts, backend and frontend produ
 | Numeric validation       |   1 answer |         0.390 |        0.391 |
 
 Runs `2026-10-06T18-54-47.509Z-5f21e60a-60d6-415b-866e-67b1542d04ed` and `2026-10-06T18-56-08.040Z-486288af-76b4-4993-84a1-a678c427b989` checked all 79 scenarios. These single before/after local runs support a readability refactor with small timing differences, not a speedup or statistical equivalence claim. Complexity, traversal counts and short-circuit behavior are unchanged. Independent static review found no correctness issue; full npm run verify passed 229 tests and all checks.
+
+## Broader es-toolkit operations review, October 6
+
+Searched authored source, test fixtures/cases, benchmark tooling and scripts across all four workspaces for manual collection transformations, state flags and reusable guards. This pass expands the earlier primitive-predicate migration with seven existing library operations; it adds no dependency or compatibility wrapper.
+
+| Owner                                                    | Operation    | Removed manual construction                                                       |
+| -------------------------------------------------------- | ------------ | --------------------------------------------------------------------------------- |
+| ConfigurationValidationContext                           | `memoize`    | Per-instance selection-index lookup and insertion                                 |
+| EventValidation                                          | `difference` | Three unsupported-property / missing-event loops with negated membership branches |
+| StepContentValidation                                    | `identity`   | Pass-through diagnostic path method                                               |
+| MigrationHistory                                         | `isSubset`   | Temporary successful-migration Set plus membership callback                       |
+| RequestDiagnostics                                       | `once`       | Mutable completion flag shared by finish and close listeners                      |
+| EvaluationFixtures / BenchmarkCaseFactory                | `omit`       | Copy then delete an answer property                                               |
+| Error diagnostics, transport, launcher, benchmark writer | `isError`    | Repeated generic Error identity checks                                            |
+
+Installed es-toolkit 1.52.0 source and types were inspected. `once` sets its flag before invocation, preserving the former failure semantics. `memoize` owns one Map per validation context keyed by step object identity; there is no cross-request/global cache. `difference` preserves order and duplicates, but allocates bounded temporary collections. `omit` copies before removing keys. Generic `isError` is exactly an Error identity check; specific HttpException and other class checks remain explicit. A new exact-output regression checks diagnostic phase order and input immutability; the existing mutation-between-validations test covers cache lifetime. Independent domain cross-review found no regression. It also caught an adjacent removed response-buffer bound in the slow-request test fixture; the bounded tail was restored.
+
+ESLint now rejects generic `instanceof Error` guards while accepting `isError` and specific subclass checks. Negative and positive in-memory probes verified the rule. AGENTS.md records collection/state-operation review in addition to predicates.
+
+Retained deliberately: native short-circuit answer membership, Set uniqueness checks, bounded document traversal, own-property dictionary access, finite-number checks, ordinary map/filter and Array.from. `isPlainObject` broadens accepted prototypes; `compat/isObjectLike` lacks a narrowing declaration and failed the typed traversal compilation, so the trial was reverted. `uniq`, `range` plus map, and full difference calculations in answer hot paths add work without improving intent. Frontend ky cancellation, React state, ts-pattern narrowing and class-name composition already have appropriate owners. Scripts have no manual collection operation that benefits from another abstraction beyond the error guard.
+
+| Configuration operation       | Size | Before, µs | After, µs | Repeat, µs |
+| ----------------------------- | ---- | ---------- | --------- | ---------- |
+| Valid configuration           | 8    | 103.554    | 104.816   | 104.126    |
+| Valid configuration           | 32   | 261.268    | 262.956   | 257.117    |
+| Valid configuration           | 96   | 673.186    | 673.503   | 660.460    |
+| Repeated selection references | 96   | 465.773    | 465.773   | 458.948    |
+
+Runs: baseline `2026-10-06T19-18-03.290Z-e24d030d-582c-423e-90d5-ebf78d23efb0`, candidate `2026-10-06T19-20-46.490Z-208b2caa-25c5-4971-8ed9-17b599e1df4b`, repeat `2026-10-06T19-21-44.723Z-12554e2b-68ae-442f-b18b-38bef0d4981e`. Each validated all 79 scenarios before/after measurement. These local runs do not establish a speedup or measure HTTP/SQLite throughput; no repeatable material configuration regression was observed. Event difference adds temporary Sets/lists instead of reusing policy Sets, while retaining bounded linear work. Migration isSubset also creates a bounded difference list.
+
+Final Node.js 24.16.0 `npm run verify` passed 231 tests (80 backend, 12 frontend, 65 contracts, 74 runtime), strict types, lint, formatting, clean builds, supplied configuration checksums, test layout and Prisma validation. Bun migration, browser acceptance and remote CI were not part of this refactor.
+
+Library references: [difference](https://es-toolkit.dev/reference/array/difference.html), [memoize](https://es-toolkit.dev/reference/function/memoize.html), [once](https://es-toolkit.dev/reference/function/once.html), [omit](https://es-toolkit.dev/reference/object/omit.html). Installed source, rather than assumptions about similarly named Lodash functions, determined compatibility.

@@ -1,4 +1,3 @@
-import isObjectLike from 'es-toolkit/compat/isObjectLike';
 import { isNull, isUndefined } from 'es-toolkit/predicate';
 import { match, P } from 'ts-pattern';
 
@@ -17,6 +16,10 @@ interface DocumentTraversal {
 }
 
 const DocumentInspection = {
+  isObject(value: unknown): value is object {
+    return !isNull(value) && typeof value === 'object';
+  },
+
   isPlainContainer(value: object): boolean {
     const prototype: unknown = Object.getPrototypeOf(value);
 
@@ -64,7 +67,7 @@ const DocumentInspection = {
       )
       .with(P.boolean, () => undefined)
       .with(null, () => undefined)
-      .with(P.when(isObjectLike), (value) =>
+      .with(P.when(DocumentInspection.isObject), (value) =>
         DocumentInspection.inspectContainer(value, current.depth, traversal),
       )
       .otherwise(() => ConfigurationMessages.JsonValuesRequired);
