@@ -15,9 +15,9 @@ const DevelopmentProcesses = {
     shuttingDown = true;
     process.exitCode = exitCode;
 
-    DevelopmentProcesses.signal('SIGTERM');
+    DevelopmentProcesses.signal(DevelopmentPolicy.gracefulSignal);
     const shutdownDeadline = setTimeout(
-      () => DevelopmentProcesses.signal('SIGKILL'),
+      () => DevelopmentProcesses.signal(DevelopmentPolicy.forcedSignal),
       DevelopmentPolicy.shutdownTimeoutMilliseconds,
     );
     shutdownDeadline.unref();
@@ -25,14 +25,18 @@ const DevelopmentProcesses = {
 
   /** @param {unknown} error */
   isMissing(error) {
-    return error instanceof Error && 'code' in error && error.code === 'ESRCH';
+    return (
+      error instanceof Error &&
+      'code' in error &&
+      error.code === DevelopmentPolicy.missingProcessCode
+    );
   },
 
   /** @param {NodeJS.Signals} signal */
   signal(signal) {
     for (const childProcess of childProcesses) {
       try {
-        if (process.platform === 'win32') {
+        if (process.platform === DevelopmentPolicy.windowsPlatform) {
           childProcess.kill(signal);
         } else if (childProcess.pid !== undefined) {
           process.kill(-childProcess.pid, signal);
@@ -49,8 +53,8 @@ const DevelopmentProcesses = {
 for (const workspaceName of DevelopmentPolicy.workspaces) {
   const childProcess = spawn('npm', ['run', 'development', `--workspace=${workspaceName}`], {
     stdio: 'inherit',
-    detached: process.platform !== 'win32',
-    shell: process.platform === 'win32',
+    detached: process.platform !== DevelopmentPolicy.windowsPlatform,
+    shell: process.platform === DevelopmentPolicy.windowsPlatform,
   });
   childProcesses.add(childProcess);
   childProcess.on('error', (error) => {
@@ -65,5 +69,9 @@ for (const workspaceName of DevelopmentPolicy.workspaces) {
   });
 }
 
-process.once('SIGINT', () => DevelopmentProcesses.stop(DevelopmentPolicy.interruptExitCode));
-process.once('SIGTERM', () => DevelopmentProcesses.stop(DevelopmentPolicy.terminationExitCode));
+process.once(DevelopmentPolicy.interruptSignal, () =>
+  DevelopmentProcesses.stop(DevelopmentPolicy.interruptExitCode),
+);
+process.once(DevelopmentPolicy.gracefulSignal, () =>
+  DevelopmentProcesses.stop(DevelopmentPolicy.terminationExitCode),
+);

@@ -42,7 +42,9 @@ const BenchmarkFixtures = {
         assert.ok(firstOption, 'Validated selection steps must contain options.');
         answers[step.input.name] = firstOption.value;
       } else if (step.type === StepType.MultiSelect) {
-        const complianceOption = step.input.options.find((option) => option.value === 'compliance');
+        const complianceOption = step.input.options.find(
+          (option) => option.value === BenchmarkPolicy.complianceOption,
+        );
         const selectedOption =
           includeCompliance && complianceOption ? complianceOption : step.input.options[0];
         assert.ok(selectedOption, 'Validated selection steps must contain options.');

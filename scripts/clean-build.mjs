@@ -4,8 +4,10 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { BuildPolicy } from './script-policy.mjs';
 
-const repositoryDirectory = fileURLToPath(new URL('../', import.meta.url));
-const outputDirectory = resolve('distribution');
+const repositoryDirectory = fileURLToPath(
+  new URL(BuildPolicy.repositoryRelativePath, import.meta.url),
+);
+const outputDirectory = resolve(BuildPolicy.outputDirectoryName);
 const allowedDirectories = BuildPolicy.outputDirectories.map((directory) =>
   resolve(repositoryDirectory, directory),
 );
