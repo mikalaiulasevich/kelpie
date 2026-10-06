@@ -1358,5 +1358,125 @@
       "reason": "Reviewed shared strictness, module resolution and ambient utility inclusion across workspace configurations.",
       "sha256": "b2d8d0e93932635f82de5e6ba2632426b8f885196a1ad03a90c11945fb1217b5"
     }
+  ],
+  "followUpReviews": [
+    {
+      "name": "Shared runtime evaluation and issue collection",
+      "reviewDate": "2026-10-06",
+      "verification": "npm run verify passed: 209 tests, strict types, lint, formatting, builds, configuration checksums, test layout and Prisma validation.",
+      "benchmark": "See documentation/foundation-review.md for measured samples and limitations.",
+      "files": [
+        {
+          "path": "README.md",
+          "reason": "Documented the combined evaluation API and dated audit updates.",
+          "sha256": "b08bf4a3a9676bcdd0cc7d03d7cb2ab337d5ca4f734a0c4a3bbe589cf0ce4d16"
+        },
+        {
+          "path": "documentation/development-log.md",
+          "reason": "Recorded actual follow-up implementation and verification.",
+          "sha256": "955d91f6ed1a4253eb10c1d67686c1389e2c8cd6d5fa3e16c8485367f668a9a0"
+        },
+        {
+          "path": "documentation/foundation-review.md",
+          "reason": "Recorded semantic invariants, rejected unsafe override shortcut, independent review and measured benchmark limits.",
+          "sha256": "f252df99d4716d9da1b6ab51020d7ad77f29d1aaff30c3328dc9014aa5052ae3"
+        },
+        {
+          "path": "packages/funnel-runtime/source/answers/answer-issues.ts",
+          "reason": "Added per-call chainable issue collection; retained custom own-property message handling.",
+          "sha256": "4491c78344252af4f462dea5b184179720152bbd0d753f89ad6cc54fb1398920"
+        },
+        {
+          "path": "packages/funnel-runtime/source/answers/number-answer-validation.ts",
+          "reason": "Replaced repeated issue construction with ordered domain rules; retained finite-number and increment checks.",
+          "sha256": "23ae64f529ba4cfcf13953f6907ee7f0b7c0b684de09617a2b82ab8ac30d235c"
+        },
+        {
+          "path": "packages/funnel-runtime/source/answers/selection-answer-validation.ts",
+          "reason": "Shared one issue collection across membership and cardinality phases while retaining bounded input checks.",
+          "sha256": "6692e59885a43e60401ddd6cfc145726a04217310e4fa1af678aa2ffed6e25a7"
+        },
+        {
+          "path": "packages/funnel-runtime/source/evaluation/evaluation-types.ts",
+          "reason": "Defined the combined route/result response contract.",
+          "sha256": "3cb40d73b9148fdcc468e1e0432a8f8a53022ae6bf7d1e2fc731403c3d4c13d0"
+        },
+        {
+          "path": "packages/funnel-runtime/source/evaluation/funnel-evaluation.ts",
+          "reason": "Orchestrated one route calculation and result selection using the same configuration and variant.",
+          "sha256": "b0ec48b33850cc9e55e341bcce9590eca92ea0b5cfd7e075b40f4597410ab40a"
+        },
+        {
+          "path": "packages/funnel-runtime/source/experiments/variant-overrides.ts",
+          "reason": "Retained exhaustive narrowing after rejecting intersection-based shortcut; explained content/discriminant invariant.",
+          "sha256": "57edd0eb36c1cde66317968960e3b3154d772d2f90939865374a4e218c6da40e"
+        },
+        {
+          "path": "packages/funnel-runtime/source/funnel-runtime.ts",
+          "reason": "Exposed the cohesive Evaluation owner alongside existing grouped APIs.",
+          "sha256": "762289e299148bb9a68e30e210a6efd0b2ecceebcb29506e6955867e743e7298"
+        },
+        {
+          "path": "packages/funnel-runtime/source/index.ts",
+          "reason": "Added explicit evaluation object and result type exports; preserved existing exports.",
+          "sha256": "bbfcb434d6f5eb47b3b2a8393d4d2806385c00c51ba711d04e800e4eb969474c"
+        },
+        {
+          "path": "packages/funnel-runtime/source/results/result-resolution.ts",
+          "reason": "Delegated the existing result API to combined evaluation without a second validation pass.",
+          "sha256": "2829d8b8fc52b11ca790d031487996f91dc2ad2dcf594acc774c5b7fc9e5eaca"
+        },
+        {
+          "path": "packages/funnel-runtime/source/results/result-selection.ts",
+          "reason": "Separated ordered result selection from orchestration, consuming only the internally evaluated route.",
+          "sha256": "842197d628108297bc5e1dae5096a7a3a3f9decf80466056654a8ed5db590c1a"
+        },
+        {
+          "path": "packages/funnel-runtime/source/routes/route-builder.ts",
+          "reason": "Computed result eligibility during traversal independently of question progress and returned an internal evaluation snapshot.",
+          "sha256": "e6cf23dd5b6044c29c5d257ce371681ebd282b2b0c6e63e2be6b1176dcb82b46"
+        },
+        {
+          "path": "packages/funnel-runtime/source/routes/route-resolution.ts",
+          "reason": "Preserved public AvailableRoute shape while consuming the internal evaluated snapshot.",
+          "sha256": "ec6db2e65fba17023475110b9bf376f80b33fa0c84fcf6ead95491f844e7b2a0"
+        },
+        {
+          "path": "packages/funnel-runtime/source/routes/route-steps.ts",
+          "reason": "Unified accepted-answer and completion decisions with one validation, preserving invalid optional answer behavior.",
+          "sha256": "a3d771bdabc7ceac0ebb106594762b4fe96ba93198f2e779c39abe3b7033fbf1"
+        },
+        {
+          "path": "packages/funnel-runtime/source/routes/route-types.ts",
+          "reason": "Named internal evaluated-route and step-answer contracts without changing AvailableRoute.",
+          "sha256": "5a6fc4ed9789c41f4d4341aafe3774dcc5647eba186b300c4f6837a43cb2a530"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/answers/answer-validation.test.ts",
+          "reason": "Added independent exact diagnostic-order/custom-message assertions and call-isolation regressions.",
+          "sha256": "18787d199853ed7d07e0e71640a14f9683d3a7f550fbbd75dc1b73116c8c87f1"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/cases/evaluation-cases.ts",
+          "reason": "Named optional/required valid, invalid and missing scenarios with explicit independent expectations.",
+          "sha256": "33a51490e15bc93f6248450779e61e010d52ee354034a1cb20ae7f20ba8fd7fb"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/evaluation/funnel-evaluation.test.ts",
+          "reason": "Verified progress versus eligibility and exactly one validation per active supplied answer.",
+          "sha256": "8095ef45be052e9ffdc2dd60c9960b2322ad773e3eaf7adcb4931adfa8f40abd"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/fixtures/answer-fixtures.ts",
+          "reason": "Allowed fresh typed validation overrides for selection fixtures.",
+          "sha256": "830f7aa018334e1eec86fff7e1e70800f1ef0c2f877e909778884fe1c6fc8879"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/fixtures/evaluation-fixtures.ts",
+          "reason": "Provided fresh typed optional/required configuration and answer setup under tests.",
+          "sha256": "33969d057007e54ada83d6f2ed18fcd68759f72501fbbd935eddae7ae19fe12c"
+        }
+      ]
+    }
   ]
 }

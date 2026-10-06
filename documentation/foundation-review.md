@@ -4,6 +4,18 @@
 
 Review covers the application scaffold, configuration contracts/runtime, initial database schema, health endpoints, development startup, and dependency selection. Complete funnel behavior and public production deployment are outside this foundation milestone.
 
+## Runtime simplification follow-up, October 6
+
+Added `FunnelRuntime.Evaluation.evaluate(configuration, variant, answers)` to return route and result from one evaluation. Route traversal now records result eligibility while accepting answers, eliminating the second validation pass. Existing route/result entry points and the `AvailableRoute` shape remain compatible. Missing or rejected optional answers remain inactive and do not block a result; they do not advance question progress. Required unanswered questions still block the result, including when excluded from progress accounting.
+
+A per-call `AnswerIssueCollection` supplies chainable `addWhen` operations to numeric and multiple-selection validators. It centralizes issue construction while preserving diagnostic order, own-property custom messages, empty custom messages, bounded selection checks and call isolation. Numeric fallback messages are formatted eagerly; this is bounded work and is included in the benchmark below.
+
+The proposed single step-override merge was rejected after typechecking: spreading the union loses the relationship between the step discriminant and required content. `Object.assign` compiles through an intersection but weakens that check. Exhaustive branches remain with an explanatory comment; no unchecked assertion or new dependency was introduced.
+
+Independent review found no blocking regression. Full Node.js 24.16.0 `npm run verify` passed 209 tests (79 backend, 8 frontend, 63 contracts, 59 runtime), lint, formatting, types, builds, checksums, test layout and Prisma validation. Eight added runtime cases cover completion/progress distinctions, one validation per active answer, message ordering and isolation.
+
+The existing 12-scenario pure-runtime benchmark on Apple M4 / Node.js 24.16.0 used seven samples after warmup. Median sample durations before → after: configuration validation (1,000 operations) 193.344 → 186.518 ms; route resolution (10,000) 99.524 → 88.232 ms; result resolution (10,000) 214.812 → 138.040 ms. These sequential local samples show no observed regression, not a controlled speedup or application-throughput guarantee. No browser, deployment, session persistence or analytics verification is implied.
+
 ## Complete authored-file review, October 6
 
 Reconciled the original inventory of 212 authored files with four additions: all 216 have individual decisions and content hashes in [the audit manifest](file-audit.json). This pass changed 55 files and retained 161 after review. The supplied configurations and generated dependency lock have separate integrity entries. Generated output, dependencies, local secrets/data and the evidence manifest itself are excluded from authored-source coverage.
