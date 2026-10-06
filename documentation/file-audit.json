@@ -1683,6 +1683,73 @@
           "sha256": "1f20884e774fe9c573d861e9555b9215f3886f9fd1b5af2fb60cdcc570b36e00"
         }
       ]
+    },
+    {
+      "name": "Ky transport and react-if status rendering",
+      "reviewDate": "2026-10-06",
+      "verification": "Final npm run verify passed: 214 tests, types, lint, formatting, builds, checksums, test layout and Prisma validation. Independent review completed. Transport mocks and SSR were verified; no new live-browser or deployment check.",
+      "files": [
+        {
+          "path": "README.md",
+          "reason": "Documented frontend Ky transport, retry/deadline policy and react-if conditional rendering; native integration probes remain independent.",
+          "sha256": "ea874ce55d32b8e1ee119c1a61fdf826cf3e66f71294bae912ec4d1497d72f26"
+        },
+        {
+          "path": "applications/frontend/package.json",
+          "reason": "Pinned ky 2.1.0 and react-if 4.1.6 as frontend runtime dependencies.",
+          "sha256": "b3a526ca26a504c5a3c6b63fefb107c663ff3ed79c4eaf77aff0a45a01c252f0"
+        },
+        {
+          "path": "applications/frontend/source/service-health/request-service-readiness.ts",
+          "reason": "Replaced application fetch and manual timer with Ky total deadline, disabled retries, same-origin URL and unknown JSON validation; preserved domain error messages.",
+          "sha256": "fc4921c5bf93477a05929bc05eaae5308ffe52618d505b4682911648aa984565"
+        },
+        {
+          "path": "applications/frontend/source/service-health/service-health-details.tsx",
+          "reason": "Used If/Then/Else for conditional text while retaining exhaustive status narrowing and typed readiness timestamp.",
+          "sha256": "96339042ddcf91d5c181f6b80d337c94ef4f387f2058b5e38504430dfe9e0d39"
+        },
+        {
+          "path": "applications/frontend/source/service-health/service-health-policy.ts",
+          "reason": "Owned typed Ky transport options separately from diagnostics and operations.",
+          "sha256": "26e3dcbfa3affb26f1a5e61418b891f1d79e49a846ad8db148a575d505eceea8"
+        },
+        {
+          "path": "applications/frontend/tests/cases/service-health-details-cases.ts",
+          "reason": "Owned independent checking/unavailable expected markup cases.",
+          "sha256": "7c3ab8382b2d14bdbe2308955996932e457c256298809b6f90273861116bad1d"
+        },
+        {
+          "path": "applications/frontend/tests/fixtures/service-readiness-fixtures.ts",
+          "reason": "Mocked browser origin, real Request transport and stalled response/body behavior for Ky.",
+          "sha256": "c6a48cab561c9352eef2fc1b788f761b1135d7585bdfe06949450fca7ecb4de4"
+        },
+        {
+          "path": "applications/frontend/tests/fixtures/service-readiness-messages.ts",
+          "reason": "Used realistic browser network failure text so Ky network classification is exercised.",
+          "sha256": "975803557badc1e200a5064a90f927563eb11677bbcc62c909fa822086b3e591"
+        },
+        {
+          "path": "applications/frontend/tests/service-health/request-service-readiness.test.ts",
+          "reason": "Verified Request settings, exactly one HTTP/network attempt, preflight and in-flight cancellation, JSON deadline and timer cleanup.",
+          "sha256": "97e2b4c0b7f33c147d4afdbf019571464f7df5821dd755b36b89926f9ff75dc0"
+        },
+        {
+          "path": "applications/frontend/tests/service-health/service-health-details.test.ts",
+          "reason": "Added three SSR assertions for exclusive descriptions and ready timestamp markup.",
+          "sha256": "2b32d81ad84415bbdf17b43f1d91991f4f2a5a3019239cba73ff09d48c66a3ac"
+        },
+        {
+          "path": "documentation/development-log.md",
+          "reason": "Recorded migration, failure-path and SSR evidence, exact verification count and browser boundary.",
+          "sha256": "b0c1ed2ed240313ef979ef7fa417a2c39c0e0bdbd9d053ccb55a67c77d187420"
+        },
+        {
+          "path": "package-lock.json",
+          "reason": "npm-generated lock updated for pinned Ky and react-if dependencies.",
+          "sha256": "9ea7b748ea2274ba03169d50a127bf13bb881c8468e7c19a12135a83a6bd5347"
+        }
+      ]
     }
   ]
 }
