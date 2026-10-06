@@ -1948,6 +1948,91 @@
           "sha256": "68ae7fa6f15f7723c7a1023aa27bf7f0256630a392e82f5d7bc33b872a1a4308"
         }
       ]
+    },
+    {
+      "name": "Retired experiment cleanup and plan reconciliation",
+      "reviewDate": "2026-10-06",
+      "verification": "Full npm run verify passed 229 tests and all checks; runtime benchmark passed 79 scenario checks. No broken local Markdown file links. Dedicated experiment files remain recoverable in Git; historical machine reports preserved.",
+      "files": [
+        {
+          "path": "IMPLEMENTATION_PLAN.md",
+          "reason": "Resolved assignment-review gaps, including optional answer behavior and explicit edge formulas.",
+          "sha256": "e7c7fb4b5c862b6b6f97a9dfa59b2f93d253b65552cde686297dce2d758f7231"
+        },
+        {
+          "path": "README.md",
+          "reason": "Removed retired command and documented historical reproduction revision.",
+          "sha256": "648572c48fa91f14967a52af20fd341a750e0f91b8e417804105ac8bedcbebac"
+        },
+        {
+          "path": "package.json",
+          "reason": "Removed completed Mnemonist benchmark command.",
+          "sha256": "23f80749b79523bf86c355a716ce38354e128d27cb127b70a5a9d6ac7bf69284"
+        },
+        {
+          "path": "packages/funnel-runtime/package.json",
+          "reason": "Removed rejected experimental dependency.",
+          "sha256": "04f2e560b55a9014029eb1a61f07d39983fea8c34fb0f217596bce22960ce055"
+        },
+        {
+          "path": "package-lock.json",
+          "reason": "npm-generated removal of Mnemonist and its transitive package.",
+          "sha256": "4e45a4c2fb98a94962c5df3acd4011f0fa416fed2ce56411c7c5febb207473b2"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/run-benchmarks.ts",
+          "reason": "Single current runtime suite without dead experiment dispatch.",
+          "sha256": "a6eeb7b5a4a2e96aa38854d657e9dd2ce6fa6710dcf929d523be2fe05f249054"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/benchmark-report.ts",
+          "reason": "Removed retired suite report branches while retaining report provenance.",
+          "sha256": "09d0209dbb2617064cfc9292387621d03f2703cea55652ea29ddfca395b1a833"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/measurement-types.ts",
+          "reason": "Removed retired suite vocabulary.",
+          "sha256": "d258950a7f08a76a4a392bdae7547c6a7858d2a4b60ed62f3111e2037ade8e74"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/measurement-policy.ts",
+          "reason": "Removed unused experiment CLI and output settings.",
+          "sha256": "ef680070a769529f28309c9342cc5725c38271c2f61a7fa61478bb1aaed08099"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/measurement-messages.ts",
+          "reason": "Removed retired experiment scope text.",
+          "sha256": "89674de76fe373b3b474061d4c117424d73e5d77c7980d5486e5df4b45777b4b"
+        },
+        {
+          "path": "documentation/foundation-review.md",
+          "reason": "Historical decision retained with archive link and removed-harness status.",
+          "sha256": "e39992637fe31b88011e09d990784c1a319c7b59e61502cf9399b518a64357f8"
+        },
+        {
+          "path": "documentation/development-log.md",
+          "reason": "Recorded exact cleanup scope and verification.",
+          "sha256": "0786c24736c703979b507801110aa35f91c1f01948da150597649f86dde9d642"
+        }
+      ],
+      "removedFiles": [
+        {
+          "path": "packages/funnel-runtime/tests/fixtures/mnemonist-fixtures.ts",
+          "reason": "Dedicated harness for completed rejected Mnemonist trial; no current consumers remain."
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/mnemonist-types.ts",
+          "reason": "Dedicated harness for completed rejected Mnemonist trial; no current consumers remain."
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/mnemonist-policy.ts",
+          "reason": "Dedicated harness for completed rejected Mnemonist trial; no current consumers remain."
+        },
+        {
+          "path": "packages/funnel-runtime/tests/cases/mnemonist-cases.ts",
+          "reason": "Dedicated harness for completed rejected Mnemonist trial; no current consumers remain."
+        }
+      ]
     }
   ]
 }
