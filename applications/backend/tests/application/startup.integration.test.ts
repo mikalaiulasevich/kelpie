@@ -5,7 +5,7 @@ import { StartupProcessFixture } from '../fixtures/startup-process.js';
 import { StartupProcessPolicy } from '../fixtures/startup-policy.js';
 
 describe('application process lifecycle', () => {
-  it('releases an incomplete request when the backend rejects the connection', async () => {
+  it('rejects incomplete-request setup on a refused backend connection', async () => {
     const listener = await StartupPortFixture.create();
     const port = listener.port;
     await listener.close();

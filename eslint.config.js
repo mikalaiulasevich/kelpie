@@ -7,6 +7,12 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 const restrictedSyntax = [
   {
     selector:
+      'BinaryExpression[operator="instanceof"][right.name="Error"]:not(CallExpression[callee.name="expect"] > BinaryExpression)',
+    message:
+      'Use es-toolkit isError for generic Error guards; preserve specific error subclass checks.',
+  },
+  {
+    selector:
       'BinaryExpression[operator=/^(===|!==)$/][right.type="Identifier"][right.name="undefined"]:not(CallExpression[callee.name="expect"] > BinaryExpression)',
     message: 'Use es-toolkit isUndefined for guards; keep independent test expectations explicit.',
   },

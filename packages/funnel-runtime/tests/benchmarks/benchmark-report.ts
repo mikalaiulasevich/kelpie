@@ -5,6 +5,7 @@ import { appendFile, mkdir, readdir, readFile, writeFile } from 'node:fs/promise
 import { arch, cpus, platform } from 'node:os';
 import { relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isError } from 'es-toolkit/predicate';
 import { BenchmarkSuite } from './measurement-types.js';
 import { MeasurementPolicy } from './measurement-policy.js';
 import { MeasurementMessages } from './measurement-messages.js';
@@ -116,7 +117,7 @@ const BenchmarkTable = {
       );
     } catch (error) {
       if (
-        !(error instanceof Error) ||
+        !isError(error) ||
         !('code' in error) ||
         error.code !== MeasurementPolicy.FileExistsCode
       ) {

@@ -1,3 +1,4 @@
+import { isError } from 'es-toolkit/predicate';
 import {
   type ArgumentsHost,
   Catch,
@@ -42,7 +43,7 @@ export class PublicExceptionFilter implements ExceptionFilter {
   private resolveInputStatus(exception: unknown): Optional<number> {
     // Express body-parser errors are not Nest exceptions. Admit only known
     // input failures; arbitrary error status properties must not cross the boundary.
-    if (!(exception instanceof Error) || !('status' in exception)) {
+    if (!isError(exception) || !('status' in exception)) {
       return undefined;
     }
 

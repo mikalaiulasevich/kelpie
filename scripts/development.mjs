@@ -1,4 +1,4 @@
-import { isUndefined } from 'es-toolkit/predicate';
+import { isError, isUndefined } from 'es-toolkit/predicate';
 import { spawn } from 'node:child_process';
 
 import { DevelopmentMessages } from './script-messages.mjs';
@@ -56,11 +56,7 @@ const DevelopmentProcesses = {
 
   /** @param {unknown} error */
   isMissing(error) {
-    return (
-      error instanceof Error &&
-      'code' in error &&
-      error.code === DevelopmentPolicy.MissingProcessCode
-    );
+    return isError(error) && 'code' in error && error.code === DevelopmentPolicy.MissingProcessCode;
   },
 
   /** @param {NodeJS.Signals | 0} signal */

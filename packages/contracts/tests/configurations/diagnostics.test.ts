@@ -21,6 +21,31 @@ describe('semantic validation phases', () => {
     expect(FunnelConfigurations.validate(ConfigurationFixtures.original(1)).valid).toBe(true);
   });
 
+  it('preserves duplicate, property and missing-event diagnostics without mutating declarations', () => {
+    const document = DiagnosticFixtures.eventDeclarationFailures();
+    const original = structuredClone(document);
+
+    const result = FunnelConfigurations.validate(document);
+
+    expect(result.valid).toBe(false);
+    expect(result.issues).toEqual([
+      { path: '/events/allowed', message: 'Event names must be unique.' },
+      {
+        path: '/events/baseProperties',
+        message: 'Unsupported base event property: unsupported_first.',
+      },
+      {
+        path: '/events/baseProperties',
+        message: 'Unsupported base event property: unsupported_second.',
+      },
+      { path: '/events/allowed', message: 'Unsupported event property: unsupported_first.' },
+      { path: '/events/allowed', message: 'Unsupported event property: unsupported_second.' },
+      { path: '/events/allowed', message: 'Required event missing: session_started.' },
+      { path: '/events/allowed', message: 'Required event missing: step_viewed.' },
+    ]);
+    expect(document).toEqual(original);
+  });
+
   it('keeps a bounded diagnostic prefix for many semantic failures', () => {
     const document = DiagnosticFixtures.excessiveSemanticFailures();
     const result = FunnelConfigurations.validate(document);

@@ -2237,6 +2237,1116 @@
           "sha256": "42169e40e251eddd96b6f1e62dcd134b7986db6995b9d96188c4a9d439376eae"
         }
       ]
+    },
+    {
+      "name": "Three-pass domain polish and cleanup",
+      "reviewDate": "2026-10-06",
+      "passes": [
+        "Read authored domain files and inspect artifact ownership",
+        "Independent review of changed lifecycle, contracts, benchmark and tooling code",
+        "Integrated verification and benchmark harness execution"
+      ],
+      "scope": "All authored files in the four workspaces and scripts; root configuration and documentation consistency checks. Generated output, installed dependencies, local data and raw historical measurements are not manually rewritten.",
+      "verification": "Node.js 24.16.0: npm run verify, 230 tests; 79 benchmark scenarios. Isolated pinned npm ci --ignore-scripts and installed dependency tree passed; lock-only optional WASM diagnostic remains documented. Bun backend compatibility is pending.",
+      "removedFiles": [],
+      "files": [
+        {
+          "path": "applications/backend/.env.example",
+          "status": "reviewed",
+          "sha256": "879f4bd1fb795509b09563aa3cd50356d8c251917174ed05f7560c28272bdec5"
+        },
+        {
+          "path": "applications/backend/package.json",
+          "status": "reviewed",
+          "sha256": "97a611f09b6100da2f218d4adf61618665bcf6fc9d55fc8490d539e6ac66e9a3"
+        },
+        {
+          "path": "applications/backend/prisma.config.ts",
+          "status": "reviewed",
+          "sha256": "caaf806e39c8aa2fa4c5a10b3091a2964c3531d6ca5b8a6905e8107c131f62de"
+        },
+        {
+          "path": "applications/backend/prisma/migrations/20261006000100_initial_foundation/migration.sql",
+          "status": "reviewed",
+          "sha256": "f06f6d8e70d9f8c81ca0db733ae713e738b2c02c574a2d5b82cec13fe5adf94c"
+        },
+        {
+          "path": "applications/backend/prisma/migrations/migration_lock.toml",
+          "status": "reviewed",
+          "sha256": "77e6ae20380cfdccec01c61d22f05e82ec5ee69f38caa6b44a13282f3be40aa4"
+        },
+        {
+          "path": "applications/backend/prisma/schema.prisma",
+          "status": "reviewed",
+          "sha256": "f50bda479d48bbf68d03e3b4356b2b3d4c971d7bd92ca764e09615f1cf0f7576"
+        },
+        {
+          "path": "applications/backend/source/application/application-directory.ts",
+          "status": "reviewed",
+          "sha256": "2a019aff7c579baa8c857fbd8a9c2077af9e9f006656e577d0abe8f62a66479c"
+        },
+        {
+          "path": "applications/backend/source/application/application-messages.ts",
+          "status": "reviewed",
+          "sha256": "711f0b60d924b1aecc91dc0d70e978112156136e216f3c0e2518c360788cc27c"
+        },
+        {
+          "path": "applications/backend/source/application/application-policy.ts",
+          "status": "reviewed",
+          "sha256": "2096d18f69baa7a40a5ecd153e95c5f8b40a6ee0d63f2cc7bc3fa0ab1570256a"
+        },
+        {
+          "path": "applications/backend/source/application/application-shutdown.ts",
+          "status": "reviewed",
+          "sha256": "4583834921ee79aa4ce7a67c8af4e652cadce5bc056a0f3e91068cbe75bc55de"
+        },
+        {
+          "path": "applications/backend/source/application/application.module.ts",
+          "status": "reviewed",
+          "sha256": "3a21d1a10c91d7d571422689933f777b09668b85c7c0e886832f488a64434e94"
+        },
+        {
+          "path": "applications/backend/source/application/create-application.ts",
+          "status": "reviewed",
+          "sha256": "aa5256d3ec316d2ec6261e98dddfbeba863f8ca7ceff11ba1010a5bab316811c"
+        },
+        {
+          "path": "applications/backend/source/database/database-messages.ts",
+          "status": "reviewed",
+          "sha256": "94097726bfaa22dca1924fe661431b0aa6c41acfe10c39e934b3b91b9fd6902f"
+        },
+        {
+          "path": "applications/backend/source/database/database-paths.ts",
+          "status": "reviewed",
+          "sha256": "1d4c379b6e90e9eeb8c2dffde38ebaa481b1c6fd77de2a82352bbfadb412acae"
+        },
+        {
+          "path": "applications/backend/source/database/database-types.ts",
+          "status": "reviewed",
+          "sha256": "92d485c6af50f97796124b1244b52194b6a719a448dc1b1ca2eeaac024da21d9"
+        },
+        {
+          "path": "applications/backend/source/database/database.service.ts",
+          "status": "reviewed",
+          "sha256": "4b302b8b5957ecc35ca857b33526f529cc4c389c868c3d07f6cfbbcf274b109b"
+        },
+        {
+          "path": "applications/backend/source/database/migration-history.ts",
+          "status": "reviewed",
+          "sha256": "a78851fa5256ca5f6860ba674afaf08a63a52275fd8226eb52f94982e8b7b4b2"
+        },
+        {
+          "path": "applications/backend/source/database/prepare-database-directory.ts",
+          "status": "reviewed",
+          "sha256": "48bb35dc1b2be7fe98ea600416219cb3af98b90aa421377dd739fa7a08d84de9"
+        },
+        {
+          "path": "applications/backend/source/database/sqlite-files.ts",
+          "status": "reviewed",
+          "sha256": "09a6d527eae75e83b34510c65653c9cc7535dd5f11a96bc52ed68aeac962e4e4"
+        },
+        {
+          "path": "applications/backend/source/database/sqlite-policy.ts",
+          "status": "reviewed",
+          "sha256": "b37a90182ee1cc4bce8c53aa3177351bdf3f357e41a8998eb2df2d70d64259a5"
+        },
+        {
+          "path": "applications/backend/source/database/sqlite-statements.ts",
+          "status": "reviewed",
+          "sha256": "042415eee5acb67a0db22dccafbc42b080c0ef83755f50e389ed531a93980fe5"
+        },
+        {
+          "path": "applications/backend/source/diagnostics/diagnostic-policy.ts",
+          "status": "reviewed",
+          "sha256": "b4493de7ebf5eb1e1b8b3ddfd0a19bfe8a47b1c022d84860b8cd761b03116f64"
+        },
+        {
+          "path": "applications/backend/source/diagnostics/diagnostics-types.ts",
+          "status": "reviewed",
+          "sha256": "a903c95bdd69633f72a6eede61a36b477963dee408b3c4690585e5bd9cf2780c"
+        },
+        {
+          "path": "applications/backend/source/diagnostics/diagnostics.ts",
+          "status": "reviewed",
+          "sha256": "c90309197901100ea19ec04a640ddbf4f3a53492db9cdbbc8563c411f9397bc0"
+        },
+        {
+          "path": "applications/backend/source/diagnostics/error-diagnostics.ts",
+          "status": "reviewed",
+          "sha256": "82165fcc8b5d503d37200e8343670e6e8af2680a96b2152b51fff05f518a5056"
+        },
+        {
+          "path": "applications/backend/source/diagnostics/request-diagnostics.ts",
+          "status": "reviewed",
+          "sha256": "7c9257762ada2533aa4d5575146e30ed386824cc29498013d6051e6275202b81"
+        },
+        {
+          "path": "applications/backend/source/environment/application-environment.ts",
+          "status": "reviewed",
+          "sha256": "cac1ad21f81d5469e75cd416e43854c9359fcbaa6423ad0504b1d948c6d96ad8"
+        },
+        {
+          "path": "applications/backend/source/environment/environment-messages.ts",
+          "status": "reviewed",
+          "sha256": "105053cb55a0fd46436b98894b1a6522f763d2345239ce6b3e2126cca2bf4986"
+        },
+        {
+          "path": "applications/backend/source/environment/environment-policy.ts",
+          "status": "reviewed",
+          "sha256": "1b184f301398794bb3f6b8532816138c58311621f5ed6d3724d6bad301b2ba13"
+        },
+        {
+          "path": "applications/backend/source/environment/environment-schemas.ts",
+          "status": "reviewed",
+          "sha256": "4baa830148293298c98ef700efdefa3123ad901d61266427e56416d68d460a14"
+        },
+        {
+          "path": "applications/backend/source/environment/read-application-environment.ts",
+          "status": "reviewed",
+          "sha256": "b52af6b302469c08e7e91822a51136d3db94f0d0ef14e8702740ea7191bfb747"
+        },
+        {
+          "path": "applications/backend/source/health/health-policy.ts",
+          "status": "reviewed",
+          "sha256": "1921a9594b00336233674ef06a17598a81224259cca66dd731be30cd4d1b0371"
+        },
+        {
+          "path": "applications/backend/source/health/health-types.ts",
+          "status": "reviewed",
+          "sha256": "0b22942b86ba9df24f75601f25fabbdb42efade6ae659d8e366df5fbde49d71f"
+        },
+        {
+          "path": "applications/backend/source/health/health.controller.ts",
+          "status": "reviewed",
+          "sha256": "46ee3e605212872fa081874c609dc844525a1ca962b878002c08be8be67a3000"
+        },
+        {
+          "path": "applications/backend/source/main.ts",
+          "status": "reviewed",
+          "sha256": "cfe6ff70dbbf8a1a2b0e04a8a9d4b80a74611a18df6e57ed6a7f645df9d9423d"
+        },
+        {
+          "path": "applications/backend/source/transport/public-exception.filter.ts",
+          "status": "reviewed",
+          "sha256": "1f581a9ebc1104bb29467fb8df9431acc47f6970925a45dfae43c290f4f2efb4"
+        },
+        {
+          "path": "applications/backend/source/transport/transport-messages.ts",
+          "status": "reviewed",
+          "sha256": "51442f8bc318b16b5d4061a5d69477796663c46a89a47e2eea4df866de6eb175"
+        },
+        {
+          "path": "applications/backend/source/transport/transport-policy.ts",
+          "status": "reviewed",
+          "sha256": "0ead86841340135eb931159276aae20e05ca6f21fb15ab62c629d35678457ace"
+        },
+        {
+          "path": "applications/backend/tests/application/application-shutdown.test.ts",
+          "status": "reviewed",
+          "sha256": "6333ca361a3b1a5c2ceefcf2f70924243e4c6d95e55f15db12d0821c3d3272a9"
+        },
+        {
+          "path": "applications/backend/tests/application/backend-fixture.test.ts",
+          "status": "reviewed",
+          "sha256": "00a6772e58f6b8a0bca08cdfdda9ff83f82165efc698f0c127a56f3058483784"
+        },
+        {
+          "path": "applications/backend/tests/application/startup-process.test.ts",
+          "status": "reviewed",
+          "sha256": "822dbfd8b5723373d46b42977e4721a4bee2df1fd4f66442a82f9b269023a445"
+        },
+        {
+          "path": "applications/backend/tests/application/startup.integration.test.ts",
+          "status": "changed",
+          "sha256": "e0ca56d785afa618d43b72309f6f2652f481ccd205d8c919fcd9461a5828661b"
+        },
+        {
+          "path": "applications/backend/tests/cases/environment-cases.ts",
+          "status": "reviewed",
+          "sha256": "25ff6068ac00287a77e5c8f52871bdb29f04c4a2184287864843f29f776a36e6"
+        },
+        {
+          "path": "applications/backend/tests/cases/health-request-cases.ts",
+          "status": "reviewed",
+          "sha256": "483330b05fa67196248c204a811ab2978aa51d4deb03f18eb7739c1084740027"
+        },
+        {
+          "path": "applications/backend/tests/database/database.integration.test.ts",
+          "status": "reviewed",
+          "sha256": "5a2fc1f1728f511e5b4b3dd7b6feb2ee3b64baa8d465acbeb76ebda074078115"
+        },
+        {
+          "path": "applications/backend/tests/database/migration-history.test.ts",
+          "status": "reviewed",
+          "sha256": "180c662857bc2a083537168b94f126df8b9ea46066dfc8c49f1a61b6c30e5ae1"
+        },
+        {
+          "path": "applications/backend/tests/diagnostics/diagnostic-sink.test.ts",
+          "status": "reviewed",
+          "sha256": "04a30fc45163a00600517d581adf6b49c9d0904e47e5b694c37f0bc50cf6c2bb"
+        },
+        {
+          "path": "applications/backend/tests/diagnostics/error-diagnostics.test.ts",
+          "status": "reviewed",
+          "sha256": "b699f57a4a77d472a2e1fbe6f311ecd06e6816a4dccee266001231fcade631be"
+        },
+        {
+          "path": "applications/backend/tests/diagnostics/request-diagnostics.integration.test.ts",
+          "status": "reviewed",
+          "sha256": "7a96419eef6d813335ebc1db02d88f5874eb33dfdeea71c2aca4170986822989"
+        },
+        {
+          "path": "applications/backend/tests/environment/application-environment.test.ts",
+          "status": "reviewed",
+          "sha256": "4125471d69153c16ce1d54237b4876bdcb804c9959b7452063a714c6811fb8fe"
+        },
+        {
+          "path": "applications/backend/tests/fixtures/backend-application.ts",
+          "status": "reviewed",
+          "sha256": "012d755ce2ad75a3c65d65cadd49db06906302d39925fb3ca5e36d80e0cdd18d"
+        },
+        {
+          "path": "applications/backend/tests/fixtures/backend-cleanup-failure.ts",
+          "status": "reviewed",
+          "sha256": "0304d877461c97954e1f480159c4e693eff747edb50246c9e4be8a65127521f7"
+        },
+        {
+          "path": "applications/backend/tests/fixtures/backend-fixture-messages.ts",
+          "status": "reviewed",
+          "sha256": "56907923c743ff3f30dbd3bec986c1f94a08f4dceab71943f8a05d50cd130c1a"
+        },
+        {
+          "path": "applications/backend/tests/fixtures/backend-test-policy.ts",
+          "status": "reviewed",
+          "sha256": "db1fc4cf0db62d71571e3956a2c440c4940a284c369de5bcfbb4d1d0622365d4"
+        },
+        {
+          "path": "applications/backend/tests/fixtures/database-records.ts",
+          "status": "reviewed",
+          "sha256": "cde1191dc25ad43b932fead8267dad2f1680d03ef6eb0c3cca2cf8929d12c092"
+        },
+        {
+          "path": "applications/backend/tests/fixtures/diagnostic-errors.ts",
+          "status": "reviewed",
+          "sha256": "8177d77287c68e37f4d5e13d659bc93615ad3463f8b0f671c632bd5f5c241bde"
+        },
+        {
+          "path": "applications/backend/tests/fixtures/diagnostic-stream.ts",
+          "status": "reviewed",
+          "sha256": "1cf719e510a70575f02ff91868cd59ee60c31c90cfa9f9ee529afe736f505bf5"
+        },
+        {
+          "path": "applications/backend/tests/fixtures/incomplete-request.ts",
+          "status": "changed",
+          "sha256": "1ca83922d01a7039313b06aba241d3d104a720f632eb88a12fb63d4d11a46ca9"
+        },
+        {
+          "path": "applications/backend/tests/fixtures/migration-history.ts",
+          "status": "reviewed",
+          "sha256": "cc23086ccddc7114e064105cfb42d021dc3e2175973cef41d51523ae4c7ba9a7"
+        },
+        {
+          "path": "applications/backend/tests/fixtures/shutdown-fixtures.ts",
+          "status": "reviewed",
+          "sha256": "e122d293e382c13a54cdaa69f86ad43e32b41fd21712cd0f346030fb6fa7cba2"
+        },
+        {
+          "path": "applications/backend/tests/fixtures/startup-messages.ts",
+          "status": "reviewed",
+          "sha256": "be1bcca7d94eecc41caf06a940a56de89bd7fa306643f045fa0e3b86dda0d3a1"
+        },
+        {
+          "path": "applications/backend/tests/fixtures/startup-policy.ts",
+          "status": "reviewed",
+          "sha256": "5ec5529b7e41dcfa6771cb6dd8d5e35d8a109b9889e18be498d33bfb01c460c3"
+        },
+        {
+          "path": "applications/backend/tests/fixtures/startup-port.ts",
+          "status": "reviewed",
+          "sha256": "ca4fd786783b7397d63c1a079729a7a08f9e5b69bd22ea49c799e8775ebf06bd"
+        },
+        {
+          "path": "applications/backend/tests/fixtures/startup-process.ts",
+          "status": "reviewed",
+          "sha256": "43aa1c4829bd61cc67f4cfd2c0427e26fa93914de3aeaa6de02cf0adcff6f943"
+        },
+        {
+          "path": "applications/backend/tests/fixtures/startup-types.ts",
+          "status": "reviewed",
+          "sha256": "8b8851b6ac190f08e3e47e712b62901d4d438b5665290f5caa5d749b4b0eeb0d"
+        },
+        {
+          "path": "applications/backend/tests/health/health.integration.test.ts",
+          "status": "reviewed",
+          "sha256": "a081589a3294d67c23ece28385349ba82cc75a296df695495d944139c6d6f136"
+        },
+        {
+          "path": "applications/backend/tsconfig.build.json",
+          "status": "reviewed",
+          "sha256": "aa594f62820a05d252604069bcc10a75abe5d45875ad85d0efb64b60e5256bb2"
+        },
+        {
+          "path": "applications/backend/tsconfig.json",
+          "status": "reviewed",
+          "sha256": "5e837e219d5d60104aaf3e6e8e757f8272b5a51828874c640a3cfb8751715271"
+        },
+        {
+          "path": "applications/backend/vitest.config.ts",
+          "status": "reviewed",
+          "sha256": "f0ad208e51fdf78b169662a3c5897e88088ea27e31f1b20704ba3f7501520d14"
+        },
+        {
+          "path": "applications/frontend/SHADCN_LICENSE.md",
+          "status": "reviewed",
+          "sha256": "1564074e13439397221ffd522e2e504d56561994a23d371aa5e3ad43e4f5423f"
+        },
+        {
+          "path": "applications/frontend/components.json",
+          "status": "reviewed",
+          "sha256": "dda66e503d7f1b930f0376236c874c2094b221de737a5d5d9f164f9ac87c35ae"
+        },
+        {
+          "path": "applications/frontend/index.html",
+          "status": "reviewed",
+          "sha256": "a2fe5240d30d65f0b566885c515e9e631ac60696928fb37ee25bdc881d4c7456"
+        },
+        {
+          "path": "applications/frontend/package.json",
+          "status": "reviewed",
+          "sha256": "1073c5ee10bf815d3263b5c8238a48781f50ac75f2279feda31c8fa62a34e62a"
+        },
+        {
+          "path": "applications/frontend/source/application/application-content.ts",
+          "status": "reviewed",
+          "sha256": "1f9492384cecea4a1baef5487200b9d149c1a33d86698dc822673a60ac993d1a"
+        },
+        {
+          "path": "applications/frontend/source/application/application-messages.ts",
+          "status": "reviewed",
+          "sha256": "85f332f5b882b755de7da36a355445bc0aff0d5f49baf317a277f23e9a8dd46b"
+        },
+        {
+          "path": "applications/frontend/source/application/application-policy.ts",
+          "status": "reviewed",
+          "sha256": "2f0210584ff31848d27e0b4522585b907c68918bcc19739d1d9fa3a9db8f114b"
+        },
+        {
+          "path": "applications/frontend/source/application/application.tsx",
+          "status": "reviewed",
+          "sha256": "bcbcfe91e821133eee08ebbef6aeb06c9282bba54edfc8887d6d6ea0d9412e59"
+        },
+        {
+          "path": "applications/frontend/source/components/button-styles.ts",
+          "status": "reviewed",
+          "sha256": "282ebfaeaa65a0cf6e1076d61eac05b3df871ae39425d913d16ee2045d9931fe"
+        },
+        {
+          "path": "applications/frontend/source/components/button-types.ts",
+          "status": "reviewed",
+          "sha256": "276137c6a734bae781e30d9e98c14f7f433163169c629d6baf021fa2c86d4d02"
+        },
+        {
+          "path": "applications/frontend/source/components/button.tsx",
+          "status": "reviewed",
+          "sha256": "11070636bd8f5222a53c495a900a4db3b70ecad212774a298c29472560c2bc1c"
+        },
+        {
+          "path": "applications/frontend/source/environment.d.ts",
+          "status": "reviewed",
+          "sha256": "65996936fbb042915f7b74a200fcdde7e410f32a669b1ab9597cfaa4b0faddb5"
+        },
+        {
+          "path": "applications/frontend/source/main.tsx",
+          "status": "reviewed",
+          "sha256": "23f52043536691cea93cafdf054c0c81704fd5c741fd82cfa68df80b2af92631"
+        },
+        {
+          "path": "applications/frontend/source/service-health/request-service-readiness.ts",
+          "status": "reviewed",
+          "sha256": "fc4921c5bf93477a05929bc05eaae5308ffe52618d505b4682911648aa984565"
+        },
+        {
+          "path": "applications/frontend/source/service-health/service-connection.tsx",
+          "status": "changed",
+          "sha256": "ec113608dc9a1f06809e8ed2007f8faaf3a70ad5411752600866ce61ce77c925"
+        },
+        {
+          "path": "applications/frontend/source/service-health/service-health-content.ts",
+          "status": "reviewed",
+          "sha256": "f3e7b8af028f49ab1d2cfc24c16d4ac33685b8aef1569350004c18d1901c866d"
+        },
+        {
+          "path": "applications/frontend/source/service-health/service-health-details.tsx",
+          "status": "reviewed",
+          "sha256": "96339042ddcf91d5c181f6b80d337c94ef4f387f2058b5e38504430dfe9e0d39"
+        },
+        {
+          "path": "applications/frontend/source/service-health/service-health-messages.ts",
+          "status": "reviewed",
+          "sha256": "1e7bb3d6e132028f7829bc90742778420d20b84b72304099399bb632b9db597d"
+        },
+        {
+          "path": "applications/frontend/source/service-health/service-health-policy.ts",
+          "status": "reviewed",
+          "sha256": "26e3dcbfa3affb26f1a5e61418b891f1d79e49a846ad8db148a575d505eceea8"
+        },
+        {
+          "path": "applications/frontend/source/service-health/service-health.ts",
+          "status": "reviewed",
+          "sha256": "8e0e96873f530543577463748cdcae8700e5fe50b56a0329b34b94de8b0add52"
+        },
+        {
+          "path": "applications/frontend/source/service-health/use-service-health.ts",
+          "status": "reviewed",
+          "sha256": "2f4c969bd137565a9d9242327bfa3ab9bb089400145337fd0db3c3616ecd855f"
+        },
+        {
+          "path": "applications/frontend/source/styling/application.css",
+          "status": "reviewed",
+          "sha256": "aac6bec2d89dce2ffcc8fcd99c24782ce2ab2e5f0375e61a2700c606ca68fe32"
+        },
+        {
+          "path": "applications/frontend/source/styling/combine-class-names.ts",
+          "status": "reviewed",
+          "sha256": "2728686bc30d3021e8f55ff3c921760a5516890853c0d28030e390021178edcf"
+        },
+        {
+          "path": "applications/frontend/source/ui-types.d.ts",
+          "status": "reviewed",
+          "sha256": "a2396df9afed614d6977c077abf31c7bd874c687ae50dec0d9ae4751f0dc8247"
+        },
+        {
+          "path": "applications/frontend/tests/cases/service-health-details-cases.ts",
+          "status": "changed",
+          "sha256": "268f041d1fa637899abd3b624b52897f62d62b269c379ba053c4da48dd29da55"
+        },
+        {
+          "path": "applications/frontend/tests/cases/service-readiness-cases.ts",
+          "status": "changed",
+          "sha256": "15e544721757fefdfe26242b0b290603c523719119685728aa60b9113d2a9955"
+        },
+        {
+          "path": "applications/frontend/tests/fixtures/service-readiness-fixtures.ts",
+          "status": "reviewed",
+          "sha256": "5a95b4216c964063d1891d58510698dd6a336064c5882f895f0fc253871309dd"
+        },
+        {
+          "path": "applications/frontend/tests/fixtures/service-readiness-messages.ts",
+          "status": "reviewed",
+          "sha256": "975803557badc1e200a5064a90f927563eb11677bbcc62c909fa822086b3e591"
+        },
+        {
+          "path": "applications/frontend/tests/service-health/request-service-readiness.test.ts",
+          "status": "changed",
+          "sha256": "db996c8ea01f0c478837b0547f575d4c43f27d9fc541eda005490c562571e231"
+        },
+        {
+          "path": "applications/frontend/tests/service-health/service-health-details.test.ts",
+          "status": "reviewed",
+          "sha256": "2b32d81ad84415bbdf17b43f1d91991f4f2a5a3019239cba73ff09d48c66a3ac"
+        },
+        {
+          "path": "applications/frontend/tsconfig.json",
+          "status": "reviewed",
+          "sha256": "1764b01dbca4d976693a471b13d19d23d7123c879152d3b430ec5fa61dd81665"
+        },
+        {
+          "path": "applications/frontend/vite.config.ts",
+          "status": "reviewed",
+          "sha256": "b07c0a59683013d05518bf860fee421babfcd780d593e0ea783b7f508054e47e"
+        },
+        {
+          "path": "applications/frontend/vitest.config.ts",
+          "status": "reviewed",
+          "sha256": "5fe5f9fc7ced2feb14a7ece5318bcf273ca8ba52663b3b0e88b3194063530472"
+        },
+        {
+          "path": "packages/contracts/package.json",
+          "status": "reviewed",
+          "sha256": "c67fdce0e6e7f0edf1e030b188d727ece555f570ac10d9f63d38ff1f79212467"
+        },
+        {
+          "path": "packages/contracts/source/conditions/condition-policy.ts",
+          "status": "reviewed",
+          "sha256": "62b55eb1d64f5e265a6121ce53c481fc51bdb7a7d1aff69ac819d9a2dd45c14d"
+        },
+        {
+          "path": "packages/contracts/source/conditions/condition-rules.ts",
+          "status": "changed",
+          "sha256": "afaf592877fbbd6cc46dbfc9a3752cdcc636352aae074f3c95a2b0584ad43305"
+        },
+        {
+          "path": "packages/contracts/source/conditions/condition-schema.ts",
+          "status": "reviewed",
+          "sha256": "a9947c822faa9f55504f4634c7f28feff85b33f606f2d52239e5718ef1f5d995"
+        },
+        {
+          "path": "packages/contracts/source/conditions/condition-types.ts",
+          "status": "reviewed",
+          "sha256": "950a250b0e764ce41214ec2fa11a44bd862c516109529c0ae88475dbca6241e2"
+        },
+        {
+          "path": "packages/contracts/source/conditions/condition-validation.ts",
+          "status": "reviewed",
+          "sha256": "a6e00bb400380568ac869bd1f8be15548792bec0881be6ef349fc6202143ec14"
+        },
+        {
+          "path": "packages/contracts/source/configurations/configuration-format.ts",
+          "status": "reviewed",
+          "sha256": "df7ae8f15bdf000843f58e188d569e77bfad4d96af3aedd78953c875a3b4047d"
+        },
+        {
+          "path": "packages/contracts/source/configurations/configuration-messages.ts",
+          "status": "reviewed",
+          "sha256": "a98e44cd97bceb611df9f94321c332b61a0f44ba013bfb66975cbc2bbb67a955"
+        },
+        {
+          "path": "packages/contracts/source/configurations/configuration-paths.ts",
+          "status": "reviewed",
+          "sha256": "992704b54c33deccfcfd9e8ff020c395691a289036582959df4b63ea7f3547bb"
+        },
+        {
+          "path": "packages/contracts/source/configurations/configuration-policy.ts",
+          "status": "reviewed",
+          "sha256": "2c0bf5a67d4c391a5b7e435e8c1acab80afc5a481bc917f852901dc0ceb26a6b"
+        },
+        {
+          "path": "packages/contracts/source/configurations/configuration-schema.ts",
+          "status": "reviewed",
+          "sha256": "14764648a187dd9c685f5d63f27cca83a92f2dc4e22e6f1879ac308d9c004f47"
+        },
+        {
+          "path": "packages/contracts/source/configurations/configuration-types.ts",
+          "status": "reviewed",
+          "sha256": "23e126137e3b9491001ada11dc670cdc3c7a86f997b527b3d2988a199dec3984"
+        },
+        {
+          "path": "packages/contracts/source/configurations/funnel-configurations.ts",
+          "status": "reviewed",
+          "sha256": "82c1eb8211323fad3acfccb0f8e9643b7802bfb7c173ad9b985262b5920a8731"
+        },
+        {
+          "path": "packages/contracts/source/configurations/validation/configuration-document-bounds.ts",
+          "status": "reviewed",
+          "sha256": "a5b1e3033a2d9332883399b54fd710acb234acfa48dd560dd9cf66b2fc701d49"
+        },
+        {
+          "path": "packages/contracts/source/configurations/validation/configuration-schema-compiler.ts",
+          "status": "reviewed",
+          "sha256": "f16ad363874893b3a0d66b120ca72e9c1b284ea183360ef6b1a7621372730fd6"
+        },
+        {
+          "path": "packages/contracts/source/configurations/validation/configuration-semantic-validation.ts",
+          "status": "reviewed",
+          "sha256": "bd04aac315d5bbc1f65f0d2864574e7813deaba8d18757f348b2fc8d4be73e68"
+        },
+        {
+          "path": "packages/contracts/source/configurations/validation/configuration-validation-context.ts",
+          "status": "reviewed",
+          "sha256": "47b4a92ac531e287e95a9ef5f66b143c628fcbc3e131fd1c481944a9ff574c97"
+        },
+        {
+          "path": "packages/contracts/source/events/event-policy.ts",
+          "status": "reviewed",
+          "sha256": "37023ad67a5be4e1cbfbd2794ce60e83ef7f3a6994630f900eb2eb98b8634c6d"
+        },
+        {
+          "path": "packages/contracts/source/events/event-validation.ts",
+          "status": "reviewed",
+          "sha256": "e45796d5b29351ce955b67d6744580e5a706c7a7a34501be9a726c2b29b85346"
+        },
+        {
+          "path": "packages/contracts/source/experiments/variant-validation.ts",
+          "status": "reviewed",
+          "sha256": "286d84ba837956df4431eaac41610ba89dff8a87ac45c6e598c33b77a3d63650"
+        },
+        {
+          "path": "packages/contracts/source/index.ts",
+          "status": "reviewed",
+          "sha256": "df2ccc906138472861ac8921d5fe1dcc077166f3d5fae4b925518c6fde86aa5b"
+        },
+        {
+          "path": "packages/contracts/source/results/result-schema.ts",
+          "status": "reviewed",
+          "sha256": "6b0832a8d88fb0b30a81d54ef97ef192d61b6eaf6597b6314ed20196747515f3"
+        },
+        {
+          "path": "packages/contracts/source/results/result-types.ts",
+          "status": "reviewed",
+          "sha256": "31b3a7146c2e6e4488b2916beaadf5fc6808951ec7c700003d1035571e3a677e"
+        },
+        {
+          "path": "packages/contracts/source/results/result-validation.ts",
+          "status": "reviewed",
+          "sha256": "6b3ccf56c683d80243af83a2c314843c7711a847ea5135f5b28be1bc6bb6ac00"
+        },
+        {
+          "path": "packages/contracts/source/shared/dictionary.ts",
+          "status": "reviewed",
+          "sha256": "5cf0fbc5899345f8e7423e57ccd4d081cc8786254643ebee5135f40fd6832df0"
+        },
+        {
+          "path": "packages/contracts/source/shared/domain-values.ts",
+          "status": "reviewed",
+          "sha256": "48dcfef78ab455db7132799c50b0178d61756102b3a7b3dd868a286b77203618"
+        },
+        {
+          "path": "packages/contracts/source/shared/schema-primitives.ts",
+          "status": "reviewed",
+          "sha256": "3d2a490d322371f6ffacd7a8e41562b423ac9a479946859a073d611caabf76c1"
+        },
+        {
+          "path": "packages/contracts/source/steps/step-content-validation.ts",
+          "status": "reviewed",
+          "sha256": "47f100727de25119738d352d553beef59c843e2a9a4acffe8e863cbf67609858"
+        },
+        {
+          "path": "packages/contracts/source/steps/step-rules.ts",
+          "status": "reviewed",
+          "sha256": "6360af9134bcd43cf17c9c39665d8716b5f01bde03d7f9a6d37738fa4160844b"
+        },
+        {
+          "path": "packages/contracts/source/steps/step-schema.ts",
+          "status": "reviewed",
+          "sha256": "646cf3d858b9f60f84353174a70bd76b3399143992dd53a69b2428eda1e65d6c"
+        },
+        {
+          "path": "packages/contracts/source/steps/step-types.ts",
+          "status": "reviewed",
+          "sha256": "c126bbd673e22f0747ed17813fe2db8ec8e6abde71125b83f12ef0408f375d64"
+        },
+        {
+          "path": "packages/contracts/source/steps/step-validation.ts",
+          "status": "reviewed",
+          "sha256": "47adef1429d01de2b8b8d9d6c08bcbc8ab4d8f7d448fc8a742ee612c410cd901"
+        },
+        {
+          "path": "packages/contracts/tests/cases/configuration-cases.ts",
+          "status": "reviewed",
+          "sha256": "5ad10b71c8b0e8f772a1175ac6704fd1595e92103741cf6a551586ea5065dfb0"
+        },
+        {
+          "path": "packages/contracts/tests/cases/document-cases.ts",
+          "status": "reviewed",
+          "sha256": "b53133f15a28a35e5dd7274030d113ddbd60698e5fa5198d4f6fe97382203792"
+        },
+        {
+          "path": "packages/contracts/tests/cases/selection-cases.ts",
+          "status": "reviewed",
+          "sha256": "a5fe541745e33100a6c092330ca33de68b7bdf7c9001fa3a8359f67062280dca"
+        },
+        {
+          "path": "packages/contracts/tests/configurations/content.test.ts",
+          "status": "changed",
+          "sha256": "429f451cabce0454a1af24a3ae2e197742be7bd6c7ad5499c7f49e8ecc80c637"
+        },
+        {
+          "path": "packages/contracts/tests/configurations/diagnostics.test.ts",
+          "status": "changed",
+          "sha256": "61af183fda0eebc117e2839c9135abba71eb5e3b99d33c5d4e9e754f0bae97da"
+        },
+        {
+          "path": "packages/contracts/tests/configurations/document-bounds.test.ts",
+          "status": "reviewed",
+          "sha256": "409d9b606b55d1e565b1cca2c72dcab5c216ce151f10a73dda13df87c5f5ea15"
+        },
+        {
+          "path": "packages/contracts/tests/configurations/document-validation.test.ts",
+          "status": "reviewed",
+          "sha256": "0cd07c4afeb4e9a9ec753b672355bf9a41a930c40e93686faf3696f333d68885"
+        },
+        {
+          "path": "packages/contracts/tests/configurations/semantic-validation.test.ts",
+          "status": "reviewed",
+          "sha256": "9d6ec9ca221268a3d5c09f4dd2549547253db45f4eab94d942de32dc3e4addcd"
+        },
+        {
+          "path": "packages/contracts/tests/fixtures/configuration-fixtures.ts",
+          "status": "changed",
+          "sha256": "26a7a2ba4b261e0a4856b0b3e21be3ad69ec279977995f0b7a2d467200893e90"
+        },
+        {
+          "path": "packages/contracts/tests/fixtures/diagnostic-fixtures.ts",
+          "status": "changed",
+          "sha256": "8ec00edbfb9006419c5d3c8115407ab1181d71de22b58fb1686809cb88e82150"
+        },
+        {
+          "path": "packages/contracts/tests/fixtures/document-fixtures.ts",
+          "status": "reviewed",
+          "sha256": "038efdddc500c4fbf925636da43866f167ad30a156d51195466b8fa6c60fff05"
+        },
+        {
+          "path": "packages/contracts/tests/fixtures/fixture-messages.ts",
+          "status": "reviewed",
+          "sha256": "6489482bdb535dfe0450ce0a1a02eaf2594e006210218cb761954e47e828542e"
+        },
+        {
+          "path": "packages/contracts/tests/fixtures/selection-fixtures.ts",
+          "status": "reviewed",
+          "sha256": "aae3794bea77b180ee321b05e77b528bab51de54fe987f2fb4dfac2ad8c16bb3"
+        },
+        {
+          "path": "packages/contracts/tests/shared/dictionary-access.test.ts",
+          "status": "changed",
+          "sha256": "4435a36caddbc30218029eeff18a98ee1e15dfac225267302205594dd2f66e72"
+        },
+        {
+          "path": "packages/contracts/tests/steps/selection-rules.test.ts",
+          "status": "reviewed",
+          "sha256": "ad3b0c70035fe5ad69c9e1d62057ccaa7d0f5aea8ba67f5ec374cf2bb1f6a1eb"
+        },
+        {
+          "path": "packages/contracts/tests/typechecks/conditions.typecheck.ts",
+          "status": "reviewed",
+          "sha256": "7f0c065cde78e81af8ebc4b4cb31c6c081cc1879a60771943bee12a1f20dbe73"
+        },
+        {
+          "path": "packages/contracts/tests/typechecks/global-utilities.typecheck.ts",
+          "status": "reviewed",
+          "sha256": "452f204c890db54af12acf6d30f4cac920cbebdae7603a992140198cc1ab745d"
+        },
+        {
+          "path": "packages/contracts/tests/typechecks/immutability.typecheck.ts",
+          "status": "reviewed",
+          "sha256": "2bc381a56e533eec0363ec080597c97093bd7ab505cc64054c25135831b35ff0"
+        },
+        {
+          "path": "packages/contracts/tests/typechecks/information-content.typecheck.ts",
+          "status": "reviewed",
+          "sha256": "5f7028a9dd157bacec47ee55dd4c0548cd71b019bd77f1e5d0f31cfcbe351379"
+        },
+        {
+          "path": "packages/contracts/tsconfig.build.json",
+          "status": "reviewed",
+          "sha256": "c8a50f1a186d6c20242f4bd3ce7f8f85e0476ab910e531df48de7b9a768ac93b"
+        },
+        {
+          "path": "packages/contracts/tsconfig.json",
+          "status": "reviewed",
+          "sha256": "c0f04de19e273b9d21bfcbfbbaab2fa6571a55420c3c22dc25011a2092125a5d"
+        },
+        {
+          "path": "packages/contracts/vitest.config.ts",
+          "status": "reviewed",
+          "sha256": "e81250ce9c30d834f85f87b91dc8cef5197e87230b21b362e9344344aec17df8"
+        },
+        {
+          "path": "packages/funnel-runtime/package.json",
+          "status": "reviewed",
+          "sha256": "04f2e560b55a9014029eb1a61f07d39983fea8c34fb0f217596bce22960ce055"
+        },
+        {
+          "path": "packages/funnel-runtime/source/answers/answer-issues.ts",
+          "status": "reviewed",
+          "sha256": "4491c78344252af4f462dea5b184179720152bbd0d753f89ad6cc54fb1398920"
+        },
+        {
+          "path": "packages/funnel-runtime/source/answers/answer-messages.ts",
+          "status": "reviewed",
+          "sha256": "f0973cf6642a22222dd838e92774278ec78605a94a3a515db24bb1d88afb0dc9"
+        },
+        {
+          "path": "packages/funnel-runtime/source/answers/answer-policy.ts",
+          "status": "reviewed",
+          "sha256": "b0759f41212ecfea6f5d39a6684083d57e043e5d01bb73a7092a96dc9f79bd4a"
+        },
+        {
+          "path": "packages/funnel-runtime/source/answers/answer-types.ts",
+          "status": "reviewed",
+          "sha256": "18a4b0e0b2c0741ab1743e2130d62c7bafead0b21daa3fb31f33e22d366e832b"
+        },
+        {
+          "path": "packages/funnel-runtime/source/answers/answer-validation.ts",
+          "status": "reviewed",
+          "sha256": "14d43a18dc7941432823855e4ecf20a63cce38219fa8b77580a6aae89affb6ab"
+        },
+        {
+          "path": "packages/funnel-runtime/source/answers/answer-values.ts",
+          "status": "reviewed",
+          "sha256": "6cb7757a6050db919f6883a48b4fcfab4f5941a689cbb3c9f0d86268ae3a4451"
+        },
+        {
+          "path": "packages/funnel-runtime/source/answers/number-answer-validation.ts",
+          "status": "reviewed",
+          "sha256": "23ae64f529ba4cfcf13953f6907ee7f0b7c0b684de09617a2b82ab8ac30d235c"
+        },
+        {
+          "path": "packages/funnel-runtime/source/answers/selection-answer-validation.ts",
+          "status": "reviewed",
+          "sha256": "0cf9094fe8ec36d1839b351110c8be63a92361978f9a641c7d96c16b14122b80"
+        },
+        {
+          "path": "packages/funnel-runtime/source/conditions/condition-evaluation.ts",
+          "status": "reviewed",
+          "sha256": "4b8898524eafb440641beac16d10ab1004e6f4cfaab50dc03fecf571e78f4f94"
+        },
+        {
+          "path": "packages/funnel-runtime/source/evaluation/evaluation-types.ts",
+          "status": "reviewed",
+          "sha256": "3cb40d73b9148fdcc468e1e0432a8f8a53022ae6bf7d1e2fc731403c3d4c13d0"
+        },
+        {
+          "path": "packages/funnel-runtime/source/evaluation/funnel-evaluation.ts",
+          "status": "reviewed",
+          "sha256": "b0ec48b33850cc9e55e341bcce9590eca92ea0b5cfd7e075b40f4597410ab40a"
+        },
+        {
+          "path": "packages/funnel-runtime/source/experiments/experiment-resolution.ts",
+          "status": "reviewed",
+          "sha256": "08702d2d9776a0613dcd9e6b3a7d2136f4b9ce41068ac162f1d1383ed705e095"
+        },
+        {
+          "path": "packages/funnel-runtime/source/experiments/experiment-types.ts",
+          "status": "reviewed",
+          "sha256": "f54e4ce394431d95eb8547b28a94b11461dff82703a87914854e187e99370388"
+        },
+        {
+          "path": "packages/funnel-runtime/source/experiments/variant-overrides.ts",
+          "status": "reviewed",
+          "sha256": "97d5ab4c87280ecb2ac44f261ed29efe36e996b27f863b01d781393df04b9c18"
+        },
+        {
+          "path": "packages/funnel-runtime/source/funnel-runtime.ts",
+          "status": "reviewed",
+          "sha256": "762289e299148bb9a68e30e210a6efd0b2ecceebcb29506e6955867e743e7298"
+        },
+        {
+          "path": "packages/funnel-runtime/source/index.ts",
+          "status": "reviewed",
+          "sha256": "bbfcb434d6f5eb47b3b2a8393d4d2806385c00c51ba711d04e800e4eb969474c"
+        },
+        {
+          "path": "packages/funnel-runtime/source/results/result-resolution.ts",
+          "status": "reviewed",
+          "sha256": "2829d8b8fc52b11ca790d031487996f91dc2ad2dcf594acc774c5b7fc9e5eaca"
+        },
+        {
+          "path": "packages/funnel-runtime/source/results/result-selection.ts",
+          "status": "reviewed",
+          "sha256": "3657528c5b44a364f7756a292988fc82ad4012bea9bc6a62ad84f6c299beb150"
+        },
+        {
+          "path": "packages/funnel-runtime/source/routes/route-builder.ts",
+          "status": "reviewed",
+          "sha256": "510890f022427d5bd937b1c204061856cc07defa5acd54f20209d973231b0da1"
+        },
+        {
+          "path": "packages/funnel-runtime/source/routes/route-direction.ts",
+          "status": "reviewed",
+          "sha256": "571cff8ff455ac77223277a06a28634de0262567b0b9a1da25be3a46744267f0"
+        },
+        {
+          "path": "packages/funnel-runtime/source/routes/route-messages.ts",
+          "status": "reviewed",
+          "sha256": "3810d2a5c28641771283b4fbe44f8d1f0b81e12410912d2980060bd493e393d7"
+        },
+        {
+          "path": "packages/funnel-runtime/source/routes/route-resolution.ts",
+          "status": "reviewed",
+          "sha256": "ec6db2e65fba17023475110b9bf376f80b33fa0c84fcf6ead95491f844e7b2a0"
+        },
+        {
+          "path": "packages/funnel-runtime/source/routes/route-steps.ts",
+          "status": "reviewed",
+          "sha256": "26ea10f4909a2ab200be9e108640e39d49e15f915dbb90b229e32b0b9f6ee93e"
+        },
+        {
+          "path": "packages/funnel-runtime/source/routes/route-types.ts",
+          "status": "reviewed",
+          "sha256": "5a6fc4ed9789c41f4d4341aafe3774dcc5647eba186b300c4f6837a43cb2a530"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/answers/answer-validation.test.ts",
+          "status": "reviewed",
+          "sha256": "d851dacadc1a9139e34fb758de1f63de81028c86c263d87c17d967a8136c968c"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/answers/fixture-answers.test.ts",
+          "status": "reviewed",
+          "sha256": "0fa78bfbc2780a10d24fbbfac0d94040e5e6bec176f03d893646b669425d1229"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/benchmark-measurement.test.ts",
+          "status": "reviewed",
+          "sha256": "c927db1b124dbdf1069b2a9c9b27806ebd28442540b6b256956c84674fd7ed03"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/benchmark-measurement.ts",
+          "status": "changed",
+          "sha256": "d890123263f2ce9a230047550f3930e0ddb460895f7d235fc1af28812b3cea34"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/benchmark-policy.ts",
+          "status": "reviewed",
+          "sha256": "5e5f2e148f9147683f666c16cfe4cac55d537d7545b98dfee696f46f8ace75b0"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/benchmark-report.ts",
+          "status": "changed",
+          "sha256": "f06b6d3d1ee2580a1022935745b77a4829e575f5d9148c7ae0aa2e15c77ae057"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/benchmark-types.ts",
+          "status": "reviewed",
+          "sha256": "8358c95f2d3765b52d05e3f21036b1b4265b5119ca7442ef4a19da6d6725e7ed"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/measurement-messages.ts",
+          "status": "reviewed",
+          "sha256": "89674de76fe373b3b474061d4c117424d73e5d77c7980d5486e5df4b45777b4b"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/measurement-policy.ts",
+          "status": "changed",
+          "sha256": "5a80145b0cbc5ff7fec6e7152e9a1003debe4ed6d8358e3cb24201bd9ff061fa"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/measurement-types.ts",
+          "status": "changed",
+          "sha256": "838946424bd8810ccfa6b676dd7f2cbb772eba8efba197446f9fd34f2ca84f94"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/run-benchmarks.ts",
+          "status": "reviewed",
+          "sha256": "a6eeb7b5a4a2e96aa38854d657e9dd2ce6fa6710dcf929d523be2fe05f249054"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/cases/answer-cases.ts",
+          "status": "reviewed",
+          "sha256": "29d3cbf386f2bf67640b887cea41afea81ae3871b65765dbca96a734e3822403"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/cases/benchmark-cases.ts",
+          "status": "changed",
+          "sha256": "686ac3f8fb1744e9ac0f8a0139abb3dfb2af4087f5f84c611d8c58170d013a32"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/cases/condition-cases.ts",
+          "status": "reviewed",
+          "sha256": "2503e8a771ed8df9de90bfc3936091ec93b3496562416c9f6b807816c5a5c0ca"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/cases/evaluation-cases.ts",
+          "status": "reviewed",
+          "sha256": "33a51490e15bc93f6248450779e61e010d52ee354034a1cb20ae7f20ba8fd7fb"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/cases/experiment-cases.ts",
+          "status": "reviewed",
+          "sha256": "00386c77eba958c145abfb8b2ee109cc2e81eb8a7e6bd33263d434c6773b9911"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/cases/measurement-cases.ts",
+          "status": "reviewed",
+          "sha256": "47790d2c2df2b901104c20f6d0b6d4ce208069348499d4d4f3d64f52a7f19ee9"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/cases/route-cases.ts",
+          "status": "reviewed",
+          "sha256": "ae3153cafec3da0bdf4f4e418ab461dd014deec3f085cec3debcd69ffa73075a"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/conditions/condition-evaluation.test.ts",
+          "status": "reviewed",
+          "sha256": "43cd0625e33e2ba8b3bd9279dd9de1b499c41d715c844dcac49efa9204609c06"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/evaluation/funnel-evaluation.test.ts",
+          "status": "reviewed",
+          "sha256": "8095ef45be052e9ffdc2dd60c9960b2322ad773e3eaf7adcb4931adfa8f40abd"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/experiments/experiment-resolution.test.ts",
+          "status": "reviewed",
+          "sha256": "c723df68c7c402ee8170f5d076909c0200123d002654a1b0b62149d57528420b"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/fixtures/answer-fixtures.ts",
+          "status": "reviewed",
+          "sha256": "830f7aa018334e1eec86fff7e1e70800f1ef0c2f877e909778884fe1c6fc8879"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/fixtures/benchmark-fixtures.ts",
+          "status": "changed",
+          "sha256": "516eec01e0da15beb04c6672c02e71dd521b7f9bea1a27c3f4eb08d82d4900a6"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/fixtures/evaluation-fixtures.ts",
+          "status": "reviewed",
+          "sha256": "2c0ee99a22fe1a029d6693bebd2c72de1880a67e43f42d9339ae2ea6ed2a9b7e"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/fixtures/fixture-messages.ts",
+          "status": "reviewed",
+          "sha256": "3020b319d71fdacd7543ac7173fad42237cb3deaeca2252228ffe23bf80a47d1"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/fixtures/measurement-fixtures.ts",
+          "status": "reviewed",
+          "sha256": "c1ec3ff36a40cedc27eeebf96a42b604772a7a21e85ad84257d9973860adb499"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/fixtures/runtime-fixtures.ts",
+          "status": "changed",
+          "sha256": "859a0e5aaff97aa8e32b0ff8dd82fba57f11a75f231784ff2d55e33bf8226ab6"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/results/result-resolution.test.ts",
+          "status": "reviewed",
+          "sha256": "63e63bb505dbb95e7509108cd4e3aa27bf456075bb45c7fa23885dbf49765805"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/routes/route-resolution.test.ts",
+          "status": "changed",
+          "sha256": "ccdeac2e5c0d348f6f26cf2c64fc048ef83d7649eef88528e553a97748325a7d"
+        },
+        {
+          "path": "packages/funnel-runtime/tsconfig.build.json",
+          "status": "reviewed",
+          "sha256": "c8a50f1a186d6c20242f4bd3ce7f8f85e0476ab910e531df48de7b9a768ac93b"
+        },
+        {
+          "path": "packages/funnel-runtime/tsconfig.json",
+          "status": "reviewed",
+          "sha256": "c0f04de19e273b9d21bfcbfbbaab2fa6571a55420c3c22dc25011a2092125a5d"
+        },
+        {
+          "path": "packages/funnel-runtime/vitest.config.ts",
+          "status": "reviewed",
+          "sha256": "e81250ce9c30d834f85f87b91dc8cef5197e87230b21b362e9344344aec17df8"
+        },
+        {
+          "path": "scripts/clean-build.mjs",
+          "status": "reviewed",
+          "sha256": "ee87aa66eef4851ebb184eb843a9042fe3dee2018a256e6f341e672cd89f34f0"
+        },
+        {
+          "path": "scripts/development.mjs",
+          "status": "changed",
+          "sha256": "5d074eb4ddbe6c2e775e0fe4f707deb20fe1aa1ca6a0fb7365a348c40a36204f"
+        },
+        {
+          "path": "scripts/script-messages.mjs",
+          "status": "changed",
+          "sha256": "049ce5273751234292bb2d80e9b47169c1e16a563aa18587c0acd93bdc013c50"
+        },
+        {
+          "path": "scripts/script-policy.mjs",
+          "status": "reviewed",
+          "sha256": "ed70f24cddedf130590be5de7eac0bf734c8a9be79152c2987d683d911eb0314"
+        },
+        {
+          "path": "scripts/verify-configurations.mjs",
+          "status": "changed",
+          "sha256": "581f0bbd2abf6f32167344113a582c95ee4106f0ebae6f7ef31cf32c25764d04"
+        },
+        {
+          "path": "scripts/verify-test-layout.mjs",
+          "status": "reviewed",
+          "sha256": "baf26b5b4d950a00d6f84299a485897ff476b5613371e69e236f7da0b6da0734"
+        }
+      ],
+      "reviewedFileCount": 219
     }
   ]
 }

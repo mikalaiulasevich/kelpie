@@ -1,3 +1,4 @@
+import { once } from 'es-toolkit/function';
 import { isString } from 'es-toolkit/predicate';
 import { randomUUID } from 'node:crypto';
 import type { NextFunction, Request, Response } from 'express';
@@ -11,15 +12,9 @@ export const RequestDiagnostics = {
     const method =
       DiagnosticPolicy.Methods.find((candidate) => candidate === request.method) ??
       DiagnosticPolicy.UnknownMethod;
-    let recorded = false;
     response.setHeader(DiagnosticPolicy.RequestIdentifierHeader, requestIdentifier);
 
-    const complete = (): void => {
-      if (recorded) {
-        return;
-      }
-
-      recorded = true;
+    const complete = once((): void => {
       // Express route.path is the registered template, never the incoming URL.
       const route: unknown = request.route?.path;
       Diagnostics.write({
@@ -32,7 +27,7 @@ export const RequestDiagnostics = {
         status: response.statusCode,
         durationMilliseconds: Math.round(performance.now() - started),
       });
-    };
+    });
 
     response.once('finish', complete);
     response.once('close', complete);

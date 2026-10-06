@@ -1,4 +1,5 @@
 import { isUndefined } from 'es-toolkit/predicate';
+import { omit } from 'es-toolkit/object';
 import { StepRules, type FunnelConfiguration, type SessionAnswers } from '@kelpie/contracts';
 import { RuntimeAnswers, RuntimeFixtures } from './runtime-fixtures.js';
 import { FixtureMessages } from './fixture-messages.js';
@@ -22,8 +23,7 @@ export const EvaluationFixtures = {
   },
 
   answers(teamSize: Optional<number>): SessionAnswers {
-    const answers = { ...RuntimeAnswers.complete() };
-    delete answers['team_size'];
+    const answers = omit(RuntimeAnswers.complete(), ['team_size']);
 
     return isUndefined(teamSize) ? answers : { ...answers, team_size: teamSize };
   },

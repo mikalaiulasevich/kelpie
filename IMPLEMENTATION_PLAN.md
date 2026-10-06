@@ -35,23 +35,24 @@ Revisit a decision only with a concrete requirement, failing invariant, or measu
 
 ## Agreed stack and product decisions
 
-| Area                     | Decision                                                                            |
-| ------------------------ | ----------------------------------------------------------------------------------- |
-| Backend                  | NestJS and TypeScript                                                               |
-| Frontend                 | React, Vite, and TypeScript                                                         |
-| Persistence              | Prisma and SQLite                                                                   |
-| Interface                | Tailwind CSS and shadcn/ui; restrained SaaS presentation                            |
-| Language                 | English interfaces and README; configuration locale en-AU                           |
-| Architecture             | Modular monolith in one repository                                                  |
-| Session state            | Backend stores confirmed answers, current step, version, and variant                |
-| Draft input              | Browser persistence only; backend saves on Continue                                 |
-| Navigation               | Explicit Continue on every question; accessible Back                                |
-| Hidden answers           | Retained as inactive values; excluded from active routing and results               |
-| Administration           | One administrator with password sign-in and server-side sessions                    |
-| Configuration management | JSON upload, validation, draft, explicit publication, publication history, rollback |
-| Experiment override      | Assigned only at session creation; excluded from experiment comparison by default   |
-| Synthetic traffic        | Explicitly marked and separately filterable                                         |
-| Hosting                  | Free hosting to be selected later; persistent SQLite storage is required            |
+| Area                     | Decision                                                                                            |
+| ------------------------ | --------------------------------------------------------------------------------------------------- |
+| Backend                  | NestJS and TypeScript                                                                               |
+| Runtime                  | Bun backend requested; retain Node.js/npm fallback; migration and dual-runtime verification pending |
+| Frontend                 | React, Vite, and TypeScript                                                                         |
+| Persistence              | Prisma and SQLite                                                                                   |
+| Interface                | Tailwind CSS and shadcn/ui; restrained SaaS presentation                                            |
+| Language                 | English interfaces and README; configuration locale en-AU                                           |
+| Architecture             | Modular monolith in one repository                                                                  |
+| Session state            | Backend stores confirmed answers, current step, version, and variant                                |
+| Draft input              | Browser persistence only; backend saves on Continue                                                 |
+| Navigation               | Explicit Continue on every question; accessible Back                                                |
+| Hidden answers           | Retained as inactive values; excluded from active routing and results                               |
+| Administration           | One administrator with password sign-in and server-side sessions                                    |
+| Configuration management | JSON upload, validation, draft, explicit publication, publication history, rollback                 |
+| Experiment override      | Assigned only at session creation; excluded from experiment comparison by default                   |
+| Synthetic traffic        | Explicitly marked and separately filterable                                                         |
+| Hosting                  | Free hosting to be selected later; persistent SQLite storage is required                            |
 
 GitHub Pages was requested for frontend hosting. It cannot run NestJS or persist SQLite. Prefer one origin for frontend and backend when selecting hosting; if GitHub Pages remains necessary, resolve browser cookie compatibility and domains explicitly before deployment. Do not assume unrelated-domain cookie sessions work reliably.
 

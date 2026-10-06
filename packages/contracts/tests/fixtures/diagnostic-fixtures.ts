@@ -1,15 +1,18 @@
-import { FunnelConfigurations } from '../../source/index.js';
+import { FunnelConfigurations, type FunnelConfiguration } from '../../source/index.js';
 import { ConfigurationFixtures } from './configuration-fixtures.js';
 
 export const DiagnosticFixtures = {
-  multiplePhaseFailures() {
+  multiplePhaseFailures(): FunnelConfiguration {
     const configuration = ConfigurationFixtures.valid();
 
-    const document = {
+    return {
       ...configuration,
       steps: {
         ...configuration.steps,
-        intro: { ...configuration.steps['intro'], id: 'different_identifier' },
+        intro: {
+          ...ConfigurationFixtures.informationStep(configuration),
+          id: 'different_identifier',
+        },
       },
       experiment: {
         ...configuration.experiment,
@@ -21,27 +24,39 @@ export const DiagnosticFixtures = {
       defaultResultId: 'missing_result',
       events: { ...configuration.events, baseProperties: ['unsupported_property'] },
     };
-
-    return document;
   },
 
-  excessiveSemanticFailures() {
+  excessiveSemanticFailures(): FunnelConfiguration {
     const configuration = ConfigurationFixtures.valid();
 
-    const document = {
+    return {
       ...configuration,
       resultRules: Array.from({ length: FunnelConfigurations.limits.maximumIssues + 1 }, () => ({
         resultId: 'missing_result',
         when: { answer: 'missing_answer', operator: 'eq', value: 1 },
       })),
     };
-
-    return document;
   },
 
-  pathCompatibilityFailures() {
+  eventDeclarationFailures(): FunnelConfiguration {
     const configuration = ConfigurationFixtures.valid();
 
+    return {
+      ...configuration,
+      events: {
+        ...configuration.events,
+        baseProperties: ['unsupported_first', 'event_id', 'unsupported_second'],
+        allowed: [
+          { name: 'custom_event', trigger: 'Test', properties: ['unsupported_first', 'action'] },
+          { name: 'custom_event', trigger: 'Test', properties: ['source', 'unsupported_second'] },
+          ...configuration.events.allowed.slice(2),
+        ],
+      },
+    };
+  },
+
+  pathCompatibilityFailures(): FunnelConfiguration {
+    const configuration = ConfigurationFixtures.valid();
     const numericStep = ConfigurationFixtures.numberStep(configuration);
 
     return {

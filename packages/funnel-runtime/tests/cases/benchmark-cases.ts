@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { omit } from 'es-toolkit/object';
 import {
   ConditionOperator,
   ExperimentVariant,
@@ -249,8 +250,7 @@ const BenchmarkCaseFactory = {
   branches(size: number): ReadonlyList<BenchmarkCase> {
     const hidden = BenchmarkFixtures.hiddenBranch(size);
     const { configuration, answers } = BenchmarkFixtures.funnel(size);
-    const incompleteAnswers = { ...answers };
-    delete incompleteAnswers['question_0'];
+    const incompleteAnswers = omit(answers, ['question_0']);
     const variant = ExperimentVariant.A;
 
     return [

@@ -8,6 +8,8 @@ This repository currently provides the application foundation. The complete funn
 
 Use Node.js 24 or 26 and npm 11. The repository pins npm 11.19.1 and uses npm workspaces. Node.js 24 is the intended deployment baseline; the initial foundation was verified on both versions. Subsequent refactors are verified on Node.js 24. The last recorded GitHub Actions attempt failed at startup; this is historical evidence, not a current CI status check.
 
+Bun is the requested primary backend runtime, with Node.js/npm retained for reviewers. That migration is still pending: the current startup commands execute Node.js and the database uses `@prisma/adapter-better-sqlite3`. The checked-in `bun.lock` records dependency resolution; it does not establish Bun backend compatibility.
+
 ```sh
 npm install --global npm@11.19.1
 npm ci

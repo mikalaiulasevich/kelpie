@@ -1,3 +1,4 @@
+import { isSubset } from 'es-toolkit/array';
 import { readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { applicationDirectory } from '../application/application-directory.js';
@@ -25,12 +26,10 @@ export const MigrationHistory = {
       return false;
     }
 
-    const successful = new Set(
-      migrations
-        .filter((migration) => migration.successful > 0n)
-        .map((migration) => migration.migration_name),
-    );
+    const successful = migrations
+      .filter((migration) => migration.successful > 0n)
+      .map((migration) => migration.migration_name);
 
-    return expected.every((migration) => successful.has(migration));
+    return isSubset(successful, expected);
   },
 } as const;

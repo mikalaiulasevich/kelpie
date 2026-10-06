@@ -1,4 +1,4 @@
-import { isUndefined } from 'es-toolkit/predicate';
+import { memoize } from 'es-toolkit/function';
 import { ConfigurationLimits } from '../configuration-policy.js';
 import type { ConfigurationIssue, FunnelConfiguration } from '../configuration-types.js';
 import type { InteractiveStep, SelectionStep } from '../../steps/step-types.js';
@@ -7,22 +7,12 @@ import type { InteractiveStep, SelectionStep } from '../../steps/step-types.js';
 export class ConfigurationValidationContext {
   readonly issues: ConfigurationIssue[] = [];
   readonly answerSteps = new Map<string, InteractiveStep>();
-  private readonly selectionIndexes = new Map<SelectionStep, ReadonlySet<TextOrNumber>>();
+  readonly selectionValues: ValueMapper<SelectionStep, ReadonlySet<TextOrNumber>> = memoize(
+    (step: SelectionStep): ReadonlySet<TextOrNumber> =>
+      new Set(step.input.options.map((option) => option.value)),
+  );
 
   constructor(readonly configuration: FunnelConfiguration) {}
-
-  selectionValues(step: SelectionStep): ReadonlySet<TextOrNumber> {
-    const existingValues = this.selectionIndexes.get(step);
-
-    if (!isUndefined(existingValues)) {
-      return existingValues;
-    }
-
-    const values = new Set<TextOrNumber>(step.input.options.map((option) => option.value));
-    this.selectionIndexes.set(step, values);
-
-    return values;
-  }
 
   report(path: string, message: string): void {
     if (this.issues.length < ConfigurationLimits.maximumIssues) {

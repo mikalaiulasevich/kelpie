@@ -1,3 +1,4 @@
+import { identity } from 'es-toolkit/function';
 import { isUndefined } from 'es-toolkit/predicate';
 import { match, P } from 'ts-pattern';
 
@@ -11,9 +12,7 @@ import type { StepContent } from './step-types.js';
 
 const informationContentRequirement = {
   validate: configurationSchemaCompiler.compile(informationContentSchema),
-  path(contentPath: string): string {
-    return contentPath;
-  },
+  path: identity<string>,
   message: ConfigurationMessages.InformationContentRequired,
 };
 

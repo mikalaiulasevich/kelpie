@@ -1,3 +1,4 @@
+import { isError } from 'es-toolkit/predicate';
 import { createHash } from 'node:crypto';
 import { EnvironmentMessages } from '../environment/environment-messages.js';
 import { DiagnosticPolicy, ErrorClassification } from './diagnostic-policy.js';
@@ -78,9 +79,7 @@ const ErrorDescriptions = {
 export const ErrorDiagnostics = {
   describe(error: unknown): ErrorDescription {
     try {
-      return error instanceof Error
-        ? ErrorDescriptions.known(error)
-        : ErrorDescriptions.unknown('');
+      return isError(error) ? ErrorDescriptions.known(error) : ErrorDescriptions.unknown('');
     } catch {
       // Error subclasses may override accessors; diagnostic failures must not escape.
       return ErrorDescriptions.unknown(DiagnosticPolicy.UnreadableErrorFingerprint);
