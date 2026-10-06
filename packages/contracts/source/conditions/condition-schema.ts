@@ -1,9 +1,9 @@
-import { ConfigurationFormat } from './configuration-format.js';
+import { ConfigurationFormat } from '../configurations/configuration-format.js';
 import { Type } from 'typebox';
 
-import { ConfigurationSchemaPolicy } from './configuration-policy.js';
-import { ConditionOperator } from './domain-values.js';
-import { identifierSchema } from './schema-primitives.js';
+import { ConfigurationSchemaPolicy } from '../configurations/configuration-policy.js';
+import { ConditionOperator } from '../shared/domain-values.js';
+import { identifierSchema } from '../shared/schema-primitives.js';
 
 const conditionValueSchema = Type.Union([
   Type.String(ConfigurationSchemaPolicy.conditionText),

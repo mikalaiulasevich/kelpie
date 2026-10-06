@@ -1,8 +1,8 @@
 import { Type } from 'typebox';
 
-import { ConfigurationSchemaPolicy } from './configuration-policy.js';
+import { ConfigurationSchemaPolicy } from '../configurations/configuration-policy.js';
 import { conditionReferenceSchema } from '../conditions/condition-schema.js';
-import { identifierSchema, textSchema } from './schema-primitives.js';
+import { identifierSchema, textSchema } from '../shared/schema-primitives.js';
 
 export const primaryActionSchema = Type.Object(
   {

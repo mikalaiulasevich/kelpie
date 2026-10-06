@@ -1,6 +1,6 @@
 import { match, P } from 'ts-pattern';
 
-import type { InteractiveStep, SelectionStep } from './step-types.js';
+import type { InteractiveStep, SelectionStep } from '../steps/step-types.js';
 import { ConfigurationMessages } from '../configurations/configuration-messages.js';
 import type { ConfigurationValidationContext } from '../configurations/validation/configuration-validation-context.js';
 import { ConditionRules } from './condition-rules.js';

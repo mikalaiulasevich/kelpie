@@ -5,7 +5,10 @@ import { DatabasePaths } from '../database/database-paths.js';
 import { ApplicationMessages } from './application-messages.js';
 
 const moduleDirectory = dirname(fileURLToPath(import.meta.url));
-const candidateDirectories = [resolve(moduleDirectory, '../..'), resolve(moduleDirectory, '../../..')];
+const candidateDirectories = [
+  resolve(moduleDirectory, '../..'),
+  resolve(moduleDirectory, '../../..'),
+];
 const resolvedDirectory = candidateDirectories.find((directory) =>
   existsSync(resolve(directory, DatabasePaths.Schema)),
 );

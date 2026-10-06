@@ -14,7 +14,7 @@ export type {
   EqualCondition,
   IncludedCondition,
   MinimumCondition,
-} from './condition-types.js';
+} from './conditions/condition-types.js';
 
 export type {
   AnswerValidation,
@@ -32,9 +32,9 @@ export type {
   SingleSelectionStep,
   StepAnswer,
   StepContent,
-} from './step-types.js';
+} from './steps/step-types.js';
 
-export type { FunnelResult, PrimaryAction, ResultOverride, ResultRule } from './result-types.js';
+export type { FunnelResult, PrimaryAction, ResultOverride, ResultRule } from './results/result-types.js';
 
 export type {
   ConfigurationIssue,
@@ -48,11 +48,11 @@ export type {
   SessionConfiguration,
   StepOverride,
   VariantConfiguration,
-} from './configuration-types.js';
+} from './configurations/configuration-types.js';
 
-export { DictionaryAccess } from './dictionary.js';
-export type { SelectionLimits } from './step-rules.js';
+export { DictionaryAccess } from './shared/dictionary.js';
+export type { SelectionLimits } from './steps/step-rules.js';
 
-export { FunnelConfigurations } from './funnel-configurations.js';
-export { StepRules } from './step-rules.js';
-export { ConfigurationDocumentBounds } from './configuration-document-bounds.js';
+export { FunnelConfigurations } from './configurations/funnel-configurations.js';
+export { StepRules } from './steps/step-rules.js';
+export { ConfigurationDocumentBounds } from './configurations/validation/configuration-document-bounds.js';

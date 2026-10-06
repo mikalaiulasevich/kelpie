@@ -1,6 +1,6 @@
 import { configurationLimits } from '../configuration-policy.js';
 import type { ConfigurationIssue, FunnelConfiguration } from '../configuration-types.js';
-import type { InteractiveStep } from './step-types.js';
+import type { InteractiveStep } from '../../steps/step-types.js';
 
 /** One validation owns its indexes and ordered, bounded diagnostics. */
 export class ConfigurationValidationContext {

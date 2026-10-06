@@ -1,7 +1,7 @@
 import { ConfigurationPaths } from '../configurations/configuration-paths.js';
 import { ConfigurationMessages } from '../configurations/configuration-messages.js';
 import type { ConfigurationValidationContext } from '../configurations/validation/configuration-validation-context.js';
-import { ConditionValidation } from './condition-validation.js';
+import { ConditionValidation } from '../conditions/condition-validation.js';
 
 export const ResultValidation = {
   validate(context: ConfigurationValidationContext): void {

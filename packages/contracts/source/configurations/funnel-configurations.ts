@@ -1,10 +1,10 @@
 import { ConfigurationPaths } from './configuration-paths.js';
 import { ConfigurationMessages } from './configuration-messages.js';
-import { configurationSchemaCompiler } from './configuration-schema-compiler.js';
+import { configurationSchemaCompiler } from '../shared/configuration-schema-compiler.js';
 import type { ConfigurationValidationResult, FunnelConfiguration } from './configuration-types.js';
-import { ConfigurationDocumentBounds } from './configuration-document-bounds.js';
+import { ConfigurationDocumentBounds } from './validation/configuration-document-bounds.js';
 import { configurationLimits } from './configuration-policy.js';
-import { ConfigurationSemantics } from './configuration-semantic-validation.js';
+import { ConfigurationSemantics } from './validation/configuration-semantic-validation.js';
 import { funnelConfigurationSchema } from './configuration-schema.js';
 
 const structuralValidator =

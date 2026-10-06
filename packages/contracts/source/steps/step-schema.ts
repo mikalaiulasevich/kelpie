@@ -1,7 +1,7 @@
-import { ConfigurationFormat } from './configuration-format.js';
+import { ConfigurationFormat } from '../configurations/configuration-format.js';
 import { Type } from 'typebox';
 
-import { ConfigurationSchemaPolicy } from './configuration-policy.js';
+import { ConfigurationSchemaPolicy } from '../configurations/configuration-policy.js';
 import { conditionReferenceSchema } from '../conditions/condition-schema.js';
 import { StepType } from '../shared/domain-values.js';
 import {
@@ -9,7 +9,7 @@ import {
   identifierSchema,
   nonBlankTextSchema,
   textSchema,
-} from './schema-primitives.js';
+} from '../shared/schema-primitives.js';
 
 export const stepContentSchema = Type.Partial(
   Type.Object(

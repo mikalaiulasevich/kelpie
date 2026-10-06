@@ -1,13 +1,13 @@
 import { ConfigurationPaths } from '../configurations/configuration-paths.js';
-import { ConditionValidation } from './condition-validation.js';
+import { ConditionValidation } from '../conditions/condition-validation.js';
 import { ConfigurationMessages } from '../configurations/configuration-messages.js';
-import { ConfigurationSchemaPolicy } from './configuration-policy.js';
-import type { ConfigurationValidationContext } from './configuration-validation-context.js';
-import type { VariantConfiguration } from './configuration-types.js';
-import { DictionaryAccess } from './dictionary.js';
+import { ConfigurationSchemaPolicy } from '../configurations/configuration-policy.js';
+import type { ConfigurationValidationContext } from '../configurations/validation/configuration-validation-context.js';
+import type { VariantConfiguration } from '../configurations/configuration-types.js';
+import { DictionaryAccess } from '../shared/dictionary.js';
 import { StepType } from '../shared/domain-values.js';
-import { StepContentValidation } from './step-content-validation.js';
-import type { FunnelStep } from './step-types.js';
+import { StepContentValidation } from '../steps/step-content-validation.js';
+import type { FunnelStep } from '../steps/step-types.js';
 
 /** Answer availability and result counts belong to one variant traversal. */
 class VariantSequenceValidation {

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { ConfigurationDocumentBounds } from '../source/configuration-document-bounds.js';
-import { ConfigurationMessages } from '../source/configuration-messages.js';
-import { configurationLimits, DocumentAccountingPolicy } from '../source/configuration-policy.js';
+import { ConfigurationDocumentBounds } from '../source/configurations/validation/configuration-document-bounds.js';
+import { ConfigurationMessages } from '../source/configurations/configuration-messages.js';
+import { configurationLimits, DocumentAccountingPolicy } from '../source/configurations/configuration-policy.js';
 
 describe('configuration document bounds', () => {
   it.each([undefined, () => undefined, Symbol('value'), BigInt(1)])(

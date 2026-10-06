@@ -11,8 +11,8 @@ import type {
   stepOverrideSchema,
   variantConfigurationSchema,
 } from './configuration-schema.js';
-import type { ResultRule } from './result-types.js';
-import type { FunnelStep } from './step-types.js';
+import type { ResultRule } from '../results/result-types.js';
+import type { FunnelStep } from '../steps/step-types.js';
 
 export type StepOverride = DeepReadonly<Static<typeof stepOverrideSchema>>;
 export type VariantConfiguration = DeepReadonly<Static<typeof variantConfigurationSchema>>;
