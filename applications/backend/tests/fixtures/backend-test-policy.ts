@@ -1,9 +1,9 @@
 export const BackendTestPolicy = {
-  timeoutMilliseconds: 15_000,
-  temporaryDirectoryPrefix: 'kelpie-backend-',
-  databaseFilename: 'integration.sqlite',
-  host: '127.0.0.1',
-  ephemeralPort: 0,
-  packageManager: 'npm',
-  migrationArguments: ['run', 'database:migrate'],
+  TimeoutMilliseconds: 15_000,
+  TemporaryDirectoryPrefix: 'kelpie-backend-',
+  DatabaseFilename: 'integration.sqlite',
+  Host: '127.0.0.1',
+  EphemeralPort: 0,
+  PackageManager: 'npm',
+  MigrationArguments: ['run', 'database:migrate'],
 } as const;

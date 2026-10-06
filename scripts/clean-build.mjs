@@ -6,10 +6,10 @@ import { fileURLToPath } from 'node:url';
 import { BuildPolicy } from './script-policy.mjs';
 
 const repositoryDirectory = fileURLToPath(
-  new URL(BuildPolicy.repositoryRelativePath, import.meta.url),
+  new URL(BuildPolicy.RepositoryRelativePath, import.meta.url),
 );
-const outputDirectory = resolve(BuildPolicy.outputDirectoryName);
-const allowedDirectories = BuildPolicy.outputDirectories.map((directory) =>
+const outputDirectory = resolve(BuildPolicy.OutputDirectoryName);
+const allowedDirectories = BuildPolicy.OutputDirectories.map((directory) =>
   resolve(repositoryDirectory, directory),
 );
 assert.ok(allowedDirectories.includes(outputDirectory), BuildMessages.UnsafeCleanup);

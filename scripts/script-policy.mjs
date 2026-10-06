@@ -1,29 +1,29 @@
 export const DevelopmentPolicy = /** @type {const} */ ({
-  workspaces: Object.freeze(['@kelpie/backend', '@kelpie/frontend']),
-  shutdownTimeoutMilliseconds: 5_000,
-  windowsPlatform: 'win32',
-  missingProcessCode: 'ESRCH',
-  gracefulSignal: /** @type {const} */ ('SIGTERM'),
-  forcedSignal: /** @type {const} */ ('SIGKILL'),
-  interruptSignal: /** @type {const} */ ('SIGINT'),
-  failureExitCode: 1,
-  interruptExitCode: 130,
-  terminationExitCode: 143,
+  Workspaces: Object.freeze(['@kelpie/backend', '@kelpie/frontend']),
+  ShutdownTimeoutMilliseconds: 5_000,
+  WindowsPlatform: 'win32',
+  MissingProcessCode: 'ESRCH',
+  GracefulSignal: /** @type {const} */ ('SIGTERM'),
+  ForcedSignal: /** @type {const} */ ('SIGKILL'),
+  InterruptSignal: /** @type {const} */ ('SIGINT'),
+  FailureExitCode: 1,
+  InterruptExitCode: 130,
+  TerminationExitCode: 143,
 });
 
 export const BenchmarkPolicy = /** @type {const} */ ({
-  complianceOption: 'compliance',
-  warmupIterations: 1_000,
-  samples: 7,
-  configurationIterations: 1_000,
-  runtimeIterations: 10_000,
-  decimalPlaces: 3,
+  ComplianceOption: 'compliance',
+  WarmupIterations: 1_000,
+  Samples: 7,
+  ConfigurationIterations: 1_000,
+  RuntimeIterations: 10_000,
+  DecimalPlaces: 3,
 });
 
 export const BuildPolicy = /** @type {const} */ ({
-  repositoryRelativePath: '../',
-  outputDirectoryName: 'distribution',
-  outputDirectories: Object.freeze([
+  RepositoryRelativePath: '../',
+  OutputDirectoryName: 'distribution',
+  OutputDirectories: Object.freeze([
     'packages/contracts/distribution',
     'packages/funnel-runtime/distribution',
     'applications/backend/distribution',
@@ -31,12 +31,12 @@ export const BuildPolicy = /** @type {const} */ ({
 });
 
 export const ConfigurationFiles = /** @type {const} */ ({
-  versions: Object.freeze([1, 2, 3]),
-  directory: '../configurations/',
-  manifestName: 'checksums.json',
-  textEncoding: /** @type {const} */ ('utf8'),
-  checksumAlgorithm: 'sha256',
-  checksumEncoding: /** @type {const} */ ('hex'),
+  Versions: Object.freeze([1, 2, 3]),
+  Directory: '../configurations/',
+  ManifestName: 'checksums.json',
+  TextEncoding: /** @type {const} */ ('utf8'),
+  ChecksumAlgorithm: 'sha256',
+  ChecksumEncoding: /** @type {const} */ ('hex'),
   /** @param {number} version */
   fileName(version) {
     return `funnel-v${version}.json`;

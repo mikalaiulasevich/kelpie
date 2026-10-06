@@ -4,9 +4,9 @@
 
 Review covers the application scaffold, configuration contracts/runtime, initial database schema, health endpoints, development startup, and dependency selection. Complete funnel behavior and public production deployment are outside this foundation milestone.
 
-## Whole-codebase review, October 6
+## Earlier whole-codebase review, October 6
 
-Reviewed authored source, tests, type declarations, package/compiler configuration, Prisma schema/migration, scripts, workflow, and current documentation. Final inventories contain 35 contracts files, 24 runtime files, 32 backend files, 20 frontend files, and four scripts, plus root tooling/documentation. Generated code and dependencies were not manually polished; original JSON fixtures remain checksum-protected. Independent domain reviews were integrated and the resulting changes inspected together.
+Reviewed authored source, tests, type declarations, package/compiler configuration, Prisma schema/migration, scripts, workflow, and current documentation. At that milestone, inventories contained 35 contracts files, 24 runtime files, 32 backend files, 20 frontend files, and four scripts, plus root tooling/documentation. Generated code and dependencies were not manually polished; original JSON fixtures remain checksum-protected. Independent domain reviews were integrated and the resulting changes inspected together.
 
 | Finding                                                                   | Resolution                                                                                  |
 | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
@@ -20,7 +20,7 @@ Reviewed authored source, tests, type declarations, package/compiler configurati
 | Vite defaults were duplicated in the npm command                          | Development command uses the existing Vite configuration                                    |
 | Documentation mixed initial results with current state                    | Historical evidence labeled; completed tooling decisions updated                            |
 
-The full Node.js 24.16.0 verification passes 145 tests (52 backend, 4 frontend, 56 contracts, 33 runtime), strict TS/JS checks, lint, formatting, builds, fixture checksums and Prisma validation. A 584-input differential comparison preserves configuration acceptance and exact diagnostic order/path/text. A local development-launcher smoke check confirms SIGTERM cleanup and sibling termination on failure, including exit status. Windows process-tree shutdown was not exercised.
+At that milestone, full Node.js 24.16.0 verification passed 145 tests (52 backend, 4 frontend, 56 contracts, 33 runtime), strict TS/JS checks, lint, formatting, builds, fixture checksums and Prisma validation. A 584-input differential comparison preserves configuration acceptance and exact diagnostic order/path/text. A local development-launcher smoke check confirms SIGTERM cleanup and sibling termination on failure, including exit status. Windows process-tree shutdown was not exercised.
 
 The same 12-scenario benchmark on Apple M4 reports median samples of 186.154 ms/1,000 validations, 88.212 ms/10,000 routes, and 202.975 ms/10,000 results. Typed benchmark assertions add small work inside measured callbacks, so these remain approximate local comparisons, not an optimization claim. Frontend JavaScript is 82.34 kB gzip (previously 81.92 kB); exhaustive presentation matching adds a small bundle cost. No new dependency was added.
 

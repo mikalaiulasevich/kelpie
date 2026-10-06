@@ -16,10 +16,10 @@ const DevelopmentProcesses = {
     shuttingDown = true;
     process.exitCode = exitCode;
 
-    DevelopmentProcesses.signal(DevelopmentPolicy.gracefulSignal);
+    DevelopmentProcesses.signal(DevelopmentPolicy.GracefulSignal);
     const shutdownDeadline = setTimeout(
-      () => DevelopmentProcesses.signal(DevelopmentPolicy.forcedSignal),
-      DevelopmentPolicy.shutdownTimeoutMilliseconds,
+      () => DevelopmentProcesses.signal(DevelopmentPolicy.ForcedSignal),
+      DevelopmentPolicy.ShutdownTimeoutMilliseconds,
     );
     shutdownDeadline.unref();
   },
@@ -29,7 +29,7 @@ const DevelopmentProcesses = {
     return (
       error instanceof Error &&
       'code' in error &&
-      error.code === DevelopmentPolicy.missingProcessCode
+      error.code === DevelopmentPolicy.MissingProcessCode
     );
   },
 
@@ -37,7 +37,7 @@ const DevelopmentProcesses = {
   signal(signal) {
     for (const childProcess of childProcesses) {
       try {
-        if (process.platform === DevelopmentPolicy.windowsPlatform) {
+        if (process.platform === DevelopmentPolicy.WindowsPlatform) {
           childProcess.kill(signal);
         } else if (childProcess.pid !== undefined) {
           process.kill(-childProcess.pid, signal);
@@ -51,28 +51,28 @@ const DevelopmentProcesses = {
   },
 };
 
-for (const workspaceName of DevelopmentPolicy.workspaces) {
+for (const workspaceName of DevelopmentPolicy.Workspaces) {
   const childProcess = spawn('npm', ['run', 'development', `--workspace=${workspaceName}`], {
     stdio: 'inherit',
-    detached: process.platform !== DevelopmentPolicy.windowsPlatform,
-    shell: process.platform === DevelopmentPolicy.windowsPlatform,
+    detached: process.platform !== DevelopmentPolicy.WindowsPlatform,
+    shell: process.platform === DevelopmentPolicy.WindowsPlatform,
   });
   childProcesses.add(childProcess);
   childProcess.on('error', (error) => {
     console.error(DevelopmentMessages.startFailed(workspaceName), error.message);
-    DevelopmentProcesses.stop(DevelopmentPolicy.failureExitCode);
+    DevelopmentProcesses.stop(DevelopmentPolicy.FailureExitCode);
   });
   childProcess.on('exit', (exitCode) => {
     childProcesses.delete(childProcess);
     if (!shuttingDown) {
-      DevelopmentProcesses.stop(exitCode ?? DevelopmentPolicy.failureExitCode);
+      DevelopmentProcesses.stop(exitCode ?? DevelopmentPolicy.FailureExitCode);
     }
   });
 }
 
-process.once(DevelopmentPolicy.interruptSignal, () =>
-  DevelopmentProcesses.stop(DevelopmentPolicy.interruptExitCode),
+process.once(DevelopmentPolicy.InterruptSignal, () =>
+  DevelopmentProcesses.stop(DevelopmentPolicy.InterruptExitCode),
 );
-process.once(DevelopmentPolicy.gracefulSignal, () =>
-  DevelopmentProcesses.stop(DevelopmentPolicy.terminationExitCode),
+process.once(DevelopmentPolicy.GracefulSignal, () =>
+  DevelopmentProcesses.stop(DevelopmentPolicy.TerminationExitCode),
 );

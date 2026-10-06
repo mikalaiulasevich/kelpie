@@ -1,5 +1,9 @@
 import { vi, type Mock } from 'vitest';
 
+const ServiceReadinessFixtureMessages = {
+  CancellationRequired: 'Readiness requests must supply a cancellation signal.',
+} as const;
+
 export const ServiceReadinessFixture = {
   response(body: unknown, status = 200): Mock<typeof globalThis.fetch> {
     const fetch = vi
@@ -18,7 +22,7 @@ export const ServiceReadinessFixture = {
           new Promise<Response>((_resolve, reject) => {
             const signal = options.signal;
             if (signal === undefined || signal === null) {
-              throw new Error('Readiness requests must supply a cancellation signal.');
+              throw new Error(ServiceReadinessFixtureMessages.CancellationRequired);
             }
 
             signal.throwIfAborted();

@@ -15,6 +15,7 @@ import { SQLitePolicy } from '../../source/database/sqlite-policy.js';
 import { BackendTestPolicy } from './backend-test-policy.js';
 
 const BackendFixtureMessages = {
+  SetupCleanupFailed: 'Backend fixture setup failed and cleanup also failed.',
   Closed: 'The backend fixture is closed.',
   UnsupportedServer: 'Test HTTP server adapter is unsupported.',
   AddressUnavailable: 'Test server has no network address.',
@@ -69,14 +70,14 @@ export class BackendApplicationFixture {
 
   private async start(): Promise<void> {
     this.temporaryDirectory = await mkdtemp(
-      resolve(tmpdir(), BackendTestPolicy.temporaryDirectoryPrefix),
+      resolve(tmpdir(), BackendTestPolicy.TemporaryDirectoryPrefix),
     );
-    const databaseUrl = `${SQLitePolicy.FileUrlPrefix}${resolve(this.temporaryDirectory, BackendTestPolicy.databaseFilename)}`;
+    const databaseUrl = `${SQLitePolicy.FileUrlPrefix}${resolve(this.temporaryDirectory, BackendTestPolicy.DatabaseFilename)}`;
 
     try {
       await Processes.execute(
-        BackendTestPolicy.packageManager,
-        [...BackendTestPolicy.migrationArguments],
+        BackendTestPolicy.PackageManager,
+        [...BackendTestPolicy.MigrationArguments],
         {
           cwd: applicationDirectory,
           env: {
@@ -84,15 +85,24 @@ export class BackendApplicationFixture {
             [EnvironmentFields.DatabaseUrl]: databaseUrl,
             [EnvironmentFields.Mode]: ApplicationMode.Test,
           },
-          timeout: BackendTestPolicy.timeoutMilliseconds,
+          timeout: BackendTestPolicy.TimeoutMilliseconds,
         },
       );
       this.application = await this.createApplication(databaseUrl);
-      await this.application.listen(BackendTestPolicy.ephemeralPort, BackendTestPolicy.host);
+      await this.application.listen(BackendTestPolicy.EphemeralPort, BackendTestPolicy.Host);
       this.baseUrl = this.resolveAddress();
-    } catch (error) {
-      await this.close();
-      throw error;
+    } catch (setupError) {
+      try {
+        await this.close();
+      } catch (cleanupError) {
+        throw new AggregateError(
+          [setupError, cleanupError],
+          BackendFixtureMessages.SetupCleanupFailed,
+          { cause: cleanupError },
+        );
+      }
+
+      throw setupError;
     }
   }
 
@@ -118,6 +128,6 @@ export class BackendApplicationFixture {
       throw new Error(BackendFixtureMessages.AddressUnavailable);
     }
 
-    return `http://${BackendTestPolicy.host}:${address.port}`;
+    return `http://${BackendTestPolicy.Host}:${address.port}`;
   }
 }

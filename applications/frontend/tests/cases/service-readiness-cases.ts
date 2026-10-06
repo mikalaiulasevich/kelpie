@@ -17,6 +17,6 @@ export const ServiceReadinessCases = {
 
 /** Independent wire/timing expectations: do not import the implementation policy here. */
 export const ServiceReadinessExpectations = {
-  endpoint: '/api/health/ready',
-  timeoutMilliseconds: 5_000,
+  Endpoint: '/api/health/ready',
+  TimeoutMilliseconds: 5_000,
 } as const;

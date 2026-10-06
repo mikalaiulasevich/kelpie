@@ -9,14 +9,14 @@ import { FunnelRuntime } from '@kelpie/funnel-runtime';
 
 /** @type {import('@kelpie/contracts').FunnelConfiguration[]} */
 const configurations = [];
-for (const version of ConfigurationFiles.versions) {
+for (const version of ConfigurationFiles.Versions) {
   const document = JSON.parse(
     await readFile(
       new URL(
         ConfigurationFiles.fileName(version),
-        new URL(ConfigurationFiles.directory, import.meta.url),
+        new URL(ConfigurationFiles.Directory, import.meta.url),
       ),
-      ConfigurationFiles.textEncoding,
+      ConfigurationFiles.TextEncoding,
     ),
   );
   const validation = FunnelConfigurations.validate(document);
@@ -44,7 +44,7 @@ const BenchmarkFixtures = {
         answers[step.input.name] = firstOption.value;
       } else if (step.type === StepType.MultiSelect) {
         const complianceOption = step.input.options.find(
-          (option) => option.value === BenchmarkPolicy.complianceOption,
+          (option) => option.value === BenchmarkPolicy.ComplianceOption,
         );
         const selectedOption =
           includeCompliance && complianceOption ? complianceOption : step.input.options[0];
@@ -74,12 +74,12 @@ const BenchmarkMeasurement = {
    * @param {(position: number) => void} operation
    */
   measure(name, iterations, operation) {
-    for (let position = 0; position < BenchmarkPolicy.warmupIterations; position += 1) {
+    for (let position = 0; position < BenchmarkPolicy.WarmupIterations; position += 1) {
       operation(position);
     }
 
     const durationSamples = [];
-    for (let sample = 0; sample < BenchmarkPolicy.samples; sample += 1) {
+    for (let sample = 0; sample < BenchmarkPolicy.Samples; sample += 1) {
       const startedAt = performance.now();
       for (let position = 0; position < iterations; position += 1) {
         operation(position);
@@ -98,8 +98,8 @@ const BenchmarkMeasurement = {
       name,
       iterationsPerSample: iterations,
       samples: durationSamples.length,
-      medianSampleMilliseconds: Number(median.toFixed(BenchmarkPolicy.decimalPlaces)),
-      maximumSampleMilliseconds: Number(maximum.toFixed(BenchmarkPolicy.decimalPlaces)),
+      medianSampleMilliseconds: Number(median.toFixed(BenchmarkPolicy.DecimalPlaces)),
+      maximumSampleMilliseconds: Number(maximum.toFixed(BenchmarkPolicy.DecimalPlaces)),
     };
   },
 };
@@ -107,7 +107,7 @@ const BenchmarkMeasurement = {
 const results = [
   BenchmarkMeasurement.measure(
     'configuration validation',
-    BenchmarkPolicy.configurationIterations,
+    BenchmarkPolicy.ConfigurationIterations,
     (position) => {
       const validation = FunnelConfigurations.validate(
         configurations[position % configurations.length],
@@ -119,7 +119,7 @@ const results = [
   ),
   BenchmarkMeasurement.measure(
     'route resolution',
-    BenchmarkPolicy.runtimeIterations,
+    BenchmarkPolicy.RuntimeIterations,
     (position) => {
       const scenario = scenarios[position % scenarios.length];
       assert.ok(scenario, BenchmarkMessages.MissingScenarios);
@@ -135,7 +135,7 @@ const results = [
   ),
   BenchmarkMeasurement.measure(
     'result resolution',
-    BenchmarkPolicy.runtimeIterations,
+    BenchmarkPolicy.RuntimeIterations,
     (position) => {
       const scenario = scenarios[position % scenarios.length];
       assert.ok(scenario, BenchmarkMessages.MissingScenarios);

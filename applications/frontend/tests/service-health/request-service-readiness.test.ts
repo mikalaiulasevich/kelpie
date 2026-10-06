@@ -17,7 +17,7 @@ describe('service readiness', () => {
     await expect(ServiceReadiness.request(new AbortController().signal)).resolves.toBeUndefined();
 
     expect(fetch).toHaveBeenCalledWith(
-      ServiceReadinessExpectations.endpoint,
+      ServiceReadinessExpectations.Endpoint,
       expect.objectContaining({ cache: 'no-store', credentials: 'same-origin' }),
     );
   });
@@ -38,7 +38,7 @@ describe('service readiness', () => {
       ServiceReadiness.request(new AbortController().signal),
     ).rejects.toThrow('timed out');
 
-    await vi.advanceTimersByTimeAsync(ServiceReadinessExpectations.timeoutMilliseconds);
+    await vi.advanceTimersByTimeAsync(ServiceReadinessExpectations.TimeoutMilliseconds);
     await expectation;
 
     expect(vi.getTimerCount()).toBe(0);

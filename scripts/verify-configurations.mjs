@@ -3,15 +3,15 @@ import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { ConfigurationFiles } from './script-policy.mjs';
 
-const configurationsDirectory = new URL(ConfigurationFiles.directory, import.meta.url);
+const configurationsDirectory = new URL(ConfigurationFiles.Directory, import.meta.url);
 const manifest = JSON.parse(
   await readFile(
-    new URL(ConfigurationFiles.manifestName, configurationsDirectory),
-    ConfigurationFiles.textEncoding,
+    new URL(ConfigurationFiles.ManifestName, configurationsDirectory),
+    ConfigurationFiles.TextEncoding,
   ),
 );
 
-const expectedNames = new Set(ConfigurationFiles.versions.map(ConfigurationFiles.fileName));
+const expectedNames = new Set(ConfigurationFiles.Versions.map(ConfigurationFiles.fileName));
 
 for (const [fileName, expectedChecksum] of Object.entries(manifest)) {
   if (!expectedNames.has(fileName)) {
@@ -19,14 +19,14 @@ for (const [fileName, expectedChecksum] of Object.entries(manifest)) {
   }
 
   const contents = await readFile(new URL(fileName, configurationsDirectory));
-  const actualChecksum = createHash(ConfigurationFiles.checksumAlgorithm)
+  const actualChecksum = createHash(ConfigurationFiles.ChecksumAlgorithm)
     .update(contents)
-    .digest(ConfigurationFiles.checksumEncoding);
+    .digest(ConfigurationFiles.ChecksumEncoding);
   if (actualChecksum !== expectedChecksum) {
     throw new Error(ConfigurationIntegrityMessages.changedContents(fileName));
   }
 
-  JSON.parse(contents.toString(ConfigurationFiles.textEncoding));
+  JSON.parse(contents.toString(ConfigurationFiles.TextEncoding));
   console.info(`${fileName}: original checksum verified`);
 }
 

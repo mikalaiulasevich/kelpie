@@ -8,11 +8,11 @@ datasource database {
 }
 
 model Funnel {
-  identifier              String         @id
-  activeVersionIdentifier String?        @unique
-  revision                Int            @default(0)
-  createdAt               DateTime       @default(now())
-  activeVersion           FunnelVersion? @relation("ActiveVersion", fields: [identifier, activeVersionIdentifier], references: [funnelIdentifier, identifier], onDelete: Restrict, onUpdate: Restrict)
+  identifier              String          @id
+  activeVersionIdentifier String?         @unique
+  revision                Int             @default(0)
+  createdAt               DateTime        @default(now())
+  activeVersion           FunnelVersion?  @relation("ActiveVersion", fields: [identifier, activeVersionIdentifier], references: [funnelIdentifier, identifier], onDelete: Restrict, onUpdate: Restrict)
   versions                FunnelVersion[] @relation("FunnelVersions")
   publications            Publication[]
 
@@ -20,17 +20,17 @@ model Funnel {
 }
 
 model FunnelVersion {
-  identifier       String        @id @default(uuid())
-  funnelIdentifier String
-  version          Int
-  schemaVersion    String
-  document         Json
-  checksum         String
-  createdAt        DateTime      @default(now())
-  funnel           Funnel        @relation("FunnelVersions", fields: [funnelIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
-  activeFor        Funnel?       @relation("ActiveVersion")
-  sessions         Session[]
-  targetPublications Publication[] @relation("TargetVersion")
+  identifier           String        @id @default(uuid())
+  funnelIdentifier     String
+  version              Int
+  schemaVersion        String
+  document             Json
+  checksum             String
+  createdAt            DateTime      @default(now())
+  funnel               Funnel        @relation("FunnelVersions", fields: [funnelIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
+  activeFor            Funnel?       @relation("ActiveVersion")
+  sessions             Session[]
+  targetPublications   Publication[] @relation("TargetVersion")
   previousPublications Publication[] @relation("PreviousVersion")
 
   @@unique([funnelIdentifier, version])
@@ -38,41 +38,41 @@ model FunnelVersion {
 }
 
 model Publication {
-  identifier                String        @id @default(uuid())
-  operationIdentifier       String        @unique
+  identifier                String         @id @default(uuid())
+  operationIdentifier       String         @unique
   requestFingerprint        String
   action                    String
   funnelIdentifier          String
   targetVersionIdentifier   String
   previousVersionIdentifier String?
   administratorIdentifier   String
-  createdAt                 DateTime      @default(now())
-  funnel                    Funnel        @relation(fields: [funnelIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
-  targetVersion             FunnelVersion @relation("TargetVersion", fields: [funnelIdentifier, targetVersionIdentifier], references: [funnelIdentifier, identifier], onDelete: Restrict, onUpdate: Restrict)
+  createdAt                 DateTime       @default(now())
+  funnel                    Funnel         @relation(fields: [funnelIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
+  targetVersion             FunnelVersion  @relation("TargetVersion", fields: [funnelIdentifier, targetVersionIdentifier], references: [funnelIdentifier, identifier], onDelete: Restrict, onUpdate: Restrict)
   previousVersion           FunnelVersion? @relation("PreviousVersion", fields: [funnelIdentifier, previousVersionIdentifier], references: [funnelIdentifier, identifier], onDelete: Restrict, onUpdate: Restrict)
-  administrator             Administrator @relation(fields: [administratorIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
+  administrator             Administrator  @relation(fields: [administratorIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
 
   @@index([funnelIdentifier, createdAt])
 }
 
 model Session {
-  identifier                String          @id @default(uuid())
-  accessTokenHash            String?         @unique
-  versionIdentifier         String
-  experimentIdentifier      String
-  variant                   String
-  assignmentSource          String
-  trafficOrigin             String
-  acquisitionParameters     Json
-  campaign                  String?
-  currentStepIdentifier     String
-  revision                  Int             @default(0)
-  createdAt                 DateTime        @default(now())
-  expiresAt                 DateTime
-  version                   FunnelVersion   @relation(fields: [versionIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
-  answers                   SessionAnswer[]
-  operations                SessionOperation[]
-  events                    Event[]
+  identifier            String             @id @default(uuid())
+  accessTokenHash       String?            @unique
+  versionIdentifier     String
+  experimentIdentifier  String
+  variant               String
+  assignmentSource      String
+  trafficOrigin         String
+  acquisitionParameters Json
+  campaign              String?
+  currentStepIdentifier String
+  revision              Int                @default(0)
+  createdAt             DateTime           @default(now())
+  expiresAt             DateTime
+  version               FunnelVersion      @relation(fields: [versionIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
+  answers               SessionAnswer[]
+  operations            SessionOperation[]
+  events                Event[]
 
   @@index([versionIdentifier, variant, createdAt])
   @@index([campaign, createdAt])
@@ -85,18 +85,18 @@ model SessionAnswer {
   stepIdentifier    String
   value             Json
   updatedAt         DateTime @updatedAt
-  session           Session @relation(fields: [sessionIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
+  session           Session  @relation(fields: [sessionIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
 
   @@id([sessionIdentifier, stepIdentifier])
 }
 
 model SessionOperation {
-  operationIdentifier String  @id
+  operationIdentifier String   @id
   sessionIdentifier   String
   requestFingerprint  String
   response            Json
   createdAt           DateTime @default(now())
-  session             Session @relation(fields: [sessionIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
+  session             Session  @relation(fields: [sessionIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
 
   @@index([sessionIdentifier, createdAt])
 }
@@ -111,7 +111,7 @@ model Event {
   serverTimestamp    DateTime @default(now())
   stepIdentifier     String?
   properties         Json
-  session            Session @relation(fields: [sessionIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
+  session            Session  @relation(fields: [sessionIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
 
   @@index([sessionIdentifier, name, stepIdentifier])
   @@index([name, stepIdentifier, sessionIdentifier])
@@ -119,19 +119,19 @@ model Event {
 }
 
 model Administrator {
-  identifier   String @id @default(uuid())
-  username     String @unique
+  identifier   String                 @id @default(uuid())
+  username     String                 @unique
   passwordHash String
-  createdAt    DateTime @default(now())
+  createdAt    DateTime               @default(now())
   sessions     AdministratorSession[]
   publications Publication[]
 }
 
 model AdministratorSession {
-  identifier              String @id @default(uuid())
-  accessTokenHash          String @unique
+  identifier              String        @id @default(uuid())
+  accessTokenHash         String        @unique
   administratorIdentifier String
-  createdAt               DateTime @default(now())
+  createdAt               DateTime      @default(now())
   expiresAt               DateTime
   revokedAt               DateTime?
   administrator           Administrator @relation(fields: [administratorIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
