@@ -6,7 +6,7 @@ import { Server } from 'node:http';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { promisify } from 'node:util';
-import type { NestExpressApplication } from '@nestjs/platform-express';
+import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { applicationDirectory } from '../../source/application/application-directory.js';
 import { ApplicationFactory } from '../../source/application/create-application.js';
 import { DatabaseService } from '../../source/database/database.service.js';
@@ -19,7 +19,7 @@ import { BackendFixtureMessages } from './backend-fixture-messages.js';
 const Processes = { execute: promisify(execFile) } as const;
 
 export class BackendApplicationFixture {
-  private application: Optional<NestExpressApplication>;
+  private application: Optional<NestFastifyApplication>;
   private temporaryDirectory: Optional<string>;
   private baseUrl: Optional<string>;
 
@@ -119,7 +119,7 @@ export class BackendApplicationFixture {
     }
   }
 
-  private async createApplication(databaseUrl: string): Promise<NestExpressApplication> {
+  private async createApplication(databaseUrl: string): Promise<NestFastifyApplication> {
     const environment = ApplicationEnvironmentReader.read({
       [EnvironmentFields.DatabaseUrl]: databaseUrl,
       [EnvironmentFields.Mode]: ApplicationMode.Test,

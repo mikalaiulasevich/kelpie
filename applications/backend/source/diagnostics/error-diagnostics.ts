@@ -1,4 +1,4 @@
-import { isError, isUndefined } from 'es-toolkit/predicate';
+import { isError } from 'es-toolkit/predicate';
 import { createHash } from 'node:crypto';
 import { EnvironmentMessages } from '../environment/environment-messages.js';
 import { DiagnosticPolicy, ErrorClassification } from './diagnostic-policy.js';
@@ -13,40 +13,13 @@ const DiagnosticFingerprint = {
   },
 } as const;
 
-const ErrorDetails = {
-  stackLines(error: Error): ReadonlyList<string> {
-    const stack = error.stack?.slice(0, DiagnosticPolicy.MaximumStackCharacters) ?? '';
-
-    const header = ErrorDetails.header(error);
-
-    // A cached stack can predate changes to name/message. If its full header cannot
-    // be verified, omit locations rather than interpreting old private text as frames.
-    if (isUndefined(header) || !stack.startsWith(`${header}\n`)) {
-      return [];
-    }
-
+const ErrorReportingSite = {
+  stackLines(stack: string): ReadonlyList<string> {
+    // Only a fresh server-owned Error reaches this parser, never the reported error.
     return stack
-      .slice(header.length + '\n'.length)
+      .slice(0, DiagnosticPolicy.MaximumStackCharacters)
       .split('\n')
-      .slice(0, DiagnosticPolicy.MaximumFrames);
-  },
-
-  header(error: Error): Optional<string> {
-    const { name, message } = error;
-
-    if (name.length + message.length > DiagnosticPolicy.MaximumStackCharacters) {
-      return undefined;
-    }
-
-    if (name.length === 0) {
-      return message;
-    }
-
-    if (message.length === 0) {
-      return name;
-    }
-
-    return `${name}: ${message}`;
+      .slice(1, DiagnosticPolicy.MaximumFrames + 1);
   },
 
   frame(value: string): ReadonlyList<ErrorFrame> {
@@ -66,7 +39,9 @@ const ErrorDetails = {
       },
     ];
   },
+} as const;
 
+const ErrorDetails = {
   code(error: Error): Optional<string> {
     if (!('code' in error)) {
       return undefined;
@@ -91,15 +66,15 @@ const ErrorDescriptions = {
     };
   },
 
-  known(error: Error): ErrorDescription {
-    const stackLines = ErrorDetails.stackLines(error);
+  known(error: Error, reportingStack: string): ErrorDescription {
+    const stackLines = ErrorReportingSite.stackLines(reportingStack);
 
     return {
       classification: ErrorClassification.Error,
       safeMessage: ErrorDetails.safeMessage(error),
       code: ErrorDetails.code(error),
       fingerprint: DiagnosticFingerprint.create(stackLines.join('\n')),
-      frames: stackLines.flatMap(ErrorDetails.frame),
+      frames: stackLines.flatMap(ErrorReportingSite.frame),
     };
   },
 } as const;
@@ -107,7 +82,11 @@ const ErrorDescriptions = {
 export const ErrorDiagnostics = {
   describe(error: unknown): ErrorDescription {
     try {
-      return isError(error) ? ErrorDescriptions.known(error) : ErrorDescriptions.unknown('');
+      const reportingStack = new Error().stack ?? '';
+
+      return isError(error)
+        ? ErrorDescriptions.known(error, reportingStack)
+        : ErrorDescriptions.unknown('');
     } catch {
       // Error subclasses may override accessors; diagnostic failures must not escape.
       return ErrorDescriptions.unknown(DiagnosticPolicy.UnreadableErrorFingerprint);

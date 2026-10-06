@@ -72,7 +72,7 @@ The initial database schema separates answers from events and constrains version
 
 The backend emits structured JSON to stderr. Requests reaching middleware receive a server-generated `x-request-id`; completion records include the registered route template, method, status and duration. Aborted connections are distinguished. Node-level HTTP parser failures occur before this correlation.
 
-Logs omit bodies, raw URLs, cookies, credentials, arbitrary error messages and absolute paths. Error codes/messages are allowlisted; bounded stack locations are hashed. Fingerprints identify callsites within the matching build, not a readable stack trace.
+Logs omit bodies, raw URLs, cookies, credentials, arbitrary error messages and absolute paths. Error codes/messages are allowlisted. Diagnostics never read the supplied error stack: they capture a fresh server-owned stack and hash its bounded locations. Frames and fingerprints identify the reporting site within the matching build, not the original throw site.
 
 For a local diagnostic session after build/migration:
 

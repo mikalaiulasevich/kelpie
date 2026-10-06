@@ -35,15 +35,15 @@ The completed Mnemonist harness/dependency was removed. [Its comparison table](b
 
 ## Security and operational limits
 
-| Boundary                    | Evidence or limitation                                                                                                                               |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Input handling              | Depth/node/size limits, reserved-key rejection, own-property references, body limits; unsupported compression returns 415                            |
-| Diagnostics                 | Server-owned request identifiers, redacted public errors, bounded hashed stack locations, allowlisted codes/messages; multiline/accessor regressions |
-| Startup failure             | Subprocess tests cover invalid environment and occupied ports; Nest `abortOnError` is disabled so controlled failure handling runs                   |
-| Shutdown                    | Real partial-body/SIGTERM regression covers the ten-second HTTP drain deadline and database disposal afterward                                       |
-| Log backpressure            | Bounded drop accounting; a failed destination disables writes. Deployment must supervise collection and retention                                    |
-| Development process cleanup | POSIX process-group cleanup was exercised, including descendants ignoring SIGTERM; Windows behavior is unverified                                    |
-| SQLite contention           | The synchronous five-second busy wait may block the event loop; the HTTP drain timer cannot cancel synchronous database work                         |
+| Boundary                    | Evidence or limitation                                                                                                                                        |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Input handling              | Depth/node/size limits, reserved-key rejection, own-property references, body limits; unsupported compression returns 415                                     |
+| Diagnostics                 | Server-owned request identifiers, redacted public errors, bounded hashed reporting-site locations, allowlisted codes/messages; supplied stacks are never read |
+| Startup failure             | Subprocess tests cover invalid environment and occupied ports; Nest `abortOnError` is disabled so controlled failure handling runs                            |
+| Shutdown                    | Real partial-body/SIGTERM regression covers the ten-second HTTP drain deadline and database disposal afterward                                                |
+| Log backpressure            | Bounded drop accounting; a failed destination disables writes. Deployment must supervise collection and retention                                             |
+| Development process cleanup | POSIX process-group cleanup was exercised, including descendants ignoring SIGTERM; Windows behavior is unverified                                             |
+| SQLite contention           | The synchronous five-second busy wait may block the event loop; the HTTP drain timer cannot cancel synchronous database work                                  |
 
 No production-readiness or penetration-test claim follows from these checks. Pending security and delivery controls are tracked in the implementation plan. [README troubleshooting](../README.md#diagnostics-and-troubleshooting) provides operational commands.
 
@@ -126,8 +126,26 @@ Current policy limits are 262,144 conservatively estimated document bytes, 20,00
 
 A route-position index would help repeated navigation over one resolved route, but costs O(V) to construct and is unnecessary for current single lookups. Preserve diagnostic order, short-circuit behavior, caller isolation and type narrowing in further optimization.
 
+## Conformance with the implementation plan
+
+The review distinguishes existing behavior from unimplemented product milestones:
+
+| Existing boundary           | Correction or verification                                                                                                                                                          |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Active answers and progress | Empty optional answers remain inactive and do not complete a question; required empty answers still block results.                                                                  |
+| Diagnostic privacy          | Diagnostics capture a server-owned reporting-site stack; supplied stacks are never read. Regression cases cover multiline messages, cached metadata changes and throwing accessors. |
+| Operation ownership         | SessionOperation uses a composite session/operation primary key; duplicate identifiers in different sessions do not conflict.                                                       |
+| Shutdown                    | The development supervisor now permits 15 seconds, exceeding the backend's 10-second drain deadline. POSIX process probes covered delayed graceful exit and forced termination.     |
+| Development proxy           | README states that a custom backend HOST/PORT requires updating the Vite proxy target.                                                                                              |
+
+Migration `20261006000200_session_operation_scope` copies existing operation rows within a transactional SQLite table rebuild; the original migration is unchanged. An isolated SQLite upgrade probe preserved fingerprints, responses and timestamps, including rollback after an injected rebuild failure. Normal application tests apply all migrations to fresh temporary databases. Apply the new migration to an existing development database with `npm run database:migrate` before expecting readiness; this review does not migrate private local databases automatically.
+
+The database is still a scaffold. SessionTransition, answer confirmation revisions and historical observation eligibility remain schema/application work before session commands can meet the plan. Publication/rollback, stable session assignment, mixed event ingestion, session-based analytics, traffic generation, authentication and public delivery remain unimplemented. This review does not claim the assignment's minimum end-to-end test coverage or Bun runtime acceptance.
+
 ## Verification evidence
 
-After documentation consolidation, route-type cleanup and removal of unused test tooling, the full Node.js 24.16.0 check passed `npm run verify`: 231 tests (80 backend, 12 frontend, 65 contracts, 74 runtime), strict types, lint, formatting, clean builds, configuration checksums, test layout and Prisma validation. This section owns verification updates; benchmark assertions are separate from test counts.
+After the plan-conformance corrections, the full Node.js 24.16.0 check passed `npm run verify`: 239 tests (86 backend, 12 frontend, 65 contracts, 76 runtime), strict types, lint, formatting, clean builds, configuration checksums, test layout and Prisma validation. This section owns verification updates; benchmark assertions are separate from test counts.
+
+A subsequent isolated `npm run benchmark:runtime` run completed all 79 scenarios with correctness assertions and source/build identity checks. Its [raw report](benchmarks/2026-10-06T19-43-53.019Z-5f307b82-ef08-42de-a7eb-88403317d91a.json) and CSV tables are retained; one run does not establish a performance improvement. An initial concurrent attempt overlapped clean builds and failed before saving a report; the successful rerun started after verification finished.
 
 The last documented remote workflow [failed at startup](https://github.com/mikalaiulasevich/kelpie/actions/runs/37486945771) before jobs were created. A current remote CI result, Bun compatibility, public deployment and current browser acceptance are not established by these local results.

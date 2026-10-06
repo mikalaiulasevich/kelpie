@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import type { NestExpressApplication } from '@nestjs/platform-express';
+import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { ApplicationPolicy } from './application/application-policy.js';
 import { Diagnostics } from './diagnostics/diagnostics.js';
 import { DiagnosticEvents, DiagnosticPhase } from './diagnostics/diagnostic-policy.js';
@@ -7,7 +7,7 @@ import { ErrorDiagnostics } from './diagnostics/error-diagnostics.js';
 import { ApplicationFactory } from './application/create-application.js';
 import { ApplicationEnvironmentService } from './environment/application-environment.js';
 
-let application: Optional<NestExpressApplication>;
+let application: Optional<NestFastifyApplication>;
 let phase: ValueOf<typeof DiagnosticPhase> = DiagnosticPhase.Creation;
 
 try {

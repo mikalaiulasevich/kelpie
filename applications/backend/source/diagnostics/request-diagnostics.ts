@@ -1,12 +1,13 @@
 import { once } from 'es-toolkit/function';
 import { isString } from 'es-toolkit/predicate';
 import { randomUUID } from 'node:crypto';
-import type { NextFunction, Request, Response } from 'express';
+import type { FastifyReply, FastifyRequest, HookHandlerDoneFunction } from 'fastify';
 import { DiagnosticEvents, DiagnosticPolicy } from './diagnostic-policy.js';
 import { Diagnostics, RequestContext } from './diagnostics.js';
 
 export const RequestDiagnostics = {
-  middleware(request: Request, response: Response, next: NextFunction): void {
+  onRequest(request: FastifyRequest, reply: FastifyReply, next: HookHandlerDoneFunction): void {
+    const response = reply.raw;
     const requestIdentifier = randomUUID();
     const started = performance.now();
     const method =
@@ -15,8 +16,8 @@ export const RequestDiagnostics = {
     response.setHeader(DiagnosticPolicy.RequestIdentifierHeader, requestIdentifier);
 
     const complete = once((): void => {
-      // Express route.path is the registered template, never the incoming URL.
-      const route: unknown = request.route?.path;
+      // Fastify routeOptions.url is the registered template, never the incoming URL.
+      const route: unknown = request.routeOptions.url;
       Diagnostics.write({
         event: response.writableFinished
           ? DiagnosticEvents.RequestCompleted

@@ -15,7 +15,9 @@ export interface ErrorDescription {
   readonly safeMessage: Optional<string>;
   readonly classification: ValueOf<typeof ErrorClassification>;
   readonly code: Optional<string>;
+  /** Identifies the server reporting site, not the original thrown stack. */
   readonly fingerprint: string;
+  /** Bounded frames captured when diagnostics are reported. */
   readonly frames: ReadonlyList<ErrorFrame>;
 }
 

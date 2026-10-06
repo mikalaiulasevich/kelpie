@@ -6,7 +6,7 @@ import {
   HttpStatus,
   type ExceptionFilter,
 } from '@nestjs/common';
-import type { Response } from 'express';
+import type { FastifyReply } from 'fastify';
 
 import { Diagnostics } from '../diagnostics/diagnostics.js';
 import { DiagnosticEvents } from '../diagnostics/diagnostic-policy.js';
@@ -17,7 +17,7 @@ import { TransportMessages } from './transport-messages.js';
 @Catch()
 export class PublicExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost): void {
-    const response = host.switchToHttp().getResponse<Response>();
+    const response = host.switchToHttp().getResponse<FastifyReply>();
     const status = this.resolvePublicStatus(exception);
     const message = this.resolvePublicMessage(status);
 
@@ -29,7 +29,7 @@ export class PublicExceptionFilter implements ExceptionFilter {
       });
     }
 
-    response.status(status).json({ statusCode: status, message });
+    response.status(status).send({ statusCode: status, message });
   }
 
   private resolvePublicStatus(exception: unknown): number {
@@ -41,13 +41,15 @@ export class PublicExceptionFilter implements ExceptionFilter {
   }
 
   private resolveInputStatus(exception: unknown): Optional<number> {
-    // Express body-parser errors are not Nest exceptions. Admit only known
-    // input failures; arbitrary error status properties must not cross the boundary.
-    if (!isError(exception) || !('status' in exception)) {
+    // Fastify parser errors are identified by their known codes. Never trust
+    // arbitrary status properties from exceptions at the public boundary.
+    if (!isError(exception) || !('code' in exception)) {
       return undefined;
     }
 
-    return TransportPolicy.InputErrorStatuses.find((status) => status === exception.status);
+    return Object.entries(TransportPolicy.InputErrorCodes).find(
+      ([code]) => code === exception.code,
+    )?.[1];
   }
 
   private resolvePublicMessage(status: number): string {

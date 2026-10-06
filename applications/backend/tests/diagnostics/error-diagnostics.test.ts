@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { ErrorDiagnostics } from '../../source/diagnostics/error-diagnostics.js';
 import { DiagnosticCases } from '../cases/diagnostic-cases.js';
 import { DiagnosticFixtures } from '../fixtures/diagnostic-errors.js';
@@ -24,9 +24,10 @@ describe('Error diagnostics', () => {
     const description = ErrorDiagnostics.describe(error);
 
     expect(description).toMatchObject({ classification: 'error', code: undefined });
-    expect(description.frames).toEqual([
-      { location: expect.stringMatching(/^[a-f0-9]{20}$/), line: 12, column: 34 },
-    ]);
+    expect(description.frames.length).toBeGreaterThan(0);
+    expect(description.frames).not.toContainEqual(
+      expect.objectContaining({ line: 12, column: 34 }),
+    );
     expect(JSON.stringify(description)).not.toMatch(/private|password|answer|token/);
   });
 
@@ -42,23 +43,20 @@ describe('Error diagnostics', () => {
     );
   });
 
-  it.each(DiagnosticCases.ChangedHeaderProperties)(
-    'omits cached stack details after %s changes',
-    (property) => {
+  it.each(DiagnosticCases.ChangedHeaders)(
+    'ignores the cached stack when $property becomes $replacement',
+    ({ property, replacement }) => {
       const descriptions = DiagnosticCases.MultilineMessages.map((message) =>
-        ErrorDiagnostics.describe(DiagnosticFixtures.cachedError(message, property)),
+        ErrorDiagnostics.describe(DiagnosticFixtures.cachedError(message, property, replacement)),
       );
 
       expect(descriptions[0]).toEqual(descriptions[1]);
-      expect(descriptions[0]?.frames).toEqual([]);
+      expect(descriptions[0]?.frames.length).toBeGreaterThan(0);
+      expect(descriptions[0]?.frames).not.toContainEqual(
+        expect.objectContaining({ line: 123456, column: 789 }),
+      );
     },
   );
-
-  it.each(DiagnosticCases.EmptyHeaders)('preserves frames with header $name/$message', (header) => {
-    const error = Object.assign(new Error(header.message), { name: header.name });
-
-    expect(ErrorDiagnostics.describe(error).frames.length).toBeGreaterThan(0);
-  });
 
   it('keeps an allowlisted database failure code and stable callsite fingerprint', () => {
     const first = DiagnosticFixtures.error(
@@ -70,31 +68,39 @@ describe('Error diagnostics', () => {
       'P2021',
     );
 
-    expect(ErrorDiagnostics.describe(first)).toEqual(ErrorDiagnostics.describe(second));
-    expect(ErrorDiagnostics.describe(first).code).toBe('P2021');
+    const descriptions = [first, second].map((error) => ErrorDiagnostics.describe(error));
+
+    expect(descriptions[0]).toEqual(descriptions[1]);
+    expect(descriptions[0]?.code).toBe('P2021');
   });
 
-  it('bounds the number of captured frames', () => {
-    const stack = [
-      'Error: secret',
-      ...Array.from(
-        { length: 100 },
-        (_, index) => `    at method (/private/file.ts:${index + 1}:2)`,
-      ),
-    ].join('\n');
+  it('bounds reporting-site frames independently of the supplied stack', () => {
+    const error = DiagnosticFixtures.error(
+      'Error: private\n    at input (/private/file:123456:789)',
+    );
 
-    expect(ErrorDiagnostics.describe(DiagnosticFixtures.error(stack)).frames).toHaveLength(6);
+    expect(DiagnosticFixtures.describeAtDepth(20, error).frames).toHaveLength(6);
   });
 
-  it('does not invoke a throwing error accessor beyond its safe boundary', () => {
+  it('never reads the original error stack getter', () => {
     const error = new Error('secret');
-    Object.defineProperty(error, 'stack', {
+    const stackGetter = vi.fn(() => {
+      throw new Error('private accessor');
+    });
+    Object.defineProperty(error, 'stack', { get: stackGetter });
+
+    expect(ErrorDiagnostics.describe(error)).toMatchObject({ classification: 'error' });
+    expect(stackGetter).not.toHaveBeenCalled();
+  });
+
+  it('contains failures from error metadata accessors', () => {
+    const error = new Error('secret');
+    Object.defineProperty(error, 'message', {
       get: () => {
         throw new Error('private accessor');
       },
     });
 
-    expect(() => ErrorDiagnostics.describe(error)).not.toThrow();
     expect(ErrorDiagnostics.describe(error)).toMatchObject({
       classification: 'unknown',
       frames: [],

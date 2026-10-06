@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
-import type { NestExpressApplication } from '@nestjs/platform-express';
-import helmet from 'helmet';
+import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
+import helmet from '@fastify/helmet';
 import { Server } from 'node:http';
 
 import { RequestDiagnostics } from '../diagnostics/request-diagnostics.js';
@@ -12,45 +12,54 @@ import type { ApplicationEnvironment } from '../environment/environment-schemas.
 import { ApplicationModule } from './application.module.js';
 import { TransportMessages } from '../transport/transport-messages.js';
 import { TransportPolicy } from '../transport/transport-policy.js';
+import { RequestBodyPolicy } from '../transport/request-body-policy.js';
 import { PublicExceptionFilter } from '../transport/public-exception.filter.js';
 
 const ApplicationSetup = {
-  configure(application: NestExpressApplication): void {
-    application.disable(TransportPolicy.FrameworkHeader);
+  async configure(application: NestFastifyApplication, adapter: FastifyAdapter): Promise<void> {
+    const server = adapter.getInstance();
     application.setGlobalPrefix(TransportPolicy.ApiPrefix);
-    application.use(RequestDiagnostics.middleware);
-    application.use(helmet());
-    application.useBodyParser(TransportPolicy.BodyParser, {
-      limit: TransportPolicy.JsonBodyLimit,
-      strict: true,
-      inflate: TransportPolicy.AllowCompressedBodies,
-    });
+    server.addHook('onRequest', RequestDiagnostics.onRequest);
+    await application.register(helmet);
+    server.addHook('onRequest', RequestBodyPolicy.validate);
+    server.removeAllContentTypeParsers();
+    server.addContentTypeParser(
+      TransportPolicy.JsonMediaType,
+      { parseAs: 'string' },
+      RequestBodyPolicy.parser(server),
+    );
     application.useGlobalFilters(new PublicExceptionFilter());
     application.enableShutdownHooks();
 
-    const server: unknown = application.getHttpServer();
+    const httpServer: unknown = application.getHttpServer();
 
-    if (!(server instanceof Server)) {
+    if (!(httpServer instanceof Server)) {
       throw new Error(TransportMessages.UnsupportedServer);
     }
 
-    server.requestTimeout = TransportPolicy.RequestTimeoutMilliseconds;
-    server.headersTimeout = TransportPolicy.HeadersTimeoutMilliseconds;
-    server.keepAliveTimeout = TransportPolicy.KeepAliveTimeoutMilliseconds;
+    httpServer.requestTimeout = TransportPolicy.RequestTimeoutMilliseconds;
+    httpServer.headersTimeout = TransportPolicy.HeadersTimeoutMilliseconds;
+    httpServer.keepAliveTimeout = TransportPolicy.KeepAliveTimeoutMilliseconds;
   },
 } as const;
 
 export const ApplicationFactory = {
   async create(
     environment: ApplicationEnvironment = ApplicationEnvironmentReader.read(process.env),
-  ): Promise<NestExpressApplication> {
-    const application = await NestFactory.create<NestExpressApplication>(
+  ): Promise<NestFastifyApplication> {
+    const adapter = new FastifyAdapter({
+      bodyLimit: TransportPolicy.JsonBodyLimit,
+      logger: false,
+      trustProxy: false,
+    });
+    const application = await NestFactory.create<NestFastifyApplication>(
       ApplicationModule.register(environment),
+      adapter,
       ApplicationCreationOptions,
     );
 
     try {
-      ApplicationSetup.configure(application);
+      await ApplicationSetup.configure(application, adapter);
 
       return application;
     } catch (setupError) {

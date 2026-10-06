@@ -1,9 +1,8 @@
 export const DiagnosticCases = {
-  ChangedHeaderProperties: ['name', 'message'],
-  EmptyHeaders: [
-    { name: '', message: 'private message' },
-    { name: 'Error', message: '' },
-    { name: '', message: '' },
+  ChangedHeaders: [
+    { property: 'name', replacement: 'redacted' },
+    { property: 'message', replacement: 'redacted' },
+    { property: 'message', replacement: 'private input' },
   ],
   MultilineMessages: [
     'private input\n    at answer (/private/first-secret:123456:789)',

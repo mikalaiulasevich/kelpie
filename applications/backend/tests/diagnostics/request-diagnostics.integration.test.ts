@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Diagnostics, RequestContext } from '../../source/diagnostics/diagnostics.js';
+import { HealthController } from '../../source/health/health.controller.js';
 import { DatabaseService } from '../../source/database/database.service.js';
 import { BackendApplicationFixture } from '../fixtures/backend-application.js';
 
@@ -60,6 +61,28 @@ describe('Request diagnostics and privacy', () => {
       }),
     ]);
     expect(JSON.stringify(records)).not.toContain('private-');
+  });
+
+  it('does not trust status properties on an unrecognized application error', async () => {
+    await backend.close();
+    vi.spyOn(HealthController.prototype, 'live').mockImplementation(() => {
+      throw Object.assign(new Error('private failure'), {
+        status: 400,
+        statusCode: 400,
+        code: 'PRIVATE_UNRECOGNIZED_CODE',
+      });
+    });
+    backend = await BackendApplicationFixture.create();
+
+    const response = await backend.request('/api/health/live');
+
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({
+      statusCode: 500,
+      message: 'An internal error occurred.',
+    });
+    expect(JSON.stringify(records)).not.toContain('private failure');
+    expect(JSON.stringify(records)).not.toContain('PRIVATE_UNRECOGNIZED_CODE');
   });
 
   it('records a safe database failure reason and recovers without restarting', async () => {
