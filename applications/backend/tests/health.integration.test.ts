@@ -7,8 +7,8 @@ import { resolve } from 'node:path';
 import { Server } from 'node:http';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { applicationDirectory } from '../source/application_directory.js';
-import { createApplication } from '../source/create_application.js';
+import { applicationDirectory } from '../source/application-directory.js';
+import { createApplication } from '../source/create-application.js';
 import { DatabaseService } from '../source/database/database.service.js';
 
 const executeFile = promisify(execFile);

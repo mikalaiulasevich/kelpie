@@ -6,7 +6,7 @@ import {
   type SingleSelectionStep,
   type MultipleSelectionStep,
 } from '@kelpie/contracts';
-import { AnswerIssueCode, type AnswerIssue, type AnswerValidationResult } from './runtime_types.js';
+import { AnswerIssueCode, type AnswerIssue, type AnswerValidationResult } from './runtime-types.js';
 
 // Decimal inputs can accumulate rounding error when divided into increments.
 const NumericIncrementTolerance = 1e-8;

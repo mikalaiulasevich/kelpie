@@ -1,4 +1,4 @@
-import type { ConditionOperator } from './domain_values.js';
+import type { ConditionOperator } from './domain-values.js';
 
 export interface AllConditions {
   readonly all: readonly Condition[];

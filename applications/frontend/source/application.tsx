@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from './components/button';
-import { ServiceHealthStatus } from './service_health/service_health';
-import { useServiceHealth } from './service_health/use_service_health';
+import { ServiceHealthStatus } from './service-health/service-health';
+import { useServiceHealth } from './service-health/use-service-health';
 
 const serviceHealthLabels: Readonly<Record<ServiceHealthStatus, string>> = Object.freeze({
   [ServiceHealthStatus.Checking]: 'Checking backend connection',

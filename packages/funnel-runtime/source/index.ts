@@ -1,16 +1,16 @@
-export { validateStepAnswer } from './answer_validation.js';
-export { evaluateCondition } from './condition_evaluation.js';
+export { validateStepAnswer } from './answer-validation.js';
+export { evaluateCondition } from './condition-evaluation.js';
 export {
   resolveAvailableSteps,
   resolveExperimentConfiguration,
   resolveFunnelResult,
   resolveNextStep,
   resolvePreviousStep,
-} from './route_resolution.js';
+} from './route-resolution.js';
 export {
   AnswerIssueCode,
   type AnswerIssue,
   type AnswerValidationResult,
   type AvailableRoute,
   type ResolvedExperimentConfiguration,
-} from './runtime_types.js';
+} from './runtime-types.js';

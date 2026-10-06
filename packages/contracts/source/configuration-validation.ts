@@ -1,10 +1,10 @@
 import { Ajv } from 'ajv';
-import type { ConfigurationValidationResult, FunnelConfiguration } from './configuration_types.js';
-import { checkDocumentBounds, configurationLimits } from './configuration_document_bounds.js';
-import { validateConfigurationSemantics } from './configuration_semantic_validation.js';
-import { funnelConfigurationSchema } from './configuration_schema.js';
+import type { ConfigurationValidationResult, FunnelConfiguration } from './configuration-types.js';
+import { checkDocumentBounds, configurationLimits } from './configuration-document-bounds.js';
+import { validateConfigurationSemantics } from './configuration-semantic-validation.js';
+import { funnelConfigurationSchema } from './configuration-schema.js';
 
-export { configurationLimits } from './configuration_document_bounds.js';
+export { configurationLimits } from './configuration-document-bounds.js';
 
 const structuralValidator = new Ajv({
   allErrors: false,

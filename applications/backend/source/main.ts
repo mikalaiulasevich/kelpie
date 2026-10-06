@@ -1,6 +1,6 @@
 import 'dotenv/config';
-import { createApplication } from './create_application.js';
-import { ApplicationEnvironmentService } from './environment/application_environment.js';
+import { createApplication } from './create-application.js';
+import { ApplicationEnvironmentService } from './environment/application-environment.js';
 
 try {
   const application = await createApplication();

@@ -1,5 +1,5 @@
 import { isAbsolute, resolve } from 'node:path';
-import { applicationDirectory } from '../application_directory.js';
+import { applicationDirectory } from '../application-directory.js';
 
 export const ApplicationMode = Object.freeze({
   Development: 'development',

@@ -30,8 +30,8 @@
     "database:generate": "npm run database:generate --workspace=@kelpie/backend",
     "database:migrate": "npm run database:migrate --workspace=@kelpie/backend",
     "database:validate": "npm run database:validate --workspace=@kelpie/backend",
-    "configurations:verify": "node scripts/verify_configurations.mjs",
-    "benchmark:runtime": "npm run build:packages && node scripts/benchmark_runtime.mjs",
+    "configurations:verify": "node scripts/verify-configurations.mjs",
+    "benchmark:runtime": "npm run build:packages && node scripts/benchmark-runtime.mjs",
     "verify": "npm run configurations:verify && npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build && npm run database:validate"
   },
   "devDependencies": {

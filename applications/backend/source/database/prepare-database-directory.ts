@@ -2,7 +2,7 @@ import 'dotenv/config';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import { mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
-import { readApplicationEnvironment } from '../environment/read_application_environment.js';
+import { readApplicationEnvironment } from '../environment/read-application-environment.js';
 
 const environment = readApplicationEnvironment(process.env);
 await mkdir(dirname(environment.databaseUrl.slice(5)), { recursive: true });

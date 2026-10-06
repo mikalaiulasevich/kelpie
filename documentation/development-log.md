@@ -22,4 +22,6 @@ After integration and import-path corrections, `npm run verify` passed on Node.j
 
 Read-only review retained the input bounds, own-property protections, issue order, privacy allowlists, and bounded runtime traversals. The refactor does not implement or change the pending persistence/idempotency features. The same 12-scenario pure-function benchmark on Node.js 24.16.0 / Apple M4 measured median sample durations before → after: configuration validation (1,000 operations) 52.225 → 55.719 ms; route resolution (10,000) 7.241 → 6.773 ms; result resolution (10,000) 11.958 → 11.194 ms. Each measurement used seven samples after warmup. These small single-run differences do not establish an optimization or application throughput guarantee.
 
+At the user's request, restored the original kebab-case file and feature-directory names and removed the snake_case convention from AGENTS.md. Updated imports and script paths; retained the readability refactor and domain types.
+
 This log records development milestones, not elapsed assignment time. No mutually agreed 48-hour start has been recorded.

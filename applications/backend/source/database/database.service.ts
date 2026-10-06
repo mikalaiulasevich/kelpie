@@ -2,9 +2,9 @@ import { Inject, Injectable, type OnModuleDestroy, type OnModuleInit } from '@ne
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import { mkdir, readdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
-import { applicationDirectory } from '../application_directory.js';
+import { applicationDirectory } from '../application-directory.js';
 import { PrismaClient } from '../../generated/prisma/client.js';
-import { ApplicationEnvironmentService } from '../environment/application_environment.js';
+import { ApplicationEnvironmentService } from '../environment/application-environment.js';
 
 interface SQLiteForeignKeySetting {
   readonly foreign_keys: bigint;

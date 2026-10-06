@@ -1,4 +1,4 @@
-import type { Condition } from './condition_types.js';
+import type { Condition } from './condition-types.js';
 
 export interface PrimaryAction {
   readonly label: string;

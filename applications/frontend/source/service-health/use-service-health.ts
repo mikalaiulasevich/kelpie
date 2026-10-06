@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { requestServiceReadiness } from './request_service_readiness';
+import { requestServiceReadiness } from './request-service-readiness';
 import {
   ServiceHealthStatus,
   type ServiceHealth,
   type CompletedServiceHealthCheck,
-} from './service_health';
+} from './service-health';
 
 export function useServiceHealth(checkSequence: number): ServiceHealth {
   const [completedCheck, setCompletedCheck] = useState<CompletedServiceHealthCheck | null>(null);

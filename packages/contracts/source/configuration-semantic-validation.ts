@@ -1,8 +1,8 @@
-import type { AnswerCondition, Condition } from './condition_types.js';
-import type { FunnelStep, InteractiveStep, NumberStep, SelectionStep } from './step_types.js';
-import type { ConfigurationIssue, FunnelConfiguration } from './configuration_types.js';
-import { ConditionOperator, StepType } from './domain_values.js';
-import { configurationLimits } from './configuration_document_bounds.js';
+import type { AnswerCondition, Condition } from './condition-types.js';
+import type { FunnelStep, InteractiveStep, NumberStep, SelectionStep } from './step-types.js';
+import type { ConfigurationIssue, FunnelConfiguration } from './configuration-types.js';
+import { ConditionOperator, StepType } from './domain-values.js';
+import { configurationLimits } from './configuration-document-bounds.js';
 
 interface ConfigurationValidationContext {
   readonly configuration: FunnelConfiguration;

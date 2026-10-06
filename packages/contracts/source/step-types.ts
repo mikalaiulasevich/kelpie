@@ -1,5 +1,5 @@
-import type { Condition } from './condition_types.js';
-import type { StepType } from './domain_values.js';
+import type { Condition } from './condition-types.js';
+import type { StepType } from './domain-values.js';
 
 export type StepAnswer = string | number | readonly string[];
 

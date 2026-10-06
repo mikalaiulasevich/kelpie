@@ -4,7 +4,7 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
 import { Server } from 'node:http';
 import { ApplicationModule } from './application.module.js';
-import { PublicExceptionFilter } from './transport/public_exception.filter.js';
+import { PublicExceptionFilter } from './transport/public-exception.filter.js';
 
 export async function createApplication(): Promise<NestExpressApplication> {
   const application = await NestFactory.create<NestExpressApplication>(ApplicationModule, {

@@ -3,7 +3,7 @@ export {
   ConfigurationStatus,
   ExperimentVariant,
   StepType,
-} from './domain_values.js';
+} from './domain-values.js';
 
 export type {
   AllConditions,
@@ -14,7 +14,7 @@ export type {
   EqualCondition,
   IncludedCondition,
   MinimumCondition,
-} from './condition_types.js';
+} from './condition-types.js';
 
 export type {
   AnswerValidation,
@@ -32,9 +32,9 @@ export type {
   SingleSelectionStep,
   StepAnswer,
   StepContent,
-} from './step_types.js';
+} from './step-types.js';
 
-export type { FunnelResult, PrimaryAction, ResultOverride, ResultRule } from './result_types.js';
+export type { FunnelResult, PrimaryAction, ResultOverride, ResultRule } from './result-types.js';
 
 export type {
   ConfigurationIssue,
@@ -48,6 +48,6 @@ export type {
   SessionConfiguration,
   StepOverride,
   VariantConfiguration,
-} from './configuration_types.js';
+} from './configuration-types.js';
 
-export { configurationLimits, validateFunnelConfiguration } from './configuration_validation.js';
+export { configurationLimits, validateFunnelConfiguration } from './configuration-validation.js';

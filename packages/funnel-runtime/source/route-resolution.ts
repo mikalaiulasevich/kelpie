@@ -8,9 +8,9 @@ import {
   type StepAnswer,
   type VariantConfiguration,
 } from '@kelpie/contracts';
-import { validateStepAnswer } from './answer_validation.js';
-import { evaluateCondition } from './condition_evaluation.js';
-import type { AvailableRoute, ResolvedExperimentConfiguration } from './runtime_types.js';
+import { validateStepAnswer } from './answer-validation.js';
+import { evaluateCondition } from './condition-evaluation.js';
+import type { AvailableRoute, ResolvedExperimentConfiguration } from './runtime-types.js';
 
 function applyStepOverride(
   stepIdentifier: string,

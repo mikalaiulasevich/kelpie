@@ -26,10 +26,10 @@ Use strict TypeScript, explicit domain types, small cohesive modules, and establ
 
 ### Readability conventions
 
-Apply the naming and ownership principles reviewed in the Template reference project:
+Apply the readability and ownership principles reviewed in the Template reference project, with the project naming conventions below:
 
 - Use `PascalCase` for exported types, components, and enum-like domain objects; use `camelCase` for functions and ordinary values.
-- Use `snake_case` for authored multiword source filenames and feature directories. Preserve names required by tools (`vite.config.ts`, `prisma.config.ts`, `index.ts`) and supplied configuration files.
+- Keep the original `kebab-case` naming for authored multiword source filenames and feature directories. Preserve names required by tools (`vite.config.ts`, `prisma.config.ts`, `index.ts`) and supplied configuration files.
 - Use frozen `as const` objects with derived value-union types for reusable domain vocabularies. Preserve serialized values. Do not duplicate those values as unrelated string unions or create constants for every one-off string.
 - Define named contracts for meaningful inputs, overrides, policies, and outputs. Keep them with their domain owner. Keep `unknown` at untrusted input boundaries and narrow it with validation.
 - Keep package exports explicit. Import another package through its public entry point.

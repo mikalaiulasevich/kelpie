@@ -1,6 +1,6 @@
-import type { ConfigurationStatus, ExperimentVariant, StepType } from './domain_values.js';
-import type { FunnelResult, ResultOverride, ResultRule } from './result_types.js';
-import type { FunnelStep, StepContent } from './step_types.js';
+import type { ConfigurationStatus, ExperimentVariant, StepType } from './domain-values.js';
+import type { FunnelResult, ResultOverride, ResultRule } from './result-types.js';
+import type { FunnelStep, StepContent } from './step-types.js';
 
 export interface StepOverride {
   readonly content: StepContent;

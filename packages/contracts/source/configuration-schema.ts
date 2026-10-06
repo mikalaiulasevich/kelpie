@@ -3,7 +3,7 @@ import {
   ConfigurationStatus,
   ExperimentVariant,
   StepType,
-} from './domain_values.js';
+} from './domain-values.js';
 
 const identifierSchema = {
   type: 'string',
