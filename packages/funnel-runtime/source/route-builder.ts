@@ -19,7 +19,7 @@ export class RouteBuilder {
   private questionCount = 0;
   private completedQuestionCount = 0;
 
-  constructor(
+  private constructor(
     private readonly configuration: FunnelConfiguration,
     variant: ExperimentVariant,
     private readonly answers: SessionAnswers,
@@ -28,7 +28,15 @@ export class RouteBuilder {
     this.excludedTypes = new Set(configuration.progress.excludeTypes);
   }
 
-  resolve(): AvailableRoute {
+  static resolve(
+    configuration: FunnelConfiguration,
+    variant: ExperimentVariant,
+    answers: SessionAnswers,
+  ): AvailableRoute {
+    return new RouteBuilder(configuration, variant, answers).build();
+  }
+
+  private build(): AvailableRoute {
     for (const identifier of this.selectedVariant.stepSequence) {
       const step = RouteSteps.resolve(this.configuration, this.selectedVariant, identifier);
       this.visit(step);

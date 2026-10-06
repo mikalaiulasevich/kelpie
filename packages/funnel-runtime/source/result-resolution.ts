@@ -11,40 +11,42 @@ import { RouteSteps } from './route-steps.js';
 import { VariantOverrides } from './variant-overrides.js';
 
 /** Rules are ordered: stop at the first match and never evaluate later rules. */
-function selectResultIdentifier(
-  configuration: FunnelConfiguration,
-  answers: SessionAnswers,
-): string {
-  for (const rule of configuration.resultRules) {
-    if (evaluateCondition(rule.when, answers)) {
-      return rule.resultId;
+const ResultRules = Object.freeze({
+  selectIdentifier(configuration: FunnelConfiguration, answers: SessionAnswers): string {
+    for (const rule of configuration.resultRules) {
+      if (evaluateCondition(rule.when, answers)) {
+        return rule.resultId;
+      }
     }
-  }
 
-  return configuration.defaultResultId;
-}
+    return configuration.defaultResultId;
+  },
+});
 
-function resolve(
-  configuration: FunnelConfiguration,
-  variant: ExperimentVariant,
-  answers: SessionAnswers,
-): Optional<FunnelResult> {
-  const route = RouteResolution.resolve(configuration, variant, answers);
-  const isComplete = route.steps.every((step) => RouteSteps.isComplete(step, route.activeAnswers));
+export const ResultResolution = Object.freeze({
+  resolve(
+    configuration: FunnelConfiguration,
+    variant: ExperimentVariant,
+    answers: SessionAnswers,
+  ): Optional<FunnelResult> {
+    const route = RouteResolution.resolve(configuration, variant, answers);
+    const isComplete = route.steps.every((step) =>
+      RouteSteps.isComplete(step, route.activeAnswers),
+    );
 
-  if (!isComplete) {
-    return undefined;
-  }
+    if (!isComplete) {
+      return undefined;
+    }
 
-  const resultIdentifier = selectResultIdentifier(configuration, route.activeAnswers);
-  const result = readOwnProperty(configuration.results, resultIdentifier);
+    const resultIdentifier = ResultRules.selectIdentifier(configuration, route.activeAnswers);
+    const result = readOwnProperty(configuration.results, resultIdentifier);
 
-  if (result === undefined) {
-    return undefined;
-  }
+    if (result === undefined) {
+      return undefined;
+    }
 
-  return VariantOverrides.result(result, configuration.experiment.variants[variant]);
-}
+    return VariantOverrides.result(result, configuration.experiment.variants[variant]);
+  },
+});
 
-export const ResultResolution = Object.freeze({ resolve });
 export const resolveFunnelResult = ResultResolution.resolve;

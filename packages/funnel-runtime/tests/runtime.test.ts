@@ -46,6 +46,29 @@ const completeAnswers: SessionAnswers = {
 };
 
 describe('pure funnel runtime', () => {
+  it('keeps route state isolated across repeated resolutions and variants', () => {
+    const document = configuration(1);
+    const originalDocument = structuredClone(document);
+    const originalAnswers = structuredClone(completeAnswers);
+    const firstRoute = FunnelRuntime.Routes.resolve(document, ExperimentVariant.A, completeAnswers);
+    const firstSnapshot = structuredClone(firstRoute);
+    const emptyRoute = FunnelRuntime.Routes.resolve(document, ExperimentVariant.B, {});
+    const repeatedRoute = FunnelRuntime.Routes.resolve(
+      document,
+      ExperimentVariant.A,
+      completeAnswers,
+    );
+
+    expect(emptyRoute.activeAnswers).toEqual({});
+    expect(emptyRoute.completedQuestionCount).toBe(0);
+    expect(firstRoute).toEqual(firstSnapshot);
+    expect(repeatedRoute).toEqual(firstSnapshot);
+    expect(repeatedRoute.steps).not.toBe(firstRoute.steps);
+    expect(repeatedRoute.activeAnswers).not.toBe(firstRoute.activeAnswers);
+    expect(document).toEqual(originalDocument);
+    expect(completeAnswers).toEqual(originalAnswers);
+  });
+
   it('selects the first matching result rule without evaluating later rules', () => {
     const document = configuration(1);
     const matchingCondition = {

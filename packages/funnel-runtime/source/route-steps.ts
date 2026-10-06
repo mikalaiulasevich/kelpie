@@ -13,7 +13,11 @@ import { RuntimeMessages } from './runtime-messages.js';
 import { VariantOverrides } from './variant-overrides.js';
 
 export const RouteSteps = Object.freeze({
-  resolve(configuration: FunnelConfiguration, variant: VariantConfiguration, identifier: string): FunnelStep {
+  resolve(
+    configuration: FunnelConfiguration,
+    variant: VariantConfiguration,
+    identifier: string,
+  ): FunnelStep {
     const step = readOwnProperty(configuration.steps, identifier);
 
     if (step === undefined) {
