@@ -28,10 +28,7 @@
       "funnelRuntime": 51,
       "total": 201
     },
-    "additional": [
-      "npm ls --depth=0 passed",
-      "npm ls --package-lock-only --depth=0 passed"
-    ],
+    "additional": ["npm ls --depth=0 passed", "npm ls --package-lock-only --depth=0 passed"],
     "coverageNote": "Contracts case-table expansion turns existing assertions into separately reported cases; test count increase alone is not additional coverage."
   },
   "limits": [
