@@ -22,6 +22,8 @@ The default database location is `applications/backend/data/funnel-runtime.sqlit
 
 Shared packages are built before development startup. Restart development after changing shared packages; application source files are watched automatically. Stop both development processes with Ctrl+C.
 
+Node workspace builds clean their own generated `distribution` directory before compiling, preventing renamed or deleted modules from surviving as stale JavaScript. Cleanup only accepts the configured workspace output paths.
+
 ## Commands
 
 | Command                         | Purpose                                                                                       |
