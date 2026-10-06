@@ -273,3 +273,24 @@ Three sequential compiled-runtime runs exercised all 79 scenarios, each with cor
 Raw reports: baseline `2026-10-06T18-35-35.170Z-b942ae99-bbae-4208-8ed9-93e136963591`, candidate `2026-10-06T18-36-01.875Z-6c8ee471-18d9-4e1a-ab93-a85f7d9a536a`, repeat `2026-10-06T18-36-35.154Z-f9e8911e-61c0-46dc-89fa-9617a6fd201b`. Baseline already included the installed dependency but did not import it. The repeat includes added regression tests; production source is identical to the first candidate. Mapping remains O(steps + results) time and output space. The local 96-step operation took roughly 61–62% less time; the smallest dictionary shows no material gain. This single baseline and two candidate runs do not establish a universal speedup.
 
 Added six public-behavior regressions: own dictionary keys/order and fresh outputs; zero remains a present answer; false, NaN, empty arrays and whitespace do not bypass optional numeric validation. Existing tests cover null/undefined/empty strings, inherited overrides, input immutability and sparse selections. Independent read-only review found no blocking issue.
+
+## Runtime allocation and traversal polish, October 6
+
+Retained three measured simplifications: semantic step validation reuses its context-owned selection index; the numeric guard delegates to noncoercing Number.isFinite; progress checks use the schema-bounded list directly instead of constructing a Set per route. The missing-answer predicate also reuses Nullable. Domain objects, exhaustive dispatch, diagnostics order, own-property access and sparse-array validation remain intact.
+
+| Operation                     |     Size | Baseline, µs/op | Candidate, µs/op | Repeat, µs/op |
+| ----------------------------- | -------: | --------------: | ---------------: | ------------: |
+| Route resolution              | 96 steps |          72.023 |           63.150 |        62.876 |
+| Complete funnel evaluation    | 96 steps |          72.755 |           63.664 |        63.310 |
+| Valid numeric answer          |        1 |           0.473 |            0.375 |         0.383 |
+| Invalid numeric answer        |        1 |           0.496 |            0.406 |         0.408 |
+| Configuration validation      | 96 steps |         672.796 |          667.593 |       665.491 |
+| Repeated selection references |       96 |         469.656 |          461.473 |       457.976 |
+
+All runs use the same 79 compiled-runtime scenarios and verify expected outputs before and after timing. Baseline: `2026-10-06T18-43-35.410Z-74d581b4-11ac-495b-8ea3-bf2b78f9b775`; candidate: `2026-10-06T18-44-51.732Z-0ec9b8ce-74e1-4a24-aead-6f25c1aeaf26`; repeat: `2026-10-06T18-46-18.838Z-0a96af05-bf95-40fa-a01f-83a7b7f2134d`. Local medians of nine batch averages on Node 24.16.0 / Apple M4 are microbenchmark evidence, not service latency or capacity. The approximately 12–13% route/evaluation and 18–21% numeric-validation gains appeared in both candidate runs. Configuration differences are too small to claim a reliable speedup.
+
+Complexity remains explicit: routing is O(S × E + answer/condition work), where validated E is at most five excluded types, hence linear in S for the progress contribution. Numeric checking remains O(1). Reusing the option index removes a second O(O) construction for referenced selection steps; validation was already linear in total options and operands. All selection indexes now survive until that validation call ends, including unreferenced steps, trading bounded per-call memory retention for reuse and a single implementation. No cross-call cache or invalidation mechanism was added.
+
+Rejected a lazy-message-formatting experiment: valid numeric validation changed from 0.375 to 0.368 µs, invalid from 0.406 to 0.408, and route resolution from 63.150 to 63.836. This does not justify a new generic method and longer call sites. Raw trial: `2026-10-06T18-45-29.261Z-a2ac2134-f46a-4743-aada-fd01ed1c89f8`; all three formatter files were restored. Deferred collapsing Object.keys/Object.entries in document bounds because it changes getter-read timing and diagnostic precedence for non-JSON objects at the unknown-input boundary. Retained ordered result-rule traversal and navigation scans: no stable reusable route index is needed by current callers.
+
+Independent review checked all retained source changes. Added regression cases for bigint/Symbol numeric rejection and progress excluding none/all five types; the existing mutation-between-validations regression covers index freshness. No source algorithm was replaced solely to shorten syntax.

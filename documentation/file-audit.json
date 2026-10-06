@@ -1896,6 +1896,58 @@
           "sha256": "bb3f187e095779743ecfa43a84187ad641394ac336205b3e828d5aedecc610aa"
         }
       ]
+    },
+    {
+      "name": "Measured runtime allocation polish",
+      "reviewDate": "2026-10-06",
+      "verification": "npm run verify passed 229 tests and all checks. Independent source review completed. Four sequential 79-case benchmark runs include baseline, candidate, rejected formatter and final candidate repeat.",
+      "files": [
+        {
+          "path": "packages/contracts/source/steps/step-validation.ts",
+          "reason": "Reused validation-owned option index instead of rebuilding the same selection set.",
+          "sha256": "a87fb2bafb32075bbd3cfc056f077256f75f233654aae2b717788036cc445fa0"
+        },
+        {
+          "path": "packages/funnel-runtime/source/routes/route-builder.ts",
+          "reason": "Removed per-call exclusion Set; schema bounds list membership to five types.",
+          "sha256": "61b129801cf75b6ddb146b2d115f697dfdd1c09766bd853fed17a4c79283bf82"
+        },
+        {
+          "path": "packages/funnel-runtime/source/answers/answer-values.ts",
+          "reason": "Native finite-number guard and existing Nullable vocabulary.",
+          "sha256": "204e4a81f92723b0109fc615ab92c2f7cc6d14e2f785b8d81318e3dd69470677"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/cases/answer-cases.ts",
+          "reason": "Bigint and Symbol reject without numeric coercion.",
+          "sha256": "29d3cbf386f2bf67640b887cea41afea81ae3871b65765dbca96a734e3822403"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/cases/route-cases.ts",
+          "reason": "Named empty/full progress exclusion scenarios.",
+          "sha256": "ae3153cafec3da0bdf4f4e418ab461dd014deec3f085cec3debcd69ffa73075a"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/fixtures/runtime-fixtures.ts",
+          "reason": "Fresh configuration construction for progress exclusion tests.",
+          "sha256": "d7a4411eb20f7c75d3104015f3308296dbde94f94e8c62afe6d598f27f0613a9"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/routes/route-resolution.test.ts",
+          "reason": "Progress endpoint regressions preserve route and accepted answers.",
+          "sha256": "34d92ccdf869d48371d0265424009aebbcd9a64622dedd12999d916fc2c1ace0"
+        },
+        {
+          "path": "documentation/foundation-review.md",
+          "reason": "Recorded repeated timings, allocation/complexity tradeoffs and rejected experiment.",
+          "sha256": "e787e86f9c7726b5ae2de07b3a83c458a4e14b4799d022b73bc800c7e6df46c0"
+        },
+        {
+          "path": "documentation/development-log.md",
+          "reason": "Recorded retained changes and full verification.",
+          "sha256": "68ae7fa6f15f7723c7a1023aa27bf7f0256630a392e82f5d7bc33b872a1a4308"
+        }
+      ]
     }
   ]
 }
