@@ -64,4 +64,8 @@ Completed a stricter helper-ownership pass after the user's repeated clarificati
 
 Found the old createIssue/validateNumberAnswer implementation still present in ignored distribution/answer_validation.js after a source rename. Node workspace builds now clean their whitelisted distribution directory before compiling. Full npm run verify passed 145 tests and all checks; verified the stale file is absent, cleanup refuses execution from the repository root, grouped-helper lint checks reject standalone helpers, and launcher signal/failure smoke checks still pass. This addresses stale generated modules as well as source organization.
 
+Centralized authored configuration diagnostic locations in ConfigurationPaths and stable schema identifiers/assignment values in ConfigurationFormat. Backend now owns environment field names, health routes, database locations, SQLite statements/settings, transport/log settings, and failure exit policy. Frontend owns mount/heading identifiers, locale and readiness content. Script policies own fixture filenames/versions/checksum settings, process signals/platform values and build output names. Schema declarations and independent expected wire/path literals in tests remain explicit.
+
+Added an integration regression for exact ordered diagnostic paths; full npm run verify passed 146 tests, strict TS/JS checks, lint, formatting, builds, fixture checksums and Prisma validation. Script checksum verification and launcher signal/failure smoke checks pass. Supplied JSON bytes, HTTP paths, SQL semantics and diagnostic strings are unchanged.
+
 This log records development milestones, not elapsed assignment time. No mutually agreed 48-hour start has been recorded.
