@@ -12,6 +12,8 @@ Review identified prototype-sensitive dictionary lookups and overly permissive m
 
 The foundation establishes shared configuration execution, schema constraints, real health endpoints, a minimal frontend, and verification automation. Full user sessions, publication, event ingestion, analytics, and second-iteration end-to-end checks remain pending.
 
-Local integration passed 43 tests, lint, formatting, strict typing, application builds, Prisma schema validation and migration deployment. A fresh installation reproduced the checks. Dependency auditing reported zero vulnerabilities after applying reviewed overrides. The frontend connected to actual backend readiness and was inspected in desktop and mobile layouts. Remote workflow verification is pending the initial push.
+Local integration passed 43 tests, lint, formatting, strict typing, application builds, Prisma schema validation and migration deployment. Fresh installations reproduced the checks on Node.js 24 and 26. Dependency auditing reported zero vulnerabilities after applying reviewed overrides. The frontend connected to actual backend readiness and was inspected in desktop and mobile layouts.
+
+Added a reproducible pure-runtime benchmark and recorded its scope and measurements in the foundation review. GitHub push and manual workflow attempts returned startup failures before jobs were created, without execution logs or annotations. Independent workflow syntax validation passed; the remote verification gap remains explicit.
 
 This log records development milestones, not elapsed assignment time. No mutually agreed 48-hour start has been recorded.

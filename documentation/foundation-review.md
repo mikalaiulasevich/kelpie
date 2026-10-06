@@ -42,7 +42,7 @@ Readiness checks are small database queries. No complete analytical query or tra
 
 ## Verification evidence
 
-Local verification on Node.js 26.10.0 and npm 11.19.1 passed after a fresh `npm ci`:
+Local verification passed after fresh `npm ci` installations on Node.js 26.10.0 with npm 11.19.1 and Node.js 24.16.0 with npm 11.13.0:
 
 - Configuration checksums for all three supplied documents.
 - ESLint, Prettier, strict TypeScript, shared package builds, backend build, and frontend production build.
@@ -52,4 +52,16 @@ Local verification on Node.js 26.10.0 and npm 11.19.1 passed after a fresh `npm 
 - Development launcher started both applications; direct health checks and the frontend proxy returned successful actual readiness responses.
 - Browser inspection confirmed the ready state and readable layouts at desktop and 390 by 844 mobile viewport sizes.
 
-Remote verification on Node.js 24 and 26 is configured in GitHub Actions; its first run is pending. Generated outputs, local databases, and secrets remain outside the initial commit.
+The reproducible `npm run benchmark:runtime` command measured 12 synthetic version/variant scenarios on an Apple M4, macOS arm64, Node.js 26.10.0. Seven timed samples followed warm-up:
+
+| Operation                | Iterations per sample | Median sample time |
+| ------------------------ | --------------------- | ------------------ |
+| Configuration validation | 1,000                 | 52.199 ms          |
+| Route resolution         | 10,000                | 6.574 ms           |
+| Result resolution        | 10,000                | 10.653 ms          |
+
+These are local pure-function measurements, not server throughput, worst-case input benchmarks, or deployment capacity guarantees.
+
+GitHub Actions targets Node.js 24 and 26, but push and manual runs returned `startup_failure` before creating jobs. No execution logs or check-run annotations were provided. The workflow passed independent `actionlint` 1.7.12 validation, and both pinned action commits were confirmed through GitHub's API. The cause remains undetermined; remote Linux verification is not confirmed. See [the manual run](https://github.com/mikalaiulasevich/kelpie/actions/runs/37486945771).
+
+Generated outputs, local databases, and secrets remain outside version control.

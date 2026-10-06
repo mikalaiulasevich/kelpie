@@ -6,7 +6,7 @@ This repository currently provides the application foundation. The complete funn
 
 ## Local development
 
-Use Node.js 24 or 26 and npm 11. The repository pins npm 11.19.1 and uses npm workspaces. Node.js 24 is the intended deployment baseline; verification also covers Node.js 26.
+Use Node.js 24 or 26 and npm 11. The repository pins npm 11.19.1 and uses npm workspaces. Node.js 24 is the intended deployment baseline; both versions passed local verification. Remote GitHub Actions verification has a startup failure described in the foundation review.
 
 ```sh
 npm install --global npm@11.19.1
