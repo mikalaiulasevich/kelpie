@@ -1,3 +1,4 @@
+export { FunnelRuntime } from './funnel-runtime.js';
 export { validateStepAnswer } from './answer-validation.js';
 export { evaluateCondition } from './condition-evaluation.js';
 export {

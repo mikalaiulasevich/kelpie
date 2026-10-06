@@ -1,9 +1,14 @@
 import { Type } from 'typebox';
 
+import { ConfigurationSchemaPolicy } from './configuration-policy.js';
+
 import { ConditionOperator } from './domain-values.js';
 import { identifierSchema } from './schema-primitives.js';
 
-const conditionValueSchema = Type.Union([Type.String({ maxLength: 100 }), Type.Number()]);
+const conditionValueSchema = Type.Union([
+  Type.String(ConfigurationSchemaPolicy.conditionText),
+  Type.Number(),
+]);
 export const conditionReferenceSchema = Type.Ref('#/$defs/condition');
 
 export const equalConditionSchema = Type.Object(
@@ -19,7 +24,7 @@ export const includedConditionSchema = Type.Object(
   {
     answer: identifierSchema,
     operator: Type.Literal(ConditionOperator.In),
-    value: Type.Array(conditionValueSchema, { minItems: 1, maxItems: 100, uniqueItems: true }),
+    value: Type.Array(conditionValueSchema, ConfigurationSchemaPolicy.conditionValues),
   },
   { additionalProperties: false },
 );
@@ -42,7 +47,10 @@ export const minimumConditionSchema = Type.Object(
   { additionalProperties: false },
 );
 
-const conditionListSchema = Type.Array(conditionReferenceSchema, { minItems: 1, maxItems: 30 });
+const conditionListSchema = Type.Array(
+  conditionReferenceSchema,
+  ConfigurationSchemaPolicy.conditionChildren,
+);
 
 export const conditionSchema = Type.Union([
   Type.Object({ all: conditionListSchema }, { additionalProperties: false }),

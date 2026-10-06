@@ -1,5 +1,7 @@
 import { Type } from 'typebox';
 
+import { ConfigurationSchemaPolicy } from './configuration-policy.js';
+
 import { conditionReferenceSchema } from './condition-schema.js';
 import { identifierSchema, textSchema } from './schema-primitives.js';
 
@@ -11,7 +13,7 @@ export const primaryActionSchema = Type.Object(
   { additionalProperties: false },
 );
 
-const recommendationsSchema = Type.Array(textSchema, { minItems: 1, maxItems: 30 });
+const recommendationsSchema = Type.Array(textSchema, ConfigurationSchemaPolicy.recommendations);
 const resultContentProperties = {
   title: textSchema,
   summary: textSchema,

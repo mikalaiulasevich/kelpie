@@ -1,13 +1,17 @@
-const requestTimeoutMilliseconds = 5_000;
+import { isMatching } from 'ts-pattern';
+import { ServiceHealthPolicy, ServiceHealthMessages } from './service-health-policy';
+import { ServiceHealthStatus } from './service-health';
+
+const isReadyResponse = isMatching({ status: ServiceHealthStatus.Ready });
 
 export async function requestServiceReadiness(cancellationSignal: AbortSignal): Promise<void> {
   const timeoutController = new AbortController();
   const timeoutIdentifier = setTimeout(() => {
-    timeoutController.abort(new Error('The service readiness check timed out.'));
-  }, requestTimeoutMilliseconds);
+    timeoutController.abort(new Error(ServiceHealthMessages.TimedOut));
+  }, ServiceHealthPolicy.requestTimeoutMilliseconds);
 
   try {
-    const response = await fetch('/api/health/ready', {
+    const response = await fetch(ServiceHealthPolicy.readinessEndpoint, {
       signal: AbortSignal.any([cancellationSignal, timeoutController.signal]),
       cache: 'no-store',
       credentials: 'same-origin',
@@ -15,17 +19,12 @@ export async function requestServiceReadiness(cancellationSignal: AbortSignal): 
     });
 
     if (!response.ok) {
-      throw new Error('The backend is not ready.');
+      throw new Error(ServiceHealthMessages.Unavailable);
     }
 
     const responseBody: unknown = await response.json();
-    if (
-      typeof responseBody !== 'object' ||
-      responseBody === null ||
-      !('status' in responseBody) ||
-      responseBody.status !== 'ready'
-    ) {
-      throw new Error('The service returned an invalid readiness response.');
+    if (!isReadyResponse(responseBody)) {
+      throw new Error(ServiceHealthMessages.InvalidResponse);
     }
   } finally {
     clearTimeout(timeoutIdentifier);

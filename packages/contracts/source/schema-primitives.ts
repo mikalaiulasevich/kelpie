@@ -1,19 +1,16 @@
 import { Type, type TSchema } from 'typebox';
 
-export const identifierSchema = Type.String({
-  minLength: 1,
-  maxLength: 100,
-  pattern: '^[a-zA-Z][a-zA-Z0-9_-]*$',
-});
+import { ConfigurationSchemaPolicy } from './configuration-policy.js';
 
-export const textSchema = Type.String({ minLength: 1, maxLength: 4000 });
+export const identifierSchema = Type.String(ConfigurationSchemaPolicy.identifier);
+
+export const textSchema = Type.String(ConfigurationSchemaPolicy.text);
 export const nonBlankTextSchema = Type.String({
-  minLength: 1,
-  maxLength: 4000,
+  ...ConfigurationSchemaPolicy.text,
   pattern: /\S/.source,
 });
 export const identifierListSchema = Type.Array(identifierSchema, {
-  maxItems: 100,
+  maxItems: ConfigurationSchemaPolicy.maximumIdentifierListItems,
   uniqueItems: true,
 });
 
@@ -21,7 +18,7 @@ export function dictionarySchema<Value extends TSchema>(values: Value, minimum =
   return Type.Record(Type.String(), values, {
     propertyNames: identifierSchema,
     minProperties: minimum,
-    maxProperties: 100,
+    maxProperties: ConfigurationSchemaPolicy.maximumDictionaryEntries,
     additionalProperties: false,
   });
 }

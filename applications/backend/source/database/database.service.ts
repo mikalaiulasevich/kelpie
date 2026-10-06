@@ -1,3 +1,5 @@
+import { DatabaseMessages } from './database-messages.js';
+import { SQLitePolicy } from './sqlite-policy.js';
 import { Inject, Injectable, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import { mkdir, readdir } from 'node:fs/promises';
@@ -45,7 +47,9 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleInit(): Promise<void> {
-    await mkdir(dirname(this.databaseUrl.slice(5)), { recursive: true });
+    await mkdir(dirname(this.databaseUrl.slice(SQLitePolicy.FileUrlPrefix.length)), {
+      recursive: true,
+    });
 
     const migrationDirectories = await readdir(resolve(applicationDirectory, 'prisma/migrations'), {
       withFileTypes: true,
@@ -55,18 +59,20 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       .map((entry) => entry.name);
 
     if (this.expectedMigrations.length === 0) {
-      throw new Error('Application migration history is unavailable.');
+      throw new Error(DatabaseMessages.MigrationHistoryUnavailable);
     }
 
     await this.client.$connect();
     await this.client.$queryRawUnsafe('PRAGMA journal_mode = WAL');
-    await this.client.$queryRawUnsafe('PRAGMA busy_timeout = 5000');
+    await this.client.$queryRawUnsafe(
+      `PRAGMA busy_timeout = ${SQLitePolicy.BusyTimeoutMilliseconds}`,
+    );
     await this.client.$queryRawUnsafe('PRAGMA foreign_keys = ON');
     const settings =
       await this.client.$queryRawUnsafe<SQLiteForeignKeySetting[]>('PRAGMA foreign_keys');
 
     if (Number(settings[0]?.foreign_keys) !== 1) {
-      throw new Error('SQLite foreign key enforcement is unavailable.');
+      throw new Error(DatabaseMessages.ForeignKeysUnavailable);
     }
   }
 

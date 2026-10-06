@@ -1,0 +1,21 @@
+import { SQLitePolicy } from '../database/sqlite-policy.js';
+
+export const ApplicationMode = Object.freeze({
+  Development: 'development',
+  Test: 'test',
+  Production: 'production',
+} as const);
+
+export type ApplicationMode = ValueOf<typeof ApplicationMode>;
+
+export const EnvironmentPolicy = Object.freeze({
+  DefaultMode: ApplicationMode.Development,
+  DefaultPort: '3000',
+  DefaultHost: '127.0.0.1',
+  DefaultDatabaseUrl: `${SQLitePolicy.FileUrlPrefix}./data/funnel-runtime.sqlite`,
+  MinimumPort: 1,
+  MaximumPort: 65_535,
+  PortPattern: '^\\d{1,5}$',
+  HostPattern: '^[a-zA-Z0-9.:-]{1,253}$',
+  DatabaseUrlPattern: `^${SQLitePolicy.FileUrlPrefix}[^?#\\u0000]+$`,
+});

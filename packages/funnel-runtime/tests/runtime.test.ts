@@ -8,6 +8,7 @@ import {
   type SessionAnswers,
 } from '@kelpie/contracts';
 import {
+  FunnelRuntime,
   evaluateCondition,
   resolveAvailableSteps,
   resolveExperimentConfiguration,
@@ -45,6 +46,48 @@ const completeAnswers: SessionAnswers = {
 };
 
 describe('pure funnel runtime', () => {
+  it('selects the first matching result rule without evaluating later rules', () => {
+    const document = configuration(1);
+    const matchingCondition = {
+      answer: 'team_size',
+      operator: ConditionOperator.Equal,
+      value: 10,
+    } as const;
+    const orderedDocument: FunnelConfiguration = {
+      ...document,
+      resultRules: [
+        { resultId: 'async_native', when: matchingCondition },
+        {
+          resultId: 'office_core',
+          get when() {
+            throw new Error('A later rule must not be evaluated after a match.');
+          },
+        },
+      ],
+    };
+
+    expect(
+      FunnelRuntime.Results.resolve(orderedDocument, ExperimentVariant.A, completeAnswers)?.id,
+    ).toBe('async_native');
+  });
+
+  it('uses the default result when no result rule matches', () => {
+    const document = configuration(1);
+    const unmatchedDocument: FunnelConfiguration = {
+      ...document,
+      resultRules: [
+        {
+          resultId: 'async_native',
+          when: { answer: 'team_size', operator: ConditionOperator.Equal, value: 200 },
+        },
+      ],
+    };
+
+    expect(
+      FunnelRuntime.Results.resolve(unmatchedDocument, ExperimentVariant.A, completeAnswers)?.id,
+    ).toBe(document.defaultResultId);
+  });
+
   it.each([1, 2, 3])(
     'applies the same result overrides through both resolvers in version %s',
     (version) => {

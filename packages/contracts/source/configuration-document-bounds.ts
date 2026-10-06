@@ -1,25 +1,93 @@
+import { match, P } from 'ts-pattern';
+
 import { ConfigurationMessages } from './configuration-messages.js';
+import { configurationLimits, DocumentAccountingPolicy } from './configuration-policy.js';
+
+export { configurationLimits } from './configuration-policy.js';
 
 interface PendingDocumentValue {
   readonly value: unknown;
   readonly depth: number;
 }
 
-export const configurationLimits = Object.freeze({
-  maximumDocumentBytes: 262144,
-  maximumDepth: 24,
-  maximumNodes: 20000,
-  maximumIssues: 30,
-});
+interface DocumentTraversal {
+  readonly pending: PendingDocumentValue[];
+  readonly visitedObjects: WeakSet<object>;
+  estimatedBytes: number;
+}
+
+function isObject(value: unknown): value is object {
+  return value !== null && typeof value === 'object';
+}
+
+function isPlainContainer(value: object): boolean {
+  const prototype: unknown = Object.getPrototypeOf(value);
+
+  return Array.isArray(value) || prototype === Object.prototype || prototype === null;
+}
+
+function inspectContainer(
+  value: object,
+  depth: number,
+  traversal: DocumentTraversal,
+): Optional<string> {
+  if (!isPlainContainer(value)) {
+    return ConfigurationMessages.PlainObjectsRequired;
+  }
+
+  if (traversal.visitedObjects.has(value)) {
+    return ConfigurationMessages.AcyclicDocumentRequired;
+  }
+
+  traversal.visitedObjects.add(value);
+
+  if (Object.keys(value).length > configurationLimits.maximumNodes) {
+    return ConfigurationMessages.DocumentPropertyLimit;
+  }
+
+  for (const [key, child] of Object.entries(value)) {
+    if (DocumentAccountingPolicy.reservedKeys.includes(key)) {
+      return ConfigurationMessages.ReservedObjectKeys;
+    }
+
+    traversal.estimatedBytes +=
+      key.length * DocumentAccountingPolicy.bytesPerCharacter +
+      DocumentAccountingPolicy.propertyOverheadBytes;
+    traversal.pending.push({ value: child, depth: depth + 1 });
+  }
+
+  return undefined;
+}
+
+function inspectValue(
+  current: PendingDocumentValue,
+  traversal: DocumentTraversal,
+): Optional<string> {
+  return match(current.value)
+    .with(P.string, (value) => {
+      traversal.estimatedBytes += value.length * DocumentAccountingPolicy.bytesPerCharacter;
+
+      return undefined;
+    })
+    .with(P.number, (value) =>
+      Number.isFinite(value) ? undefined : ConfigurationMessages.FiniteNumbersRequired,
+    )
+    .with(P.boolean, () => undefined)
+    .with(null, () => undefined)
+    .with(P.when(isObject), (value) => inspectContainer(value, current.depth, traversal))
+    .otherwise(() => ConfigurationMessages.JsonValuesRequired);
+}
 
 export function checkDocumentBounds(document: unknown): Optional<string> {
-  const pending: PendingDocumentValue[] = [{ value: document, depth: 0 }];
-  const visitedObjects = new WeakSet<object>();
+  const traversal: DocumentTraversal = {
+    pending: [{ value: document, depth: 0 }],
+    visitedObjects: new WeakSet<object>(),
+    estimatedBytes: 0,
+  };
   let nodeCount = 0;
-  let estimatedBytes = 0;
 
-  while (pending.length > 0) {
-    const current = pending.pop();
+  while (traversal.pending.length > 0) {
+    const current = traversal.pending.pop();
 
     if (current === undefined) {
       break;
@@ -34,44 +102,18 @@ export function checkDocumentBounds(document: unknown): Optional<string> {
       return ConfigurationMessages.DocumentTraversalLimit;
     }
 
-    if (typeof current.value === 'string') {
-      estimatedBytes += current.value.length * 3;
-    } else if (typeof current.value === 'number' && !Number.isFinite(current.value)) {
-      return ConfigurationMessages.FiniteNumbersRequired;
-    } else if (current.value !== null && typeof current.value === 'object') {
-      const prototype: unknown = Object.getPrototypeOf(current.value);
+    const issue = inspectValue(current, traversal);
 
-      if (!Array.isArray(current.value) && prototype !== Object.prototype && prototype !== null) {
-        return ConfigurationMessages.PlainObjectsRequired;
-      }
-
-      if (visitedObjects.has(current.value)) {
-        return ConfigurationMessages.AcyclicDocumentRequired;
-      }
-
-      visitedObjects.add(current.value);
-      const keys = Object.keys(current.value);
-
-      if (keys.length > configurationLimits.maximumNodes) {
-        return ConfigurationMessages.DocumentPropertyLimit;
-      }
-
-      for (const [key, value] of Object.entries(current.value)) {
-        if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
-          return ConfigurationMessages.ReservedObjectKeys;
-        }
-
-        estimatedBytes += key.length * 3 + 8;
-        pending.push({ value, depth: current.depth + 1 });
-      }
-    } else if (current.value !== null && !['boolean', 'number'].includes(typeof current.value)) {
-      return ConfigurationMessages.JsonValuesRequired;
+    if (issue !== undefined) {
+      return issue;
     }
 
-    if (estimatedBytes > configurationLimits.maximumDocumentBytes) {
+    if (traversal.estimatedBytes > configurationLimits.maximumDocumentBytes) {
       return ConfigurationMessages.DocumentSizeLimit;
     }
   }
 
   return undefined;
 }
+
+export const ConfigurationDocumentBounds = Object.freeze({ check: checkDocumentBounds });

@@ -13,6 +13,7 @@ import {
 import { match, P } from 'ts-pattern';
 import { validateStepAnswer } from './answer-validation.js';
 import { evaluateCondition } from './condition-evaluation.js';
+import { RuntimeMessages } from './runtime-messages.js';
 import type { AvailableRoute, ResolvedExperimentConfiguration } from './runtime-types.js';
 
 function applyStepOverride(
@@ -88,7 +89,7 @@ export function resolveAvailableSteps(
     const originalStep = readOwnProperty(configuration.steps, stepIdentifier);
 
     if (originalStep === undefined) {
-      throw new Error('Runtime requires a validated configuration.');
+      throw new Error(RuntimeMessages.ValidatedConfigurationRequired);
     }
 
     const step = applyStepOverride(stepIdentifier, originalStep, selectedVariant);
@@ -148,25 +149,41 @@ export function resolvePreviousStep(
   return route.steps[currentPosition - 1];
 }
 
+function isStepComplete(step: FunnelStep, answers: SessionAnswers): boolean {
+  if (!isInteractiveStep(step)) {
+    return true;
+  }
+
+  return validateStepAnswer(step, readOwnProperty(answers, step.input.name)).valid;
+}
+
+/** Rules are ordered: stop at the first match and never evaluate later rules. */
+function selectResultIdentifier(
+  configuration: FunnelConfiguration,
+  answers: SessionAnswers,
+): string {
+  for (const rule of configuration.resultRules) {
+    if (evaluateCondition(rule.when, answers)) {
+      return rule.resultId;
+    }
+  }
+
+  return configuration.defaultResultId;
+}
+
 export function resolveFunnelResult(
   configuration: FunnelConfiguration,
   variant: ExperimentVariant,
   answers: SessionAnswers,
 ): Optional<FunnelResult> {
   const route = resolveAvailableSteps(configuration, variant, answers);
+  const isComplete = route.steps.every((step) => isStepComplete(step, route.activeAnswers));
 
-  for (const step of route.steps) {
-    if (
-      isInteractiveStep(step) &&
-      !validateStepAnswer(step, readOwnProperty(route.activeAnswers, step.input.name)).valid
-    ) {
-      return undefined;
-    }
+  if (!isComplete) {
+    return undefined;
   }
 
-  const resultIdentifier =
-    configuration.resultRules.find((rule) => evaluateCondition(rule.when, route.activeAnswers))
-      ?.resultId ?? configuration.defaultResultId;
+  const resultIdentifier = selectResultIdentifier(configuration, route.activeAnswers);
   const result = readOwnProperty(configuration.results, resultIdentifier);
 
   if (result === undefined) {

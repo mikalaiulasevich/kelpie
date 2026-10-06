@@ -55,3 +55,6 @@ export { configurationLimits, validateFunnelConfiguration } from './configuratio
 export { readOwnProperty } from './dictionary.js';
 export { isInteractiveStep, resolveSelectionLimits } from './step-rules.js';
 export type { SelectionLimits } from './step-rules.js';
+
+export { FunnelConfigurations } from './funnel-configurations.js';
+export { StepRules } from './step-rules.js';

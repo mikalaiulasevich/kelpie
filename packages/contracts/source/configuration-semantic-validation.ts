@@ -5,10 +5,16 @@ import { validateStepContent } from './step-content-validation.js';
 import type { AnswerCondition, Condition } from './condition-types.js';
 import type { InteractiveStep, NumberStep, SelectionStep } from './step-types.js';
 import type { ConfigurationIssue, FunnelConfiguration } from './configuration-types.js';
-import { ConditionOperator, StepType } from './domain-values.js';
+import { StepType } from './domain-values.js';
 import { configurationLimits } from './configuration-document-bounds.js';
 import { readOwnProperty } from './dictionary.js';
-import { resolveSelectionLimits } from './step-rules.js';
+import { StepRules } from './step-rules.js';
+import { ConditionRules } from './condition-rules.js';
+import { ConfigurationSchemaPolicy } from './configuration-policy.js';
+import { EventPolicy } from './event-policy.js';
+
+const supportedProperties: ReadonlySet<string> = new Set(EventPolicy.properties);
+const supportedBaseProperties: ReadonlySet<string> = new Set(EventPolicy.baseProperties);
 
 interface ConfigurationValidationContext {
   readonly configuration: FunnelConfiguration;
@@ -51,7 +57,7 @@ function validateNumericStep(
     );
   }
 
-  if (step.validation.minSelections !== undefined || step.validation.maxSelections !== undefined) {
+  if (StepRules.hasSelectionLimits(step.validation)) {
     reportIssue(
       context,
       `/steps/${stepIdentifier}/validation`,
@@ -75,10 +81,7 @@ function validateSelectionStep(
     );
   }
 
-  if (
-    step.type === StepType.SingleSelect &&
-    (step.validation.minSelections !== undefined || step.validation.maxSelections !== undefined)
-  ) {
+  if (step.type === StepType.SingleSelect && StepRules.hasSelectionLimits(step.validation)) {
     reportIssue(
       context,
       `/steps/${stepIdentifier}/validation`,
@@ -86,7 +89,7 @@ function validateSelectionStep(
     );
   }
 
-  const limits = resolveSelectionLimits(step, optionValues.size);
+  const limits = StepRules.selectionLimits(step, optionValues.size);
 
   if (limits.minimum > limits.maximum || limits.maximum > optionValues.size) {
     reportIssue(
@@ -162,27 +165,22 @@ function validateCondition(
       reportIssue(context, path, ConfigurationMessages.AnswerOrder(predicate.answer));
     }
 
-    const values = Array.isArray(predicate.value) ? predicate.value : [predicate.value];
+    const values = ConditionRules.values(predicate);
 
     if (answerStep.type === StepType.Number) {
-      if (
-        predicate.operator === ConditionOperator.Contains ||
-        values.some((value) => typeof value !== 'number')
-      ) {
+      if (!ConditionRules.acceptsNumericOperands(predicate)) {
         reportIssue(context, path, ConfigurationMessages.NumericConditionOperandsRequired);
       }
     } else {
-      if (
-        (predicate.operator === ConditionOperator.Contains) !==
-          (answerStep.type === StepType.MultiSelect) ||
-        predicate.operator === ConditionOperator.GreaterThanOrEqual
-      ) {
+      if (!ConditionRules.acceptsSelectionOperator(answerStep, predicate)) {
         reportIssue(context, path, ConfigurationMessages.ConditionOperatorMismatch);
       }
 
-      const availableValues = new Set(answerStep.input.options.map((option) => option.value));
+      const availableValues = new Set<string | number>(
+        answerStep.input.options.map((option) => option.value),
+      );
 
-      if (values.some((value) => typeof value !== 'string' || !availableValues.has(value))) {
+      if (values.some((value) => !availableValues.has(value))) {
         reportIssue(context, path, ConfigurationMessages.UnavailableConditionOption);
       }
     }
@@ -247,7 +245,7 @@ function validateVariants(context: ConfigurationValidationContext): void {
       }
     }
 
-    if (resultCount !== 1) {
+    if (resultCount !== ConfigurationSchemaPolicy.requiredResultSteps) {
       reportIssue(
         context,
         `/experiment/variants/${variantIdentifier}/stepSequence`,
@@ -278,7 +276,7 @@ function validateVariants(context: ConfigurationValidationContext): void {
 
   if (
     configuration.experiment.variants.A.weight + configuration.experiment.variants.B.weight !==
-    100
+    ConfigurationSchemaPolicy.totalExperimentWeight
   ) {
     reportIssue(context, '/experiment/variants', ConfigurationMessages.InvalidVariantWeightTotal);
   }
@@ -322,32 +320,6 @@ function validateEvents(context: ConfigurationValidationContext): void {
     reportIssue(context, '/events/allowed', ConfigurationMessages.UniqueEventNamesRequired);
   }
 
-  const supportedProperties = new Set([
-    'step_type',
-    'visible_step_index',
-    'visible_step_count',
-    'answer_kind',
-    'next_step_id',
-    'destination_step_id',
-    'result_id',
-    'action',
-    'source',
-  ]);
-  const supportedBaseProperties = new Set([
-    'event_id',
-    'session_id',
-    'client_timestamp',
-    'server_timestamp',
-    'funnel_id',
-    'funnel_version',
-    'experiment_id',
-    'variant',
-    'step_id',
-    'utm_source',
-    'utm_medium',
-    'utm_campaign',
-  ]);
-
   for (const property of configuration.events.baseProperties) {
     if (!supportedBaseProperties.has(property)) {
       reportIssue(
@@ -370,15 +342,7 @@ function validateEvents(context: ConfigurationValidationContext): void {
     }
   }
 
-  for (const name of [
-    'session_started',
-    'step_viewed',
-    'answer_submitted',
-    'step_completed',
-    'back_clicked',
-    'result_viewed',
-    'cta_clicked',
-  ]) {
+  for (const name of EventPolicy.requiredEvents) {
     if (!eventNames.has(name)) {
       reportIssue(context, '/events/allowed', ConfigurationMessages.MissingRequiredEvent(name));
     }

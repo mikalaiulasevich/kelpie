@@ -1,18 +1,15 @@
+import { isMatching, P } from 'ts-pattern';
 import { StepType } from './domain-values.js';
-import type { FunnelStep, InteractiveStep, SelectionStep } from './step-types.js';
+import type { SelectionStep } from './step-types.js';
 
 export interface SelectionLimits {
   readonly minimum: number;
   readonly maximum: number;
 }
 
-export function isInteractiveStep(step: FunnelStep): step is InteractiveStep {
-  return (
-    step.type === StepType.Number ||
-    step.type === StepType.SingleSelect ||
-    step.type === StepType.MultiSelect
-  );
-}
+export const isInteractiveStep = isMatching({
+  type: P.union(StepType.Number, StepType.SingleSelect, StepType.MultiSelect),
+});
 
 /** Semantic validation supplies a distinct choice count when options contain duplicates. */
 export function resolveSelectionLimits(
@@ -24,3 +21,9 @@ export function resolveSelectionLimits(
     maximum: step.validation.maxSelections ?? availableOptionCount,
   };
 }
+
+export const StepRules = Object.freeze({
+  isInteractive: isInteractiveStep,
+  selectionLimits: resolveSelectionLimits,
+  hasSelectionLimits: isMatching(P.union({ minSelections: P.number }, { maxSelections: P.number })),
+});

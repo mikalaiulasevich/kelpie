@@ -1,5 +1,7 @@
 import { Type } from 'typebox';
 
+import { ConfigurationSchemaPolicy } from './configuration-policy.js';
+
 import { conditionReferenceSchema } from './condition-schema.js';
 import { StepType } from './domain-values.js';
 import {
@@ -46,8 +48,8 @@ export const interactiveContentSchema = Type.Object(
 export const answerValidationSchema = Type.Object(
   {
     required: Type.Boolean(),
-    minSelections: Type.Optional(Type.Integer({ minimum: 0, maximum: 100 })),
-    maxSelections: Type.Optional(Type.Integer({ minimum: 1, maximum: 100 })),
+    minSelections: Type.Optional(Type.Integer(ConfigurationSchemaPolicy.minimumSelections)),
+    maxSelections: Type.Optional(Type.Integer(ConfigurationSchemaPolicy.maximumSelections)),
     messages: dictionarySchema(textSchema),
   },
   { additionalProperties: false },
@@ -81,7 +83,7 @@ export const selectionOptionSchema = Type.Object(
 export const selectionInputSchema = Type.Object(
   {
     name: identifierSchema,
-    options: Type.Array(selectionOptionSchema, { minItems: 1, maxItems: 100 }),
+    options: Type.Array(selectionOptionSchema, ConfigurationSchemaPolicy.selectionOptions),
   },
   { additionalProperties: false },
 );

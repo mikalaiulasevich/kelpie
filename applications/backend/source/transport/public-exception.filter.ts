@@ -6,6 +6,7 @@ import {
   type ExceptionFilter,
 } from '@nestjs/common';
 import type { Response } from 'express';
+import { TransportMessages } from './transport-messages.js';
 
 function resolvePublicStatus(exception: unknown): number {
   if (exception instanceof HttpException) {
@@ -28,18 +29,18 @@ function resolvePublicStatus(exception: unknown): number {
 
 function resolvePublicMessage(status: number): string {
   if (status === HttpStatus.SERVICE_UNAVAILABLE) {
-    return 'Application is not ready.';
+    return TransportMessages.NotReady;
   }
 
   if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
-    return 'An internal error occurred.';
+    return TransportMessages.InternalFailure;
   }
 
   if (status === HttpStatus.PAYLOAD_TOO_LARGE) {
-    return 'Request body is too large.';
+    return TransportMessages.BodyTooLarge;
   }
 
-  return 'Request could not be processed.';
+  return TransportMessages.RequestRejected;
 }
 
 @Catch()
@@ -51,7 +52,7 @@ export class PublicExceptionFilter implements ExceptionFilter {
 
     if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
       process.stderr.write(
-        `${JSON.stringify({ level: 'error', component: 'request', message: 'Unhandled request failure.' })}\n`,
+        `${JSON.stringify({ level: 'error', component: 'request', message: TransportMessages.UnhandledFailure })}\n`,
       );
     }
 

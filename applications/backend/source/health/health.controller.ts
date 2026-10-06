@@ -1,4 +1,5 @@
 import { Controller, Get, Inject, ServiceUnavailableException } from '@nestjs/common';
+import { TransportMessages } from '../transport/transport-messages.js';
 import { DatabaseService } from '../database/database.service.js';
 
 interface HealthResponse {
@@ -24,6 +25,6 @@ export class HealthController {
       // Database errors can include paths and queries; expose only availability.
     }
 
-    throw new ServiceUnavailableException('Application is not ready.');
+    throw new ServiceUnavailableException(TransportMessages.NotReady);
   }
 }

@@ -4,6 +4,8 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
 import { Server } from 'node:http';
 import { ApplicationModule } from './application.module.js';
+import { TransportMessages } from './transport/transport-messages.js';
+import { TransportPolicy } from './transport/transport-policy.js';
 import { PublicExceptionFilter } from './transport/public-exception.filter.js';
 
 export async function createApplication(): Promise<NestExpressApplication> {
@@ -13,21 +15,21 @@ export async function createApplication(): Promise<NestExpressApplication> {
   });
 
   application.disable('x-powered-by');
-  application.setGlobalPrefix('api');
+  application.setGlobalPrefix(TransportPolicy.ApiPrefix);
   application.use(helmet());
-  application.useBodyParser('json', { limit: '256kb', strict: true });
+  application.useBodyParser('json', { limit: TransportPolicy.JsonBodyLimit, strict: true });
   application.useGlobalFilters(new PublicExceptionFilter());
   application.enableShutdownHooks();
 
   const server: unknown = application.getHttpServer();
 
   if (!(server instanceof Server)) {
-    throw new Error('HTTP server adapter is unsupported.');
+    throw new Error(TransportMessages.UnsupportedServer);
   }
 
-  server.requestTimeout = 30_000;
-  server.headersTimeout = 15_000;
-  server.keepAliveTimeout = 5_000;
+  server.requestTimeout = TransportPolicy.RequestTimeoutMilliseconds;
+  server.headersTimeout = TransportPolicy.HeadersTimeoutMilliseconds;
+  server.keepAliveTimeout = TransportPolicy.KeepAliveTimeoutMilliseconds;
 
   return application;
 }
