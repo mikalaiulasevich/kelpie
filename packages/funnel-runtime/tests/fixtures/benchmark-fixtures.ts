@@ -178,7 +178,11 @@ export const BenchmarkFixtures = {
       resultRules: [
         {
           resultId: 'balanced',
-          when: { answer: 'question_0', operator: ConditionOperator.Equal, value: 1 },
+          when: {
+            answer: 'question_0',
+            operator: ConditionOperator.Equal,
+            value: BenchmarkPolicy.AnswerValue,
+          },
         },
       ],
       experiment: {

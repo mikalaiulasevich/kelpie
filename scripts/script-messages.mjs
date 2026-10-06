@@ -4,6 +4,10 @@ export const BuildMessages = /** @type {const} */ ({
 });
 
 export const ConfigurationIntegrityMessages = /** @type {const} */ ({
+  /** @param {string} fileName */
+  verifiedContents(fileName) {
+    return `${fileName}: original checksum verified`;
+  },
   MissingEntries: 'The manifest must contain all three supplied configurations.',
   /** @param {string} fileName */
   unexpectedEntry(fileName) {

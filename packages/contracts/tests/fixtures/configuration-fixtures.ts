@@ -35,6 +35,18 @@ export const ConfigurationFixtures = {
 
     return step;
   },
+  withIntroductionContent(content: StepOverride['content']): FunnelConfiguration {
+    const configuration = ConfigurationFixtures.valid();
+    const introduction = ConfigurationFixtures.informationStep(configuration);
+
+    return {
+      ...configuration,
+      steps: {
+        ...configuration.steps,
+        intro: { ...introduction, content: { ...introduction.content, ...content } },
+      },
+    };
+  },
   withVariantIntroductionContent(content: StepOverride['content']): FunnelConfiguration {
     const configuration = ConfigurationFixtures.valid();
 

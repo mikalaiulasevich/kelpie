@@ -14,7 +14,7 @@ describe('own dictionary properties', () => {
   });
 
   it('supports null prototypes and own keys that shadow prototype names', () => {
-    const dictionary: Record<string, string | undefined> = {
+    const dictionary: Dictionary<string, Optional<string>> = {
       constructor: 'own constructor',
       hasOwnProperty: 'own value',
       missingValue: undefined,

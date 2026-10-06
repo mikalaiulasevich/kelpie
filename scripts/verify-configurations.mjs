@@ -28,7 +28,7 @@ for (const [fileName, expectedChecksum] of Object.entries(manifest)) {
   }
 
   JSON.parse(contents.toString(ConfigurationFiles.TextEncoding));
-  console.info(`${fileName}: original checksum verified`);
+  console.info(ConfigurationIntegrityMessages.verifiedContents(fileName));
 }
 
 if (Object.keys(manifest).length !== expectedNames.size) {

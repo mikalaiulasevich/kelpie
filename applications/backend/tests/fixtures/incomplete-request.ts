@@ -18,7 +18,8 @@ export class IncompleteRequestFixture {
     const fixture = new IncompleteRequestFixture();
 
     try {
-      await fixture.begin(port);
+      await fixture.waitForAcceptance(port);
+      await fixture.writePartialBody();
 
       return fixture;
     } catch (error) {
@@ -49,7 +50,7 @@ export class IncompleteRequestFixture {
     this.socket.destroy();
   }
 
-  private async begin(port: number): Promise<void> {
+  private async waitForAcceptance(port: number): Promise<void> {
     let deadline: Optional<NodeJS.Timeout>;
 
     try {
@@ -61,28 +62,36 @@ export class IncompleteRequestFixture {
         );
         this.socket.once('error', rejectAccepted);
         this.socket.on('data', (chunk: Buffer) => {
-          response += chunk.toString();
+          response = (response + chunk.toString()).slice(
+            -StartupProcessPolicy.MaximumOutputCharacters,
+          );
 
           if (response.includes('HTTP/1.1 100 Continue\r\n\r\n')) {
             this.socket.removeListener('error', rejectAccepted);
             resolveAccepted();
           }
         });
-        this.socket.connect(port, StartupProcessPolicy.Host, () => {
-          this.socket.write(
-            'POST /api/health/live HTTP/1.1\r\n' +
-              `Host: ${StartupProcessPolicy.Host}:${port}\r\n` +
-              'Content-Type: application/json\r\n' +
-              'Content-Length: 100\r\n' +
-              'Expect: 100-continue\r\n\r\n',
-          );
-        });
-      });
-      await new Promise<void>((resolveWritten, rejectWritten) => {
-        this.socket.write('{', (error) => (error ? rejectWritten(error) : resolveWritten()));
+        this.socket.connect(port, StartupProcessPolicy.Host, () => this.writeHeaders(port));
       });
     } finally {
       clearTimeout(deadline);
+      this.socket.removeAllListeners('data');
     }
+  }
+
+  private writeHeaders(port: number): void {
+    this.socket.write(
+      'POST /api/health/live HTTP/1.1\r\n' +
+        `Host: ${StartupProcessPolicy.Host}:${port}\r\n` +
+        'Content-Type: application/json\r\n' +
+        'Content-Length: 100\r\n' +
+        'Expect: 100-continue\r\n\r\n',
+    );
+  }
+
+  private async writePartialBody(): Promise<void> {
+    await new Promise<void>((resolveWritten, rejectWritten) => {
+      this.socket.write('{', (error) => (error ? rejectWritten(error) : resolveWritten()));
+    });
   }
 }

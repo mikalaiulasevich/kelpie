@@ -11,7 +11,7 @@ interface ServiceHealthPresentation {
   readonly indicatorClassName: string;
 }
 
-const serviceHealthPresentations: ReadonlyDictionary<
+const ServiceHealthPresentations: ReadonlyDictionary<
   ServiceHealthStatus,
   ServiceHealthPresentation
 > = {
@@ -32,7 +32,7 @@ const serviceHealthPresentations: ReadonlyDictionary<
 export function ServiceConnection(): UIElement {
   const [checkSequence, setCheckSequence] = useState(0);
   const serviceHealth = useServiceHealth(checkSequence);
-  const presentation = serviceHealthPresentations[serviceHealth.status];
+  const presentation = ServiceHealthPresentations[serviceHealth.status];
 
   return (
     <section

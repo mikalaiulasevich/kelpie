@@ -147,11 +147,19 @@ const BenchmarkCaseFactory = {
   },
 
   conditions(size: number): ReadonlyList<BenchmarkCase> {
-    const matching: Condition = { answer: 'quantity', operator: ConditionOperator.Equal, value: 1 };
-    const missing: Condition = { answer: 'quantity', operator: ConditionOperator.Equal, value: 2 };
+    const matching: Condition = {
+      answer: 'quantity',
+      operator: ConditionOperator.Equal,
+      value: BenchmarkPolicy.AnswerValue,
+    };
+    const missing: Condition = {
+      answer: 'quantity',
+      operator: ConditionOperator.Equal,
+      value: BenchmarkPolicy.UnmatchedValue,
+    };
     const matchingChildren = Array.from({ length: size }, () => matching);
     const missingChildren = Array.from({ length: size }, () => missing);
-    const answers = { quantity: 1 };
+    const answers = { quantity: BenchmarkPolicy.AnswerValue };
     const iterations = BenchmarkPolicy.SimpleIterations;
     const allEarly: Condition = { all: [missing, ...matchingChildren.slice(1)] };
     const allWorst: Condition = { all: matchingChildren };

@@ -7,9 +7,9 @@ import { DevelopmentPolicy } from './script-policy.mjs';
 /** @type {Set<import('node:child_process').ChildProcess>} */
 const childProcesses = new Set();
 let shuttingDown = false;
-/** @type {ReturnType<typeof setTimeout> | undefined} */
+/** @type {Optional<ReturnType<typeof setTimeout>>} */
 let shutdownDeadline;
-/** @type {ReturnType<typeof setInterval> | undefined} */
+/** @type {Optional<ReturnType<typeof setInterval>>} */
 let shutdownInspection;
 
 const DevelopmentProcesses = {

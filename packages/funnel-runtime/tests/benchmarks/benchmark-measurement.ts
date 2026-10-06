@@ -9,6 +9,31 @@ import type { BenchmarkMeasurementResult, BenchmarkSampleCollection } from './me
 // Retain the final result outside each timed batch; correctness checks run separately.
 let measuredResult: unknown;
 
+const BenchmarkPreparation = {
+  prepare(scenarios: ReadonlyList<BenchmarkCase>): ReadonlyList<BenchmarkSampleCollection> {
+    const identities = new Set<string>();
+    const measurements = scenarios.map<BenchmarkSampleCollection>((scenario) => ({
+      scenario,
+      samples: [],
+    }));
+
+    for (const scenario of scenarios) {
+      const identity = `${scenario.name}:${scenario.size}`;
+      assert.ok(
+        Number.isInteger(scenario.iterations) &&
+          scenario.iterations > 0 &&
+          !identities.has(identity),
+        MeasurementMessages.InvalidCase,
+      );
+      identities.add(identity);
+      scenario.verify();
+      BenchmarkMeasurement.sample(scenario, MeasurementPolicy.WarmupIterations);
+    }
+
+    return measurements;
+  },
+} as const;
+
 export const BenchmarkMeasurement = {
   sample(scenario: BenchmarkCase, iterations: number): number {
     const startedAt = performance.now();
@@ -37,24 +62,7 @@ export const BenchmarkMeasurement = {
   },
 
   run(scenarios: ReadonlyList<BenchmarkCase>): ReadonlyList<BenchmarkMeasurementResult> {
-    const identities = new Set<string>();
-    const measurements = scenarios.map<BenchmarkSampleCollection>((scenario) => ({
-      scenario,
-      samples: [],
-    }));
-
-    for (const scenario of scenarios) {
-      const identity = `${scenario.name}:${scenario.size}`;
-      assert.ok(
-        Number.isInteger(scenario.iterations) &&
-          scenario.iterations > 0 &&
-          !identities.has(identity),
-        MeasurementMessages.InvalidCase,
-      );
-      identities.add(identity);
-      scenario.verify();
-      BenchmarkMeasurement.sample(scenario, MeasurementPolicy.WarmupIterations);
-    }
+    const measurements = BenchmarkPreparation.prepare(scenarios);
 
     // Rotate starting position to distribute warmup, thermal and GC effects across cases.
     for (let round = 0; round < MeasurementPolicy.Samples; round += 1) {

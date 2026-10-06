@@ -5,6 +5,16 @@ import { StartupProcessFixture } from '../fixtures/startup-process.js';
 import { StartupProcessPolicy } from '../fixtures/startup-policy.js';
 
 describe('application process lifecycle', () => {
+  it('releases an incomplete request when the backend rejects the connection', async () => {
+    const listener = await StartupPortFixture.create();
+    const port = listener.port;
+    await listener.close();
+
+    await expect(IncompleteRequestFixture.create(port)).rejects.toMatchObject({
+      code: 'ECONNREFUSED',
+    });
+  });
+
   it('exits after invalid environment input without disclosing its value', async () => {
     const invalidPortSecret = 'secret-environment-marker';
     const application = await StartupProcessFixture.create({

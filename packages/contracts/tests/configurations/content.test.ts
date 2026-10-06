@@ -8,21 +8,11 @@ describe('content', () => {
   it.each(ConfigurationCases.blankInformationContent)(
     'rejects blank information content $field with $name in base and merged variants',
     ({ field, value }) => {
-      const configuration = ConfigurationFixtures.valid();
-      const introductionStep = ConfigurationFixtures.informationStep(configuration);
+      const base = FunnelConfigurations.validate(
+        ConfigurationFixtures.withIntroductionContent({ [field]: value }),
+      );
 
-      expect(
-        FunnelConfigurations.validate({
-          ...configuration,
-          steps: {
-            ...configuration.steps,
-            intro: {
-              ...introductionStep,
-              content: { ...introductionStep.content, [field]: value },
-            },
-          },
-        }),
-      ).toMatchObject({ valid: false });
+      expect(base).toMatchObject({ valid: false });
 
       const overridden = FunnelConfigurations.validate(
         ConfigurationFixtures.withVariantIntroductionContent({ [field]: value }),

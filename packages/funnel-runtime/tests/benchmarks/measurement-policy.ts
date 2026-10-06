@@ -24,6 +24,9 @@ export const MeasurementPolicy = {
   HashAlgorithm: 'sha256',
   HashEncoding: 'hex',
   TextEncoding: 'utf8',
+  GitExecutable: 'git',
+  FileExistsCode: 'EEXIST',
+  ExclusiveWriteOptions: { flag: 'wx' },
   GitArguments: ['rev-parse', 'HEAD'],
   GitStatusArguments: ['status', '--porcelain'],
   HistoryHeader:

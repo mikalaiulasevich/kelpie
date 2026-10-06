@@ -30,12 +30,15 @@ export interface BenchmarkEnvironment {
   readonly compiledHash: string;
 }
 
-export interface BenchmarkReportData {
+export interface BenchmarkReportMetadata {
   readonly suite: BenchmarkSuite;
   readonly run: string;
   readonly scope: string;
   readonly warmupIterations: number;
   readonly samplingOrder: string;
   readonly environment: BenchmarkEnvironment;
+}
+
+export interface BenchmarkReportData extends BenchmarkReportMetadata {
   readonly results: ReadonlyList<BenchmarkMeasurementResult>;
 }

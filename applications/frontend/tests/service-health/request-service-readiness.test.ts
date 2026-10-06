@@ -33,7 +33,7 @@ describe('service readiness', () => {
     expect(request.headers.get('accept')).toBe('application/json');
   });
 
-  it.each(ServiceReadinessCases.rejectedResponses)(
+  it.each(ServiceReadinessCases.RejectedResponses)(
     'rejects $name',
     async ({ body, status, message }) => {
       vi.useFakeTimers();

@@ -1,5 +1,5 @@
 export const ServiceReadinessCases = {
-  rejectedResponses: [
+  RejectedResponses: [
     {
       name: 'an unavailable backend',
       body: { status: 'ready' },

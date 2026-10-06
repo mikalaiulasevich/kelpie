@@ -11,6 +11,7 @@ import { MeasurementMessages } from './measurement-messages.js';
 import type {
   BenchmarkEnvironment,
   BenchmarkReportData,
+  BenchmarkReportMetadata,
   BenchmarkMeasurementResult,
 } from './measurement-types.js';
 
@@ -48,17 +49,33 @@ const BenchmarkIdentity = {
     return hash.digest(MeasurementPolicy.HashEncoding);
   },
 
+  async verify(environment: BenchmarkEnvironment): Promise<void> {
+    const sourceHash = await BenchmarkIdentity.hash(
+      MeasurementPolicy.SourceDirectories,
+      MeasurementPolicy.IdentityFiles,
+    );
+    const compiledHash = await BenchmarkIdentity.hash(MeasurementPolicy.CompiledDirectories);
+    assert.ok(
+      sourceHash === environment.sourceHash && compiledHash === environment.compiledHash,
+      MeasurementMessages.ChangedInputs,
+    );
+  },
+
   async environment(): Promise<BenchmarkEnvironment> {
     let revision: string = MeasurementMessages.UnknownRevision;
     let workingTreeChanged = true;
 
     try {
-      revision = execFileSync('git', [...MeasurementPolicy.GitArguments], {
-        cwd: repositoryDirectory,
-        encoding: MeasurementPolicy.TextEncoding,
-      }).trim();
+      revision = execFileSync(
+        MeasurementPolicy.GitExecutable,
+        [...MeasurementPolicy.GitArguments],
+        {
+          cwd: repositoryDirectory,
+          encoding: MeasurementPolicy.TextEncoding,
+        },
+      ).trim();
       workingTreeChanged =
-        execFileSync('git', [...MeasurementPolicy.GitStatusArguments], {
+        execFileSync(MeasurementPolicy.GitExecutable, [...MeasurementPolicy.GitStatusArguments], {
           cwd: repositoryDirectory,
           encoding: MeasurementPolicy.TextEncoding,
         }).trim().length > 0;
@@ -88,6 +105,28 @@ const BenchmarkTable = {
     return `"${String(value).replaceAll('"', '""')}"`;
   },
 
+  async append(directory: string, rows: string): Promise<void> {
+    const history = resolve(directory, MeasurementPolicy.HistoryFile);
+
+    try {
+      await writeFile(
+        history,
+        `${MeasurementPolicy.HistoryHeader}\n`,
+        MeasurementPolicy.ExclusiveWriteOptions,
+      );
+    } catch (error) {
+      if (
+        !(error instanceof Error) ||
+        !('code' in error) ||
+        error.code !== MeasurementPolicy.FileExistsCode
+      ) {
+        throw error;
+      }
+    }
+
+    await appendFile(history, rows);
+  },
+
   rows(report: BenchmarkReportData): string {
     return (
       report.results
@@ -113,7 +152,7 @@ const BenchmarkTable = {
 } as const;
 
 export const BenchmarkReport = {
-  async prepare(): Promise<Omit<BenchmarkReportData, 'results'>> {
+  async prepare(): Promise<BenchmarkReportMetadata> {
     return {
       suite: BenchmarkSuite.Runtime,
       run: `${new Date().toISOString().replaceAll(':', '-')}-${randomUUID()}`,
@@ -125,39 +164,20 @@ export const BenchmarkReport = {
   },
 
   async save(
-    metadata: Omit<BenchmarkReportData, 'results'>,
+    metadata: BenchmarkReportMetadata,
     results: ReadonlyList<BenchmarkMeasurementResult>,
   ): Promise<string> {
-    const sourceHash = await BenchmarkIdentity.hash(
-      MeasurementPolicy.SourceDirectories,
-      MeasurementPolicy.IdentityFiles,
-    );
-    const compiledHash = await BenchmarkIdentity.hash(MeasurementPolicy.CompiledDirectories);
-    assert.ok(
-      sourceHash === metadata.environment.sourceHash &&
-        compiledHash === metadata.environment.compiledHash,
-      MeasurementMessages.ChangedInputs,
-    );
+    await BenchmarkIdentity.verify(metadata.environment);
     const report: BenchmarkReportData = { ...metadata, results };
     const directory = resolve(repositoryDirectory, MeasurementPolicy.OutputDirectory);
     await mkdir(directory, { recursive: true });
     await writeFile(
       resolve(directory, `${report.run}.json`),
       `${JSON.stringify(report, null, 2)}\n`,
-      { flag: 'wx' },
+      MeasurementPolicy.ExclusiveWriteOptions,
     );
     const rows = BenchmarkTable.rows(report);
-    const history = resolve(directory, MeasurementPolicy.HistoryFile);
-
-    try {
-      await writeFile(history, `${MeasurementPolicy.HistoryHeader}\n`, { flag: 'wx' });
-    } catch (error) {
-      if (!(error instanceof Error) || !('code' in error) || error.code !== 'EEXIST') {
-        throw error;
-      }
-    }
-
-    await appendFile(history, rows);
+    await BenchmarkTable.append(directory, rows);
     await writeFile(
       resolve(directory, MeasurementPolicy.LatestFile),
       `${MeasurementPolicy.HistoryHeader}\n${rows}`,

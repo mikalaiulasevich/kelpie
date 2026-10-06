@@ -1,6 +1,6 @@
-import { RouteCases } from '../cases/route-cases.js';
 import { describe, expect, it } from 'vitest';
 import { ExperimentVariant } from '@kelpie/contracts';
+import { RouteCases } from '../cases/route-cases.js';
 import { FunnelRuntime, RouteResolution } from '../../source/index.js';
 import { RuntimeFixtures, RuntimeAnswers } from '../fixtures/runtime-fixtures.js';
 

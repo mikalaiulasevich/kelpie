@@ -1,5 +1,5 @@
-import { isUndefined } from 'es-toolkit/predicate';
 import { readFileSync } from 'node:fs';
+import { isUndefined } from 'es-toolkit/predicate';
 import {
   FunnelConfigurations,
   type FunnelConfiguration,

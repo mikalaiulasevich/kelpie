@@ -21,5 +21,5 @@ export const ServiceHealthDetailsCases = {
       health: { status: ServiceHealthStatus.Unavailable },
       expectedDescription: 'The readiness check did not succeed. Start the backend and try again.',
     },
-  ] satisfies readonly ServiceHealthDetailsCase[],
+  ] satisfies ReadonlyList<ServiceHealthDetailsCase>,
 } as const;
