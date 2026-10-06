@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process';
 
-const workspaceNames = ['@kelpie/backend', '@kelpie/frontend'];
+import { DevelopmentPolicy } from './script-policy.mjs';
 const childProcesses = new Set();
 let shuttingDown = false;
 
@@ -40,11 +40,11 @@ function stopChildren(exitCode) {
         childProcess.kill('SIGKILL');
       }
     }
-  }, 5000);
+  }, DevelopmentPolicy.shutdownTimeoutMilliseconds);
   shutdownDeadline.unref();
 }
 
-for (const workspaceName of workspaceNames) {
+for (const workspaceName of DevelopmentPolicy.workspaces) {
   const childProcess = spawn('npm', ['run', 'development', `--workspace=${workspaceName}`], {
     stdio: 'inherit',
     detached: process.platform !== 'win32',
@@ -53,15 +53,15 @@ for (const workspaceName of workspaceNames) {
   childProcesses.add(childProcess);
   childProcess.on('error', (error) => {
     console.error(`Unable to start ${workspaceName}:`, error.message);
-    stopChildren(1);
+    stopChildren(DevelopmentPolicy.failureExitCode);
   });
   childProcess.on('exit', (exitCode) => {
     childProcesses.delete(childProcess);
     if (!shuttingDown) {
-      stopChildren(exitCode ?? 1);
+      stopChildren(exitCode ?? DevelopmentPolicy.failureExitCode);
     }
   });
 }
 
-process.once('SIGINT', () => stopChildren(130));
-process.once('SIGTERM', () => stopChildren(143));
+process.once('SIGINT', () => stopChildren(DevelopmentPolicy.interruptExitCode));
+process.once('SIGTERM', () => stopChildren(DevelopmentPolicy.terminationExitCode));

@@ -1,15 +1,16 @@
 import { readFile } from 'node:fs/promises';
 import { performance } from 'node:perf_hooks';
 import { platform, arch, cpus } from 'node:os';
-import { validateFunnelConfiguration } from '@kelpie/contracts';
-import { resolveAvailableSteps, resolveFunnelResult } from '@kelpie/funnel-runtime';
+import { FunnelConfigurations, StepType, ExperimentVariant } from '@kelpie/contracts';
+import { BenchmarkPolicy } from './script-policy.mjs';
+import { FunnelRuntime } from '@kelpie/funnel-runtime';
 
 const configurations = [];
-for (const version of [1, 2, 3]) {
+for (const version of BenchmarkPolicy.configurationVersions) {
   const document = JSON.parse(
     await readFile(new URL(`../configurations/funnel-v${version}.json`, import.meta.url), 'utf8'),
   );
-  const validation = validateFunnelConfiguration(document);
+  const validation = FunnelConfigurations.validate(document);
   if (!validation.valid) {
     throw new Error(`Supplied configuration ${version} is invalid.`);
   }
@@ -20,11 +21,11 @@ for (const version of [1, 2, 3]) {
 function buildSyntheticAnswers(configuration, includeCompliance) {
   const answers = {};
   for (const step of Object.values(configuration.steps)) {
-    if (step.type === 'number') {
+    if (step.type === StepType.Number) {
       answers[step.input.name] = step.input.min;
-    } else if (step.type === 'single-select') {
+    } else if (step.type === StepType.SingleSelect) {
       answers[step.input.name] = step.input.options[0].value;
-    } else if (step.type === 'multi-select') {
+    } else if (step.type === StepType.MultiSelect) {
       const complianceOption = step.input.options.find((option) => option.value === 'compliance');
       const selectedOption =
         includeCompliance && complianceOption ? complianceOption : step.input.options[0];
@@ -36,7 +37,7 @@ function buildSyntheticAnswers(configuration, includeCompliance) {
 }
 
 const scenarios = configurations.flatMap((configuration) =>
-  ['A', 'B'].flatMap((variant) =>
+  Object.values(ExperimentVariant).flatMap((variant) =>
     [false, true].map((includeCompliance) => ({
       configuration,
       variant,
@@ -46,12 +47,12 @@ const scenarios = configurations.flatMap((configuration) =>
 );
 
 function measure(name, iterations, operation) {
-  for (let position = 0; position < 1000; position += 1) {
+  for (let position = 0; position < BenchmarkPolicy.warmupIterations; position += 1) {
     operation(position);
   }
 
   const durationSamples = [];
-  for (let sample = 0; sample < 7; sample += 1) {
+  for (let sample = 0; sample < BenchmarkPolicy.samples; sample += 1) {
     const startedAt = performance.now();
     for (let position = 0; position < iterations; position += 1) {
       operation(position);
@@ -66,30 +67,44 @@ function measure(name, iterations, operation) {
     name,
     iterationsPerSample: iterations,
     samples: durationSamples.length,
-    medianSampleMilliseconds: Number(durationSamples[3].toFixed(3)),
-    maximumSampleMilliseconds: Number(durationSamples.at(-1).toFixed(3)),
+    medianSampleMilliseconds: Number(
+      durationSamples[Math.floor(BenchmarkPolicy.samples / 2)].toFixed(
+        BenchmarkPolicy.decimalPlaces,
+      ),
+    ),
+    maximumSampleMilliseconds: Number(
+      durationSamples.at(-1).toFixed(BenchmarkPolicy.decimalPlaces),
+    ),
   };
 }
 
 const results = [
-  measure('configuration validation', 1000, (position) => {
-    const validation = validateFunnelConfiguration(
+  measure('configuration validation', BenchmarkPolicy.configurationIterations, (position) => {
+    const validation = FunnelConfigurations.validate(
       configurations[position % configurations.length],
     );
     if (!validation.valid) {
       throw new Error('Configuration validation failed during measurement.');
     }
   }),
-  measure('route resolution', 10000, (position) => {
+  measure('route resolution', BenchmarkPolicy.runtimeIterations, (position) => {
     const scenario = scenarios[position % scenarios.length];
-    const route = resolveAvailableSteps(scenario.configuration, scenario.variant, scenario.answers);
+    const route = FunnelRuntime.Routes.resolve(
+      scenario.configuration,
+      scenario.variant,
+      scenario.answers,
+    );
     if (route.steps.length === 0) {
       throw new Error('Route resolution failed during measurement.');
     }
   }),
-  measure('result resolution', 10000, (position) => {
+  measure('result resolution', BenchmarkPolicy.runtimeIterations, (position) => {
     const scenario = scenarios[position % scenarios.length];
-    const result = resolveFunnelResult(scenario.configuration, scenario.variant, scenario.answers);
+    const result = FunnelRuntime.Results.resolve(
+      scenario.configuration,
+      scenario.variant,
+      scenario.answers,
+    );
     if (result === undefined) {
       throw new Error('Result resolution failed during measurement.');
     }
