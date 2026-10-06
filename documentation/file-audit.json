@@ -15,7 +15,8 @@
     "distribution and coverage output",
     "local databases and environment secrets",
     "TypeScript build caches",
-    "documentation/file-audit.json (this generated evidence manifest)"
+    "documentation/file-audit.json (this generated evidence manifest)",
+    "documentation/benchmarks/* (generated measurement evidence; provenance recorded in each run)"
   ],
   "verification": {
     "command": "npm run verify",
@@ -1475,6 +1476,124 @@
           "path": "packages/funnel-runtime/tests/fixtures/evaluation-fixtures.ts",
           "reason": "Provided fresh typed optional/required configuration and answer setup under tests.",
           "sha256": "33969d057007e54ada83d6f2ed18fcd68759f72501fbbd935eddae7ae19fe12c"
+        }
+      ]
+    },
+    {
+      "name": "Separate operation benchmarks and measured per-validation option indexing",
+      "reviewDate": "2026-10-06",
+      "verification": "npm run verify passed: 210 tests; all 76 benchmark scenarios verified expected results before and after timing. Independent runner/coverage/index reviews completed.",
+      "files": [
+        {
+          "path": ".prettierignore",
+          "reason": "Excluded machine-written raw benchmark records from formatter rewriting; authored benchmark code remains checked.",
+          "sha256": "f0345624ddfa739b361784891cee1a9e2e7c09fdeb1f0b8e8c3a962f9e518bc3"
+        },
+        {
+          "path": "README.md",
+          "reason": "Documented the separate benchmark command, generated tables, provenance, methodology and limits.",
+          "sha256": "97e3c1097388d513d86e8f7b40b61828dbffe75f84bb1314a87ba5e816b85eb4"
+        },
+        {
+          "path": "documentation/development-log.md",
+          "reason": "Recorded measured optimization and final integrated verification.",
+          "sha256": "d2c3dd40477cfc14eba8558cd503d1e03dd8ab777dcb62a58edb0dfe2cc36ec8"
+        },
+        {
+          "path": "documentation/foundation-review.md",
+          "reason": "Added operation complexity and auxiliary-memory analysis, benchmark methodology and measured before/after table.",
+          "sha256": "6abd5e1bfa1df871133a8d8692d81cef2943fe902aa23aa07aab3b6dccf05dd5"
+        },
+        {
+          "path": "package.json",
+          "reason": "Moved benchmark command to typed tests-owned harness after building production packages.",
+          "sha256": "23f80749b79523bf86c355a716ce38354e128d27cb127b70a5a9d6ac7bf69284"
+        },
+        {
+          "path": "packages/contracts/source/conditions/condition-validation.ts",
+          "reason": "Reused option membership index owned by each validation context without changing predicate issue order.",
+          "sha256": "0114dd681dbae273ebc34b9b6730e09b0d67032883ea1e57a3829cd7da55a626"
+        },
+        {
+          "path": "packages/contracts/source/configurations/validation/configuration-validation-context.ts",
+          "reason": "Added lazy per-call selection index keyed by step identity; no cross-call cache.",
+          "sha256": "bc4e0c218e390f84a8e6ed818fc30aadc9a98136bc8d5d3b2bca51ca11517436"
+        },
+        {
+          "path": "packages/contracts/tests/configurations/semantic-validation.test.ts",
+          "reason": "Verified repeated predicate diagnostics and changed options across repeated validations of the same object.",
+          "sha256": "9d6ec9ca221268a3d5c09f4dd2549547253db45f4eab94d942de32dc3e4addcd"
+        },
+        {
+          "path": "packages/contracts/tests/fixtures/selection-fixtures.ts",
+          "reason": "Added fresh mutable-option scenario to verify cache lifetime through public configuration validation.",
+          "sha256": "aae3794bea77b180ee321b05e77b528bab51de54fe987f2fb4dfac2ad8c16bb3"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/benchmark-measurement.ts",
+          "reason": "Warmup, rotated timed batches and median/minimum/maximum aggregation; correctness checks remain outside timing.",
+          "sha256": "c6807d47b8b8eac52c8dff0278bb1ddea5b66c76fe1e97a12c1cd092a36e6432"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/benchmark-policy.ts",
+          "reason": "Owned workload sizes and per-case iteration counts.",
+          "sha256": "5e5f2e148f9147683f666c16cfe4cac55d537d7545b98dfee696f46f8ace75b0"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/benchmark-report.ts",
+          "reason": "Recorded raw samples and appended CSV history with source/compiled hashes; rejected inputs changed during measurement.",
+          "sha256": "b007850ae3b931a65c2bd8c3d601f1eed694127ede96c6fcc5c7d7b9195ab395"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/benchmark-types.ts",
+          "reason": "Named benchmark scenario and fixture contracts.",
+          "sha256": "8358c95f2d3765b52d05e3f21036b1b4265b5119ca7442ef4a19da6d6725e7ed"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/measurement-messages.ts",
+          "reason": "Owned benchmark runner diagnostics and human-readable measurement scope.",
+          "sha256": "89674de76fe373b3b474061d4c117424d73e5d77c7980d5486e5df4b45777b4b"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/measurement-policy.ts",
+          "reason": "Centralized sampling counts, output paths, identity inputs and units.",
+          "sha256": "ef680070a769529f28309c9342cc5725c38271c2f61a7fa61478bb1aaed08099"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/measurement-types.ts",
+          "reason": "Defined typed measurement result, provenance and report contracts.",
+          "sha256": "95a689caeda44676c89b4c8956d6df10e09fb7843009726fa7afcb2695d810b3"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/run-benchmarks.ts",
+          "reason": "Kept standalone benchmark orchestration separate from ordinary test discovery.",
+          "sha256": "963df30a3b4c6b8df5a0c5beeafd8e0f5f142904495882d4a41a8c8ec024c364"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/cases/benchmark-cases.ts",
+          "reason": "Declared 76 checked cases covering scaled operations, historical variants and early/worst/invalid paths.",
+          "sha256": "52e2fb1d1bb66a84ef9d1d4040a4efd1ac4e48edf7daec08b33a6a3ec345c348"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/fixtures/benchmark-fixtures.ts",
+          "reason": "Constructed and validated bounded synthetic inputs outside timed operations.",
+          "sha256": "c2a4408d2510af75378178397d679b1af99896a84837f4094d50f024019df2c3"
+        },
+        {
+          "path": "scripts/script-messages.mjs",
+          "reason": "Removed retired benchmark diagnostics after migration to test-owned harness.",
+          "sha256": "8abffd84cbb2d080918ca214a967ca0c8a96ddd2879543116a6423ad59641ece"
+        },
+        {
+          "path": "scripts/script-policy.mjs",
+          "reason": "Removed retired benchmark policies after migration to test-owned harness.",
+          "sha256": "ed70f24cddedf130590be5de7eac0bf734c8a9be79152c2987d683d911eb0314"
+        }
+      ],
+      "removedFiles": [
+        {
+          "path": "scripts/benchmark-runtime.mjs",
+          "reason": "Replaced the old benchmark script with the typed tests-owned suite; command and owners migrated."
         }
       ]
     }

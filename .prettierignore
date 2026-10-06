@@ -6,3 +6,6 @@ generated
 data
 package-lock.json
 configurations/funnel-v*.json
+
+# Preserve machine-written raw benchmark evidence byte for byte.
+documentation/benchmarks/*.json
