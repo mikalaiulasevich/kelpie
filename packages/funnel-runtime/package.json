@@ -15,6 +15,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@kelpie/contracts": "0.1.0"
+    "@kelpie/contracts": "0.1.0",
+    "ts-pattern": "5.9.0"
   }
 }

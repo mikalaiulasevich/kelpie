@@ -1,3 +1,5 @@
+import { match, P } from 'ts-pattern';
+import { validateStepContent } from './step-content-validation.js';
 import type { AnswerCondition, Condition } from './condition-types.js';
 import type { FunnelStep, InteractiveStep, NumberStep, SelectionStep } from './step-types.js';
 import type { ConfigurationIssue, FunnelConfiguration } from './configuration-types.js';
@@ -19,34 +21,22 @@ function reportIssue(context: ConfigurationValidationContext, path: string, mess
 }
 
 function visitPredicates(condition: Condition, visit: (predicate: AnswerCondition) => void): void {
-  if ('all' in condition) {
-    condition.all.forEach((child) => visitPredicates(child, visit));
-  } else if ('any' in condition) {
-    condition.any.forEach((child) => visitPredicates(child, visit));
-  } else {
-    visit(condition);
-  }
+  match(condition)
+    .with({ all: P.array() }, ({ all }) => all.forEach((child) => visitPredicates(child, visit)))
+    .with({ any: P.array() }, ({ any }) => any.forEach((child) => visitPredicates(child, visit)))
+    .with({ answer: P.string }, visit)
+    .exhaustive();
 }
 
-function validateStepContent(
+function reportStepContentIssue(
   context: ConfigurationValidationContext,
   step: FunnelStep,
   path: string,
 ): void {
-  if (step.type === StepType.Information) {
-    if (
-      !step.content.title?.trim() ||
-      !step.content.body?.trim() ||
-      !step.content.primaryActionLabel?.trim()
-    ) {
-      reportIssue(
-        context,
-        path,
-        'Information steps require title, body, and primary action label.',
-      );
-    }
-  } else if (step.type !== StepType.Result && !step.content.title?.trim()) {
-    reportIssue(context, `${path}/title`, 'Interactive steps require a title.');
+  const issue = validateStepContent(step, path);
+
+  if (issue !== undefined) {
+    reportIssue(context, issue.path, issue.message);
   }
 }
 
@@ -121,7 +111,7 @@ function validateSteps(context: ConfigurationValidationContext): void {
       );
     }
 
-    validateStepContent(context, step, `/steps/${stepIdentifier}/content`);
+    reportStepContentIssue(context, step, `/steps/${stepIdentifier}/content`);
 
     if (step.type === StepType.Information) {
       continue;
@@ -226,7 +216,7 @@ function validateVariants(context: ConfigurationValidationContext): void {
       const override = readOwnProperty(variant.stepOverrides, stepIdentifier);
 
       if (override !== undefined) {
-        validateStepContent(
+        reportStepContentIssue(
           context,
           { ...step, content: { ...step.content, ...override.content } },
           `/experiment/variants/${variantIdentifier}/stepOverrides/${stepIdentifier}/content`,

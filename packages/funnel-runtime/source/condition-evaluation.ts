@@ -1,34 +1,38 @@
 import {
   ConditionOperator,
   readOwnProperty,
+  type AnswerCondition,
   type Condition,
   type SessionAnswers,
 } from '@kelpie/contracts';
+import { match, P } from 'ts-pattern';
 
-/** Missing or inactive answers never satisfy a predicate. */
-export function evaluateCondition(condition: Condition, answers: SessionAnswers): boolean {
-  if ('all' in condition) {
-    return condition.all.every((child) => evaluateCondition(child, answers));
-  }
-
-  if ('any' in condition) {
-    return condition.any.some((child) => evaluateCondition(child, answers));
-  }
-
+function evaluateAnswerCondition(condition: AnswerCondition, answers: SessionAnswers): boolean {
   const answer = readOwnProperty(answers, condition.answer);
 
   if (answer === undefined) {
     return false;
   }
 
-  switch (condition.operator) {
-    case ConditionOperator.Equal:
-      return answer === condition.value;
-    case ConditionOperator.In:
-      return condition.value.some((value) => value === answer);
-    case ConditionOperator.Contains:
-      return Array.isArray(answer) && answer.includes(condition.value);
-    case ConditionOperator.GreaterThanOrEqual:
-      return typeof answer === 'number' && Number.isFinite(answer) && answer >= condition.value;
-  }
+  return match(condition)
+    .with({ operator: ConditionOperator.Equal }, ({ value }) => answer === value)
+    .with({ operator: ConditionOperator.In }, ({ value }) => value.some((item) => item === answer))
+    .with(
+      { operator: ConditionOperator.Contains },
+      ({ value }) => Array.isArray(answer) && answer.includes(value),
+    )
+    .with(
+      { operator: ConditionOperator.GreaterThanOrEqual },
+      ({ value }) => typeof answer === 'number' && Number.isFinite(answer) && answer >= value,
+    )
+    .exhaustive();
+}
+
+/** Missing or inactive answers never satisfy a predicate. */
+export function evaluateCondition(condition: Condition, answers: SessionAnswers): boolean {
+  return match(condition)
+    .with({ all: P._ }, ({ all }) => all.every((child) => evaluateCondition(child, answers)))
+    .with({ any: P._ }, ({ any }) => any.some((child) => evaluateCondition(child, answers)))
+    .with({ answer: P.string }, (predicate) => evaluateAnswerCondition(predicate, answers))
+    .exhaustive();
 }

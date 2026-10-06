@@ -1,4 +1,4 @@
-import { Ajv } from 'ajv';
+import { configurationSchemaCompiler } from './configuration-schema-compiler.js';
 import type { ConfigurationValidationResult, FunnelConfiguration } from './configuration-types.js';
 import { checkDocumentBounds, configurationLimits } from './configuration-document-bounds.js';
 import { validateConfigurationSemantics } from './configuration-semantic-validation.js';
@@ -6,12 +6,9 @@ import { funnelConfigurationSchema } from './configuration-schema.js';
 
 export { configurationLimits } from './configuration-document-bounds.js';
 
-const structuralValidator = new Ajv({
-  allErrors: false,
-  strict: true,
-  allowUnionTypes: true,
-  ownProperties: true,
-}).compile<FunnelConfiguration>(funnelConfigurationSchema);
+const structuralValidator = configurationSchemaCompiler.compile<FunnelConfiguration>(
+  funnelConfigurationSchema,
+);
 
 export function validateFunnelConfiguration(document: unknown): ConfigurationValidationResult {
   const boundsError = checkDocumentBounds(document);

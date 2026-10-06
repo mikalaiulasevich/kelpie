@@ -1,73 +1,37 @@
-import type { ConfigurationStatus, ExperimentVariant, StepType } from './domain-values.js';
-import type { FunnelResult, ResultOverride, ResultRule } from './result-types.js';
-import type { FunnelStep, StepContent } from './step-types.js';
+import type { Static } from 'typebox';
 
-export interface StepOverride {
-  readonly content: StepContent;
-}
+import type {
+  eventDeclarationSchema,
+  eventPrivacyConfigurationSchema,
+  eventsConfigurationSchema,
+  experimentConfigurationSchema,
+  funnelConfigurationSchema,
+  progressConfigurationSchema,
+  sessionConfigurationSchema,
+  stepOverrideSchema,
+  variantConfigurationSchema,
+} from './configuration-schema.js';
+import type { ResultRule } from './result-types.js';
+import type { DeepReadonly } from './schema-primitives.js';
+import type { FunnelStep } from './step-types.js';
 
-export interface VariantConfiguration {
-  readonly weight: number;
-  readonly stepSequence: readonly string[];
-  readonly stepOverrides: Readonly<Record<string, StepOverride>>;
-  readonly resultOverrides: Readonly<Record<string, ResultOverride>>;
-}
+export type StepOverride = DeepReadonly<Static<typeof stepOverrideSchema>>;
+export type VariantConfiguration = DeepReadonly<Static<typeof variantConfigurationSchema>>;
+export type ExperimentConfiguration = DeepReadonly<Static<typeof experimentConfigurationSchema>>;
+export type SessionConfiguration = DeepReadonly<Static<typeof sessionConfigurationSchema>>;
+export type ProgressConfiguration = DeepReadonly<Static<typeof progressConfigurationSchema>>;
+export type EventDeclaration = DeepReadonly<Static<typeof eventDeclarationSchema>>;
+export type EventPrivacyConfiguration = DeepReadonly<
+  Static<typeof eventPrivacyConfigurationSchema>
+>;
+export type EventsConfiguration = DeepReadonly<Static<typeof eventsConfigurationSchema>>;
 
-export interface ExperimentConfiguration {
-  readonly id: string;
-  readonly assignment: 'server';
-  readonly sticky: true;
-  readonly overrideQueryParam: string;
-  readonly variants: Readonly<Record<ExperimentVariant, VariantConfiguration>>;
-}
-
-export interface SessionConfiguration {
-  readonly ttlHours: number;
-  readonly persistAnswers: true;
-  readonly pinVersion: true;
-  readonly pinExperimentVariant: true;
-}
-
-export interface ProgressConfiguration {
-  readonly countVisibleOnly: true;
-  readonly excludeTypes: readonly StepType[];
-}
-
-export interface EventDeclaration {
-  readonly name: string;
-  readonly trigger: string;
-  readonly properties: readonly string[];
-}
-
-export interface EventPrivacyConfiguration {
-  readonly storeRawAnswers: false;
-  readonly allowAnswerKinds: true;
-}
-
-export interface EventsConfiguration {
-  readonly baseProperties: readonly string[];
-  readonly allowed: readonly EventDeclaration[];
-  readonly privacy: EventPrivacyConfiguration;
-}
-
-export interface FunnelConfiguration {
-  readonly schemaVersion: '1.0';
-  readonly funnelId: string;
-  readonly version: number;
-  readonly status: ConfigurationStatus;
-  readonly locale: string;
-  readonly title: string;
-  readonly description: string;
-  readonly releaseNote?: string;
-  readonly session: SessionConfiguration;
-  readonly progress: ProgressConfiguration;
-  readonly experiment: ExperimentConfiguration;
+export type FunnelConfiguration = DeepReadonly<
+  Omit<Static<typeof funnelConfigurationSchema>, 'steps' | 'resultRules'>
+> & {
   readonly steps: Readonly<Record<string, FunnelStep>>;
   readonly resultRules: readonly ResultRule[];
-  readonly defaultResultId: string;
-  readonly results: Readonly<Record<string, FunnelResult>>;
-  readonly events: EventsConfiguration;
-}
+};
 
 export interface ConfigurationIssue {
   readonly path: string;

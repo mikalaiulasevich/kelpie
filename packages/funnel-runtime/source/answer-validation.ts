@@ -9,6 +9,7 @@ import {
   type SingleSelectionStep,
   type MultipleSelectionStep,
 } from '@kelpie/contracts';
+import { match } from 'ts-pattern';
 import { AnswerIssueCode, type AnswerIssue, type AnswerValidationResult } from './runtime-types.js';
 
 // Decimal inputs can accumulate rounding error when divided into increments.
@@ -147,12 +148,15 @@ export function validateStepAnswer(step: FunnelStep, answer: unknown): AnswerVal
     return validationResult([]);
   }
 
-  switch (step.type) {
-    case StepType.Number:
-      return validationResult(validateNumberAnswer(step, answer));
-    case StepType.SingleSelect:
-      return validationResult(validateSingleSelection(step, answer));
-    case StepType.MultiSelect:
-      return validationResult(validateMultipleSelections(step, answer));
-  }
+  const issues = match(step)
+    .with({ type: StepType.Number }, (numberStep) => validateNumberAnswer(numberStep, answer))
+    .with({ type: StepType.SingleSelect }, (selectionStep) =>
+      validateSingleSelection(selectionStep, answer),
+    )
+    .with({ type: StepType.MultiSelect }, (selectionStep) =>
+      validateMultipleSelections(selectionStep, answer),
+    )
+    .exhaustive();
+
+  return validationResult(issues);
 }

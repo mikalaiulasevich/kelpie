@@ -1,26 +1,17 @@
+import type { Static } from 'typebox';
+
 import type { Condition } from './condition-types.js';
+import type {
+  funnelResultSchema,
+  primaryActionSchema,
+  resultOverrideSchema,
+  resultRuleSchema,
+} from './result-schema.js';
+import type { DeepReadonly } from './schema-primitives.js';
 
-export interface PrimaryAction {
-  readonly label: string;
-  readonly action: 'expand_recommendation';
-}
-
-export interface FunnelResult {
-  readonly id: string;
-  readonly title: string;
-  readonly summary: string;
-  readonly recommendations: readonly string[];
-  readonly cta: PrimaryAction;
-}
-
-export interface ResultOverride {
-  readonly title?: string;
-  readonly summary?: string;
-  readonly recommendations?: readonly string[];
-  readonly cta?: PrimaryAction;
-}
-
-export interface ResultRule {
-  readonly resultId: string;
+export type PrimaryAction = DeepReadonly<Static<typeof primaryActionSchema>>;
+export type FunnelResult = DeepReadonly<Static<typeof funnelResultSchema>>;
+export type ResultOverride = DeepReadonly<Static<typeof resultOverrideSchema>>;
+export type ResultRule = DeepReadonly<Omit<Static<typeof resultRuleSchema>, 'when'>> & {
   readonly when: Condition;
-}
+};
