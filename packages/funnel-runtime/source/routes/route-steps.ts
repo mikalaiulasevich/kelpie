@@ -8,6 +8,7 @@ import {
   type VariantConfiguration,
 } from '@kelpie/contracts';
 import { AnswerValidation } from '../answers/answer-validation.js';
+import { AnswerValues } from '../answers/answer-values.js';
 import { ConditionEvaluation } from '../conditions/condition-evaluation.js';
 import { RouteMessages } from './route-messages.js';
 import { VariantOverrides } from '../experiments/variant-overrides.js';
@@ -38,9 +39,9 @@ export const RouteSteps = {
     }
 
     const value = DictionaryAccess.readOwn(answers, step.input.name);
-    const accepted = !isUndefined(value) && AnswerValidation.validate(step, value).valid;
+    const accepted = !AnswerValues.isMissing(value) && AnswerValidation.validate(step, value).valid;
 
-    // Rejected optional answers are inactive and do not prevent a result.
+    // Missing and rejected optional answers stay inactive without preventing a result.
     return {
       acceptedAnswer: accepted ? { name: step.input.name, value } : undefined,
       isComplete: accepted || !step.validation.required,

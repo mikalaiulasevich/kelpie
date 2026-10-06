@@ -20,7 +20,7 @@ npm run development
 
 Open http://127.0.0.1:5173. Vite proxies `/api` to http://127.0.0.1:3000. The page checks the actual backend; it does not simulate a funnel.
 
-The default database is `applications/backend/data/funnel-runtime.sqlite`. For custom settings, copy `applications/backend/.env.example` to `applications/backend/.env`; relative database paths resolve from the backend directory. Secrets, local data and generated outputs are ignored by Git.
+The default database is `applications/backend/data/funnel-runtime.sqlite`. For custom settings, copy `applications/backend/.env.example` to `applications/backend/.env`; relative database paths resolve from the backend directory. If you change backend `HOST` or `PORT`, also update the `/api` proxy target in `applications/frontend/vite.config.ts` to the matching reachable address. Secrets, local data and generated outputs are ignored by Git.
 
 Application files are watched. Restart development after changing shared packages. Ctrl+C stops both applications. Builds clean only their configured workspace output directories before compiling.
 

@@ -4,7 +4,8 @@ export const DevelopmentPolicy = /** @type {const} */ ({
   PackageManager: 'npm',
   DevelopmentArguments: ['run', 'development'],
   StandardStreams: 'inherit',
-  ShutdownTimeoutMilliseconds: 5_000,
+  // Allow the backend ten-second HTTP drain deadline plus time for database cleanup.
+  ShutdownTimeoutMilliseconds: 15_000,
   ShutdownInspectionMilliseconds: 100,
   WindowsPlatform: 'win32',
   MissingProcessCode: 'ESRCH',

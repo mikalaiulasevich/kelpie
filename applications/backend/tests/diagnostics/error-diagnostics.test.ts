@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ErrorDiagnostics } from '../../source/diagnostics/error-diagnostics.js';
+import { DiagnosticCases } from '../cases/diagnostic-cases.js';
 import { DiagnosticFixtures } from '../fixtures/diagnostic-errors.js';
 
 describe('Error diagnostics', () => {
@@ -27,6 +28,18 @@ describe('Error diagnostics', () => {
       { location: expect.stringMatching(/^[a-f0-9]{20}$/), line: 12, column: 34 },
     ]);
     expect(JSON.stringify(description)).not.toMatch(/private|password|answer|token/);
+  });
+
+  it('excludes stack-shaped message lines from frame locations and fingerprints', () => {
+    const descriptions = DiagnosticCases.MultilineMessages.map((message) =>
+      ErrorDiagnostics.describe(DiagnosticFixtures.multilineError(message)),
+    );
+
+    expect(descriptions[0]).toEqual(descriptions[1]);
+    expect(descriptions[0]?.frames.length).toBeGreaterThan(0);
+    expect(descriptions[0]?.frames).not.toContainEqual(
+      expect.objectContaining({ line: 123456, column: 789 }),
+    );
   });
 
   it('keeps an allowlisted database failure code and stable callsite fingerprint', () => {

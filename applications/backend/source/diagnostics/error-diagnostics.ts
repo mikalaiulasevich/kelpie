@@ -17,8 +17,16 @@ const ErrorDetails = {
   stackLines(error: Error): ReadonlyList<string> {
     const stack = error.stack?.slice(0, DiagnosticPolicy.MaximumStackCharacters) ?? '';
 
-    // The first line contains the message, which may contain credentials.
-    return stack.split('\n').slice(1, DiagnosticPolicy.MaximumFrames + 1);
+    // V8 includes every line of the error name and message before the call sites.
+    // A multiline input must not become a frame or a call-site fingerprint.
+    const headerLines =
+      ErrorDetails.headerLines(error.name) + ErrorDetails.headerLines(error.message) - 1;
+
+    return stack.split('\n').slice(headerLines, headerLines + DiagnosticPolicy.MaximumFrames);
+  },
+
+  headerLines(value: string): number {
+    return value.slice(0, DiagnosticPolicy.MaximumStackCharacters).split('\n').length;
   },
 
   frame(value: string): ReadonlyList<ErrorFrame> {

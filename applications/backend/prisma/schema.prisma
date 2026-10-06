@@ -91,13 +91,14 @@ model SessionAnswer {
 }
 
 model SessionOperation {
-  operationIdentifier String   @id
+  operationIdentifier String
   sessionIdentifier   String
   requestFingerprint  String
   response            Json
   createdAt           DateTime @default(now())
   session             Session  @relation(fields: [sessionIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
 
+  @@id([sessionIdentifier, operationIdentifier])
   @@index([sessionIdentifier, createdAt])
 }
 
