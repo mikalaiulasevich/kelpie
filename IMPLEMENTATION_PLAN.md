@@ -37,7 +37,7 @@ Revisit a decision only with a concrete requirement, failing invariant, or measu
 
 | Area                     | Decision                                                                                            |
 | ------------------------ | --------------------------------------------------------------------------------------------------- |
-| Backend                  | NestJS and TypeScript                                                                               |
+| Backend                  | NestJS with Fastify and TypeScript                                                                  |
 | Runtime                  | Bun backend requested; retain Node.js/npm fallback; migration and dual-runtime verification pending |
 | Frontend                 | React, Vite, and TypeScript                                                                         |
 | Persistence              | Prisma and SQLite                                                                                   |

@@ -34,6 +34,8 @@ describe('Backend foundation with a real SQLite database', () => {
         body,
       });
 
+      expect(response.headers.get('x-content-type-options')).toBe('nosniff');
+      expect(response.headers.get('x-request-id')).toMatch(/^[0-9a-f-]{36}$/);
       expect(response.status).toBe(expectedStatus);
       expect(await response.json()).toEqual(expectedResponse);
     },

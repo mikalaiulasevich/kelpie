@@ -142,6 +142,12 @@ Migration `20261006000200_session_operation_scope` copies existing operation row
 
 The database is still a scaffold. SessionTransition, answer confirmation revisions and historical observation eligibility remain schema/application work before session commands can meet the plan. Publication/rollback, stable session assignment, mixed event ingestion, session-based analytics, traffic generation, authentication and public delivery remain unimplemented. This review does not claim the assignment's minimum end-to-end test coverage or Bun runtime acceptance.
 
+## Fastify transport
+
+NestJS uses the official Fastify adapter with native hooks and `@fastify/helmet`. JSON bodies are bounded to 256 KiB and must contain an object or array; unsupported media types, non-UTF-8 charsets, compressed bodies and prototype-poisoning keys are rejected. Security headers and server-owned request identifiers also cover rejected requests. Native Fastify logging stays disabled so it cannot bypass the redacted diagnostics owner. Trusted-proxy handling stays disabled until a deployment topology is defined.
+
+Real HTTP integration tests cover parser rejection, accepted JSON through routing, health/readiness, concurrent correlation and redacted failures. Subprocess tests cover startup failures, port release and bounded shutdown with an incomplete request. This migration does not establish a throughput improvement or Bun runtime compatibility.
+
 ## Verification evidence
 
 After the plan-conformance corrections, the full Node.js 24.16.0 check passed `npm run verify`: 239 tests (86 backend, 12 frontend, 65 contracts, 76 runtime), strict types, lint, formatting, clean builds, configuration checksums, test layout and Prisma validation. This section owns verification updates; benchmark assertions are separate from test counts.

@@ -11,6 +11,8 @@ The assignment's 48-hour start has not been agreed or recorded. The milestones b
 | Measurement and simplification | Added the 79-scenario runtime benchmark and result tables. Shared route/result evaluation and per-validation indexes; adopted toolkit operations where semantics and measurements supported them. Rejected the production Mnemonist experiment. |
 | Pre-feature cleanup            | Consolidated repeated review reports into current documentation and a single file inventory. Removed unused test tooling and merged the internal route-direction vocabulary into its domain types.                                              |
 
+The HTTP foundation now uses NestJS with Fastify, native request hooks and `@fastify/helmet`. Express-specific dependencies and response handling were removed; Node.js remains the verified backend runtime.
+
 ## Verification history
 
 The initial foundation was installed and checked locally on Node.js 24 and 26. A frontend readiness check was inspected in desktop/mobile layouts at that milestone. Subsequent refactors were checked on Node.js 24.16.0; they do not constitute new browser or Node.js 26 verification.

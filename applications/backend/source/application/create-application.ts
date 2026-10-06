@@ -52,19 +52,24 @@ export const ApplicationFactory = {
       logger: false,
       trustProxy: false,
     });
-    const application = await NestFactory.create<NestFastifyApplication>(
-      ApplicationModule.register(environment),
-      adapter,
-      ApplicationCreationOptions,
-    );
+    let application: Optional<NestFastifyApplication>;
 
     try {
+      application = await NestFactory.create<NestFastifyApplication>(
+        ApplicationModule.register(environment),
+        adapter,
+        ApplicationCreationOptions,
+      );
       await ApplicationSetup.configure(application, adapter);
 
       return application;
     } catch (setupError) {
       try {
-        await application.close();
+        if (application) {
+          await application.close();
+        } else {
+          await adapter.close();
+        }
       } catch (cleanupError) {
         throw new AggregateError(
           [setupError, cleanupError],
