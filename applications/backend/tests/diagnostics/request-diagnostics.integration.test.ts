@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Diagnostics, RequestContext } from '../../source/diagnostics/diagnostics.js';
-import { HealthController } from '../../source/health/health.controller.js';
+import { RequestFailureFixture } from '../fixtures/request-failure.js';
 import { DatabaseService } from '../../source/database/database.service.js';
 import { BackendApplicationFixture } from '../fixtures/backend-application.js';
 
@@ -44,7 +44,7 @@ describe('Request diagnostics and privacy', () => {
     expect(JSON.stringify(records)).not.toContain('private-');
   });
 
-  it('correlates body-parser errors without logging payloads or unmatched paths', async () => {
+  it('correlates JSON parser errors without logging payloads or unmatched paths', async () => {
     const response = await backend.request('/private-path?token=private-query', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -65,19 +65,7 @@ describe('Request diagnostics and privacy', () => {
 
   it('does not trust status properties on an unrecognized application error', async () => {
     await backend.close();
-    const originalHandler = HealthController.prototype.live;
-    const failingHandler = vi.spyOn(HealthController.prototype, 'live').mockImplementation(() => {
-      throw Object.assign(new Error('private failure'), {
-        status: 400,
-        statusCode: 400,
-        code: 'PRIVATE_UNRECOGNIZED_CODE',
-      });
-    });
-    // Nest reads route metadata from the method function before binding it.
-    for (const key of Reflect.getMetadataKeys(originalHandler)) {
-      Reflect.defineMetadata(key, Reflect.getMetadata(key, originalHandler), failingHandler);
-    }
-
+    RequestFailureFixture.unrecognizedApplicationError();
     backend = await BackendApplicationFixture.create();
 
     const response = await backend.request('/api/health/live');
