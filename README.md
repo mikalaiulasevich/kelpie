@@ -6,7 +6,7 @@ This repository currently provides the application foundation. The complete funn
 
 ## Local development
 
-Use Node.js 24 or 26 and npm 11. The repository pins npm 11.19.1 and uses npm workspaces. Node.js 24 is the intended deployment baseline; both versions passed local verification. Remote GitHub Actions verification has a startup failure described in the foundation review.
+Use Node.js 24 or 26 and npm 11. The repository pins npm 11.19.1 and uses npm workspaces. Node.js 24 is the intended deployment baseline; the initial foundation was verified on both versions. Subsequent refactors are verified on Node.js 24. The last recorded GitHub Actions attempt failed at startup; this is historical evidence, not a current CI status check.
 
 ```sh
 npm install --global npm@11.19.1
@@ -108,4 +108,4 @@ An additional collection utility dependency is not currently required by the bou
 
 These ambient types are a private monorepo convention: generated package declarations rely on the shared root declaration file being included by the consumer's TypeScript program. Before publishing packages independently, package and reference that declaration vocabulary explicitly. Ambient declarations emit no JavaScript; NominalIdentity is a type-level marker and must not be accessed at runtime.
 
-Workspace `tsconfig.json` files cover source, tests, and tool configurations so the editor and `npm run typecheck` use the same strict settings and ambient types. Backend/shared package `tsconfig.build.json` files emit only application/library code into the existing output paths. The root `tsconfig.json` owns JavaScript tooling; `checkJs` is disabled and ESLint checks these files. There is no competing jsconfig. VS Code-compatible editors are configured to offer the repository TypeScript version.
+Workspace `tsconfig.json` files cover source, tests, and tool configurations so the editor and `npm run typecheck` use the same strict settings and ambient types. Backend/shared package `tsconfig.build.json` files emit only application/library code into the existing output paths. The root `tsconfig.json` owns JavaScript tooling; `checkJs` is enabled with strict settings and JSDoc types, alongside ESLint. There is no competing jsconfig. VS Code-compatible editors are configured to offer the repository TypeScript version.

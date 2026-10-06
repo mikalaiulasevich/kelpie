@@ -2,7 +2,7 @@
 
 Build a configurable funnel platform with reliable session state, immutable configuration versions, server-assigned experiments, idempotent events, and analytics based on unique sessions. Use professional engineering practices within the assignment's single-server SQLite constraints.
 
-This plan records agreed decisions and acceptance criteria. The 48-hour window begins at an explicitly agreed start; no start time has been recorded. Implementation, deployment, and performance results are pending.
+This plan records agreed decisions and acceptance criteria. The 48-hour window begins at an explicitly agreed start; no start time has been recorded. The foundation is implemented; current verification and measurements are recorded in documentation/development-log.md. The full platform and public deployment remain pending.
 
 ## Agreed stack and product decisions
 
@@ -39,7 +39,7 @@ scripts
 
 Backend modules cover configuration management, publications, sessions, experiment assignment, event ingestion, analytics, and administrator access. Frontend areas cover the funnel, administration, and analytics. Shared packages must not depend on NestJS, React, Prisma, or browser globals.
 
-Use full names in authored code. Preserve external field names such as event_id and funnel_version exactly at contract boundaries. Exact dependency versions and package management tooling will be pinned during bootstrap after compatibility checks.
+Use full names in authored code. Preserve external field names such as event_id and funnel_version exactly at contract boundaries. Exact dependency versions and package management tooling are pinned in package manifests and package-lock.json.
 
 ## Source configurations and iteration mapping
 
@@ -241,6 +241,6 @@ After contracts are stable, delegate frontend, backend, and independent verifica
 
 Provide a public working application URL, repository URL, English README, reproducible local commands, model and event schema documentation, exact aggregation rules, experiment hypothesis, actual first/second iteration timeline, and known limitations. Include concise development and review evidence for the assignment's agent-process criterion.
 
-Hosting provider, public domains, repository remote, exact dependency versions, test runners, deployment-specific performance budgets, and secret provisioning remain to be selected. These do not block pure runtime work. Hosting must be resolved before the public deployment acceptance gate.
+Hosting provider, public domains, deployment-specific performance budgets, and secret provisioning remain to be selected. The repository remote, dependency versions, and Vitest test runner are already configured. These do not block pure runtime work. Hosting must be resolved before the public deployment acceptance gate.
 
 Do not mark the assignment complete until v1, v2, and v3 are verified, historical sessions remain compatible, rollback preserves analytics, the generator is independently checked, and the public application survives its required persistence checks.

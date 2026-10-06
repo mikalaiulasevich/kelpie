@@ -40,7 +40,7 @@ Runtime resolution traverses the selected sequence and evaluates conditions agai
 
 Readiness checks are small database queries. No complete analytical query or traffic benchmark exists yet. No application-scale performance claim is justified by pure-function microbenchmarks.
 
-## Verification evidence
+## Initial foundation verification (historical)
 
 Local verification passed after fresh `npm ci` installations on Node.js 26.10.0 with npm 11.19.1 and Node.js 24.16.0 with npm 11.13.0:
 
@@ -78,6 +78,6 @@ The pure-function benchmark on the same Apple M4 / Node.js 24.16.0 used 12 scena
 | Route resolution         |                10,000 |  7.107 ms | 35.967 ms |
 | Result resolution        |                10,000 | 12.218 ms | 75.781 ms |
 
-Pattern matching introduces a measurable constant-factor cost in this workload. Simple recursive guards were retained to reduce it. Final route/result costs average approximately 3.6/7.6 microseconds per operation within each median sample; these figures are not application throughput measurements. No claim of a 30–40% total code reduction or performance improvement is made. If production throughput requires it, a separately measured immutable-configuration compilation approach should be evaluated rather than adding an unbounded or stale-prone cache.
+Pattern matching introduces a measurable constant-factor cost in this workload. At that milestone, simple recursive guards were retained to reduce it; the later all/any matching pass below superseded that choice. Final route/result costs average approximately 3.6/7.6 microseconds per operation within each median sample; these figures are not application throughput measurements. No claim of a 30–40% total code reduction or performance improvement is made. If production throughput requires it, a separately measured immutable-configuration compilation approach should be evaluated rather than adding an unbounded or stale-prone cache.
 
 The subsequent requested all/any matching and predicate pass measured 58.532 ms / 1,000 configuration validations, 51.155 ms / 10,000 route resolutions, and 129.511 ms / 10,000 result resolutions on the same benchmark. This is approximately 5.1/13.0 microseconds per route/result operation and slower than the preceding pass. No claim of performance improvement is made; input bounds, algorithmic complexity, short-circuit semantics, and prototype isolation remain covered. Optional/Nullable/Maybe are compile-time aliases and add no runtime allocation. No new dependency was introduced in this pass.

@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "development": "vite --host 127.0.0.1 --port 5173 --strictPort",
+    "development": "vite",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"

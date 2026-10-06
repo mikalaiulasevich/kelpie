@@ -9,21 +9,23 @@ interface ServiceHealthPresentation {
   readonly indicatorClassName: string;
 }
 
-const serviceHealthPresentations: Readonly<Record<ServiceHealthStatus, ServiceHealthPresentation>> =
-  {
-    [ServiceHealthStatus.Checking]: {
-      label: 'Checking backend connection',
-      indicatorClassName: 'bg-slate-400',
-    },
-    [ServiceHealthStatus.Ready]: {
-      label: 'Backend connection verified',
-      indicatorClassName: 'bg-emerald-600',
-    },
-    [ServiceHealthStatus.Unavailable]: {
-      label: 'Backend unavailable',
-      indicatorClassName: 'bg-amber-600',
-    },
-  } as const;
+const serviceHealthPresentations: ReadonlyDictionary<
+  ServiceHealthStatus,
+  ServiceHealthPresentation
+> = {
+  [ServiceHealthStatus.Checking]: {
+    label: 'Checking backend connection',
+    indicatorClassName: 'bg-slate-400',
+  },
+  [ServiceHealthStatus.Ready]: {
+    label: 'Backend connection verified',
+    indicatorClassName: 'bg-emerald-600',
+  },
+  [ServiceHealthStatus.Unavailable]: {
+    label: 'Backend unavailable',
+    indicatorClassName: 'bg-amber-600',
+  },
+} as const;
 
 export function ServiceConnection(): UIElement {
   const [checkSequence, setCheckSequence] = useState(0);
@@ -31,34 +33,34 @@ export function ServiceConnection(): UIElement {
   const presentation = serviceHealthPresentations[serviceHealth.status];
 
   return (
-        <section
-          aria-labelledby="service-connection-heading"
-          className="mt-10 max-w-xl rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
-        >
-          <h2 id="service-connection-heading" className="text-lg font-semibold">
-            Service connection
-          </h2>
-          <div role="status" aria-live="polite" aria-atomic="true" className="mt-4">
-            <p className="flex items-center gap-3 text-sm font-medium">
-              <span
-                aria-hidden="true"
-                className={`h-2.5 w-2.5 shrink-0 rounded-full ${presentation.indicatorClassName}`}
-              />
-              {presentation.label}
-            </p>
-            <p className="mt-3 text-sm leading-6 text-slate-600">
-              <ServiceHealthDetails health={serviceHealth} />
-            </p>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            className="mt-6"
-            disabled={serviceHealth.status === ServiceHealthStatus.Checking}
-            onClick={() => setCheckSequence((previousSequence) => previousSequence + 1)}
-          >
-            Check connection
-          </Button>
-        </section>
+    <section
+      aria-labelledby="service-connection-heading"
+      className="mt-10 max-w-xl rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
+    >
+      <h2 id="service-connection-heading" className="text-lg font-semibold">
+        Service connection
+      </h2>
+      <div role="status" aria-live="polite" aria-atomic="true" className="mt-4">
+        <p className="flex items-center gap-3 text-sm font-medium">
+          <span
+            aria-hidden="true"
+            className={`h-2.5 w-2.5 shrink-0 rounded-full ${presentation.indicatorClassName}`}
+          />
+          {presentation.label}
+        </p>
+        <p className="mt-3 text-sm leading-6 text-slate-600">
+          <ServiceHealthDetails health={serviceHealth} />
+        </p>
+      </div>
+      <Button
+        type="button"
+        variant="outline"
+        className="mt-6"
+        disabled={serviceHealth.status === ServiceHealthStatus.Checking}
+        onClick={() => setCheckSequence((previousSequence) => previousSequence + 1)}
+      >
+        Check connection
+      </Button>
+    </section>
   );
 }
