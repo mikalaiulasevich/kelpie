@@ -2,15 +2,15 @@ import { Type, type TSchema } from 'typebox';
 
 import { ConfigurationSchemaPolicy } from '../configurations/configuration-policy.js';
 
-export const identifierSchema = Type.String(ConfigurationSchemaPolicy.identifier);
+export const identifierSchema = Type.String(ConfigurationSchemaPolicy.Identifier);
 
-export const textSchema = Type.String(ConfigurationSchemaPolicy.text);
+export const textSchema = Type.String(ConfigurationSchemaPolicy.Text);
 export const nonBlankTextSchema = Type.String({
-  ...ConfigurationSchemaPolicy.text,
+  ...ConfigurationSchemaPolicy.Text,
   pattern: /\S/.source,
 });
 export const identifierListSchema = Type.Array(identifierSchema, {
-  maxItems: ConfigurationSchemaPolicy.maximumIdentifierListItems,
+  maxItems: ConfigurationSchemaPolicy.MaximumIdentifierListItems,
   uniqueItems: true,
 });
 
@@ -19,7 +19,7 @@ export const SchemaPrimitives = {
     return Type.Record(Type.String(), values, {
       propertyNames: identifierSchema,
       minProperties: minimum,
-      maxProperties: ConfigurationSchemaPolicy.maximumDictionaryEntries,
+      maxProperties: ConfigurationSchemaPolicy.MaximumDictionaryEntries,
       additionalProperties: false,
     });
   },

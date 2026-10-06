@@ -1,5 +1,6 @@
+// Shared allowlists must not change between configuration validations at runtime.
 export const EventPolicy = {
-  properties: Object.freeze([
+  Properties: Object.freeze([
     'step_type',
     'visible_step_index',
     'visible_step_count',
@@ -10,7 +11,7 @@ export const EventPolicy = {
     'action',
     'source',
   ]),
-  baseProperties: Object.freeze([
+  BaseProperties: Object.freeze([
     'event_id',
     'session_id',
     'client_timestamp',
@@ -24,7 +25,7 @@ export const EventPolicy = {
     'utm_medium',
     'utm_campaign',
   ]),
-  requiredEvents: Object.freeze([
+  RequiredEvents: Object.freeze([
     'session_started',
     'step_viewed',
     'answer_submitted',

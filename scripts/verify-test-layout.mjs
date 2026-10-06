@@ -1,3 +1,4 @@
+import { TestLayoutMessages } from './script-messages.mjs';
 import { readdir } from 'node:fs/promises';
 import { join, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -26,7 +27,7 @@ const TestLayout = {
         TestLayoutPolicy.testFilePattern.test(entry.name) &&
         !path.startsWith(testDirectory + sep)
       ) {
-        throw new Error(`Test support and suites must be inside tests/: ${path}`);
+        throw new Error(TestLayoutMessages.misplacedFile(path));
       }
     }
   },

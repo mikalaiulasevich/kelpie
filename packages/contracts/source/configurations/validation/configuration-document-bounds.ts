@@ -41,13 +41,13 @@ const DocumentInspection = {
     }
 
     for (const [key, child] of Object.entries(value)) {
-      if (DocumentAccountingPolicy.reservedKeys.includes(key)) {
+      if (DocumentAccountingPolicy.ReservedKeys.includes(key)) {
         return ConfigurationMessages.ReservedObjectKeys;
       }
 
       traversal.estimatedBytes +=
-        key.length * DocumentAccountingPolicy.bytesPerCharacter +
-        DocumentAccountingPolicy.propertyOverheadBytes;
+        key.length * DocumentAccountingPolicy.BytesPerCharacter +
+        DocumentAccountingPolicy.PropertyOverheadBytes;
       traversal.pending.push({ value: child, depth: depth + 1 });
     }
 
@@ -57,7 +57,7 @@ const DocumentInspection = {
   inspectValue(current: PendingDocumentValue, traversal: DocumentTraversal): Optional<string> {
     return match(current.value)
       .with(P.string, (value) => {
-        traversal.estimatedBytes += value.length * DocumentAccountingPolicy.bytesPerCharacter;
+        traversal.estimatedBytes += value.length * DocumentAccountingPolicy.BytesPerCharacter;
 
         return undefined;
       })

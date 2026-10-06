@@ -9,12 +9,14 @@ import {
 export const RuntimeFixtures = {
   step(identifier: string): FunnelStep {
     const step = RuntimeFixtures.configuration(1).steps[identifier];
+
     if (step === undefined) {
       throw new Error(`Missing fixture step: ${identifier}`);
     }
 
     return step;
   },
+
   configuration(version: number): FunnelConfiguration {
     const result = FunnelConfigurations.validate(
       JSON.parse(
@@ -24,6 +26,7 @@ export const RuntimeFixtures = {
         ),
       ),
     );
+
     if (!result.valid) {
       throw new Error(JSON.stringify(result.issues));
     }

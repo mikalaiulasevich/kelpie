@@ -1,3 +1,4 @@
+import { BuildMessages } from './script-messages.mjs';
 import assert from 'node:assert/strict';
 import { rm } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -11,8 +12,5 @@ const outputDirectory = resolve(BuildPolicy.outputDirectoryName);
 const allowedDirectories = BuildPolicy.outputDirectories.map((directory) =>
   resolve(repositoryDirectory, directory),
 );
-assert.ok(
-  allowedDirectories.includes(outputDirectory),
-  'Build cleanup must run from a configured workspace and only remove its generated output.',
-);
+assert.ok(allowedDirectories.includes(outputDirectory), BuildMessages.UnsafeCleanup);
 await rm(outputDirectory, { recursive: true, force: true });

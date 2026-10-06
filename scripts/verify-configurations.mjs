@@ -1,3 +1,4 @@
+import { ConfigurationIntegrityMessages } from './script-messages.mjs';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { ConfigurationFiles } from './script-policy.mjs';
@@ -14,7 +15,7 @@ const expectedNames = new Set(ConfigurationFiles.versions.map(ConfigurationFiles
 
 for (const [fileName, expectedChecksum] of Object.entries(manifest)) {
   if (!expectedNames.has(fileName)) {
-    throw new Error(`Unexpected configuration manifest entry: ${fileName}`);
+    throw new Error(ConfigurationIntegrityMessages.unexpectedEntry(fileName));
   }
 
   const contents = await readFile(new URL(fileName, configurationsDirectory));
@@ -22,7 +23,7 @@ for (const [fileName, expectedChecksum] of Object.entries(manifest)) {
     .update(contents)
     .digest(ConfigurationFiles.checksumEncoding);
   if (actualChecksum !== expectedChecksum) {
-    throw new Error(`Configuration changed from its supplied contents: ${fileName}`);
+    throw new Error(ConfigurationIntegrityMessages.changedContents(fileName));
   }
 
   JSON.parse(contents.toString(ConfigurationFiles.textEncoding));
@@ -30,5 +31,5 @@ for (const [fileName, expectedChecksum] of Object.entries(manifest)) {
 }
 
 if (Object.keys(manifest).length !== expectedNames.size) {
-  throw new Error('The manifest must contain all three supplied configurations.');
+  throw new Error(ConfigurationIntegrityMessages.MissingEntries);
 }

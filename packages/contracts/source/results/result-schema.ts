@@ -12,7 +12,7 @@ export const primaryActionSchema = Type.Object(
   { additionalProperties: false },
 );
 
-const recommendationsSchema = Type.Array(textSchema, ConfigurationSchemaPolicy.recommendations);
+const recommendationsSchema = Type.Array(textSchema, ConfigurationSchemaPolicy.Recommendations);
 const resultContentProperties = {
   title: textSchema,
   summary: textSchema,

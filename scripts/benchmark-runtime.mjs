@@ -1,3 +1,4 @@
+import { BenchmarkMessages } from './script-messages.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { performance } from 'node:perf_hooks';
@@ -20,7 +21,7 @@ for (const version of ConfigurationFiles.versions) {
   );
   const validation = FunnelConfigurations.validate(document);
   if (!validation.valid) {
-    throw new Error(`Supplied configuration ${version} is invalid.`);
+    throw new Error(BenchmarkMessages.invalidFixture(version));
   }
 
   configurations.push(validation.configuration);
@@ -39,7 +40,7 @@ const BenchmarkFixtures = {
         answers[step.input.name] = step.input.min;
       } else if (step.type === StepType.SingleSelect) {
         const firstOption = step.input.options[0];
-        assert.ok(firstOption, 'Validated selection steps must contain options.');
+        assert.ok(firstOption, BenchmarkMessages.MissingOptions);
         answers[step.input.name] = firstOption.value;
       } else if (step.type === StepType.MultiSelect) {
         const complianceOption = step.input.options.find(
@@ -47,7 +48,7 @@ const BenchmarkFixtures = {
         );
         const selectedOption =
           includeCompliance && complianceOption ? complianceOption : step.input.options[0];
-        assert.ok(selectedOption, 'Validated selection steps must contain options.');
+        assert.ok(selectedOption, BenchmarkMessages.MissingOptions);
         answers[step.input.name] = [selectedOption.value];
       }
     }
@@ -91,7 +92,7 @@ const BenchmarkMeasurement = {
 
     const median = durationSamples[Math.floor(durationSamples.length / 2)];
     const maximum = durationSamples.at(-1);
-    assert.ok(median !== undefined && maximum !== undefined, 'At least one sample is required.');
+    assert.ok(median !== undefined && maximum !== undefined, BenchmarkMessages.MissingSamples);
 
     return {
       name,
@@ -112,7 +113,7 @@ const results = [
         configurations[position % configurations.length],
       );
       if (!validation.valid) {
-        throw new Error('Configuration validation failed during measurement.');
+        throw new Error(BenchmarkMessages.InvalidConfiguration);
       }
     },
   ),
@@ -121,14 +122,14 @@ const results = [
     BenchmarkPolicy.runtimeIterations,
     (position) => {
       const scenario = scenarios[position % scenarios.length];
-      assert.ok(scenario, 'At least one benchmark scenario is required.');
+      assert.ok(scenario, BenchmarkMessages.MissingScenarios);
       const route = FunnelRuntime.Routes.resolve(
         scenario.configuration,
         scenario.variant,
         scenario.answers,
       );
       if (route.steps.length === 0) {
-        throw new Error('Route resolution failed during measurement.');
+        throw new Error(BenchmarkMessages.InvalidRoute);
       }
     },
   ),
@@ -137,14 +138,14 @@ const results = [
     BenchmarkPolicy.runtimeIterations,
     (position) => {
       const scenario = scenarios[position % scenarios.length];
-      assert.ok(scenario, 'At least one benchmark scenario is required.');
+      assert.ok(scenario, BenchmarkMessages.MissingScenarios);
       const result = FunnelRuntime.Results.resolve(
         scenario.configuration,
         scenario.variant,
         scenario.answers,
       );
       if (result === undefined) {
-        throw new Error('Result resolution failed during measurement.');
+        throw new Error(BenchmarkMessages.InvalidResult);
       }
     },
   ),

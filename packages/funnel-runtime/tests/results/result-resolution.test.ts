@@ -53,20 +53,28 @@ describe('results', () => {
 
   it('resolves compliance priority first and ignores inactive compliance answers', () => {
     const document = RuntimeFixtures.configuration(3);
-    expect(
-      ResultResolution.resolve(document, ExperimentVariant.A, {
-        ...RuntimeAnswers.complete(),
-        priorities: ['compliance'],
-        security_constraints: 'regulated',
-        meeting_hours: 20,
-      })?.id,
-    ).toBe('regulated_scale');
-    expect(
-      ResultResolution.resolve(document, ExperimentVariant.A, {
-        ...RuntimeAnswers.complete(),
-        security_constraints: 'regulated',
-      })?.id,
-    ).toBe('balanced');
+    const complianceAnswers = RuntimeAnswers.complete({
+      priorities: ['compliance'],
+      security_constraints: 'regulated',
+      meeting_hours: 20,
+    });
+    const inactiveComplianceAnswers = RuntimeAnswers.complete({
+      security_constraints: 'regulated',
+    });
+
+    const complianceResult = ResultResolution.resolve(
+      document,
+      ExperimentVariant.A,
+      complianceAnswers,
+    );
+    const inactiveComplianceResult = ResultResolution.resolve(
+      document,
+      ExperimentVariant.A,
+      inactiveComplianceAnswers,
+    );
+
+    expect(complianceResult?.id).toBe('regulated_scale');
+    expect(inactiveComplianceResult?.id).toBe('balanced');
   });
 
   it('requires all active required answers before resolving a result', () => {

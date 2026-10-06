@@ -10,7 +10,6 @@ import { applicationDirectory } from '../../source/application/application-direc
 import { ApplicationFactory } from '../../source/application/create-application.js';
 import { DatabaseService } from '../../source/database/database.service.js';
 import { ApplicationEnvironmentReader } from '../../source/environment/read-application-environment.js';
-
 import { ApplicationMode, EnvironmentFields } from '../../source/environment/environment-policy.js';
 import { SQLitePolicy } from '../../source/database/sqlite-policy.js';
 import { BackendTestPolicy } from './backend-test-policy.js';
@@ -45,27 +44,6 @@ export class BackendApplicationFixture {
     return this.application.get(DatabaseService).client;
   }
 
-  private async start(): Promise<void> {
-    this.temporaryDirectory = await mkdtemp(
-      resolve(tmpdir(), BackendTestPolicy.temporaryDirectoryPrefix),
-    );
-    const databaseUrl = `${SQLitePolicy.FileUrlPrefix}${resolve(this.temporaryDirectory, BackendTestPolicy.databaseFilename)}`;
-
-    try {
-      await Processes.execute(BackendTestPolicy.packageManager, [...BackendTestPolicy.migrationArguments], {
-        cwd: applicationDirectory,
-        env: { ...process.env, [EnvironmentFields.DatabaseUrl]: databaseUrl, [EnvironmentFields.Mode]: ApplicationMode.Test },
-        timeout: BackendTestPolicy.timeoutMilliseconds,
-      });
-      this.application = await this.createApplication(databaseUrl);
-      await this.application.listen(BackendTestPolicy.ephemeralPort, BackendTestPolicy.host);
-      this.baseUrl = this.resolveAddress();
-    } catch (error) {
-      await this.close();
-      throw error;
-    }
-  }
-
   async request(path: string, options?: RequestInit): Promise<Response> {
     if (this.baseUrl === undefined) {
       throw new Error(BackendFixtureMessages.Closed);
@@ -86,6 +64,35 @@ export class BackendApplicationFixture {
         await rm(this.temporaryDirectory, { recursive: true, force: true });
         this.temporaryDirectory = undefined;
       }
+    }
+  }
+
+  private async start(): Promise<void> {
+    this.temporaryDirectory = await mkdtemp(
+      resolve(tmpdir(), BackendTestPolicy.temporaryDirectoryPrefix),
+    );
+    const databaseUrl = `${SQLitePolicy.FileUrlPrefix}${resolve(this.temporaryDirectory, BackendTestPolicy.databaseFilename)}`;
+
+    try {
+      await Processes.execute(
+        BackendTestPolicy.packageManager,
+        [...BackendTestPolicy.migrationArguments],
+        {
+          cwd: applicationDirectory,
+          env: {
+            ...process.env,
+            [EnvironmentFields.DatabaseUrl]: databaseUrl,
+            [EnvironmentFields.Mode]: ApplicationMode.Test,
+          },
+          timeout: BackendTestPolicy.timeoutMilliseconds,
+        },
+      );
+      this.application = await this.createApplication(databaseUrl);
+      await this.application.listen(BackendTestPolicy.ephemeralPort, BackendTestPolicy.host);
+      this.baseUrl = this.resolveAddress();
+    } catch (error) {
+      await this.close();
+      throw error;
     }
   }
 

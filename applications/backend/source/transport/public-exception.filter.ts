@@ -6,7 +6,7 @@ import {
   type ExceptionFilter,
 } from '@nestjs/common';
 import type { Response } from 'express';
-import { TransportLog } from './transport-policy.js';
+import { TransportLog, TransportPolicy } from './transport-policy.js';
 import { TransportMessages } from './transport-messages.js';
 
 @Catch()
@@ -30,18 +30,17 @@ export class PublicExceptionFilter implements ExceptionFilter {
       return exception.getStatus();
     }
 
-    // Express body-parser errors are not Nest exceptions, but input limits still
-    // need a client error rather than an internal failure.
-    if (
-      exception instanceof Error &&
-      'status' in exception &&
-      (exception.status === HttpStatus.PAYLOAD_TOO_LARGE ||
-        exception.status === HttpStatus.BAD_REQUEST)
-    ) {
-      return exception.status;
+    return this.resolveInputStatus(exception) ?? HttpStatus.INTERNAL_SERVER_ERROR;
+  }
+
+  private resolveInputStatus(exception: unknown): Optional<number> {
+    // Express body-parser errors are not Nest exceptions. Admit only known
+    // input failures; arbitrary error status properties must not cross the boundary.
+    if (!(exception instanceof Error) || !('status' in exception)) {
+      return undefined;
     }
 
-    return HttpStatus.INTERNAL_SERVER_ERROR;
+    return TransportPolicy.InputErrorStatuses.find((status) => status === exception.status);
   }
 
   private resolvePublicMessage(status: number): string {

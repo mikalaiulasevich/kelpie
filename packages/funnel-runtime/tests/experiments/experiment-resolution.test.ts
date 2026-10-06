@@ -48,6 +48,7 @@ describe('experiments', () => {
     const document = RuntimeFixtures.configuration(1);
     const originalDocument = structuredClone(document);
     const resolved = ExperimentResolution.resolve(document, ExperimentVariant.B);
+
     expect(resolved.stepSequence[1]).toBe('work_mode');
     expect(resolved.steps['intro']?.content.primaryActionLabel).toBe('Show me');
     expect(document).toEqual(originalDocument);

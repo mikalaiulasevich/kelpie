@@ -98,7 +98,7 @@ describe('configuration document bounds', () => {
 
   it('enforces conservative string byte accounting at the boundary', () => {
     const maximumCharacters = Math.floor(
-      configurationLimits.maximumDocumentBytes / DocumentAccountingPolicy.bytesPerCharacter,
+      configurationLimits.maximumDocumentBytes / DocumentAccountingPolicy.BytesPerCharacter,
     );
     expect(ConfigurationDocumentBounds.check('a'.repeat(maximumCharacters))).toBeUndefined();
     expect(ConfigurationDocumentBounds.check('a'.repeat(maximumCharacters + 1))).toBe(

@@ -1,3 +1,4 @@
+import { DevelopmentMessages } from './script-messages.mjs';
 import { spawn } from 'node:child_process';
 
 import { DevelopmentPolicy } from './script-policy.mjs';
@@ -43,7 +44,7 @@ const DevelopmentProcesses = {
         }
       } catch (error) {
         if (!DevelopmentProcesses.isMissing(error)) {
-          console.error('Unable to signal development process:', error);
+          console.error(DevelopmentMessages.SignalFailed, error);
         }
       }
     }
@@ -58,7 +59,7 @@ for (const workspaceName of DevelopmentPolicy.workspaces) {
   });
   childProcesses.add(childProcess);
   childProcess.on('error', (error) => {
-    console.error(`Unable to start ${workspaceName}:`, error.message);
+    console.error(DevelopmentMessages.startFailed(workspaceName), error.message);
     DevelopmentProcesses.stop(DevelopmentPolicy.failureExitCode);
   });
   childProcess.on('exit', (exitCode) => {

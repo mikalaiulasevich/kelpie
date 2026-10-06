@@ -1,4 +1,4 @@
-export const DevelopmentPolicy = Object.freeze({
+export const DevelopmentPolicy = /** @type {const} */ ({
   workspaces: Object.freeze(['@kelpie/backend', '@kelpie/frontend']),
   shutdownTimeoutMilliseconds: 5_000,
   windowsPlatform: 'win32',
@@ -11,7 +11,7 @@ export const DevelopmentPolicy = Object.freeze({
   terminationExitCode: 143,
 });
 
-export const BenchmarkPolicy = Object.freeze({
+export const BenchmarkPolicy = /** @type {const} */ ({
   complianceOption: 'compliance',
   warmupIterations: 1_000,
   samples: 7,
@@ -20,7 +20,7 @@ export const BenchmarkPolicy = Object.freeze({
   decimalPlaces: 3,
 });
 
-export const BuildPolicy = Object.freeze({
+export const BuildPolicy = /** @type {const} */ ({
   repositoryRelativePath: '../',
   outputDirectoryName: 'distribution',
   outputDirectories: Object.freeze([
@@ -30,7 +30,7 @@ export const BuildPolicy = Object.freeze({
   ]),
 });
 
-export const ConfigurationFiles = Object.freeze({
+export const ConfigurationFiles = /** @type {const} */ ({
   versions: Object.freeze([1, 2, 3]),
   directory: '../configurations/',
   manifestName: 'checksums.json',

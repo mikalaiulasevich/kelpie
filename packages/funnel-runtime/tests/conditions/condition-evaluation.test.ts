@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ConditionOperator, type Condition, type SessionAnswers } from '@kelpie/contracts';
 import { ConditionCases } from '../cases/condition-cases.js';
-import { ConditionEvaluation } from '../../source/conditions/condition-evaluation.js';
+import { ConditionEvaluation } from '../../source/index.js';
 
 describe('condition evaluation', () => {
   it.each(ConditionCases)('$description', ({ condition, answers, expected }) => {

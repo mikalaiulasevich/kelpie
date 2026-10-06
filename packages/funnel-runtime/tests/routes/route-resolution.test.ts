@@ -30,6 +30,7 @@ describe('routes', () => {
       ExperimentVariant.A,
       RuntimeAnswers.complete(),
     );
+
     expect(route.steps.some((step) => step.id === 'office_days')).toBe(false);
     expect(route.activeAnswers['office_days']).toBeUndefined();
     expect(route.questionCount).toBe(6);
@@ -37,10 +38,12 @@ describe('routes', () => {
   });
 
   it('restores the available office branch when the user changes work mode', () => {
-    const route = RouteResolution.resolve(RuntimeFixtures.configuration(1), ExperimentVariant.A, {
-      ...RuntimeAnswers.complete(),
-      work_mode: 'hybrid',
-    });
+    const route = RouteResolution.resolve(
+      RuntimeFixtures.configuration(1),
+      ExperimentVariant.A,
+      RuntimeAnswers.complete({ work_mode: 'hybrid' }),
+    );
+
     expect(route.activeAnswers['office_days']).toBe(2);
     expect(route.questionCount).toBe(7);
     expect(RouteResolution.next(route, 'timezone_span')?.id).toBe('office_days');
@@ -54,17 +57,23 @@ describe('routes', () => {
       ExperimentVariant.B,
       RuntimeAnswers.complete(),
     );
+
     expect(route.activeAnswers['tool_count']).toBeUndefined();
     expect(route.steps.some((step) => step.id === 'tool_count')).toBe(false);
   });
 
   it('does not let invalid answers activate branches', () => {
-    expect(
-      RouteResolution.resolve(RuntimeFixtures.configuration(3), ExperimentVariant.A, {
-        ...RuntimeAnswers.complete(),
-        priorities: ['compliance', 'unknown'],
-        security_constraints: 'regulated',
-      }).activeAnswers['security_constraints'],
-    ).toBeUndefined();
+    const answers = RuntimeAnswers.complete({
+      priorities: ['compliance', 'unknown'],
+      security_constraints: 'regulated',
+    });
+
+    const route = RouteResolution.resolve(
+      RuntimeFixtures.configuration(3),
+      ExperimentVariant.A,
+      answers,
+    );
+
+    expect(route.activeAnswers['security_constraints']).toBeUndefined();
   });
 });

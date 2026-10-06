@@ -26,8 +26,8 @@ export const stepOverrideSchema = Type.Object(
 
 export const variantConfigurationSchema = Type.Object(
   {
-    weight: Type.Number(ConfigurationSchemaPolicy.variantWeight),
-    stepSequence: Type.Array(identifierSchema, ConfigurationSchemaPolicy.stepSequence),
+    weight: Type.Number(ConfigurationSchemaPolicy.VariantWeight),
+    stepSequence: Type.Array(identifierSchema, ConfigurationSchemaPolicy.StepSequence),
     stepOverrides: SchemaPrimitives.dictionary(stepOverrideSchema),
     resultOverrides: SchemaPrimitives.dictionary(resultOverrideSchema),
   },
@@ -37,7 +37,7 @@ export const variantConfigurationSchema = Type.Object(
 export const experimentConfigurationSchema = Type.Object(
   {
     id: identifierSchema,
-    assignment: Type.Literal(ConfigurationFormat.experimentAssignment),
+    assignment: Type.Literal(ConfigurationFormat.ExperimentAssignment),
     sticky: Type.Literal(true),
     overrideQueryParam: identifierSchema,
     variants: Type.Object(
@@ -53,7 +53,7 @@ export const experimentConfigurationSchema = Type.Object(
 
 export const sessionConfigurationSchema = Type.Object(
   {
-    ttlHours: Type.Number(ConfigurationSchemaPolicy.sessionLifetimeHours),
+    ttlHours: Type.Number(ConfigurationSchemaPolicy.SessionLifetimeHours),
     persistAnswers: Type.Literal(true),
     pinVersion: Type.Literal(true),
     pinExperimentVariant: Type.Literal(true),
@@ -64,7 +64,7 @@ export const sessionConfigurationSchema = Type.Object(
 export const progressConfigurationSchema = Type.Object(
   {
     countVisibleOnly: Type.Literal(true),
-    excludeTypes: Type.Array(Type.Enum(StepType), ConfigurationSchemaPolicy.excludedStepTypes),
+    excludeTypes: Type.Array(Type.Enum(StepType), ConfigurationSchemaPolicy.ExcludedStepTypes),
   },
   { additionalProperties: false },
 );
@@ -89,7 +89,7 @@ export const eventPrivacyConfigurationSchema = Type.Object(
 export const eventsConfigurationSchema = Type.Object(
   {
     baseProperties: identifierListSchema,
-    allowed: Type.Array(eventDeclarationSchema, ConfigurationSchemaPolicy.eventDeclarations),
+    allowed: Type.Array(eventDeclarationSchema, ConfigurationSchemaPolicy.EventDeclarations),
     privacy: eventPrivacyConfigurationSchema,
   },
   { additionalProperties: false },
@@ -97,11 +97,11 @@ export const eventsConfigurationSchema = Type.Object(
 
 export const funnelConfigurationSchema = Type.Object(
   {
-    schemaVersion: Type.Literal(ConfigurationFormat.schemaVersion),
+    schemaVersion: Type.Literal(ConfigurationFormat.SchemaVersion),
     funnelId: identifierSchema,
-    version: Type.Integer(ConfigurationSchemaPolicy.version),
+    version: Type.Integer(ConfigurationSchemaPolicy.Version),
     status: Type.Enum(ConfigurationStatus),
-    locale: Type.String(ConfigurationSchemaPolicy.locale),
+    locale: Type.String(ConfigurationSchemaPolicy.Locale),
     title: textSchema,
     description: textSchema,
     releaseNote: Type.Optional(textSchema),
@@ -109,14 +109,14 @@ export const funnelConfigurationSchema = Type.Object(
     progress: progressConfigurationSchema,
     experiment: experimentConfigurationSchema,
     steps: SchemaPrimitives.dictionary(funnelStepSchema, 1),
-    resultRules: Type.Array(resultRuleSchema, ConfigurationSchemaPolicy.resultRules),
+    resultRules: Type.Array(resultRuleSchema, ConfigurationSchemaPolicy.ResultRules),
     defaultResultId: identifierSchema,
     results: SchemaPrimitives.dictionary(funnelResultSchema, 1),
     events: eventsConfigurationSchema,
   },
   {
-    $id: ConfigurationFormat.schemaIdentifier,
+    $id: ConfigurationFormat.SchemaIdentifier,
     additionalProperties: false,
-    $defs: { [ConfigurationFormat.conditionDefinition]: conditionSchema },
+    $defs: { [ConfigurationFormat.ConditionDefinition]: conditionSchema },
   },
 );

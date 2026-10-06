@@ -48,8 +48,8 @@ export const interactiveContentSchema = Type.Object(
 export const answerValidationSchema = Type.Object(
   {
     required: Type.Boolean(),
-    minSelections: Type.Optional(Type.Integer(ConfigurationSchemaPolicy.minimumSelections)),
-    maxSelections: Type.Optional(Type.Integer(ConfigurationSchemaPolicy.maximumSelections)),
+    minSelections: Type.Optional(Type.Integer(ConfigurationSchemaPolicy.MinimumSelections)),
+    maxSelections: Type.Optional(Type.Integer(ConfigurationSchemaPolicy.MaximumSelections)),
     messages: SchemaPrimitives.dictionary(textSchema),
   },
   { additionalProperties: false },
@@ -83,7 +83,7 @@ export const selectionOptionSchema = Type.Object(
 export const selectionInputSchema = Type.Object(
   {
     name: identifierSchema,
-    options: Type.Array(selectionOptionSchema, ConfigurationSchemaPolicy.selectionOptions),
+    options: Type.Array(selectionOptionSchema, ConfigurationSchemaPolicy.SelectionOptions),
   },
   { additionalProperties: false },
 );
@@ -101,7 +101,7 @@ export const resultStepSchema = Type.Object(
   {
     ...commonStepProperties,
     type: Type.Literal(StepType.Result),
-    resultSource: Type.Literal(ConfigurationFormat.resultSource),
+    resultSource: Type.Literal(ConfigurationFormat.ResultSource),
   },
   { additionalProperties: false },
 );

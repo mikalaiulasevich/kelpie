@@ -3,8 +3,8 @@ import { ConfigurationMessages } from '../configurations/configuration-messages.
 import type { ConfigurationValidationContext } from '../configurations/validation/configuration-validation-context.js';
 import { EventPolicy } from './event-policy.js';
 
-const supportedProperties: ReadonlySet<string> = new Set(EventPolicy.properties);
-const supportedBaseProperties: ReadonlySet<string> = new Set(EventPolicy.baseProperties);
+const supportedProperties: ReadonlySet<string> = new Set(EventPolicy.Properties);
+const supportedBaseProperties: ReadonlySet<string> = new Set(EventPolicy.BaseProperties);
 
 export const EventValidation = {
   baseProperties(context: ConfigurationValidationContext): void {
@@ -32,7 +32,7 @@ export const EventValidation = {
   },
 
   requiredEvents(context: ConfigurationValidationContext, eventNames: ReadonlySet<string>): void {
-    for (const name of EventPolicy.requiredEvents) {
+    for (const name of EventPolicy.RequiredEvents) {
       if (!eventNames.has(name)) {
         context.report(
           ConfigurationPaths.allowedEvents,

@@ -6,10 +6,10 @@ import { ConditionOperator } from '../shared/domain-values.js';
 import { identifierSchema } from '../shared/schema-primitives.js';
 
 const conditionValueSchema = Type.Union([
-  Type.String(ConfigurationSchemaPolicy.conditionText),
+  Type.String(ConfigurationSchemaPolicy.ConditionText),
   Type.Number(),
 ]);
-export const conditionReferenceSchema = Type.Ref(ConfigurationFormat.conditionReference);
+export const conditionReferenceSchema = Type.Ref(ConfigurationFormat.ConditionReference);
 
 export const equalConditionSchema = Type.Object(
   {
@@ -24,7 +24,7 @@ export const includedConditionSchema = Type.Object(
   {
     answer: identifierSchema,
     operator: Type.Literal(ConditionOperator.In),
-    value: Type.Array(conditionValueSchema, ConfigurationSchemaPolicy.conditionValues),
+    value: Type.Array(conditionValueSchema, ConfigurationSchemaPolicy.ConditionValues),
   },
   { additionalProperties: false },
 );
@@ -49,7 +49,7 @@ export const minimumConditionSchema = Type.Object(
 
 const conditionListSchema = Type.Array(
   conditionReferenceSchema,
-  ConfigurationSchemaPolicy.conditionChildren,
+  ConfigurationSchemaPolicy.ConditionChildren,
 );
 
 export const conditionSchema = Type.Union([

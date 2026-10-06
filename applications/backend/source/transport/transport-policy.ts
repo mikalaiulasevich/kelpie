@@ -1,3 +1,5 @@
+import { HttpStatus } from '@nestjs/common';
+
 export const TransportLog = {
   ErrorLevel: 'error',
   RequestComponent: 'request',
@@ -6,6 +8,7 @@ export const TransportLog = {
 export const TransportPolicy = {
   FrameworkHeader: 'x-powered-by',
   BodyParser: 'json',
+  InputErrorStatuses: [HttpStatus.PAYLOAD_TOO_LARGE, HttpStatus.BAD_REQUEST],
   LoggerLevels: ['log', 'warn'],
   ApiPrefix: 'api',
   JsonBodyLimit: '256kb',

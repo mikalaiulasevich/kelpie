@@ -28,7 +28,7 @@ class VariantSequenceValidation {
       this.validateStep(stepIdentifier, position);
     }
 
-    if (this.resultCount !== ConfigurationSchemaPolicy.requiredResultSteps) {
+    if (this.resultCount !== ConfigurationSchemaPolicy.RequiredResultSteps) {
       this.context.report(this.paths.sequence, ConfigurationMessages.SingleResultRequired);
     }
 
@@ -127,7 +127,7 @@ export const VariantValidation = {
       new VariantSequenceValidation(context, identifier, variant).validate();
     }
 
-    if (variants.A.weight + variants.B.weight !== ConfigurationSchemaPolicy.totalExperimentWeight) {
+    if (variants.A.weight + variants.B.weight !== ConfigurationSchemaPolicy.TotalExperimentWeight) {
       context.report(ConfigurationPaths.variants, ConfigurationMessages.InvalidVariantWeightTotal);
     }
   },
