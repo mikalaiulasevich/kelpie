@@ -1750,6 +1750,63 @@
           "sha256": "9ea7b748ea2274ba03169d50a127bf13bb881c8468e7c19a12135a83a6bd5347"
         }
       ]
+    },
+    {
+      "name": "Measured es-toolkit runtime simplification",
+      "reviewDate": "2026-10-06",
+      "verification": "npm run verify passed: 220 tests, strict types, lint, formatting, clean builds, checksums, test layout and Prisma validation. Independent read-only review completed. All 79 benchmark scenarios verified results in each of three sequential runs.",
+      "files": [
+        {
+          "path": "packages/funnel-runtime/package.json",
+          "reason": "Pinned es-toolkit production dependency in its owning workspace.",
+          "sha256": "aa6b99398258b9879967e6f6e2cbc37d931e6e530bf2645e6fce932637ee35a7"
+        },
+        {
+          "path": "package-lock.json",
+          "reason": "npm-generated pinned es-toolkit dependency lock.",
+          "sha256": "7a4a53dfa5b91c645d33734ea9be7b83b071be63b85ecea37123a3a3390def9b"
+        },
+        {
+          "path": "packages/funnel-runtime/source/experiments/experiment-resolution.ts",
+          "reason": "Replaced entry loops with own-key mapValues while preserving typed override operations.",
+          "sha256": "08702d2d9776a0613dcd9e6b3a7d2136f4b9ce41068ac162f1d1383ed705e095"
+        },
+        {
+          "path": "packages/funnel-runtime/source/answers/answer-values.ts",
+          "reason": "Simplified missing-value guard with isNil and explicit empty-string handling.",
+          "sha256": "8edad7d83ca38c8d9939e5135b70c794c8c3b79eb72dc063addced9a78bf5b1a"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/cases/answer-cases.ts",
+          "reason": "Named present nonnumeric boundary cases.",
+          "sha256": "4d196684e65b954b24a68bf50bdaa3c3a52e7edcc823bad718ecd87983d3b40c"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/answers/answer-validation.test.ts",
+          "reason": "Verified optional validation cannot confuse false, NaN, arrays or whitespace with missing answers; zero stays present.",
+          "sha256": "d851dacadc1a9139e34fb758de1f63de81028c86c263d87c17d967a8136c968c"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/experiments/experiment-resolution.test.ts",
+          "reason": "Verified own-key order, fresh outputs, inherited-entry rejection and unchanged input.",
+          "sha256": "c723df68c7c402ee8170f5d076909c0200123d002654a1b0b62149d57528420b"
+        },
+        {
+          "path": "README.md",
+          "reason": "Documented bounded toolkit adoption and comparison evidence.",
+          "sha256": "318f419fb1de1b9d098e9e45f12f2600945b2e427d36d8e512dbd6dd12743508"
+        },
+        {
+          "path": "documentation/foundation-review.md",
+          "reason": "Recorded three measured runs, unchanged complexity and rejected unsafe or allocation-heavy replacements.",
+          "sha256": "bb5806d6a5b9e66a2514c9b252ea257d1583b841a8192989f0ee01a8235a9ecb"
+        },
+        {
+          "path": "documentation/development-log.md",
+          "reason": "Recorded implementation scope, exact checks and evidence limits.",
+          "sha256": "573eda32d3528be3af2c610229c41dcd7c1cbf464e6e4d50daf8756f9da13c12"
+        }
+      ]
     }
   ]
 }

@@ -253,3 +253,23 @@ The [official DefaultMap documentation](https://yomguithereal.github.io/mnemonis
 Native Node.js ESM rejected Mnemonist 0.40.5 individual-module imports because its package exports expose those paths only for require/types. Benchmarks use the supported root named imports. No CJS bridge, TypeScript target widening, production cache or browser bundle change was introduced. `npm install` reported zero dependency advisories at installation; this is a local snapshot, not a permanent security guarantee.
 
 A third 34-case comparison after the case-table ownership correction is recorded as `2026-10-06T18-21-11.022Z-3bb7d82e-802f-4662-84cf-227128c82a11`: valid membership at 96 options was 3.207/3.284 µs (native/Mnemonist), duplicate membership 2.588/1.922 µs, repeated index lookup 2.270/2.241 µs, and the 2,048-entry stack 7.401/16.947 µs. The adoption decision is unchanged. Named scenario tables now live in tests/cases; fixtures own data construction and candidate operations.
+
+## Es-toolkit adoption, October 6
+
+Adopted pinned es-toolkit 1.52.0 in the runtime package. `ExperimentResolution` now expresses dictionary transformations with `mapValues` instead of two mutable accumulators and entry loops. `AnswerValues.isMissing` uses `isNil` and the explicit empty-string rule instead of a pattern matcher for a simple guard. Domain owners, exhaustive step dispatch and public contracts remain intact. Category imports keep dependency ownership explicit.
+
+Reviewed analogous candidates across source, fixtures and tooling. Retained own-property access, bounded sparse-array inspection, native membership Sets and the per-validation option cache. Toolkit `isPlainObject` accepts additional object forms (including cross-realm objects), so it would widen the configuration boundary. `uniqBy` would allocate a result array solely to count distinct options. Neither replacement improves this implementation enough to justify altered semantics or additional allocation. No global memoization or chain wrapper was introduced.
+
+Three sequential compiled-runtime runs exercised all 79 scenarios, each with correctness checks before and after timing. Values below are medians of nine batch averages on local Node 24.16.0 / Apple M4; they are not request latency or capacity measurements.
+
+| Operation              |     Size | Before, µs/op | After 1, µs/op | After 2, µs/op |
+| ---------------------- | -------: | ------------: | -------------: | -------------: |
+| Experiment resolution  |  8 steps |         0.305 |          0.312 |          0.308 |
+| Experiment resolution  | 32 steps |         3.056 |          1.045 |          1.087 |
+| Experiment resolution  | 96 steps |         9.436 |          3.657 |          3.592 |
+| Valid numeric answer   | 1 answer |         0.555 |          0.476 |          0.471 |
+| Invalid numeric answer | 1 answer |         0.582 |          0.508 |          0.481 |
+
+Raw reports: baseline `2026-10-06T18-35-35.170Z-b942ae99-bbae-4208-8ed9-93e136963591`, candidate `2026-10-06T18-36-01.875Z-6c8ee471-18d9-4e1a-ab93-a85f7d9a536a`, repeat `2026-10-06T18-36-35.154Z-f9e8911e-61c0-46dc-89fa-9617a6fd201b`. Baseline already included the installed dependency but did not import it. The repeat includes added regression tests; production source is identical to the first candidate. Mapping remains O(steps + results) time and output space. The local 96-step operation took roughly 61–62% less time; the smallest dictionary shows no material gain. This single baseline and two candidate runs do not establish a universal speedup.
+
+Added six public-behavior regressions: own dictionary keys/order and fresh outputs; zero remains a present answer; false, NaN, empty arrays and whitespace do not bypass optional numeric validation. Existing tests cover null/undefined/empty strings, inherited overrides, input immutability and sparse selections. Independent read-only review found no blocking issue.

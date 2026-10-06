@@ -1,3 +1,10 @@
+import type { BenchmarkCase } from './benchmark-types.js';
+
+export interface BenchmarkSampleCollection {
+  readonly scenario: BenchmarkCase;
+  readonly samples: number[];
+}
+
 export const BenchmarkSuite = { Runtime: 'runtime', Mnemonist: 'mnemonist' } as const;
 export type BenchmarkSuite = ValueOf<typeof BenchmarkSuite>;
 
