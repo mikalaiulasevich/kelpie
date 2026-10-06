@@ -1,3 +1,6 @@
+import { Diagnostics } from '../diagnostics/diagnostics.js';
+import { DiagnosticEvents } from '../diagnostics/diagnostic-policy.js';
+import { ErrorDiagnostics } from '../diagnostics/error-diagnostics.js';
 import {
   type ArgumentsHost,
   Catch,
@@ -6,7 +9,7 @@ import {
   type ExceptionFilter,
 } from '@nestjs/common';
 import type { Response } from 'express';
-import { TransportLog, TransportPolicy } from './transport-policy.js';
+import { TransportPolicy } from './transport-policy.js';
 import { TransportMessages } from './transport-messages.js';
 
 @Catch()
@@ -17,9 +20,11 @@ export class PublicExceptionFilter implements ExceptionFilter {
     const message = this.resolvePublicMessage(status);
 
     if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
-      process.stderr.write(
-        `${JSON.stringify({ level: TransportLog.ErrorLevel, component: TransportLog.RequestComponent, message: TransportMessages.UnhandledFailure })}\n`,
-      );
+      Diagnostics.write({
+        event: DiagnosticEvents.RequestFailed,
+        status,
+        error: ErrorDiagnostics.describe(exception),
+      });
     }
 
     response.status(status).json({ statusCode: status, message });

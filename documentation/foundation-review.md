@@ -4,6 +4,22 @@
 
 Review covers the application scaffold, configuration contracts/runtime, initial database schema, health endpoints, development startup, and dependency selection. Complete funnel behavior and public production deployment are outside this foundation milestone.
 
+## Pre-feature consistency review, October 6
+
+Completed three passes: domain inventory and corrections; a second review of the changed modules; independent cross-domain review and integrated verification. Scope includes authored source, test suites/support, compiler and tool configurations, scripts, Prisma schema and current documentation. Supplied documents remain checksum-protected; generated files and dependencies are not hand-edited.
+
+- Contracts: configuration compiler moved to its owning domain; reusable types moved out of operation modules; event/result checks split into ordered phases with preserved diagnostics.
+- Runtime: consistent collection vocabulary, domain-owned result types, reusable answer fixtures and named experiment cases. Traversal and evaluation algorithms are unchanged.
+- Backend: schema-derived environment types, cleanup after failed startup, explicit body-parser status allowlist, fixture lifecycle guards and preservation of simultaneous setup/cleanup failures.
+- Frontend/tooling: separate content/messages/settings, grouped response predicate, consistent static policy naming, checked JSDoc const assertions instead of unnecessary object freezing, script error catalogs. Prisma formatting changed whitespace only.
+- Tests: domain directories, fresh fixtures, independent expected contract values, two additional setup/cleanup failure regressions. Cross-review caught and corrected lost setup errors when fixture cleanup also failed.
+
+Final integrated Node.js 24 verification passed 170 cases (55 backend, 5 frontend, 59 contracts, 51 runtime), strict TypeScript/JavaScript checking, ESLint, formatting, clean builds, original configuration checksums, test placement and Prisma validation. The Prisma formatter produced no whitespace-insensitive schema diff. Earlier counts and timings below describe previous milestones.
+
+The final local microbenchmark (Apple M4, Node.js 24.16.0, 12 scenarios, seven samples) measured median samples of 192.474 ms per 1,000 configuration validations, 89.921 ms per 10,000 route resolutions and 205.994 ms per 10,000 result resolutions. These measurements confirm the benchmark still runs after tooling cleanup; they are not a server throughput or optimization claim.
+
+Security and complexity review preserved own-property access, bounded validation, short-circuit predicates, per-call route state and redacted startup responses. SQL constraints remain covered by integration tests. End-to-end operation idempotency, authorization, publication and analytical aggregation still belong to the upcoming feature implementation; this review does not claim those features, production readiness, new remote CI results or browser visual acceptance. The new fault-injection tests cover fixture failure handling; process-level startup cleanup was reviewed but not separately fault-injected.
+
 ## Earlier whole-codebase review, October 6
 
 Reviewed authored source, tests, type declarations, package/compiler configuration, Prisma schema/migration, scripts, workflow, and current documentation. At that milestone, inventories contained 35 contracts files, 24 runtime files, 32 backend files, 20 frontend files, and four scripts, plus root tooling/documentation. Generated code and dependencies were not manually polished; original JSON fixtures remain checksum-protected. Independent domain reviews were integrated and the resulting changes inspected together.

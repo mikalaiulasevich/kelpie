@@ -1,3 +1,6 @@
+import { Diagnostics } from '../diagnostics/diagnostics.js';
+import { DiagnosticEvents } from '../diagnostics/diagnostic-policy.js';
+import { ErrorDiagnostics } from '../diagnostics/error-diagnostics.js';
 import { Controller, Get, Inject, ServiceUnavailableException } from '@nestjs/common';
 import { TransportMessages } from '../transport/transport-messages.js';
 import { DatabaseService } from '../database/database.service.js';
@@ -22,10 +25,16 @@ export class HealthController {
       if (await this.database.checkReadiness()) {
         return { status: HealthStatus.Ready };
       }
-    } catch {
-      // Database errors can include paths and queries; expose only availability.
+    } catch (error) {
+      Diagnostics.write({
+        event: DiagnosticEvents.ReadinessFailed,
+        reason: 'database_query_failed',
+        error: ErrorDiagnostics.describe(error),
+      });
+      throw new ServiceUnavailableException(TransportMessages.NotReady);
     }
 
+    Diagnostics.write({ event: DiagnosticEvents.ReadinessFailed, reason: 'migrations_incomplete' });
     throw new ServiceUnavailableException(TransportMessages.NotReady);
   }
 }

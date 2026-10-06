@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
+import { RequestDiagnostics } from '../diagnostics/request-diagnostics.js';
 import { Server } from 'node:http';
 import { ApplicationMessages } from './application-messages.js';
 import { ApplicationEnvironmentReader } from '../environment/read-application-environment.js';
@@ -15,10 +16,12 @@ const ApplicationSetup = {
   configure(application: NestExpressApplication): void {
     application.disable(TransportPolicy.FrameworkHeader);
     application.setGlobalPrefix(TransportPolicy.ApiPrefix);
+    application.use(RequestDiagnostics.middleware);
     application.use(helmet());
     application.useBodyParser(TransportPolicy.BodyParser, {
       limit: TransportPolicy.JsonBodyLimit,
       strict: true,
+      inflate: TransportPolicy.AllowCompressedBodies,
     });
     application.useGlobalFilters(new PublicExceptionFilter());
     application.enableShutdownHooks();
@@ -41,7 +44,7 @@ export const ApplicationFactory = {
   ): Promise<NestExpressApplication> {
     const application = await NestFactory.create<NestExpressApplication>(
       ApplicationModule.register(environment),
-      { bodyParser: false, logger: [...TransportPolicy.LoggerLevels] },
+      { bodyParser: false, logger: false, abortOnError: false },
     );
 
     try {
