@@ -1,4 +1,10 @@
-import { DictionaryAccess, type FunnelConfiguration, type ExperimentVariant, type FunnelResult, type SessionAnswers } from '@kelpie/contracts';
+import {
+  DictionaryAccess,
+  type FunnelConfiguration,
+  type ExperimentVariant,
+  type FunnelResult,
+  type SessionAnswers,
+} from '@kelpie/contracts';
 import { ConditionEvaluation } from '../conditions/condition-evaluation.js';
 import { VariantOverrides } from '../experiments/variant-overrides.js';
 import type { EvaluatedRoute } from '../routes/route-types.js';
@@ -17,12 +23,19 @@ const ResultRules = {
 } as const;
 
 export const ResultSelection = {
-  select(configuration: FunnelConfiguration, variant: ExperimentVariant, evaluation: EvaluatedRoute): Optional<FunnelResult> {
+  select(
+    configuration: FunnelConfiguration,
+    variant: ExperimentVariant,
+    evaluation: EvaluatedRoute,
+  ): Optional<FunnelResult> {
     if (!evaluation.isComplete) {
       return undefined;
     }
 
-    const resultIdentifier = ResultRules.selectIdentifier(configuration, evaluation.route.activeAnswers);
+    const resultIdentifier = ResultRules.selectIdentifier(
+      configuration,
+      evaluation.route.activeAnswers,
+    );
     const result = DictionaryAccess.readOwn(configuration.results, resultIdentifier);
 
     if (result === undefined) {

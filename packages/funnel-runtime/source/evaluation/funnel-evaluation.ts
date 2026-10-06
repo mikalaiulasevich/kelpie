@@ -4,9 +4,16 @@ import { ResultSelection } from '../results/result-selection.js';
 import type { EvaluatedFunnel } from './evaluation-types.js';
 
 export const FunnelEvaluation = {
-  evaluate(configuration: FunnelConfiguration, variant: ExperimentVariant, answers: SessionAnswers): EvaluatedFunnel {
+  evaluate(
+    configuration: FunnelConfiguration,
+    variant: ExperimentVariant,
+    answers: SessionAnswers,
+  ): EvaluatedFunnel {
     const evaluation = RouteBuilder.resolve(configuration, variant, answers);
 
-    return { route: evaluation.route, result: ResultSelection.select(configuration, variant, evaluation) };
+    return {
+      route: evaluation.route,
+      result: ResultSelection.select(configuration, variant, evaluation),
+    };
   },
 } as const;
