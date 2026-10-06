@@ -78,6 +78,8 @@ packages/funnel-runtime/source/
 
 Applications keep bootstrap/composition in `source/application/`, alongside their existing feature directories. Entry files and ambient declarations remain at the source root. Domain modules import their owners directly; public package imports continue through the root entry point.
 
+[AGENTS.md](AGENTS.md) is the canonical quality contract for every coding request: inspect existing work, search analogous defects, review the final diff, correct encountered violations and report exact verification boundaries. ESLint enforces selected recurring patterns, including inline test tables, inline error text in production/tooling, messages declared in policy modules and source imports from tests. Manual review still owns semantic cohesion, security and complexity; automated checks are not a proof of a defect-free repository.
+
 Every workspace keeps tests outside source, under `tests/<domain>/`, with reusable setup/data in `tests/fixtures/` and named input tables in `tests/cases/`. Contracts also keep compiler regressions in `tests/typechecks/`. `npm run tests:layout` enforces placement as part of verification; ESLint rejects Vitest imports from source. Integration tests use isolated temporary SQLite databases, real migrations and application startup, with guaranteed teardown. Type checking includes suites, fixtures, cases and test configurations.
 
 Authored identifiers use full names. Original JSON fields and dependency/tool conventions remain compatible at external boundaries.

@@ -39,6 +39,18 @@ const inlineErrorRestrictions = [
   },
 ];
 
+const declarationRestrictions = {
+  helpers: {
+    selector: 'FunctionDeclaration',
+    message: 'Put helper operations in their owning const object or class.',
+  },
+  reactHelpers: {
+    selector: 'FunctionDeclaration:not([id.name=/^[A-Z]/]):not([id.name=/^use[A-Z]/])',
+    message:
+      'Put helpers in domain objects; standalone declarations are reserved for React components and hooks.',
+  },
+};
+
 export default typescript.config(
   {
     ignores: [
@@ -60,14 +72,7 @@ export default typescript.config(
       curly: ['error', 'all'],
       'no-nested-ternary': 'error',
       'no-param-reassign': 'error',
-      'no-restricted-syntax': [
-        'error',
-        ...restrictedSyntax,
-        {
-          selector: 'FunctionDeclaration',
-          message: 'Put helper operations in their owning const object or class.',
-        },
-      ],
+      'no-restricted-syntax': ['error', ...restrictedSyntax, declarationRestrictions.helpers],
       'padding-line-between-statements': [
         'error',
         { blankLine: 'always', prev: '*', next: 'return' },
@@ -107,15 +112,7 @@ export default typescript.config(
     languageOptions: { globals: globals.browser },
     plugins: { 'react-hooks': reactHooks, 'react-refresh': reactRefresh },
     rules: {
-      'no-restricted-syntax': [
-        'error',
-        ...restrictedSyntax,
-        {
-          selector: 'FunctionDeclaration:not([id.name=/^[A-Z]/]):not([id.name=/^use[A-Z]/])',
-          message:
-            'Put helpers in domain objects; standalone declarations are reserved for React components and hooks.',
-        },
-      ],
+      'no-restricted-syntax': ['error', ...restrictedSyntax, declarationRestrictions.reactHelpers],
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': ['error', { allowConstantExport: true }],
     },
@@ -127,10 +124,7 @@ export default typescript.config(
         'error',
         ...restrictedSyntax,
         ...inlineErrorRestrictions,
-        {
-          selector: 'FunctionDeclaration',
-          message: 'Put helper operations in their owning const object or class.',
-        },
+        declarationRestrictions.helpers,
       ],
     },
   },
@@ -141,11 +135,7 @@ export default typescript.config(
         'error',
         ...restrictedSyntax,
         ...inlineErrorRestrictions,
-        {
-          selector: 'FunctionDeclaration:not([id.name=/^[A-Z]/]):not([id.name=/^use[A-Z]/])',
-          message:
-            'Put helpers in domain objects; standalone declarations are reserved for React components and hooks.',
-        },
+        declarationRestrictions.reactHelpers,
       ],
     },
   },
@@ -156,10 +146,7 @@ export default typescript.config(
         'error',
         ...restrictedSyntax,
         ...inlineErrorRestrictions,
-        {
-          selector: 'FunctionDeclaration',
-          message: 'Put helper operations in their owning const object or class.',
-        },
+        declarationRestrictions.helpers,
         {
           selector: 'VariableDeclarator[id.name=/Messages$/]',
           message: 'Keep message catalogs separate from static policy modules.',
