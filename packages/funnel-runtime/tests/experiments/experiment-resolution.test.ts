@@ -2,16 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { ExperimentVariant, type FunnelConfiguration } from '@kelpie/contracts';
 import { ExperimentResolution, ResultResolution } from '../../source/index.js';
 import { RuntimeFixtures, RuntimeAnswers } from '../fixtures/runtime-fixtures.js';
+import { ExperimentCases } from '../cases/experiment-cases.js';
 
 describe('experiments', () => {
-  it.each([
-    { version: 1, variant: ExperimentVariant.A },
-    { version: 1, variant: ExperimentVariant.B },
-    { version: 2, variant: ExperimentVariant.A },
-    { version: 2, variant: ExperimentVariant.B },
-    { version: 3, variant: ExperimentVariant.A },
-    { version: 3, variant: ExperimentVariant.B },
-  ])(
+  it.each(ExperimentCases.publishedVariants)(
     'keeps result overrides consistent in version $version variant $variant',
     ({ version, variant }) => {
       const document = RuntimeFixtures.configuration(version);
@@ -52,10 +46,10 @@ describe('experiments', () => {
 
   it('resolves variant order and copy without changing the original document', () => {
     const document = RuntimeFixtures.configuration(1);
-    const before = JSON.stringify(document);
+    const originalDocument = structuredClone(document);
     const resolved = ExperimentResolution.resolve(document, ExperimentVariant.B);
     expect(resolved.stepSequence[1]).toBe('work_mode');
     expect(resolved.steps['intro']?.content.primaryActionLabel).toBe('Show me');
-    expect(JSON.stringify(document)).toBe(before);
+    expect(document).toEqual(originalDocument);
   });
 });

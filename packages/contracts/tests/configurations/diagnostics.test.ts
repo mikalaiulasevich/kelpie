@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { FunnelConfigurations } from '../../source/index.js';
 import { ConfigurationFixtures } from '../fixtures/configuration-fixtures.js';
 

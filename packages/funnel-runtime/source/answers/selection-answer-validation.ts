@@ -63,10 +63,10 @@ const SelectionIssues = {
 
 export const SelectionAnswerValidation = {
   single(step: SingleSelectionStep, answer: unknown): ReadonlyList<AnswerIssue> {
-    const available =
+    const isAvailableOption =
       typeof answer === 'string' && step.input.options.some((option) => option.value === answer);
 
-    if (!available) {
+    if (!isAvailableOption) {
       return [
         AnswerIssues.create(
           step.validation,

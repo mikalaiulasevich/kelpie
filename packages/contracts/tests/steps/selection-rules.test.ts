@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { StepRules, StepType } from '../../source/index.js';
 import { SelectionCases } from '../cases/selection-cases.js';
 import { SelectionFixtures } from '../fixtures/selection-fixtures.js';

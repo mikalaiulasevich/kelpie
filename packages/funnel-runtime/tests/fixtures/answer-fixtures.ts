@@ -1,13 +1,18 @@
-import { StepType, type NumberStep, type MultipleSelectionStep } from '@kelpie/contracts';
+import {
+  StepType,
+  type NumberStep,
+  type MultipleSelectionStep,
+  type AnswerValidation,
+} from '@kelpie/contracts';
 
 export const AnswerFixtures = {
-  number(): NumberStep {
+  number(validation: Partial<AnswerValidation> = {}): NumberStep {
     return {
       id: 'hours',
       type: StepType.Number,
       content: { title: 'Hours' },
       input: { name: 'hours', min: 0, max: 1, step: 0.1 },
-      validation: { required: true, messages: {} },
+      validation: { required: true, messages: {}, ...validation },
     };
   },
 

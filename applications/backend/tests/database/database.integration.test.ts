@@ -26,6 +26,8 @@ describe('SQLite persistence invariants', () => {
       await otherBackend.close();
     }
 
+    await expect(otherBackend.request('/api/health/ready')).rejects.toThrow('The backend fixture is closed.');
+    expect(() => otherBackend.database).toThrow('The backend fixture is closed.');
     expect((await backend.request('/api/health/ready')).status).toBe(200);
   });
 

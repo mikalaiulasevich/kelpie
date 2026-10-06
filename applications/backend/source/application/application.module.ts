@@ -4,7 +4,7 @@ import {
   ApplicationEnvironmentService,
   EnvironmentInjection,
 } from '../environment/application-environment.js';
-import type { ApplicationEnvironment } from '../environment/read-application-environment.js';
+import type { ApplicationEnvironment } from '../environment/environment-schemas.js';
 import { HealthController } from '../health/health.controller.js';
 
 @Module({

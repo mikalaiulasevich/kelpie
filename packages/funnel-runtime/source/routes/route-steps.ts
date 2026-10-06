@@ -4,13 +4,13 @@ import {
   type FunnelConfiguration,
   type FunnelStep,
   type SessionAnswers,
-  type StepAnswer,
   type VariantConfiguration,
 } from '@kelpie/contracts';
 import { AnswerValidation } from '../answers/answer-validation.js';
 import { ConditionEvaluation } from '../conditions/condition-evaluation.js';
 import { RouteMessages } from './route-messages.js';
 import { VariantOverrides } from '../experiments/variant-overrides.js';
+import type { AcceptedStepAnswer } from './route-types.js';
 
 export const RouteSteps = {
   resolve(
@@ -56,8 +56,3 @@ export const RouteSteps = {
       .valid;
   },
 } as const;
-
-interface AcceptedStepAnswer {
-  readonly name: string;
-  readonly value: StepAnswer;
-}

@@ -1,7 +1,9 @@
+import type { AnswerIssueCode } from '../../source/index.js';
+
 interface SelectionCase {
   readonly description: string;
   readonly answer: unknown;
-  readonly expectedCodes: readonly string[];
+  readonly expectedCodes: ReadonlyList<AnswerIssueCode>;
 }
 
 export const AnswerCases = {

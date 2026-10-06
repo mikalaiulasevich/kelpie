@@ -7,7 +7,7 @@ import {
 } from './service-health';
 
 export function useServiceHealth(checkSequence: number): ServiceHealth {
-  const [completedCheck, setCompletedCheck] = useState<CompletedServiceHealthCheck | null>(null);
+  const [completedCheck, setCompletedCheck] = useState<Optional<CompletedServiceHealthCheck>>();
 
   useEffect(() => {
     const cancellationController = new AbortController();

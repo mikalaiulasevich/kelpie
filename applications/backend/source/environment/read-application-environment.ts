@@ -5,14 +5,7 @@ import { applicationDirectory } from '../application/application-directory.js';
 import { SQLitePolicy } from '../database/sqlite-policy.js';
 import { EnvironmentMessages } from './environment-messages.js';
 import { EnvironmentFields, EnvironmentPolicy } from './environment-policy.js';
-import { EnvironmentSchemas } from './environment-schemas.js';
-
-export interface ApplicationEnvironment {
-  readonly mode: Static<typeof EnvironmentSchemas.Mode>;
-  readonly host: string;
-  readonly port: number;
-  readonly databaseUrl: string;
-}
+import { EnvironmentSchemas, type ApplicationEnvironment } from './environment-schemas.js';
 
 const schemaCompiler = new Ajv({ strict: true, coerceTypes: false });
 const environmentValidators = {

@@ -1,7 +1,6 @@
 import { Controller, Get, Inject, ServiceUnavailableException } from '@nestjs/common';
 import { TransportMessages } from '../transport/transport-messages.js';
 import { DatabaseService } from '../database/database.service.js';
-
 import { HealthRoutes, HealthStatus } from './health-policy.js';
 
 interface HealthResponse {

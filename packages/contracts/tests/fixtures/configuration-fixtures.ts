@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+
 import {
   FunnelConfigurations,
   type FunnelConfiguration,
@@ -6,6 +7,7 @@ import {
   type NumberStep,
   type StepOverride,
 } from '../../source/index.js';
+import { FixtureMessages } from './fixture-messages.js';
 
 export const ConfigurationFixtures = {
   original(version: number): unknown {
@@ -19,7 +21,7 @@ export const ConfigurationFixtures = {
   valid(version = 1): FunnelConfiguration {
     const result = FunnelConfigurations.validate(ConfigurationFixtures.original(version));
     if (!result.valid) {
-      throw new Error(`Invalid configuration fixture ${version}: ${JSON.stringify(result.issues)}`);
+      throw new Error(FixtureMessages.InvalidConfiguration(version, result.issues));
     }
 
     return result.configuration;
@@ -27,7 +29,7 @@ export const ConfigurationFixtures = {
   informationStep(configuration: FunnelConfiguration): InformationStep {
     const step = configuration.steps['intro'];
     if (step?.type !== 'info') {
-      throw new Error('Configuration fixture requires an information introduction.');
+      throw new Error(FixtureMessages.InformationIntroductionRequired);
     }
 
     return step;
@@ -49,7 +51,7 @@ export const ConfigurationFixtures = {
   numberStep(configuration: FunnelConfiguration): NumberStep {
     const step = configuration.steps['team_size'];
     if (step?.type !== 'number') {
-      throw new Error('Configuration fixture requires numeric team size.');
+      throw new Error(FixtureMessages.NumericTeamSizeRequired);
     }
 
     return step;

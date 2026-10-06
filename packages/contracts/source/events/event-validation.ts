@@ -7,18 +7,8 @@ const supportedProperties: ReadonlySet<string> = new Set(EventPolicy.properties)
 const supportedBaseProperties: ReadonlySet<string> = new Set(EventPolicy.baseProperties);
 
 export const EventValidation = {
-  validate(context: ConfigurationValidationContext): void {
-    const { configuration } = context;
-    const eventNames = new Set(configuration.events.allowed.map((event) => event.name));
-
-    if (eventNames.size !== configuration.events.allowed.length) {
-      context.report(
-        ConfigurationPaths.allowedEvents,
-        ConfigurationMessages.UniqueEventNamesRequired,
-      );
-    }
-
-    for (const property of configuration.events.baseProperties) {
+  baseProperties(context: ConfigurationValidationContext): void {
+    for (const property of context.configuration.events.baseProperties) {
       if (!supportedBaseProperties.has(property)) {
         context.report(
           ConfigurationPaths.baseEventProperties,
@@ -26,8 +16,10 @@ export const EventValidation = {
         );
       }
     }
+  },
 
-    for (const event of configuration.events.allowed) {
+  declaredProperties(context: ConfigurationValidationContext): void {
+    for (const event of context.configuration.events.allowed) {
       for (const property of event.properties) {
         if (!supportedProperties.has(property)) {
           context.report(
@@ -37,7 +29,9 @@ export const EventValidation = {
         }
       }
     }
+  },
 
+  requiredEvents(context: ConfigurationValidationContext, eventNames: ReadonlySet<string>): void {
     for (const name of EventPolicy.requiredEvents) {
       if (!eventNames.has(name)) {
         context.report(
@@ -46,5 +40,21 @@ export const EventValidation = {
         );
       }
     }
+  },
+
+  validate(context: ConfigurationValidationContext): void {
+    const declarations = context.configuration.events.allowed;
+    const eventNames = new Set(declarations.map((event) => event.name));
+
+    if (eventNames.size !== declarations.length) {
+      context.report(
+        ConfigurationPaths.allowedEvents,
+        ConfigurationMessages.UniqueEventNamesRequired,
+      );
+    }
+
+    EventValidation.baseProperties(context);
+    EventValidation.declaredProperties(context);
+    EventValidation.requiredEvents(context, eventNames);
   },
 } as const;

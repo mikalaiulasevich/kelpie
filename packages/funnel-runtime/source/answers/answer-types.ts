@@ -20,4 +20,4 @@ export interface AnswerIssue {
 
 export type AnswerValidationResult =
   | { readonly valid: true; readonly issues: readonly [] }
-  | { readonly valid: false; readonly issues: readonly AnswerIssue[] };
+  | { readonly valid: false; readonly issues: ReadonlyList<AnswerIssue> };

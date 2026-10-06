@@ -1,4 +1,10 @@
-import type { AnswerValidation } from '../../source/index.js';
+import type { AnswerValidation, SelectionLimits } from '../../source/index.js';
+
+interface SelectionLimitCase {
+  readonly name: string;
+  readonly validation: AnswerValidation;
+  readonly expected: SelectionLimits;
+}
 
 export const SelectionCases = {
   limits: [
@@ -17,9 +23,5 @@ export const SelectionCases = {
       validation: { required: true, minSelections: 0, maxSelections: 1, messages: {} },
       expected: { minimum: 0, maximum: 1 },
     },
-  ] satisfies ReadonlyList<{
-    name: string;
-    validation: AnswerValidation;
-    expected: { minimum: number; maximum: number };
-  }>,
+  ] satisfies ReadonlyList<SelectionLimitCase>,
 } as const;

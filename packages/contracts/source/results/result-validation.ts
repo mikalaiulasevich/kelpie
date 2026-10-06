@@ -4,10 +4,8 @@ import type { ConfigurationValidationContext } from '../configurations/validatio
 import { ConditionValidation } from '../conditions/condition-validation.js';
 
 export const ResultValidation = {
-  validate(context: ConfigurationValidationContext): void {
-    const { configuration } = context;
-
-    for (const [resultIdentifier, result] of Object.entries(configuration.results)) {
+  identifiers(context: ConfigurationValidationContext): void {
+    for (const [resultIdentifier, result] of Object.entries(context.configuration.results)) {
       if (result.id !== resultIdentifier) {
         context.report(
           ConfigurationPaths.resultIdentifier(resultIdentifier),
@@ -15,24 +13,33 @@ export const ResultValidation = {
         );
       }
     }
+  },
+
+  defaultResult(context: ConfigurationValidationContext): void {
+    const { configuration } = context;
 
     if (!Object.hasOwn(configuration.results, configuration.defaultResultId)) {
       context.report(ConfigurationPaths.defaultResult, ConfigurationMessages.UnknownDefaultResult);
     }
+  },
+
+  rules(context: ConfigurationValidationContext): void {
+    const { configuration } = context;
 
     configuration.resultRules.forEach((rule, position) => {
+      const paths = ConfigurationPaths.resultRule(position);
+
       if (!Object.hasOwn(configuration.results, rule.resultId)) {
-        context.report(
-          ConfigurationPaths.resultRule(position).result,
-          ConfigurationMessages.UnknownResult,
-        );
+        context.report(paths.result, ConfigurationMessages.UnknownResult);
       }
 
-      ConditionValidation.validate(
-        context,
-        rule.when,
-        ConfigurationPaths.resultRule(position).condition,
-      );
+      ConditionValidation.validate(context, rule.when, paths.condition);
     });
+  },
+
+  validate(context: ConfigurationValidationContext): void {
+    ResultValidation.identifiers(context);
+    ResultValidation.defaultResult(context);
+    ResultValidation.rules(context);
   },
 } as const;

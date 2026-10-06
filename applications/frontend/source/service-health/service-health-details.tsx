@@ -18,7 +18,7 @@ export function ServiceHealthDetails({ health }: ServiceHealthDetailsProperties)
       <>
         {ServiceHealthContent.VerifiedAt}
         <time dateTime={checkedAt.toISOString()}>
-          {checkedAt.toLocaleTimeString(ApplicationPolicy.locale)}
+          {checkedAt.toLocaleTimeString(ApplicationPolicy.Locale)}
         </time>
         {ServiceHealthContent.ReadyDescription}
       </>

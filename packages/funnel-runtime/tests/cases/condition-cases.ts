@@ -1,13 +1,13 @@
 import { ConditionOperator, type Condition, type SessionAnswers } from '@kelpie/contracts';
 
-interface ConditionExample {
+interface ConditionCase {
   readonly description: string;
   readonly condition: Condition;
   readonly answers: SessionAnswers;
   readonly expected: boolean;
 }
 
-export const ConditionCases: readonly ConditionExample[] = [
+export const ConditionCases = [
   {
     description: 'does not match a missing answer',
     condition: { answer: 'missing', operator: ConditionOperator.Equal, value: 'remote' },
@@ -72,4 +72,4 @@ export const ConditionCases: readonly ConditionExample[] = [
     answers: { size: 10, mode: 'hybrid' },
     expected: true,
   },
-];
+] as const satisfies ReadonlyList<ConditionCase>;

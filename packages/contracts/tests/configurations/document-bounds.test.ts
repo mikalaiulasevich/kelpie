@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
+
 import { DocumentFixtures } from '../fixtures/document-fixtures.js';
 import { DocumentCases } from '../cases/document-cases.js';
-
 import { ConfigurationDocumentBounds } from '../../source/configurations/validation/configuration-document-bounds.js';
 import { ConfigurationMessages } from '../../source/configurations/configuration-messages.js';
 import {

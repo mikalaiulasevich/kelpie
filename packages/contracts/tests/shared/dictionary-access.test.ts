@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { DictionaryAccess } from '../../source/index.js';
 
 describe('own dictionary properties', () => {

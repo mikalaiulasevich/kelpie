@@ -1,5 +1,4 @@
 import 'reflect-metadata';
-import { BackendTestPolicy } from './backend-test-policy.js';
 import { execFile } from 'node:child_process';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { Server } from 'node:http';
@@ -12,12 +11,22 @@ import { ApplicationFactory } from '../../source/application/create-application.
 import { DatabaseService } from '../../source/database/database.service.js';
 import { ApplicationEnvironmentReader } from '../../source/environment/read-application-environment.js';
 
+import { ApplicationMode, EnvironmentFields } from '../../source/environment/environment-policy.js';
+import { SQLitePolicy } from '../../source/database/sqlite-policy.js';
+import { BackendTestPolicy } from './backend-test-policy.js';
+
+const BackendFixtureMessages = {
+  Closed: 'The backend fixture is closed.',
+  UnsupportedServer: 'Test HTTP server adapter is unsupported.',
+  AddressUnavailable: 'Test server has no network address.',
+} as const;
+
 const Processes = { execute: promisify(execFile) } as const;
 
 export class BackendApplicationFixture {
   private application: Optional<NestExpressApplication>;
   private temporaryDirectory: Optional<string>;
-  private baseUrl = '';
+  private baseUrl: Optional<string>;
 
   private constructor() {}
 
@@ -30,7 +39,7 @@ export class BackendApplicationFixture {
 
   get database(): DatabaseService['client'] {
     if (!this.application) {
-      throw new Error('Start the backend fixture before accessing its database.');
+      throw new Error(BackendFixtureMessages.Closed);
     }
 
     return this.application.get(DatabaseService).client;
@@ -40,16 +49,16 @@ export class BackendApplicationFixture {
     this.temporaryDirectory = await mkdtemp(
       resolve(tmpdir(), BackendTestPolicy.temporaryDirectoryPrefix),
     );
-    const databaseUrl = `file:${resolve(this.temporaryDirectory, BackendTestPolicy.databaseFilename)}`;
+    const databaseUrl = `${SQLitePolicy.FileUrlPrefix}${resolve(this.temporaryDirectory, BackendTestPolicy.databaseFilename)}`;
 
     try {
-      await Processes.execute('npm', ['run', 'database:migrate'], {
+      await Processes.execute(BackendTestPolicy.packageManager, [...BackendTestPolicy.migrationArguments], {
         cwd: applicationDirectory,
-        env: { ...process.env, DATABASE_URL: databaseUrl, NODE_ENV: 'test' },
+        env: { ...process.env, [EnvironmentFields.DatabaseUrl]: databaseUrl, [EnvironmentFields.Mode]: ApplicationMode.Test },
         timeout: BackendTestPolicy.timeoutMilliseconds,
       });
       this.application = await this.createApplication(databaseUrl);
-      await this.application.listen(0, '127.0.0.1');
+      await this.application.listen(BackendTestPolicy.ephemeralPort, BackendTestPolicy.host);
       this.baseUrl = this.resolveAddress();
     } catch (error) {
       await this.close();
@@ -58,10 +67,16 @@ export class BackendApplicationFixture {
   }
 
   async request(path: string, options?: RequestInit): Promise<Response> {
+    if (this.baseUrl === undefined) {
+      throw new Error(BackendFixtureMessages.Closed);
+    }
+
     return fetch(`${this.baseUrl}${path}`, options);
   }
 
   async close(): Promise<void> {
+    this.baseUrl = undefined;
+
     try {
       await this.application?.close();
     } finally {
@@ -76,8 +91,8 @@ export class BackendApplicationFixture {
 
   private async createApplication(databaseUrl: string): Promise<NestExpressApplication> {
     const environment = ApplicationEnvironmentReader.read({
-      DATABASE_URL: databaseUrl,
-      NODE_ENV: 'test',
+      [EnvironmentFields.DatabaseUrl]: databaseUrl,
+      [EnvironmentFields.Mode]: ApplicationMode.Test,
     });
 
     return ApplicationFactory.create(environment);
@@ -87,15 +102,15 @@ export class BackendApplicationFixture {
     const server: unknown = this.application?.getHttpServer();
 
     if (!(server instanceof Server)) {
-      throw new Error('Test HTTP server adapter is unsupported.');
+      throw new Error(BackendFixtureMessages.UnsupportedServer);
     }
 
     const address = server.address();
 
     if (address === null || typeof address === 'string') {
-      throw new Error('Test server has no network address.');
+      throw new Error(BackendFixtureMessages.AddressUnavailable);
     }
 
-    return `http://127.0.0.1:${address.port}`;
+    return `http://${BackendTestPolicy.host}:${address.port}`;
   }
 }

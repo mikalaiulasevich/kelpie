@@ -13,13 +13,13 @@ export const ExperimentResolution = {
     variant: ExperimentVariant,
   ): ResolvedExperimentConfiguration {
     const selectedVariant = configuration.experiment.variants[variant];
-    const steps: Record<string, FunnelStep> = {};
+    const steps: Dictionary<string, FunnelStep> = {};
 
     for (const [identifier, step] of Object.entries(configuration.steps)) {
       steps[identifier] = VariantOverrides.step(identifier, step, selectedVariant);
     }
 
-    const results: Record<string, FunnelResult> = {};
+    const results: Dictionary<string, FunnelResult> = {};
 
     for (const [identifier, result] of Object.entries(configuration.results)) {
       results[identifier] = VariantOverrides.result(result, selectedVariant);

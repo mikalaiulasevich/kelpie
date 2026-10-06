@@ -26,6 +26,7 @@ export type {
   NumberStep,
   ResultStep,
   SelectionInput,
+  SelectionLimits,
   SelectionOption,
   SelectionStep,
   SessionAnswers,
@@ -56,7 +57,6 @@ export type {
 } from './configurations/configuration-types.js';
 
 export { DictionaryAccess } from './shared/dictionary.js';
-export type { SelectionLimits } from './steps/step-rules.js';
 
 export { FunnelConfigurations } from './configurations/funnel-configurations.js';
 export { StepRules } from './steps/step-rules.js';

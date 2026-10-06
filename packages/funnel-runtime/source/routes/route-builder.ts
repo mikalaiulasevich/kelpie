@@ -13,7 +13,7 @@ import type { AvailableRoute } from './route-types.js';
 /** A new builder owns each traversal; answers never leak between resolutions. */
 export class RouteBuilder {
   private readonly steps: FunnelStep[] = [];
-  private readonly activeAnswers: Record<string, StepAnswer> = {};
+  private readonly activeAnswers: Dictionary<string, StepAnswer> = {};
   private readonly selectedVariant: VariantConfiguration;
   private readonly excludedTypes: ReadonlySet<StepType>;
   private questionCount = 0;

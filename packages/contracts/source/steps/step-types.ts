@@ -37,3 +37,8 @@ export type MultipleSelectionStep = StepWithCondition<typeof multipleSelectionSt
 export type SelectionStep = SingleSelectionStep | MultipleSelectionStep;
 export type InteractiveStep = NumberStep | SelectionStep;
 export type FunnelStep = InformationStep | ResultStep | InteractiveStep;
+
+export interface SelectionLimits {
+  readonly minimum: number;
+  readonly maximum: number;
+}

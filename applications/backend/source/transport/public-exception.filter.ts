@@ -24,6 +24,7 @@ export class PublicExceptionFilter implements ExceptionFilter {
 
     response.status(status).json({ statusCode: status, message });
   }
+
   private resolvePublicStatus(exception: unknown): number {
     if (exception instanceof HttpException) {
       return exception.getStatus();

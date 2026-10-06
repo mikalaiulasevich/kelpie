@@ -1,6 +1,6 @@
-import { ConfigurationFormat } from './configuration-format.js';
 import { Type } from 'typebox';
 
+import { ConfigurationFormat } from './configuration-format.js';
 import { ConfigurationSchemaPolicy } from './configuration-policy.js';
 import { conditionSchema } from '../conditions/condition-schema.js';
 import { ConfigurationStatus, ExperimentVariant, StepType } from '../shared/domain-values.js';

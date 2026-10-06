@@ -4,10 +4,8 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
 import { Server } from 'node:http';
 import { ApplicationMessages } from './application-messages.js';
-import {
-  ApplicationEnvironmentReader,
-  type ApplicationEnvironment,
-} from '../environment/read-application-environment.js';
+import { ApplicationEnvironmentReader } from '../environment/read-application-environment.js';
+import type { ApplicationEnvironment } from '../environment/environment-schemas.js';
 import { ApplicationModule } from './application.module.js';
 import { TransportMessages } from '../transport/transport-messages.js';
 import { TransportPolicy } from '../transport/transport-policy.js';

@@ -1,11 +1,7 @@
 import { isMatching, P } from 'ts-pattern';
-import { StepType } from '../shared/domain-values.js';
-import type { SelectionStep } from './step-types.js';
 
-export interface SelectionLimits {
-  readonly minimum: number;
-  readonly maximum: number;
-}
+import { StepType } from '../shared/domain-values.js';
+import type { SelectionLimits, SelectionStep } from './step-types.js';
 
 export const StepRules = {
   isInteractive: isMatching({
