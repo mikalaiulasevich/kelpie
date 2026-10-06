@@ -4,29 +4,31 @@ import { ServiceHealthStatus } from './service-health';
 
 const isReadyResponse = isMatching({ status: ServiceHealthStatus.Ready });
 
-export async function requestServiceReadiness(cancellationSignal: AbortSignal): Promise<void> {
-  const timeoutController = new AbortController();
-  const timeoutIdentifier = setTimeout(() => {
-    timeoutController.abort(new Error(ServiceHealthMessages.TimedOut));
-  }, ServiceHealthPolicy.requestTimeoutMilliseconds);
+export const ServiceReadiness = {
+  async request(cancellationSignal: AbortSignal): Promise<void> {
+    const timeoutController = new AbortController();
+    const timeoutIdentifier = setTimeout(() => {
+      timeoutController.abort(new Error(ServiceHealthMessages.TimedOut));
+    }, ServiceHealthPolicy.requestTimeoutMilliseconds);
 
-  try {
-    const response = await fetch(ServiceHealthPolicy.readinessEndpoint, {
-      signal: AbortSignal.any([cancellationSignal, timeoutController.signal]),
-      cache: 'no-store',
-      credentials: 'same-origin',
-      headers: { Accept: 'application/json' },
-    });
+    try {
+      const response = await fetch(ServiceHealthPolicy.readinessEndpoint, {
+        signal: AbortSignal.any([cancellationSignal, timeoutController.signal]),
+        cache: 'no-store',
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json' },
+      });
 
-    if (!response.ok) {
-      throw new Error(ServiceHealthMessages.Unavailable);
+      if (!response.ok) {
+        throw new Error(ServiceHealthMessages.Unavailable);
+      }
+
+      const responseBody: unknown = await response.json();
+      if (!isReadyResponse(responseBody)) {
+        throw new Error(ServiceHealthMessages.InvalidResponse);
+      }
+    } finally {
+      clearTimeout(timeoutIdentifier);
     }
-
-    const responseBody: unknown = await response.json();
-    if (!isReadyResponse(responseBody)) {
-      throw new Error(ServiceHealthMessages.InvalidResponse);
-    }
-  } finally {
-    clearTimeout(timeoutIdentifier);
-  }
-}
+  },
+} as const;

@@ -52,7 +52,8 @@ export const RouteSteps = {
       return true;
     }
 
-    return AnswerValidation.validate(step, DictionaryAccess.readOwn(answers, step.input.name)).valid;
+    return AnswerValidation.validate(step, DictionaryAccess.readOwn(answers, step.input.name))
+      .valid;
   },
 } as const;
 

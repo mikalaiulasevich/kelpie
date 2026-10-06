@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { requestServiceReadiness } from './request-service-readiness';
+import { ServiceReadiness } from './request-service-readiness';
 import {
   ServiceHealthStatus,
   type ServiceHealth,
@@ -12,7 +12,7 @@ export function useServiceHealth(checkSequence: number): ServiceHealth {
   useEffect(() => {
     const cancellationController = new AbortController();
 
-    void requestServiceReadiness(cancellationController.signal).then(
+    void ServiceReadiness.request(cancellationController.signal).then(
       () => {
         if (!cancellationController.signal.aborted) {
           setCompletedCheck({

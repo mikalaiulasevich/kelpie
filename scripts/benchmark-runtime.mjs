@@ -21,31 +21,31 @@ for (const version of BenchmarkPolicy.configurationVersions) {
 }
 
 const BenchmarkFixtures = {
-/**
- * @param {import('@kelpie/contracts').FunnelConfiguration} configuration
- * @param {boolean} includeCompliance
- */
-answers(configuration, includeCompliance) {
-  /** @type {Record<string, import('@kelpie/contracts').StepAnswer>} */
-  const answers = {};
-  for (const step of Object.values(configuration.steps)) {
-    if (step.type === StepType.Number) {
-      answers[step.input.name] = step.input.min;
-    } else if (step.type === StepType.SingleSelect) {
-      const firstOption = step.input.options[0];
-      assert.ok(firstOption, 'Validated selection steps must contain options.');
-      answers[step.input.name] = firstOption.value;
-    } else if (step.type === StepType.MultiSelect) {
-      const complianceOption = step.input.options.find((option) => option.value === 'compliance');
-      const selectedOption =
-        includeCompliance && complianceOption ? complianceOption : step.input.options[0];
-      assert.ok(selectedOption, 'Validated selection steps must contain options.');
-      answers[step.input.name] = [selectedOption.value];
+  /**
+   * @param {import('@kelpie/contracts').FunnelConfiguration} configuration
+   * @param {boolean} includeCompliance
+   */
+  answers(configuration, includeCompliance) {
+    /** @type {Record<string, import('@kelpie/contracts').StepAnswer>} */
+    const answers = {};
+    for (const step of Object.values(configuration.steps)) {
+      if (step.type === StepType.Number) {
+        answers[step.input.name] = step.input.min;
+      } else if (step.type === StepType.SingleSelect) {
+        const firstOption = step.input.options[0];
+        assert.ok(firstOption, 'Validated selection steps must contain options.');
+        answers[step.input.name] = firstOption.value;
+      } else if (step.type === StepType.MultiSelect) {
+        const complianceOption = step.input.options.find((option) => option.value === 'compliance');
+        const selectedOption =
+          includeCompliance && complianceOption ? complianceOption : step.input.options[0];
+        assert.ok(selectedOption, 'Validated selection steps must contain options.');
+        answers[step.input.name] = [selectedOption.value];
+      }
     }
-  }
 
-  return answers;
-},
+    return answers;
+  },
 };
 
 const scenarios = configurations.flatMap((configuration) =>
@@ -59,75 +59,87 @@ const scenarios = configurations.flatMap((configuration) =>
 );
 
 const BenchmarkMeasurement = {
-/**
- * @param {string} name
- * @param {number} iterations
- * @param {(position: number) => void} operation
- */
-measure(name, iterations, operation) {
-  for (let position = 0; position < BenchmarkPolicy.warmupIterations; position += 1) {
-    operation(position);
-  }
-
-  const durationSamples = [];
-  for (let sample = 0; sample < BenchmarkPolicy.samples; sample += 1) {
-    const startedAt = performance.now();
-    for (let position = 0; position < iterations; position += 1) {
+  /**
+   * @param {string} name
+   * @param {number} iterations
+   * @param {(position: number) => void} operation
+   */
+  measure(name, iterations, operation) {
+    for (let position = 0; position < BenchmarkPolicy.warmupIterations; position += 1) {
       operation(position);
     }
 
-    durationSamples.push(performance.now() - startedAt);
-  }
+    const durationSamples = [];
+    for (let sample = 0; sample < BenchmarkPolicy.samples; sample += 1) {
+      const startedAt = performance.now();
+      for (let position = 0; position < iterations; position += 1) {
+        operation(position);
+      }
 
-  durationSamples.sort((left, right) => left - right);
+      durationSamples.push(performance.now() - startedAt);
+    }
 
-  const median = durationSamples[Math.floor(durationSamples.length / 2)];
-  const maximum = durationSamples.at(-1);
-  assert.ok(median !== undefined && maximum !== undefined, 'At least one sample is required.');
+    durationSamples.sort((left, right) => left - right);
 
-  return {
-    name,
-    iterationsPerSample: iterations,
-    samples: durationSamples.length,
-    medianSampleMilliseconds: Number(median.toFixed(BenchmarkPolicy.decimalPlaces)),
-    maximumSampleMilliseconds: Number(maximum.toFixed(BenchmarkPolicy.decimalPlaces)),
-  };
-},
+    const median = durationSamples[Math.floor(durationSamples.length / 2)];
+    const maximum = durationSamples.at(-1);
+    assert.ok(median !== undefined && maximum !== undefined, 'At least one sample is required.');
+
+    return {
+      name,
+      iterationsPerSample: iterations,
+      samples: durationSamples.length,
+      medianSampleMilliseconds: Number(median.toFixed(BenchmarkPolicy.decimalPlaces)),
+      maximumSampleMilliseconds: Number(maximum.toFixed(BenchmarkPolicy.decimalPlaces)),
+    };
+  },
 };
 
 const results = [
-  BenchmarkMeasurement.measure('configuration validation', BenchmarkPolicy.configurationIterations, (position) => {
-    const validation = FunnelConfigurations.validate(
-      configurations[position % configurations.length],
-    );
-    if (!validation.valid) {
-      throw new Error('Configuration validation failed during measurement.');
-    }
-  }),
-  BenchmarkMeasurement.measure('route resolution', BenchmarkPolicy.runtimeIterations, (position) => {
-    const scenario = scenarios[position % scenarios.length];
-    assert.ok(scenario, 'At least one benchmark scenario is required.');
-    const route = FunnelRuntime.Routes.resolve(
-      scenario.configuration,
-      scenario.variant,
-      scenario.answers,
-    );
-    if (route.steps.length === 0) {
-      throw new Error('Route resolution failed during measurement.');
-    }
-  }),
-  BenchmarkMeasurement.measure('result resolution', BenchmarkPolicy.runtimeIterations, (position) => {
-    const scenario = scenarios[position % scenarios.length];
-    assert.ok(scenario, 'At least one benchmark scenario is required.');
-    const result = FunnelRuntime.Results.resolve(
-      scenario.configuration,
-      scenario.variant,
-      scenario.answers,
-    );
-    if (result === undefined) {
-      throw new Error('Result resolution failed during measurement.');
-    }
-  }),
+  BenchmarkMeasurement.measure(
+    'configuration validation',
+    BenchmarkPolicy.configurationIterations,
+    (position) => {
+      const validation = FunnelConfigurations.validate(
+        configurations[position % configurations.length],
+      );
+      if (!validation.valid) {
+        throw new Error('Configuration validation failed during measurement.');
+      }
+    },
+  ),
+  BenchmarkMeasurement.measure(
+    'route resolution',
+    BenchmarkPolicy.runtimeIterations,
+    (position) => {
+      const scenario = scenarios[position % scenarios.length];
+      assert.ok(scenario, 'At least one benchmark scenario is required.');
+      const route = FunnelRuntime.Routes.resolve(
+        scenario.configuration,
+        scenario.variant,
+        scenario.answers,
+      );
+      if (route.steps.length === 0) {
+        throw new Error('Route resolution failed during measurement.');
+      }
+    },
+  ),
+  BenchmarkMeasurement.measure(
+    'result resolution',
+    BenchmarkPolicy.runtimeIterations,
+    (position) => {
+      const scenario = scenarios[position % scenarios.length];
+      assert.ok(scenario, 'At least one benchmark scenario is required.');
+      const result = FunnelRuntime.Results.resolve(
+        scenario.configuration,
+        scenario.variant,
+        scenario.answers,
+      );
+      if (result === undefined) {
+        throw new Error('Result resolution failed during measurement.');
+      }
+    },
+  ),
 ];
 
 console.info(

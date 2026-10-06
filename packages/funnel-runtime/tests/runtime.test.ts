@@ -18,19 +18,19 @@ import {
 
 const RuntimeFixtures = {
   configuration(version: number): FunnelConfiguration {
-  const result = FunnelConfigurations.validate(
-    JSON.parse(
-      readFileSync(
-        new URL(`../../../configurations/funnel-v${version}.json`, import.meta.url),
-        'utf8',
+    const result = FunnelConfigurations.validate(
+      JSON.parse(
+        readFileSync(
+          new URL(`../../../configurations/funnel-v${version}.json`, import.meta.url),
+          'utf8',
+        ),
       ),
-    ),
-  );
-  if (!result.valid) {
-    throw new Error(JSON.stringify(result.issues));
-  }
+    );
+    if (!result.valid) {
+      throw new Error(JSON.stringify(result.issues));
+    }
 
-  return result.configuration;
+    return result.configuration;
   },
 } as const;
 
@@ -168,7 +168,11 @@ describe('pure funnel runtime', () => {
   });
 
   it('omits office days for remote work and excludes retained answers', () => {
-    const route = RouteResolution.resolve(RuntimeFixtures.configuration(1), ExperimentVariant.A, completeAnswers);
+    const route = RouteResolution.resolve(
+      RuntimeFixtures.configuration(1),
+      ExperimentVariant.A,
+      completeAnswers,
+    );
     expect(route.steps.some((step) => step.id === 'office_days')).toBe(false);
     expect(route.activeAnswers['office_days']).toBeUndefined();
     expect(route.questionCount).toBe(6);
@@ -188,7 +192,11 @@ describe('pure funnel runtime', () => {
   });
 
   it('excludes tool_count in version three variant B', () => {
-    const route = RouteResolution.resolve(RuntimeFixtures.configuration(3), ExperimentVariant.B, completeAnswers);
+    const route = RouteResolution.resolve(
+      RuntimeFixtures.configuration(3),
+      ExperimentVariant.B,
+      completeAnswers,
+    );
     expect(route.activeAnswers['tool_count']).toBeUndefined();
     expect(route.steps.some((step) => step.id === 'tool_count')).toBe(false);
   });
@@ -213,10 +221,16 @@ describe('pure funnel runtime', () => {
 
   it('requires all active required answers before resolving a result', () => {
     expect(
-      ResultResolution.resolve(RuntimeFixtures.configuration(1), ExperimentVariant.A, { work_mode: 'remote' }),
+      ResultResolution.resolve(RuntimeFixtures.configuration(1), ExperimentVariant.A, {
+        work_mode: 'remote',
+      }),
     ).toBeUndefined();
     expect(
-      ResultResolution.resolve(RuntimeFixtures.configuration(1), ExperimentVariant.B, completeAnswers)?.cta.label,
+      ResultResolution.resolve(
+        RuntimeFixtures.configuration(1),
+        ExperimentVariant.B,
+        completeAnswers,
+      )?.cta.label,
     ).toBe('See the 30-day action list');
   });
 

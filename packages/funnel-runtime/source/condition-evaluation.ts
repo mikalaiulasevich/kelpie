@@ -10,24 +10,26 @@ import { AnswerValues } from './answer-values.js';
 
 const AnswerConditions = {
   evaluate(condition: AnswerCondition, answers: SessionAnswers): boolean {
-  const answer = DictionaryAccess.readOwn(answers, condition.answer);
+    const answer = DictionaryAccess.readOwn(answers, condition.answer);
 
-  if (answer === undefined) {
-    return false;
-  }
+    if (answer === undefined) {
+      return false;
+    }
 
-  return match(condition)
-    .with({ operator: ConditionOperator.Equal }, ({ value }) => answer === value)
-    .with({ operator: ConditionOperator.In }, ({ value }) => value.some((item) => item === answer))
-    .with(
-      { operator: ConditionOperator.Contains },
-      ({ value }) => Array.isArray(answer) && answer.includes(value),
-    )
-    .with(
-      { operator: ConditionOperator.GreaterThanOrEqual },
-      ({ value }) => AnswerValues.isFiniteNumber(answer) && answer >= value,
-    )
-    .exhaustive();
+    return match(condition)
+      .with({ operator: ConditionOperator.Equal }, ({ value }) => answer === value)
+      .with({ operator: ConditionOperator.In }, ({ value }) =>
+        value.some((item) => item === answer),
+      )
+      .with(
+        { operator: ConditionOperator.Contains },
+        ({ value }) => Array.isArray(answer) && answer.includes(value),
+      )
+      .with(
+        { operator: ConditionOperator.GreaterThanOrEqual },
+        ({ value }) => AnswerValues.isFiniteNumber(answer) && answer >= value,
+      )
+      .exhaustive();
   },
 } as const;
 

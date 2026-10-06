@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { requestServiceReadiness } from './request-service-readiness';
+import { ServiceReadiness } from './request-service-readiness';
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -10,7 +10,7 @@ describe('service readiness', () => {
   it('requires a successful readiness response rather than any reachable endpoint', async () => {
     const fetchResponse = vi.fn().mockResolvedValue(Response.json({ status: 'ready' }));
     vi.stubGlobal('fetch', fetchResponse);
-    await expect(requestServiceReadiness(new AbortController().signal)).resolves.toBeUndefined();
+    await expect(ServiceReadiness.request(new AbortController().signal)).resolves.toBeUndefined();
     expect(fetchResponse).toHaveBeenCalledWith(
       '/api/health/ready',
       expect.objectContaining({
@@ -25,11 +25,11 @@ describe('service readiness', () => {
       'fetch',
       vi.fn().mockResolvedValue(Response.json({ status: 'ready' }, { status: 503 })),
     );
-    await expect(requestServiceReadiness(new AbortController().signal)).rejects.toThrow(
+    await expect(ServiceReadiness.request(new AbortController().signal)).rejects.toThrow(
       'not ready',
     );
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ status: 'healthy' })));
-    await expect(requestServiceReadiness(new AbortController().signal)).rejects.toThrow(
+    await expect(ServiceReadiness.request(new AbortController().signal)).rejects.toThrow(
       'invalid readiness',
     );
   });
@@ -47,7 +47,7 @@ describe('service readiness', () => {
       }),
     );
     const expectation = expect(
-      requestServiceReadiness(new AbortController().signal),
+      ServiceReadiness.request(new AbortController().signal),
     ).rejects.toThrow('timed out');
     await vi.advanceTimersByTimeAsync(5_000);
     await expectation;
@@ -68,7 +68,7 @@ describe('service readiness', () => {
     );
     const cancellationController = new AbortController();
     const expectation = expect(
-      requestServiceReadiness(cancellationController.signal),
+      ServiceReadiness.request(cancellationController.signal),
     ).rejects.toThrow();
     cancellationController.abort();
     await expectation;

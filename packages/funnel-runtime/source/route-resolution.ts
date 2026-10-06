@@ -10,17 +10,17 @@ import type { AvailableRoute } from './runtime-types.js';
 
 const RouteNavigation = {
   adjacent(
-  route: AvailableRoute,
-  identifier: string,
-  direction: RouteDirection,
-): Optional<FunnelStep> {
-  const position = route.steps.findIndex((step) => step.id === identifier);
+    route: AvailableRoute,
+    identifier: string,
+    direction: RouteDirection,
+  ): Optional<FunnelStep> {
+    const position = route.steps.findIndex((step) => step.id === identifier);
 
-  if (position < 0) {
-    return undefined;
-  }
+    if (position < 0) {
+      return undefined;
+    }
 
-  return route.steps[position + direction];
+    return route.steps[position + direction];
   },
 } as const;
 
