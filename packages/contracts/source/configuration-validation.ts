@@ -6,9 +6,8 @@ import { funnelConfigurationSchema } from './configuration-schema.js';
 
 export { configurationLimits } from './configuration-document-bounds.js';
 
-const structuralValidator = configurationSchemaCompiler.compile<FunnelConfiguration>(
-  funnelConfigurationSchema,
-);
+const structuralValidator =
+  configurationSchemaCompiler.compile<FunnelConfiguration>(funnelConfigurationSchema);
 
 export function validateFunnelConfiguration(document: unknown): ConfigurationValidationResult {
   const boundsError = checkDocumentBounds(document);

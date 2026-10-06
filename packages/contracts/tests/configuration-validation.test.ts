@@ -12,6 +12,84 @@ function originalConfiguration(version: number): unknown {
 }
 
 describe('configuration validation', () => {
+  it.each(
+    ['title', 'body', 'primaryActionLabel'].flatMap((field) =>
+      [' ', '\t\n', '\u00a0', '\ufeff'].map((value) => ({ field, value })),
+    ),
+  )(
+    'rejects blank information content $field: $value in base and merged variants',
+    ({ field, value }) => {
+      const parsed = validateFunnelConfiguration(originalConfiguration(1));
+
+      if (!parsed.valid) {
+        throw new Error('Invalid fixture.');
+      }
+
+      const configuration = parsed.configuration;
+      const intro = configuration.steps['intro'];
+
+      if (intro === undefined) {
+        throw new Error('Missing introduction fixture.');
+      }
+
+      expect(
+        validateFunnelConfiguration({
+          ...configuration,
+          steps: {
+            ...configuration.steps,
+            intro: { ...intro, content: { ...intro.content, [field]: value } },
+          },
+        }),
+      ).toMatchObject({ valid: false });
+
+      const overridden = validateFunnelConfiguration({
+        ...configuration,
+        experiment: {
+          ...configuration.experiment,
+          variants: {
+            ...configuration.experiment.variants,
+            B: {
+              ...configuration.experiment.variants.B,
+              stepOverrides: { intro: { content: { [field]: value } } },
+            },
+          },
+        },
+      });
+
+      expect(overridden).toMatchObject({ valid: false });
+      expect(
+        overridden.issues.some((issue) => issue.path.includes('stepOverrides/intro/content')),
+      ).toBe(true);
+    },
+  );
+
+  it('accepts partial content overrides without trimming or mutating the configuration', () => {
+    const parsed = validateFunnelConfiguration(originalConfiguration(1));
+
+    if (!parsed.valid) {
+      throw new Error('Invalid fixture.');
+    }
+
+    const configuration = parsed.configuration;
+    const document = {
+      ...configuration,
+      experiment: {
+        ...configuration.experiment,
+        variants: {
+          ...configuration.experiment.variants,
+          B: {
+            ...configuration.experiment.variants.B,
+            stepOverrides: { intro: { content: { title: '  New title  ' } } },
+          },
+        },
+      },
+    };
+    const before = JSON.stringify(document);
+
+    expect(validateFunnelConfiguration(document).valid).toBe(true);
+    expect(JSON.stringify(document)).toBe(before);
+  });
+
   it.each([1, 2, 3])('accepts preserved version %s', (version) => {
     expect(validateFunnelConfiguration(originalConfiguration(version))).toMatchObject({
       valid: true,

@@ -17,7 +17,10 @@ const interactiveContentRequirement = {
   message: 'Interactive steps require a title.',
 };
 
-export function validateStepContent(step: FunnelStep, path: string): ConfigurationIssue | undefined {
+export function validateStepContent(
+  step: FunnelStep,
+  path: string,
+): ConfigurationIssue | undefined {
   const requirement = match(step.type)
     .with(StepType.Information, () => informationContentRequirement)
     .with(StepType.Result, () => undefined)

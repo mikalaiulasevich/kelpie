@@ -11,7 +11,11 @@ export const identifierSchema = Type.String({
 });
 
 export const textSchema = Type.String({ minLength: 1, maxLength: 4000 });
-export const nonBlankTextSchema = Type.String({ minLength: 1, maxLength: 4000, pattern: '\\S' });
+export const nonBlankTextSchema = Type.String({
+  minLength: 1,
+  maxLength: 4000,
+  pattern: /\S/.source,
+});
 export const identifierListSchema = Type.Array(identifierSchema, {
   maxItems: 100,
   uniqueItems: true,

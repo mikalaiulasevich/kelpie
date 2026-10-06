@@ -22,8 +22,8 @@ function reportIssue(context: ConfigurationValidationContext, path: string, mess
 
 function visitPredicates(condition: Condition, visit: (predicate: AnswerCondition) => void): void {
   match(condition)
-    .with({ all: P.array() }, ({ all }) => all.forEach((child) => visitPredicates(child, visit)))
-    .with({ any: P.array() }, ({ any }) => any.forEach((child) => visitPredicates(child, visit)))
+    .with({ all: P._ }, ({ all }) => all.forEach((child) => visitPredicates(child, visit)))
+    .with({ any: P._ }, ({ any }) => any.forEach((child) => visitPredicates(child, visit)))
     .with({ answer: P.string }, visit)
     .exhaustive();
 }

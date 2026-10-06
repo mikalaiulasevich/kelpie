@@ -1,0 +1,5 @@
+{
+  "extends": "../../typescript.base.json",
+  "compilerOptions": { "noEmit": true },
+  "include": ["source/**/*.ts", "tests/typechecks/**/*.ts"]
+}
