@@ -38,7 +38,11 @@ Node workspace builds clean their own generated `distribution` directory before 
 
 Run production backend output after building and migrating with `npm run start --workspace=@kelpie/backend`. Deployment routing, TLS, secrets, storage persistence, and backups still require configuration. This command alone is not a production deployment.
 
-Run `npm run benchmark:runtime` to reproduce pure-function measurements across all configuration versions and variants. These measurements do not represent application throughput.
+Run `npm run benchmark:runtime` separately from correctness tests. It builds production packages, verifies 76 scenarios, warms them up and records nine timed batches per case. Fixtures and expected-result assertions stay outside timing. Run alone on an idle machine with the same Node version; compare repeated runs, not a shared-CI timing threshold.
+
+Results are saved automatically to [the latest table](documentation/benchmarks/latest.csv), [append-only measurement history](documentation/benchmarks/history.csv) and timestamped JSON files containing raw samples, Node/V8/CPU information, Git revision and source/compiled-artifact hashes. JSON files are authoritative if a report write is interrupted. Source or build changes during measurement reject the run. Each value is a batch-average time per operation, not a request-latency percentile. Memory bounds and algorithmic complexity are analyzed separately in [the engineering review](documentation/foundation-review.md); heap allocations and peak memory are not measured by this command.
+
+Cases cover configuration validation, answer types, conditions and short-circuiting, variants, routing, results, combined evaluation and navigation. Inputs vary steps/options, membership lists, condition depth, result-rule position, missing/invalid answers and hidden branches, with historical v1/v2/v3 A/B checks. These pure-function measurements exclude startup, network, SQLite and full application throughput. Add benchmarks alongside future implemented hot paths; do not benchmark unimplemented session/event/analytics features.
 
 ## Structure
 
