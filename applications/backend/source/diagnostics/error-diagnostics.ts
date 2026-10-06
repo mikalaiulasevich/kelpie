@@ -1,4 +1,4 @@
-import { isError } from 'es-toolkit/predicate';
+import { isError, isUndefined } from 'es-toolkit/predicate';
 import { createHash } from 'node:crypto';
 import { EnvironmentMessages } from '../environment/environment-messages.js';
 import { DiagnosticPolicy, ErrorClassification } from './diagnostic-policy.js';
@@ -17,16 +17,36 @@ const ErrorDetails = {
   stackLines(error: Error): ReadonlyList<string> {
     const stack = error.stack?.slice(0, DiagnosticPolicy.MaximumStackCharacters) ?? '';
 
-    // V8 includes every line of the error name and message before the call sites.
-    // A multiline input must not become a frame or a call-site fingerprint.
-    const headerLines =
-      ErrorDetails.headerLines(error.name) + ErrorDetails.headerLines(error.message) - 1;
+    const header = ErrorDetails.header(error);
 
-    return stack.split('\n').slice(headerLines, headerLines + DiagnosticPolicy.MaximumFrames);
+    // A cached stack can predate changes to name/message. If its full header cannot
+    // be verified, omit locations rather than interpreting old private text as frames.
+    if (isUndefined(header) || !stack.startsWith(`${header}\n`)) {
+      return [];
+    }
+
+    return stack
+      .slice(header.length + '\n'.length)
+      .split('\n')
+      .slice(0, DiagnosticPolicy.MaximumFrames);
   },
 
-  headerLines(value: string): number {
-    return value.slice(0, DiagnosticPolicy.MaximumStackCharacters).split('\n').length;
+  header(error: Error): Optional<string> {
+    const { name, message } = error;
+
+    if (name.length + message.length > DiagnosticPolicy.MaximumStackCharacters) {
+      return undefined;
+    }
+
+    if (name.length === 0) {
+      return message;
+    }
+
+    if (message.length === 0) {
+      return name;
+    }
+
+    return `${name}: ${message}`;
   },
 
   frame(value: string): ReadonlyList<ErrorFrame> {

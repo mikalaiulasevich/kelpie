@@ -42,6 +42,24 @@ describe('Error diagnostics', () => {
     );
   });
 
+  it.each(DiagnosticCases.ChangedHeaderProperties)(
+    'omits cached stack details after %s changes',
+    (property) => {
+      const descriptions = DiagnosticCases.MultilineMessages.map((message) =>
+        ErrorDiagnostics.describe(DiagnosticFixtures.cachedError(message, property)),
+      );
+
+      expect(descriptions[0]).toEqual(descriptions[1]);
+      expect(descriptions[0]?.frames).toEqual([]);
+    },
+  );
+
+  it.each(DiagnosticCases.EmptyHeaders)('preserves frames with header $name/$message', (header) => {
+    const error = Object.assign(new Error(header.message), { name: header.name });
+
+    expect(ErrorDiagnostics.describe(error).frames.length).toBeGreaterThan(0);
+  });
+
   it('keeps an allowlisted database failure code and stable callsite fingerprint', () => {
     const first = DiagnosticFixtures.error(
       'Error: first secret\n    at query (/source/database.ts:9:2)',

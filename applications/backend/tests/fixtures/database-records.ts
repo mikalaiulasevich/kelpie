@@ -1,10 +1,23 @@
 import type { DatabaseService } from '../../source/database/database.service.js';
 
 export const DatabaseRecords = {
+  sessionData(versionIdentifier: string) {
+    return {
+      versionIdentifier,
+      experimentIdentifier: 'test-experiment',
+      variant: 'A',
+      assignmentSource: 'random',
+      trafficOrigin: 'synthetic',
+      acquisitionParameters: {},
+      currentStepIdentifier: 'welcome',
+      expiresAt: new Date('2030-01-01T00:00:00Z'),
+    };
+  },
+
   async createOperationOwners(database: DatabaseService['client']) {
     const { session } = await DatabaseRecords.createSession(database);
     const otherSession = await database.session.create({
-      data: { ...session, identifier: 'other-session' },
+      data: DatabaseRecords.sessionData(session.versionIdentifier),
     });
 
     return { session, otherSession };
@@ -31,16 +44,7 @@ export const DatabaseRecords = {
       },
     });
     const session = await database.session.create({
-      data: {
-        versionIdentifier: version.identifier,
-        experimentIdentifier: 'test-experiment',
-        variant: 'A',
-        assignmentSource: 'random',
-        trafficOrigin: 'synthetic',
-        acquisitionParameters: {},
-        currentStepIdentifier: 'welcome',
-        expiresAt: new Date('2030-01-01T00:00:00Z'),
-      },
+      data: DatabaseRecords.sessionData(version.identifier),
     });
 
     return {

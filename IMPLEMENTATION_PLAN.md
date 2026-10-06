@@ -115,7 +115,7 @@ Validate numeric finiteness, minimum, maximum, increment alignment, allowed sele
 
 Target one route traversal with time O(S + C), where S is step count and C includes traversed condition elements and collection membership work. C also includes answer validation and result-rule evaluation work; it is not a constant merely because the number of steps is bounded. Use FunnelEvaluation.evaluate when both route and result are needed. Avoid repeated traversal per renderer. Bound condition depth and answer collection sizes. Record actual complexity when implementation differs.
 
-Progress counts currently available question steps and honors excludeTypes. Unknown branches are not counted until they become available; the displayed total may change after an answer. Do not promise a fixed final question count before branching answers exist.
+Progress counts currently available steps that are not listed in excludeTypes. The supplied configurations exclude information and result screens, so their progress counts questions; an empty exclusion list counts all available screens. Unknown branches are not counted until they become available; the displayed total may change after an answer. Do not promise a fixed final question count before branching answers exist.
 
 ## Persistence model
 
