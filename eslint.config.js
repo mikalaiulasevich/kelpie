@@ -85,6 +85,12 @@ export default typescript.config(
         'error',
         {
           paths: [{ name: 'vitest', message: 'Keep test code and Vitest imports inside tests/.' }],
+          patterns: [
+            {
+              group: ['**/tests/**'],
+              message: 'Production source must not depend on test support.',
+            },
+          ],
         },
       ],
     },
@@ -139,6 +145,24 @@ export default typescript.config(
           selector: 'FunctionDeclaration:not([id.name=/^[A-Z]/]):not([id.name=/^use[A-Z]/])',
           message:
             'Put helpers in domain objects; standalone declarations are reserved for React components and hooks.',
+        },
+      ],
+    },
+  },
+  {
+    files: ['**/*-policy.ts', '**/*-policy.mjs'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        ...restrictedSyntax,
+        ...inlineErrorRestrictions,
+        {
+          selector: 'FunctionDeclaration',
+          message: 'Put helper operations in their owning const object or class.',
+        },
+        {
+          selector: 'VariableDeclarator[id.name=/Messages$/]',
+          message: 'Keep message catalogs separate from static policy modules.',
         },
       ],
     },
