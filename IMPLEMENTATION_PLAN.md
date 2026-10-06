@@ -2,11 +2,11 @@
 
 Build a configurable funnel platform with reliable session state, immutable configuration versions, server-assigned experiments, idempotent events, and analytics based on unique sessions. Use professional engineering practices within the assignment's single-server SQLite constraints.
 
-This plan records agreed decisions and acceptance criteria. The 48-hour window begins at an explicitly agreed start; no start time has been recorded. The foundation is implemented; current verification and measurements are recorded in documentation/development-log.md. The full platform and public deployment remain pending.
+This plan records agreed decisions and acceptance criteria. The 48-hour window begins at an explicitly agreed start; no start time has been recorded. The foundation is implemented; current verification and measurements are recorded in [the engineering review](documentation/foundation-review.md). The full platform and public deployment remain pending.
 
 ## Scope, design status, and decision ownership
 
-This is the implementation contract for the remaining product work, not evidence that its features already exist. Keep implementation status and check results in the development log; change this plan when an accepted design decision changes. AGENTS.md remains the code-quality contract. Every substantial change must identify its owning module, affected invariant, acceptance test, and operational limit before implementation.
+This is the implementation contract for the remaining product work, not evidence that its features already exist. Keep implementation milestones in the development log and check results in the engineering review; change this plan when an accepted design decision changes. AGENTS.md remains the code-quality contract. Every substantial change must identify its owning module, affected invariant, acceptance test, and operational limit before implementation.
 
 Mandatory scope is the assignment's working configurable funnel, publication/rollback, stable A/B, seven base events plus the declared v3 action, session-based analytics, reproducible traffic, and public delivery. No visual editor, payments, external analytics/authentication/database service, distributed queue, microservices, event sourcing, or multi-instance deployment is needed. Open-source in-process dependencies and the hosting platform are permitted; application data remains local. The financial-startup context does not introduce payment or regulated financial processing requirements.
 

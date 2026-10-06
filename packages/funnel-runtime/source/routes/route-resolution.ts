@@ -5,8 +5,7 @@ import type {
   SessionAnswers,
 } from '@kelpie/contracts';
 import { RouteBuilder } from './route-builder.js';
-import { RouteDirection } from './route-direction.js';
-import type { AvailableRoute } from './route-types.js';
+import { RouteDirection, type AvailableRoute } from './route-types.js';
 
 const RouteNavigation = {
   adjacent(

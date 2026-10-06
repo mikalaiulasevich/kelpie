@@ -108,6 +108,8 @@ Do not add infrastructure merely to appear production ready. Keep a modular mono
 
 Maintain reproducible commands, automated verification, an actual development timeline, known limitations, and exact evidence. Do not fabricate a start time, successful check, public URL, or repository URL.
 
+Keep documentation focused: README owns setup and current status; IMPLEMENTATION_PLAN owns future behavior and acceptance; the engineering review owns retained decisions and verification limits; the development log records product milestones. Update those owners instead of appending another full polish report. Keep one current file-audit snapshot; Git history and raw benchmark reports preserve historical evidence.
+
 ## TypeScript project ownership
 
 Each workspace tsconfig.json owns its source, tests, and TypeScript tool configuration files for both the editor and CLI. Emitting Node workspaces use tsconfig.build.json to exclude tests and preserve runtime output paths. Keep ambient declarations inherited from typescript.base.json. Do not put type regressions only in a custom-named configuration invisible to editor project discovery, or remove expect-error assertions to hide project-ownership failures. Root tsconfig.json owns JavaScript tooling with explicit Node resolution; JavaScript tooling uses strict checkJs with JSDoc at function boundaries and is also linted.
