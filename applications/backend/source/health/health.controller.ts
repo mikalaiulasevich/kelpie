@@ -2,22 +2,22 @@ import { Controller, Get, Inject, ServiceUnavailableException } from '@nestjs/co
 import { TransportMessages } from '../transport/transport-messages.js';
 import { DatabaseService } from '../database/database.service.js';
 
-const HealthStatus = { Healthy: 'healthy', Ready: 'ready' } as const;
+import { HealthRoutes, HealthStatus } from './health-policy.js';
 
 interface HealthResponse {
   readonly status: ValueOf<typeof HealthStatus>;
 }
 
-@Controller('health')
+@Controller(HealthRoutes.Controller)
 export class HealthController {
   constructor(@Inject(DatabaseService) private readonly database: DatabaseService) {}
 
-  @Get('live')
+  @Get(HealthRoutes.Liveness)
   live(): HealthResponse {
     return { status: HealthStatus.Healthy };
   }
 
-  @Get('ready')
+  @Get(HealthRoutes.Readiness)
   async ready(): Promise<HealthResponse> {
     try {
       if (await this.database.checkReadiness()) {

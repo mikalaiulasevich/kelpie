@@ -1,3 +1,4 @@
+import { ConfigurationFormat } from './configuration-format.js';
 import { Type } from 'typebox';
 
 import { ConfigurationSchemaPolicy } from './configuration-policy.js';
@@ -100,7 +101,7 @@ export const resultStepSchema = Type.Object(
   {
     ...commonStepProperties,
     type: Type.Literal(StepType.Result),
-    resultSource: Type.Literal('resultRules'),
+    resultSource: Type.Literal(ConfigurationFormat.resultSource),
   },
   { additionalProperties: false },
 );

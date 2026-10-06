@@ -12,13 +12,16 @@ export const ApplicationFactory = {
   async create(): Promise<NestExpressApplication> {
     const application = await NestFactory.create<NestExpressApplication>(ApplicationModule, {
       bodyParser: false,
-      logger: ['log', 'warn'],
+      logger: [...TransportPolicy.LoggerLevels],
     });
 
-    application.disable('x-powered-by');
+    application.disable(TransportPolicy.FrameworkHeader);
     application.setGlobalPrefix(TransportPolicy.ApiPrefix);
     application.use(helmet());
-    application.useBodyParser('json', { limit: TransportPolicy.JsonBodyLimit, strict: true });
+    application.useBodyParser(TransportPolicy.BodyParser, {
+      limit: TransportPolicy.JsonBodyLimit,
+      strict: true,
+    });
     application.useGlobalFilters(new PublicExceptionFilter());
     application.enableShutdownHooks();
 

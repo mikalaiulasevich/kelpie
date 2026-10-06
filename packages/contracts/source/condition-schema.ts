@@ -1,3 +1,4 @@
+import { ConfigurationFormat } from './configuration-format.js';
 import { Type } from 'typebox';
 
 import { ConfigurationSchemaPolicy } from './configuration-policy.js';
@@ -8,7 +9,7 @@ const conditionValueSchema = Type.Union([
   Type.String(ConfigurationSchemaPolicy.conditionText),
   Type.Number(),
 ]);
-export const conditionReferenceSchema = Type.Ref('#/$defs/condition');
+export const conditionReferenceSchema = Type.Ref(ConfigurationFormat.conditionReference);
 
 export const equalConditionSchema = Type.Object(
   {

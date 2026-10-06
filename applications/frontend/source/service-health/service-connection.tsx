@@ -1,3 +1,4 @@
+import { ServiceHealthContent, ServiceHealthElements } from './service-health-content';
 import { useState } from 'react';
 import { Button } from '../components/button';
 import { ServiceHealthStatus } from './service-health';
@@ -14,15 +15,15 @@ const serviceHealthPresentations: ReadonlyDictionary<
   ServiceHealthPresentation
 > = {
   [ServiceHealthStatus.Checking]: {
-    label: 'Checking backend connection',
+    label: ServiceHealthContent.CheckingLabel,
     indicatorClassName: 'bg-slate-400',
   },
   [ServiceHealthStatus.Ready]: {
-    label: 'Backend connection verified',
+    label: ServiceHealthContent.ReadyLabel,
     indicatorClassName: 'bg-emerald-600',
   },
   [ServiceHealthStatus.Unavailable]: {
-    label: 'Backend unavailable',
+    label: ServiceHealthContent.UnavailableLabel,
     indicatorClassName: 'bg-amber-600',
   },
 } as const;
@@ -34,11 +35,11 @@ export function ServiceConnection(): UIElement {
 
   return (
     <section
-      aria-labelledby="service-connection-heading"
+      aria-labelledby={ServiceHealthElements.HeadingIdentifier}
       className="mt-10 max-w-xl rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
     >
-      <h2 id="service-connection-heading" className="text-lg font-semibold">
-        Service connection
+      <h2 id={ServiceHealthElements.HeadingIdentifier} className="text-lg font-semibold">
+        {ServiceHealthContent.Heading}
       </h2>
       <div role="status" aria-live="polite" aria-atomic="true" className="mt-4">
         <p className="flex items-center gap-3 text-sm font-medium">
@@ -59,7 +60,7 @@ export function ServiceConnection(): UIElement {
         disabled={serviceHealth.status === ServiceHealthStatus.Checking}
         onClick={() => setCheckSequence((previousSequence) => previousSequence + 1)}
       >
-        Check connection
+        {ServiceHealthContent.CheckAction}
       </Button>
     </section>
   );

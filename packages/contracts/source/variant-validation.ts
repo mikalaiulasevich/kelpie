@@ -1,3 +1,4 @@
+import { ConfigurationPaths } from './configuration-paths.js';
 import { ConditionValidation } from './condition-validation.js';
 import { ConfigurationMessages } from './configuration-messages.js';
 import { ConfigurationSchemaPolicy } from './configuration-policy.js';
@@ -12,14 +13,14 @@ import type { FunnelStep } from './step-types.js';
 class VariantSequenceValidation {
   private readonly earlierAnswers = new Set<string>();
   private resultCount = 0;
-  private readonly path: string;
+  private readonly paths: ReturnType<typeof ConfigurationPaths.variant>;
 
   constructor(
     private readonly context: ConfigurationValidationContext,
     variantIdentifier: string,
     private readonly variant: VariantConfiguration,
   ) {
-    this.path = `/experiment/variants/${variantIdentifier}`;
+    this.paths = ConfigurationPaths.variant(variantIdentifier);
   }
 
   validate(): void {
@@ -28,7 +29,7 @@ class VariantSequenceValidation {
     }
 
     if (this.resultCount !== ConfigurationSchemaPolicy.requiredResultSteps) {
-      this.context.report(`${this.path}/stepSequence`, ConfigurationMessages.SingleResultRequired);
+      this.context.report(this.paths.sequence, ConfigurationMessages.SingleResultRequired);
     }
 
     this.validateOverrideTargets();
@@ -38,10 +39,7 @@ class VariantSequenceValidation {
     const step = DictionaryAccess.readOwn(this.context.configuration.steps, stepIdentifier);
 
     if (step === undefined) {
-      this.context.report(
-        `${this.path}/stepSequence`,
-        ConfigurationMessages.UnknownStep(stepIdentifier),
-      );
+      this.context.report(this.paths.sequence, ConfigurationMessages.UnknownStep(stepIdentifier));
 
       return;
     }
@@ -61,7 +59,7 @@ class VariantSequenceValidation {
     const issue = StepContentValidation.validate(
       step.type,
       { ...step.content, ...override.content },
-      `${this.path}/stepOverrides/${stepIdentifier}/content`,
+      this.paths.stepOverrideContent(stepIdentifier),
     );
 
     if (issue !== undefined) {
@@ -77,7 +75,7 @@ class VariantSequenceValidation {
     ConditionValidation.validate(
       this.context,
       step.visibleWhen,
-      `/steps/${stepIdentifier}/visibleWhen`,
+      ConfigurationPaths.step(stepIdentifier).visibility,
       this.earlierAnswers,
     );
   }
@@ -87,10 +85,7 @@ class VariantSequenceValidation {
       this.resultCount += 1;
 
       if (position !== this.variant.stepSequence.length - 1) {
-        this.context.report(
-          `${this.path}/stepSequence`,
-          ConfigurationMessages.FinalResultPositionRequired,
-        );
+        this.context.report(this.paths.sequence, ConfigurationMessages.FinalResultPositionRequired);
       }
 
       return;
@@ -107,7 +102,7 @@ class VariantSequenceValidation {
     for (const stepIdentifier of Object.keys(this.variant.stepOverrides)) {
       if (!sequenceIdentifiers.has(stepIdentifier)) {
         this.context.report(
-          `${this.path}/stepOverrides/${stepIdentifier}`,
+          this.paths.stepOverride(stepIdentifier),
           ConfigurationMessages.OverrideOutsideVariant,
         );
       }
@@ -116,7 +111,7 @@ class VariantSequenceValidation {
     for (const resultIdentifier of Object.keys(this.variant.resultOverrides)) {
       if (!Object.hasOwn(this.context.configuration.results, resultIdentifier)) {
         this.context.report(
-          `${this.path}/resultOverrides/${resultIdentifier}`,
+          this.paths.resultOverride(resultIdentifier),
           ConfigurationMessages.UnknownResultOverride,
         );
       }
@@ -133,7 +128,7 @@ export const VariantValidation = {
     }
 
     if (variants.A.weight + variants.B.weight !== ConfigurationSchemaPolicy.totalExperimentWeight) {
-      context.report('/experiment/variants', ConfigurationMessages.InvalidVariantWeightTotal);
+      context.report(ConfigurationPaths.variants, ConfigurationMessages.InvalidVariantWeightTotal);
     }
   },
 } as const;

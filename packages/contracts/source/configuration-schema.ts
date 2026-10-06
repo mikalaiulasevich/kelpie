@@ -1,3 +1,4 @@
+import { ConfigurationFormat } from './configuration-format.js';
 import { Type } from 'typebox';
 
 import { ConfigurationSchemaPolicy } from './configuration-policy.js';
@@ -32,7 +33,7 @@ export const variantConfigurationSchema = Type.Object(
 export const experimentConfigurationSchema = Type.Object(
   {
     id: identifierSchema,
-    assignment: Type.Literal('server'),
+    assignment: Type.Literal(ConfigurationFormat.experimentAssignment),
     sticky: Type.Literal(true),
     overrideQueryParam: identifierSchema,
     variants: Type.Object(
@@ -92,7 +93,7 @@ export const eventsConfigurationSchema = Type.Object(
 
 export const funnelConfigurationSchema = Type.Object(
   {
-    schemaVersion: Type.Literal('1.0'),
+    schemaVersion: Type.Literal(ConfigurationFormat.schemaVersion),
     funnelId: identifierSchema,
     version: Type.Integer(ConfigurationSchemaPolicy.version),
     status: Type.Enum(ConfigurationStatus),
@@ -110,8 +111,8 @@ export const funnelConfigurationSchema = Type.Object(
     events: eventsConfigurationSchema,
   },
   {
-    $id: 'https://kelpie.local/schemas/funnel-1.0',
+    $id: ConfigurationFormat.schemaIdentifier,
     additionalProperties: false,
-    $defs: { condition: conditionSchema },
+    $defs: { [ConfigurationFormat.conditionDefinition]: conditionSchema },
   },
 );

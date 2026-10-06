@@ -320,3 +320,64 @@ describe('semantic validation phases', () => {
     expect(result.issues[1]?.path).toBe('/resultRules/0/when');
   });
 });
+
+describe('diagnostic path compatibility', () => {
+  it('preserves concrete override, visibility, event, and numeric locations', () => {
+    const parsed = FunnelConfigurations.validate(ConfigurationFixtures.original(1));
+
+    if (!parsed.valid) {
+      throw new Error('Invalid fixture.');
+    }
+
+    const configuration = parsed.configuration;
+    const numericStep = configuration.steps['team_size'];
+
+    if (numericStep?.type !== 'number') {
+      throw new Error('Missing numeric fixture.');
+    }
+
+    const result = FunnelConfigurations.validate({
+      ...configuration,
+      steps: {
+        ...configuration.steps,
+        team_size: {
+          ...numericStep,
+          input: { ...numericStep.input, min: numericStep.input.max + 1 },
+          visibleWhen: { answer: 'missing_answer', operator: 'eq', value: 1 },
+        },
+      },
+      experiment: {
+        ...configuration.experiment,
+        variants: {
+          ...configuration.experiment.variants,
+          B: {
+            ...configuration.experiment.variants.B,
+            stepOverrides: {
+              work_mode: { content: { title: ' ' } },
+              absent_step: { content: {} },
+            },
+            resultOverrides: { absent_result: { title: 'Unknown result' } },
+          },
+        },
+      },
+      events: {
+        ...configuration.events,
+        allowed: [
+          ...configuration.events.allowed,
+          { name: 'custom_event', trigger: 'Test', properties: ['unsupported_property'] },
+        ],
+      },
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.issues.map((issue) => issue.path)).toEqual([
+      '/steps/team_size/input',
+      '/steps/team_size/visibleWhen',
+      '/experiment/variants/B/stepOverrides/work_mode/content/title',
+      '/steps/team_size/visibleWhen',
+      '/experiment/variants/B/stepOverrides/absent_step',
+      '/experiment/variants/B/resultOverrides/absent_result',
+      '/events/allowed',
+    ]);
+  });
+});

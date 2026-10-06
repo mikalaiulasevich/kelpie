@@ -3,14 +3,20 @@ import { readFile } from 'node:fs/promises';
 import { performance } from 'node:perf_hooks';
 import { platform, arch, cpus } from 'node:os';
 import { FunnelConfigurations, StepType, ExperimentVariant } from '@kelpie/contracts';
-import { BenchmarkPolicy } from './script-policy.mjs';
+import { BenchmarkPolicy, ConfigurationFiles } from './script-policy.mjs';
 import { FunnelRuntime } from '@kelpie/funnel-runtime';
 
 /** @type {import('@kelpie/contracts').FunnelConfiguration[]} */
 const configurations = [];
-for (const version of BenchmarkPolicy.configurationVersions) {
+for (const version of ConfigurationFiles.versions) {
   const document = JSON.parse(
-    await readFile(new URL(`../configurations/funnel-v${version}.json`, import.meta.url), 'utf8'),
+    await readFile(
+      new URL(
+        ConfigurationFiles.fileName(version),
+        new URL(ConfigurationFiles.directory, import.meta.url),
+      ),
+      ConfigurationFiles.textEncoding,
+    ),
   );
   const validation = FunnelConfigurations.validate(document);
   if (!validation.valid) {

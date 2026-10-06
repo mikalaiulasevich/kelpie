@@ -4,7 +4,7 @@ import type { Static } from 'typebox';
 import { applicationDirectory } from '../application-directory.js';
 import { SQLitePolicy } from '../database/sqlite-policy.js';
 import { EnvironmentMessages } from './environment-messages.js';
-import { EnvironmentPolicy } from './environment-policy.js';
+import { EnvironmentFields, EnvironmentPolicy } from './environment-policy.js';
 import { EnvironmentSchemas } from './environment-schemas.js';
 
 export interface ApplicationEnvironment {
@@ -46,12 +46,12 @@ export const ApplicationEnvironmentReader = {
   read(values: ReadonlyDictionary<string, Optional<string>>): ApplicationEnvironment {
     const mode = EnvironmentValues.validate(
       environmentValidators.mode,
-      values['NODE_ENV'] ?? EnvironmentPolicy.DefaultMode,
+      values[EnvironmentFields.Mode] ?? EnvironmentPolicy.DefaultMode,
       EnvironmentMessages.InvalidMode,
     );
     const portText = EnvironmentValues.validate(
       environmentValidators.portText,
-      values['PORT'] ?? EnvironmentPolicy.DefaultPort,
+      values[EnvironmentFields.Port] ?? EnvironmentPolicy.DefaultPort,
       EnvironmentMessages.InvalidPort,
     );
     const port = EnvironmentValues.validate(
@@ -61,12 +61,12 @@ export const ApplicationEnvironmentReader = {
     );
     const host = EnvironmentValues.validate(
       environmentValidators.host,
-      values['HOST'] ?? EnvironmentPolicy.DefaultHost,
+      values[EnvironmentFields.Host] ?? EnvironmentPolicy.DefaultHost,
       EnvironmentMessages.InvalidHost,
     );
     const databaseUrl = EnvironmentValues.validate(
       environmentValidators.databaseUrl,
-      values['DATABASE_URL'] ?? EnvironmentPolicy.DefaultDatabaseUrl,
+      values[EnvironmentFields.DatabaseUrl] ?? EnvironmentPolicy.DefaultDatabaseUrl,
       EnvironmentMessages.InvalidDatabaseUrl,
     );
 

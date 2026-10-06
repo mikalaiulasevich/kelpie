@@ -1,3 +1,4 @@
+import { ConfigurationPaths } from './configuration-paths.js';
 import { ConfigurationMessages } from './configuration-messages.js';
 import { configurationSchemaCompiler } from './configuration-schema-compiler.js';
 import type { ConfigurationValidationResult, FunnelConfiguration } from './configuration-types.js';
@@ -16,7 +17,7 @@ export const FunnelConfigurations = {
     const boundsError = ConfigurationDocumentBounds.check(document);
 
     if (boundsError !== undefined) {
-      return { valid: false, issues: [{ path: '/', message: boundsError }] };
+      return { valid: false, issues: [{ path: ConfigurationPaths.root, message: boundsError }] };
     }
 
     if (!structuralValidator(document)) {
@@ -25,7 +26,7 @@ export const FunnelConfigurations = {
         issues: (structuralValidator.errors ?? [])
           .slice(0, configurationLimits.maximumIssues)
           .map((error) => ({
-            path: error.instancePath || '/',
+            path: error.instancePath || ConfigurationPaths.root,
             message: error.message ?? ConfigurationMessages.InvalidConfiguration,
           })),
       };

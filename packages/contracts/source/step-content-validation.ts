@@ -1,3 +1,4 @@
+import { ConfigurationPaths } from './configuration-paths.js';
 import { match, P } from 'ts-pattern';
 
 import { ConfigurationMessages } from './configuration-messages.js';
@@ -9,13 +10,15 @@ import type { StepContent } from './step-types.js';
 
 const informationContentRequirement = {
   validate: configurationSchemaCompiler.compile(informationContentSchema),
-  pathSuffix: '',
+  path(contentPath: string): string {
+    return contentPath;
+  },
   message: ConfigurationMessages.InformationContentRequired,
 };
 
 const interactiveContentRequirement = {
   validate: configurationSchemaCompiler.compile(interactiveContentSchema),
-  pathSuffix: '/title',
+  path: ConfigurationPaths.contentTitle,
   message: ConfigurationMessages.InteractiveTitleRequired,
 };
 
@@ -34,6 +37,6 @@ export const StepContentValidation = {
       return undefined;
     }
 
-    return { path: `${path}${requirement.pathSuffix}`, message: requirement.message };
+    return { path: requirement.path(path), message: requirement.message };
   },
 } as const;

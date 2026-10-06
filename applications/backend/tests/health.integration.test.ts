@@ -9,6 +9,8 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { applicationDirectory } from '../source/application-directory.js';
 import { ApplicationFactory } from '../source/create-application.js';
+import { EnvironmentFields, ApplicationMode } from '../source/environment/environment-policy.js';
+import { SQLitePolicy } from '../source/database/sqlite-policy.js';
 import { DatabaseService } from '../source/database/database.service.js';
 
 const executeFile = promisify(execFile);
@@ -17,19 +19,23 @@ describe('Backend foundation with a real SQLite database', () => {
   let application: NestExpressApplication;
   let temporaryDirectory: string;
   let baseUrl: string;
-  const originalDatabaseUrl = process.env['DATABASE_URL'];
-  const originalMode = process.env['NODE_ENV'];
+  const originalDatabaseUrl = process.env[EnvironmentFields.DatabaseUrl];
+  const originalMode = process.env[EnvironmentFields.Mode];
 
   beforeAll(async () => {
     temporaryDirectory = await mkdtemp(resolve(tmpdir(), 'kelpie-backend-'));
     const databasePath = resolve(temporaryDirectory, 'integration.sqlite');
     await executeFile('npm', ['run', 'database:migrate'], {
       cwd: applicationDirectory,
-      env: { ...process.env, DATABASE_URL: `file:${databasePath}`, NODE_ENV: 'test' },
+      env: {
+        ...process.env,
+        [EnvironmentFields.DatabaseUrl]: `${SQLitePolicy.FileUrlPrefix}${databasePath}`,
+        [EnvironmentFields.Mode]: ApplicationMode.Test,
+      },
       timeout: 15_000,
     });
-    process.env['DATABASE_URL'] = `file:${databasePath}`;
-    process.env['NODE_ENV'] = 'test';
+    process.env[EnvironmentFields.DatabaseUrl] = `${SQLitePolicy.FileUrlPrefix}${databasePath}`;
+    process.env[EnvironmentFields.Mode] = ApplicationMode.Test;
     application = await ApplicationFactory.create();
     await application.listen(0, '127.0.0.1');
     const server: unknown = application.getHttpServer();
@@ -52,15 +58,15 @@ describe('Backend foundation with a real SQLite database', () => {
     }
 
     if (originalDatabaseUrl === undefined) {
-      delete process.env['DATABASE_URL'];
+      delete process.env[EnvironmentFields.DatabaseUrl];
     } else {
-      process.env['DATABASE_URL'] = originalDatabaseUrl;
+      process.env[EnvironmentFields.DatabaseUrl] = originalDatabaseUrl;
     }
 
     if (originalMode === undefined) {
-      delete process.env['NODE_ENV'];
+      delete process.env[EnvironmentFields.Mode];
     } else {
-      process.env['NODE_ENV'] = originalMode;
+      process.env[EnvironmentFields.Mode] = originalMode;
     }
   });
 

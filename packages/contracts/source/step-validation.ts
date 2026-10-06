@@ -1,3 +1,4 @@
+import { ConfigurationPaths } from './configuration-paths.js';
 import { ConfigurationMessages } from './configuration-messages.js';
 import type { ConfigurationValidationContext } from './configuration-validation-context.js';
 import { StepType } from './domain-values.js';
@@ -7,19 +8,22 @@ import type { FunnelStep, InteractiveStep, NumberStep, SelectionStep } from './s
 export const StepValidation = {
   numeric(context: ConfigurationValidationContext, stepIdentifier: string, step: NumberStep): void {
     if (step.input.min > step.input.max) {
-      context.report(`/steps/${stepIdentifier}/input`, ConfigurationMessages.InvalidNumericRange);
+      context.report(
+        ConfigurationPaths.step(stepIdentifier).input,
+        ConfigurationMessages.InvalidNumericRange,
+      );
     }
 
     if (!Number.isFinite((step.input.max - step.input.min) / step.input.step)) {
       context.report(
-        `/steps/${stepIdentifier}/input`,
+        ConfigurationPaths.step(stepIdentifier).input,
         ConfigurationMessages.FiniteNumericArithmeticRequired,
       );
     }
 
     if (StepRules.hasSelectionLimits(step.validation)) {
       context.report(
-        `/steps/${stepIdentifier}/validation`,
+        ConfigurationPaths.step(stepIdentifier).validation,
         ConfigurationMessages.NumericSelectionLimits,
       );
     }
@@ -33,14 +37,14 @@ export const StepValidation = {
 
     if (optionValues.size !== step.input.options.length) {
       context.report(
-        `/steps/${stepIdentifier}/input/options`,
+        ConfigurationPaths.step(stepIdentifier).options,
         ConfigurationMessages.UniqueOptionValuesRequired,
       );
     }
 
     if (step.type === StepType.SingleSelect && StepRules.hasSelectionLimits(step.validation)) {
       context.report(
-        `/steps/${stepIdentifier}/validation`,
+        ConfigurationPaths.step(stepIdentifier).validation,
         ConfigurationMessages.MultipleSelectionLimitsRequired,
       );
     }
@@ -49,7 +53,7 @@ export const StepValidation = {
 
     if (limits.minimum > limits.maximum || limits.maximum > optionValues.size) {
       context.report(
-        `/steps/${stepIdentifier}/validation`,
+        ConfigurationPaths.step(stepIdentifier).validation,
         ConfigurationMessages.SelectionLimitsOutsideOptions,
       );
     }
@@ -61,7 +65,7 @@ export const StepValidation = {
   ): void {
     if (context.answerSteps.has(step.input.name)) {
       context.report(
-        `/steps/${stepIdentifier}/input/name`,
+        ConfigurationPaths.step(stepIdentifier).answerName,
         ConfigurationMessages.UniqueAnswerNamesRequired,
       );
     }
@@ -79,7 +83,10 @@ export const StepValidation = {
 
   step(context: ConfigurationValidationContext, stepIdentifier: string, step: FunnelStep): void {
     if (step.id !== stepIdentifier) {
-      context.report(`/steps/${stepIdentifier}/id`, ConfigurationMessages.StepIdentifierMismatch);
+      context.report(
+        ConfigurationPaths.step(stepIdentifier).identifier,
+        ConfigurationMessages.StepIdentifierMismatch,
+      );
     }
 
     if (step.type === StepType.Information) {
@@ -89,7 +96,7 @@ export const StepValidation = {
     if (step.type === StepType.Result) {
       if (step.visibleWhen !== undefined) {
         context.report(
-          `/steps/${stepIdentifier}/visibleWhen`,
+          ConfigurationPaths.step(stepIdentifier).visibility,
           ConfigurationMessages.UnconditionalResultRequired,
         );
       }

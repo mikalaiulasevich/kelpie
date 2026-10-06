@@ -6,6 +6,7 @@ import {
   type ExceptionFilter,
 } from '@nestjs/common';
 import type { Response } from 'express';
+import { TransportLog } from './transport-policy.js';
 import { TransportMessages } from './transport-messages.js';
 
 @Catch()
@@ -17,7 +18,7 @@ export class PublicExceptionFilter implements ExceptionFilter {
 
     if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
       process.stderr.write(
-        `${JSON.stringify({ level: 'error', component: 'request', message: TransportMessages.UnhandledFailure })}\n`,
+        `${JSON.stringify({ level: TransportLog.ErrorLevel, component: TransportLog.RequestComponent, message: TransportMessages.UnhandledFailure })}\n`,
       );
     }
 

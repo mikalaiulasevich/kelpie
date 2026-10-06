@@ -1,6 +1,7 @@
 import { readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { applicationDirectory } from '../application-directory.js';
+import { DatabasePaths } from './database-paths.js';
 import { DatabaseMessages } from './database-messages.js';
 
 export interface MigrationSummary {
@@ -26,7 +27,7 @@ export const MigrationHistory = {
   `,
 
   async expected(): Promise<ReadonlyList<string>> {
-    const entries = await readdir(resolve(applicationDirectory, 'prisma/migrations'), {
+    const entries = await readdir(resolve(applicationDirectory, DatabasePaths.Migrations), {
       withFileTypes: true,
     });
     const migrations = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name);

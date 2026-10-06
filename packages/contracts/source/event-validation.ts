@@ -1,3 +1,4 @@
+import { ConfigurationPaths } from './configuration-paths.js';
 import { ConfigurationMessages } from './configuration-messages.js';
 import type { ConfigurationValidationContext } from './configuration-validation-context.js';
 import { EventPolicy } from './event-policy.js';
@@ -11,13 +12,16 @@ export const EventValidation = {
     const eventNames = new Set(configuration.events.allowed.map((event) => event.name));
 
     if (eventNames.size !== configuration.events.allowed.length) {
-      context.report('/events/allowed', ConfigurationMessages.UniqueEventNamesRequired);
+      context.report(
+        ConfigurationPaths.allowedEvents,
+        ConfigurationMessages.UniqueEventNamesRequired,
+      );
     }
 
     for (const property of configuration.events.baseProperties) {
       if (!supportedBaseProperties.has(property)) {
         context.report(
-          '/events/baseProperties',
+          ConfigurationPaths.baseEventProperties,
           ConfigurationMessages.UnsupportedBaseEventProperty(property),
         );
       }
@@ -27,7 +31,7 @@ export const EventValidation = {
       for (const property of event.properties) {
         if (!supportedProperties.has(property)) {
           context.report(
-            '/events/allowed',
+            ConfigurationPaths.allowedEvents,
             ConfigurationMessages.UnsupportedEventProperty(property),
           );
         }
@@ -36,7 +40,10 @@ export const EventValidation = {
 
     for (const name of EventPolicy.requiredEvents) {
       if (!eventNames.has(name)) {
-        context.report('/events/allowed', ConfigurationMessages.MissingRequiredEvent(name));
+        context.report(
+          ConfigurationPaths.allowedEvents,
+          ConfigurationMessages.MissingRequiredEvent(name),
+        );
       }
     }
   },

@@ -5,6 +5,7 @@ import { ApplicationEnvironmentService } from '../environment/application-enviro
 import { DatabaseMessages } from './database-messages.js';
 import { MigrationHistory, type MigrationSummary } from './migration-history.js';
 import { SQLiteFiles } from './sqlite-files.js';
+import { SQLiteStatements } from './sqlite-statements.js';
 import { SQLitePolicy } from './sqlite-policy.js';
 
 interface SQLiteForeignKeySetting {
@@ -44,15 +45,14 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async configureConnection(): Promise<void> {
-    await this.client.$queryRawUnsafe('PRAGMA journal_mode = WAL');
-    await this.client.$queryRawUnsafe(
-      `PRAGMA busy_timeout = ${SQLitePolicy.BusyTimeoutMilliseconds}`,
+    await this.client.$queryRawUnsafe(SQLiteStatements.EnableWriteAheadLogging);
+    await this.client.$queryRawUnsafe(SQLiteStatements.ConfigureBusyTimeout);
+    await this.client.$queryRawUnsafe(SQLiteStatements.EnableForeignKeys);
+    const settings = await this.client.$queryRawUnsafe<SQLiteForeignKeySetting[]>(
+      SQLiteStatements.ReadForeignKeys,
     );
-    await this.client.$queryRawUnsafe('PRAGMA foreign_keys = ON');
-    const settings =
-      await this.client.$queryRawUnsafe<SQLiteForeignKeySetting[]>('PRAGMA foreign_keys');
 
-    if (settings[0]?.foreign_keys !== 1n) {
+    if (settings[0]?.foreign_keys !== SQLitePolicy.EnabledSetting) {
       throw new Error(DatabaseMessages.ForeignKeysUnavailable);
     }
   }

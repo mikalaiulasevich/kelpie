@@ -1,3 +1,5 @@
+import { ApplicationPolicy } from '../application-policy';
+import { ServiceHealthContent } from './service-health-content';
 import { match } from 'ts-pattern';
 import { ServiceHealthStatus, type ServiceHealth } from './service-health';
 
@@ -7,16 +9,18 @@ interface ServiceHealthDetailsProperties {
 
 export function ServiceHealthDetails({ health }: ServiceHealthDetailsProperties): UINode {
   return match(health)
-    .with({ status: ServiceHealthStatus.Checking }, () => 'Waiting for a readiness response.')
+    .with({ status: ServiceHealthStatus.Checking }, () => ServiceHealthContent.CheckingDescription)
     .with(
       { status: ServiceHealthStatus.Unavailable },
-      () => 'The readiness check did not succeed. Start the backend and try again.',
+      () => ServiceHealthContent.UnavailableDescription,
     )
     .with({ status: ServiceHealthStatus.Ready }, ({ checkedAt }) => (
       <>
-        Verified at{' '}
-        <time dateTime={checkedAt.toISOString()}>{checkedAt.toLocaleTimeString('en-AU')}</time>.
-        This check confirms backend readiness only.
+        {ServiceHealthContent.VerifiedAt}
+        <time dateTime={checkedAt.toISOString()}>
+          {checkedAt.toLocaleTimeString(ApplicationPolicy.locale)}
+        </time>
+        {ServiceHealthContent.ReadyDescription}
       </>
     ))
     .exhaustive();
