@@ -10,7 +10,7 @@ import { AnswerValidation } from '../answers/answer-validation.js';
 import { ConditionEvaluation } from '../conditions/condition-evaluation.js';
 import { RouteMessages } from './route-messages.js';
 import { VariantOverrides } from '../experiments/variant-overrides.js';
-import type { AcceptedStepAnswer } from './route-types.js';
+import type { StepAnswerEvaluation } from './route-types.js';
 
 export const RouteSteps = {
   resolve(
@@ -33,26 +33,18 @@ export const RouteSteps = {
     );
   },
 
-  acceptedAnswer(step: FunnelStep, answers: SessionAnswers): Optional<AcceptedStepAnswer> {
+  evaluateAnswer(step: FunnelStep, answers: SessionAnswers): StepAnswerEvaluation {
     if (!StepRules.isInteractive(step)) {
-      return undefined;
+      return { acceptedAnswer: undefined, isComplete: true };
     }
 
     const value = DictionaryAccess.readOwn(answers, step.input.name);
+    const accepted = value !== undefined && AnswerValidation.validate(step, value).valid;
 
-    if (value === undefined || !AnswerValidation.validate(step, value).valid) {
-      return undefined;
-    }
-
-    return { name: step.input.name, value };
-  },
-
-  isComplete(step: FunnelStep, answers: SessionAnswers): boolean {
-    if (!StepRules.isInteractive(step)) {
-      return true;
-    }
-
-    return AnswerValidation.validate(step, DictionaryAccess.readOwn(answers, step.input.name))
-      .valid;
+    // Rejected optional answers are inactive and do not prevent a result.
+    return {
+      acceptedAnswer: accepted ? { name: step.input.name, value } : undefined,
+      isComplete: accepted || !step.validation.required,
+    };
   },
 } as const;

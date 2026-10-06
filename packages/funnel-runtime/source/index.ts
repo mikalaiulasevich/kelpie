@@ -11,3 +11,5 @@ export type { AvailableRoute } from './routes/route-types.js';
 export type { ResolvedExperimentConfiguration } from './experiments/experiment-types.js';
 export { ExperimentResolution } from './experiments/experiment-resolution.js';
 export { ResultResolution } from './results/result-resolution.js';
+export { FunnelEvaluation } from './evaluation/funnel-evaluation.js';
+export type { EvaluatedFunnel } from './evaluation/evaluation-types.js';

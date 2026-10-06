@@ -1,3 +1,4 @@
+import { FunnelEvaluation } from './evaluation/funnel-evaluation.js';
 import { AnswerValidation } from './answers/answer-validation.js';
 import { ConditionEvaluation } from './conditions/condition-evaluation.js';
 import { ExperimentResolution } from './experiments/experiment-resolution.js';
@@ -6,6 +7,7 @@ import { RouteResolution } from './routes/route-resolution.js';
 
 /** Grouped domain entry points. */
 export const FunnelRuntime = {
+  Evaluation: FunnelEvaluation,
   Answers: AnswerValidation,
   Conditions: ConditionEvaluation,
   Experiments: ExperimentResolution,

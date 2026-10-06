@@ -20,3 +20,21 @@ export const AnswerIssues = {
     return { valid: false, issues };
   },
 } as const;
+
+export class AnswerIssueCollection {
+  private readonly issues: AnswerIssue[] = [];
+
+  constructor(private readonly validation: AnswerValidation) {}
+
+  addWhen(condition: boolean, code: AnswerIssueCode, fallbackMessage: string): this {
+    if (condition) {
+      this.issues.push(AnswerIssues.create(this.validation, code, fallbackMessage));
+    }
+
+    return this;
+  }
+
+  toIssues(): ReadonlyList<AnswerIssue> {
+    return this.issues;
+  }
+}

@@ -16,7 +16,7 @@ export const AnswerFixtures = {
     };
   },
 
-  selections(): MultipleSelectionStep {
+  selections(validation: Partial<AnswerValidation> = {}): MultipleSelectionStep {
     return {
       id: 'priorities',
       type: StepType.MultiSelect,
@@ -29,7 +29,13 @@ export const AnswerFixtures = {
           { value: 'cost', label: 'Cost' },
         ],
       },
-      validation: { required: true, minSelections: 1, maxSelections: 2, messages: {} },
+      validation: {
+        required: true,
+        minSelections: 1,
+        maxSelections: 2,
+        messages: {},
+        ...validation,
+      },
     };
   },
 } as const;

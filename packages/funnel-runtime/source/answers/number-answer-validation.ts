@@ -1,5 +1,5 @@
 import type { NumberStep } from '@kelpie/contracts';
-import { AnswerIssues } from './answer-issues.js';
+import { AnswerIssueCollection, AnswerIssues } from './answer-issues.js';
 import { AnswerMessages } from './answer-messages.js';
 import { AnswerPolicy } from './answer-policy.js';
 import { AnswerIssueCode, type AnswerIssue } from './answer-types.js';
@@ -26,38 +26,14 @@ export const NumberAnswerValidation = {
       ];
     }
 
-    const issues: AnswerIssue[] = [];
-
-    if (answer < input.min) {
-      issues.push(
-        AnswerIssues.create(
-          validation,
-          AnswerIssueCode.Minimum,
-          AnswerMessages.MinimumNumber(input.min),
-        ),
-      );
-    }
-
-    if (answer > input.max) {
-      issues.push(
-        AnswerIssues.create(
-          validation,
-          AnswerIssueCode.Maximum,
-          AnswerMessages.MaximumNumber(input.max),
-        ),
-      );
-    }
-
-    if (!NumericIncrements.accepts(step, answer)) {
-      issues.push(
-        AnswerIssues.create(
-          validation,
-          AnswerIssueCode.Increment,
-          AnswerMessages.NumericIncrement(input.step),
-        ),
-      );
-    }
-
-    return issues;
+    return new AnswerIssueCollection(validation)
+      .addWhen(answer < input.min, AnswerIssueCode.Minimum, AnswerMessages.MinimumNumber(input.min))
+      .addWhen(answer > input.max, AnswerIssueCode.Maximum, AnswerMessages.MaximumNumber(input.max))
+      .addWhen(
+        !NumericIncrements.accepts(step, answer),
+        AnswerIssueCode.Increment,
+        AnswerMessages.NumericIncrement(input.step),
+      )
+      .toIssues();
   },
 } as const;

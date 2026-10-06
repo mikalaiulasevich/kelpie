@@ -8,7 +8,7 @@ import type {
   VariantConfiguration,
 } from '@kelpie/contracts';
 import { RouteSteps } from './route-steps.js';
-import type { AvailableRoute } from './route-types.js';
+import type { AcceptedStepAnswer, EvaluatedRoute } from './route-types.js';
 
 /** A new builder owns each traversal; answers never leak between resolutions. */
 export class RouteBuilder {
@@ -16,6 +16,7 @@ export class RouteBuilder {
   private readonly activeAnswers: Dictionary<string, StepAnswer> = {};
   private readonly selectedVariant: VariantConfiguration;
   private readonly excludedTypes: ReadonlySet<StepType>;
+  private isComplete = true;
   private questionCount = 0;
   private completedQuestionCount = 0;
 
@@ -32,11 +33,11 @@ export class RouteBuilder {
     configuration: FunnelConfiguration,
     variant: ExperimentVariant,
     answers: SessionAnswers,
-  ): AvailableRoute {
+  ): EvaluatedRoute {
     return new RouteBuilder(configuration, variant, answers).build();
   }
 
-  private build(): AvailableRoute {
+  private build(): EvaluatedRoute {
     for (const identifier of this.selectedVariant.stepSequence) {
       const step = RouteSteps.resolve(this.configuration, this.selectedVariant, identifier);
       this.visit(step);
@@ -51,20 +52,16 @@ export class RouteBuilder {
     }
 
     this.steps.push(step);
-    const completed = this.activateAnswer(step);
-    this.updateProgress(step, completed);
+    const evaluation = RouteSteps.evaluateAnswer(step, this.answers);
+    this.isComplete = this.isComplete && evaluation.isComplete;
+    this.activateAnswer(evaluation.acceptedAnswer);
+    this.updateProgress(step, evaluation.acceptedAnswer !== undefined);
   }
 
-  private activateAnswer(step: FunnelStep): boolean {
-    const answer = RouteSteps.acceptedAnswer(step, this.answers);
-
-    if (answer === undefined) {
-      return false;
+  private activateAnswer(answer: Optional<AcceptedStepAnswer>): void {
+    if (answer !== undefined) {
+      this.activeAnswers[answer.name] = answer.value;
     }
-
-    this.activeAnswers[answer.name] = answer.value;
-
-    return true;
   }
 
   private updateProgress(step: FunnelStep, completed: boolean): void {
@@ -79,12 +76,15 @@ export class RouteBuilder {
     }
   }
 
-  private snapshot(): AvailableRoute {
+  private snapshot(): EvaluatedRoute {
     return {
-      steps: this.steps,
-      activeAnswers: this.activeAnswers,
-      questionCount: this.questionCount,
-      completedQuestionCount: this.completedQuestionCount,
+      route: {
+        steps: this.steps,
+        activeAnswers: this.activeAnswers,
+        questionCount: this.questionCount,
+        completedQuestionCount: this.completedQuestionCount,
+      },
+      isComplete: this.isComplete,
     };
   }
 }

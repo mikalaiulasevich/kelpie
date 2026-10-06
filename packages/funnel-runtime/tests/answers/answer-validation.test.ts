@@ -58,4 +58,39 @@ describe('answer validation boundaries', () => {
       issues: [{ code: 'type', message: 'Select available options.' }],
     });
   });
+
+  it('preserves numeric issue order and custom messages without leaking between calls', () => {
+    const step = AnswerFixtures.number({
+      messages: { min: 'Choose a positive amount.', step: '' },
+    });
+
+    const invalidResult = AnswerValidation.validate(step, -0.05);
+    const validResult = AnswerValidation.validate(step, 0.5);
+
+    expect(invalidResult).toEqual({
+      valid: false,
+      issues: [
+        { code: 'min', message: 'Choose a positive amount.' },
+        { code: 'step', message: '' },
+      ],
+    });
+    expect(validResult).toEqual({ valid: true, issues: [] });
+  });
+
+  it('reports membership before cardinality and preserves custom messages across both phases', () => {
+    const step = AnswerFixtures.selections({ messages: { duplicate: 'Choose each option once.' } });
+
+    const invalidResult = AnswerValidation.validate(step, ['unknown', 'unknown', 'focus']);
+    const validResult = AnswerValidation.validate(step, ['focus']);
+
+    expect(invalidResult).toEqual({
+      valid: false,
+      issues: [
+        { code: 'duplicate', message: 'Choose each option once.' },
+        { code: 'option', message: 'Select an available option.' },
+        { code: 'maxSelections', message: 'Too many selections.' },
+      ],
+    });
+    expect(validResult).toEqual({ valid: true, issues: [] });
+  });
 });

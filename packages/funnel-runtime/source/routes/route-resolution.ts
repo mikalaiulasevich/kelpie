@@ -31,7 +31,7 @@ export const RouteResolution = {
     variant: ExperimentVariant,
     answers: SessionAnswers,
   ): AvailableRoute {
-    return RouteBuilder.resolve(configuration, variant, answers);
+    return RouteBuilder.resolve(configuration, variant, answers).route;
   },
 
   next(route: AvailableRoute, identifier: string): Optional<FunnelStep> {

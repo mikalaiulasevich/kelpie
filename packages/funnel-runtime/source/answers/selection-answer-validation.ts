@@ -1,63 +1,45 @@
 import { StepRules, type MultipleSelectionStep, type SingleSelectionStep } from '@kelpie/contracts';
-import { AnswerIssues } from './answer-issues.js';
+import { AnswerIssueCollection, AnswerIssues } from './answer-issues.js';
 import { AnswerMessages } from './answer-messages.js';
 import { AnswerIssueCode, type AnswerIssue } from './answer-types.js';
 import { AnswerValues } from './answer-values.js';
 
 const SelectionIssues = {
-  membership(step: MultipleSelectionStep, answer: ReadonlyList<string>): ReadonlyList<AnswerIssue> {
-    const issues: AnswerIssue[] = [];
+  membership(
+    step: MultipleSelectionStep,
+    answer: ReadonlyList<string>,
+    issues: AnswerIssueCollection,
+  ): void {
     const selectedValues = new Set(answer);
     const optionValues = new Set(step.input.options.map((option) => option.value));
 
-    if (selectedValues.size !== answer.length) {
-      issues.push(
-        AnswerIssues.create(
-          step.validation,
-          AnswerIssueCode.Duplicate,
-          AnswerMessages.UniqueSelectionsRequired,
-        ),
+    issues
+      .addWhen(
+        selectedValues.size !== answer.length,
+        AnswerIssueCode.Duplicate,
+        AnswerMessages.UniqueSelectionsRequired,
+      )
+      .addWhen(
+        answer.some((value) => !optionValues.has(value)),
+        AnswerIssueCode.Option,
+        AnswerMessages.AvailableOptionRequired,
       );
-    }
-
-    if (answer.some((value) => !optionValues.has(value))) {
-      issues.push(
-        AnswerIssues.create(
-          step.validation,
-          AnswerIssueCode.Option,
-          AnswerMessages.AvailableOptionRequired,
-        ),
-      );
-    }
-
-    return issues;
   },
 
-  cardinality(step: MultipleSelectionStep, count: number): ReadonlyList<AnswerIssue> {
-    const issues: AnswerIssue[] = [];
+  cardinality(step: MultipleSelectionStep, count: number, issues: AnswerIssueCollection): void {
     const { minimum, maximum } = StepRules.selectionLimits(step);
 
-    if (count < minimum) {
-      issues.push(
-        AnswerIssues.create(
-          step.validation,
-          AnswerIssueCode.MinimumSelections,
-          AnswerMessages.MinimumSelections(minimum),
-        ),
+    issues
+      .addWhen(
+        count < minimum,
+        AnswerIssueCode.MinimumSelections,
+        AnswerMessages.MinimumSelections(minimum),
+      )
+      .addWhen(
+        count > maximum,
+        AnswerIssueCode.MaximumSelections,
+        AnswerMessages.TooManySelections,
       );
-    }
-
-    if (count > maximum) {
-      issues.push(
-        AnswerIssues.create(
-          step.validation,
-          AnswerIssueCode.MaximumSelections,
-          AnswerMessages.TooManySelections,
-        ),
-      );
-    }
-
-    return issues;
   },
 } as const;
 
@@ -91,9 +73,10 @@ export const SelectionAnswerValidation = {
       ];
     }
 
-    return [
-      ...SelectionIssues.membership(step, answer),
-      ...SelectionIssues.cardinality(step, answer.length),
-    ];
+    const issues = new AnswerIssueCollection(step.validation);
+    SelectionIssues.membership(step, answer, issues);
+    SelectionIssues.cardinality(step, answer.length, issues);
+
+    return issues.toIssues();
   },
 } as const;
