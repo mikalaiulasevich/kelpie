@@ -2033,6 +2033,193 @@
           "reason": "Dedicated harness for completed rejected Mnemonist trial; no current consumers remain."
         }
       ]
+    },
+    {
+      "name": "Project-wide exact toolkit predicates",
+      "reviewDate": "2026-10-06",
+      "verification": "Full npm run verify passed 229 tests and all checks. Independent static review completed; six negative lint probes and positive ordinary comparisons passed. Two 79-case benchmark runs checked expected outputs.",
+      "files": [
+        {
+          "path": "applications/frontend/source/main.tsx",
+          "reason": "Replaced exact primitive guards with typed toolkit predicates; preserved short-circuit and boundary behavior.",
+          "sha256": "23f52043536691cea93cafdf054c0c81704fd5c741fd82cfa68df80b2af92631"
+        },
+        {
+          "path": "applications/frontend/tests/fixtures/service-readiness-fixtures.ts",
+          "reason": "Replaced exact primitive guards with typed toolkit predicates; preserved short-circuit and boundary behavior.",
+          "sha256": "5a95b4216c964063d1891d58510698dd6a336064c5882f895f0fc253871309dd"
+        },
+        {
+          "path": "applications/backend/source/diagnostics/diagnostics.ts",
+          "reason": "Replaced exact primitive guards with typed toolkit predicates; preserved short-circuit and boundary behavior.",
+          "sha256": "c90309197901100ea19ec04a640ddbf4f3a53492db9cdbbc8563c411f9397bc0"
+        },
+        {
+          "path": "applications/backend/source/diagnostics/request-diagnostics.ts",
+          "reason": "Replaced exact primitive guards with typed toolkit predicates; preserved short-circuit and boundary behavior.",
+          "sha256": "7c9257762ada2533aa4d5575146e30ed386824cc29498013d6051e6275202b81"
+        },
+        {
+          "path": "applications/backend/source/application/application-directory.ts",
+          "reason": "Replaced exact primitive guards with typed toolkit predicates; preserved short-circuit and boundary behavior.",
+          "sha256": "2a019aff7c579baa8c857fbd8a9c2077af9e9f006656e577d0abe8f62a66479c"
+        },
+        {
+          "path": "applications/backend/source/application/application-shutdown.ts",
+          "reason": "Replaced exact primitive guards with typed toolkit predicates; preserved short-circuit and boundary behavior.",
+          "sha256": "4583834921ee79aa4ce7a67c8af4e652cadce5bc056a0f3e91068cbe75bc55de"
+        },
+        {
+          "path": "applications/backend/tests/fixtures/backend-application.ts",
+          "reason": "Replaced exact primitive guards with typed toolkit predicates; preserved short-circuit and boundary behavior.",
+          "sha256": "012d755ce2ad75a3c65d65cadd49db06906302d39925fb3ca5e36d80e0cdd18d"
+        },
+        {
+          "path": "applications/backend/tests/fixtures/startup-process.ts",
+          "reason": "Replaced exact primitive guards with typed toolkit predicates; preserved short-circuit and boundary behavior.",
+          "sha256": "43aa1c4829bd61cc67f4cfd2c0427e26fa93914de3aeaa6de02cf0adcff6f943"
+        },
+        {
+          "path": "applications/backend/tests/fixtures/startup-port.ts",
+          "reason": "Replaced exact primitive guards with typed toolkit predicates; preserved short-circuit and boundary behavior.",
+          "sha256": "ca4fd786783b7397d63c1a079729a7a08f9e5b69bd22ea49c799e8775ebf06bd"
+        },
+        {
+          "path": "packages/contracts/source/configurations/funnel-configurations.ts",
+          "reason": "Replaced exact primitive guards with typed toolkit predicates; preserved short-circuit and boundary behavior.",
+          "sha256": "82c1eb8211323fad3acfccb0f8e9643b7802bfb7c173ad9b985262b5920a8731"
+        },
+        {
+          "path": "packages/contracts/source/experiments/variant-validation.ts",
+          "reason": "Replaced exact primitive guards with typed toolkit predicates; preserved short-circuit and boundary behavior.",
+          "sha256": "286d84ba837956df4431eaac41610ba89dff8a87ac45c6e598c33b77a3d63650"
+        },
+        {
+          "path": "packages/contracts/source/steps/step-validation.ts",
+          "reason": "Replaced exact primitive guards with typed toolkit predicates; preserved short-circuit and boundary behavior.",
+          "sha256": "47adef1429d01de2b8b8d9d6c08bcbc8ab4d8f7d448fc8a742ee612c410cd901"
+        },
+        {
+          "path": "packages/contracts/source/steps/step-content-validation.ts",
+          "reason": "Replaced exact primitive guards with typed toolkit predicates; preserved short-circuit and boundary behavior.",
+          "sha256": "47f100727de25119738d352d553beef59c843e2a9a4acffe8e863cbf67609858"
+        },
+        {
+          "path": "packages/contracts/source/conditions/condition-validation.ts",
+          "reason": "Replaced exact primitive guards with typed toolkit predicates; preserved short-circuit and boundary behavior.",
+          "sha256": "a6e00bb400380568ac869bd1f8be15548792bec0881be6ef349fc6202143ec14"
+        },
+        {
+          "path": "packages/contracts/source/configurations/validation/configuration-document-bounds.ts",
+          "reason": "Replaced exact primitive guards with typed toolkit predicates; preserved short-circuit and boundary behavior.",
+          "sha256": "a5b1e3033a2d9332883399b54fd710acb234acfa48dd560dd9cf66b2fc701d49"
+        },
+        {
+          "path": "packages/contracts/source/configurations/validation/configuration-validation-context.ts",
+          "reason": "Replaced exact primitive guards with typed toolkit predicates; preserved short-circuit and boundary behavior.",
+          "sha256": "47b4a92ac531e287e95a9ef5f66b143c628fcbc3e131fd1c481944a9ff574c97"
+        },
+        {
+          "path": "packages/funnel-runtime/source/answers/answer-values.ts",
+          "reason": "Replaced exact primitive guards with typed toolkit predicates; preserved short-circuit and boundary behavior.",
+          "sha256": "6cb7757a6050db919f6883a48b4fcfab4f5941a689cbb3c9f0d86268ae3a4451"
+        },
+        {
+          "path": "packages/funnel-runtime/source/answers/selection-answer-validation.ts",
+          "reason": "Replaced exact primitive guards with typed toolkit predicates; preserved short-circuit and boundary behavior.",
+          "sha256": "0cf9094fe8ec36d1839b351110c8be63a92361978f9a641c7d96c16b14122b80"
+        },
+        {
+          "path": "packages/funnel-runtime/source/experiments/variant-overrides.ts",
+          "reason": "Replaced exact primitive guards with typed toolkit predicates; preserved short-circuit and boundary behavior.",
+          "sha256": "97d5ab4c87280ecb2ac44f261ed29efe36e996b27f863b01d781393df04b9c18"
+        },
+        {
+          "path": "packages/funnel-runtime/source/results/result-selection.ts",
+          "reason": "Replaced exact primitive guards with typed toolkit predicates; preserved short-circuit and boundary behavior.",
+          "sha256": "3657528c5b44a364f7756a292988fc82ad4012bea9bc6a62ad84f6c299beb150"
+        },
+        {
+          "path": "packages/funnel-runtime/source/conditions/condition-evaluation.ts",
+          "reason": "Replaced exact primitive guards with typed toolkit predicates; preserved short-circuit and boundary behavior.",
+          "sha256": "4b8898524eafb440641beac16d10ab1004e6f4cfaab50dc03fecf571e78f4f94"
+        },
+        {
+          "path": "packages/funnel-runtime/source/routes/route-builder.ts",
+          "reason": "Replaced exact primitive guards with typed toolkit predicates; preserved short-circuit and boundary behavior.",
+          "sha256": "510890f022427d5bd937b1c204061856cc07defa5acd54f20209d973231b0da1"
+        },
+        {
+          "path": "packages/funnel-runtime/source/routes/route-steps.ts",
+          "reason": "Replaced exact primitive guards with typed toolkit predicates; preserved short-circuit and boundary behavior.",
+          "sha256": "26ea10f4909a2ab200be9e108640e39d49e15f915dbb90b229e32b0b9f6ee93e"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/fixtures/runtime-fixtures.ts",
+          "reason": "Replaced exact primitive guards with typed toolkit predicates; preserved short-circuit and boundary behavior.",
+          "sha256": "52812e21024d2f6617de9add4dfc2b7461922db3580c052b295af9f361b387c1"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/fixtures/evaluation-fixtures.ts",
+          "reason": "Replaced exact primitive guards with typed toolkit predicates; preserved short-circuit and boundary behavior.",
+          "sha256": "2c0ee99a22fe1a029d6693bebd2c72de1880a67e43f42d9339ae2ea6ed2a9b7e"
+        },
+        {
+          "path": "scripts/development.mjs",
+          "reason": "Replaced exact primitive guards with typed toolkit predicates; preserved short-circuit and boundary behavior.",
+          "sha256": "334d402e28447cbce1fbbbfed7f0545f11fdcfa92930138fb9d0ee525e456037"
+        },
+        {
+          "path": "package.json",
+          "reason": "Explicit pinned dependency ownership for the importing workspace or root tooling.",
+          "sha256": "1b33f1efc58eea219db760047b177d6b988206a76d016d409350498bb27593ed"
+        },
+        {
+          "path": "package-lock.json",
+          "reason": "Explicit pinned dependency ownership for the importing workspace or root tooling.",
+          "sha256": "6d1acc3a92cb98b820844500987b135062219ff07b4a2c0c4d515ddd31160cf2"
+        },
+        {
+          "path": "packages/contracts/package.json",
+          "reason": "Explicit pinned dependency ownership for the importing workspace or root tooling.",
+          "sha256": "c67fdce0e6e7f0edf1e030b188d727ece555f570ac10d9f63d38ff1f79212467"
+        },
+        {
+          "path": "applications/backend/package.json",
+          "reason": "Explicit pinned dependency ownership for the importing workspace or root tooling.",
+          "sha256": "97a611f09b6100da2f218d4adf61618665bcf6fc9d55fc8490d539e6ac66e9a3"
+        },
+        {
+          "path": "applications/frontend/package.json",
+          "reason": "Explicit pinned dependency ownership for the importing workspace or root tooling.",
+          "sha256": "1073c5ee10bf815d3263b5c8238a48781f50ac75f2279feda31c8fa62a34e62a"
+        },
+        {
+          "path": "eslint.config.js",
+          "reason": "Enforces exact predicate conventions with negative and ordinary-comparison probes.",
+          "sha256": "55c04d8bbd540f3b151d8ea3681b2f43998027377a505c9fc720dd4a39e29b75"
+        },
+        {
+          "path": "AGENTS.md",
+          "reason": "Records predicates preference and boundary-specific native exceptions.",
+          "sha256": "ccab9b086e04ee3c70b36beeb7f6ad4396d929f33c0b4f58a75408e4f58ac29c"
+        },
+        {
+          "path": "README.md",
+          "reason": "Documents cross-workspace toolkit ownership.",
+          "sha256": "55a273a89fed77fb802278fd9f4b35d5ad07ebfb1aa5f9c285237204d3b28956"
+        },
+        {
+          "path": "documentation/foundation-review.md",
+          "reason": "Records semantic review, unchanged complexity and paired timings.",
+          "sha256": "3ba98d07fa7f22b4d3f7f2c20889b3fdb33ad8e06c2191b443e8848132396a0f"
+        },
+        {
+          "path": "documentation/development-log.md",
+          "reason": "Records migration scope and actual verification.",
+          "sha256": "6599b86c12d6da40f90f656da9441ab6e417a1319c709d8ecc0d59717eb315b1"
+        }
+      ]
     }
   ]
 }

@@ -40,7 +40,7 @@ Run production backend output after building and migrating with `npm run start -
 
 Run `npm run benchmark:runtime` separately from correctness tests. It builds production packages, verifies 79 scenarios, warms them up and records nine timed batches per case. Fixtures and expected-result assertions stay outside timing. Run alone on an idle machine with the same Node version; compare repeated runs, not a shared-CI timing threshold.
 
-Runtime dictionary transformations and missing-value checks use pinned es-toolkit 1.52.0. Security-sensitive own-property checks and bounded validation retain their domain implementations. Measured before/after results and rejected alternatives are recorded in [the engineering review](documentation/foundation-review.md#es-toolkit-adoption-october-6).
+Dictionary transformations and exact null, undefined and string guards across runtime, contracts, applications and tooling use pinned es-toolkit 1.52.0. Each importing workspace declares its dependency; root tooling owns a development dependency. Security-sensitive own-property checks and bounded validation retain their domain implementations. Measured before/after results and rejected alternatives are recorded in [the engineering review](documentation/foundation-review.md#es-toolkit-adoption-october-6).
 
 The rejected Mnemonist experiment is complete; its dependency and dedicated runner have been removed. The [archived comparison](documentation/benchmarks/mnemonist-comparison.csv), raw reports and engineering decision remain available. The historical harness is preserved in Git revision `3387d9520f4321d562bb5c1d019e294ae96990a2`.
 

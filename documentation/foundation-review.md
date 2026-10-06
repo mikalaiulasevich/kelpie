@@ -294,3 +294,19 @@ Complexity remains explicit: routing is O(S × E + answer/condition work), where
 Rejected a lazy-message-formatting experiment: valid numeric validation changed from 0.375 to 0.368 µs, invalid from 0.406 to 0.408, and route resolution from 63.150 to 63.836. This does not justify a new generic method and longer call sites. Raw trial: `2026-10-06T18-45-29.261Z-a2ac2134-f46a-4743-aada-fd01ed1c89f8`; all three formatter files were restored. Deferred collapsing Object.keys/Object.entries in document bounds because it changes getter-read timing and diagnostic precedence for non-JSON objects at the unknown-input boundary. Retained ordered result-rule traversal and navigation scans: no stable reusable route index is needed by current callers.
 
 Independent review checked all retained source changes. Added regression cases for bigint/Symbol numeric rejection and progress excluding none/all five types; the existing mutation-between-validations regression covers index freshness. No source algorithm was replaced solely to shorten syntax.
+
+## Consistent es-toolkit predicates, October 6
+
+Migrated 44 strict null/undefined/string checks in 26 source, fixture and launcher files to the exact installed es-toolkit 1.52.0 predicates. The declarations and implementations were inspected: isNull does not accept undefined; isUndefined does not accept null; isString does not accept boxed strings. Native Array.isArray, Number.isFinite, own-key access, concrete class checks and strict plain-container validation retain their boundary semantics. In particular, toolkit isPlainObject widens accepted object forms, while compat isObjectLike lacks the object type-predicate declaration needed by the current typed traversal. Independent test expectations remain native.
+
+Explicit dependency ownership now includes contracts, backend and frontend production manifests and root tooling's devDependencies. No compatibility package or coercing checks were added. AGENTS.md states the convention. Scoped syntax selectors enforce ordinary right-hand null/undefined/string comparisons while allowing direct independent expect expressions. Six prohibited-guard probes failed as intended; named predicates and four ordinary equality comparisons passed. The first lint pass exposed an overbroad undefined selector; requiring an Identifier operand fixed its false positives before final verification.
+
+| Operation                |       Size | Before, µs/op | After, µs/op |
+| ------------------------ | ---------: | ------------: | -----------: |
+| Configuration validation |   96 steps |       658.750 |      660.368 |
+| Route resolution         |   96 steps |        63.689 |       64.769 |
+| Complete evaluation      |   96 steps |        63.461 |       63.428 |
+| Multiple selection       | 96 options |         4.179 |        4.218 |
+| Numeric validation       |   1 answer |         0.390 |        0.391 |
+
+Runs `2026-10-06T18-54-47.509Z-5f21e60a-60d6-415b-866e-67b1542d04ed` and `2026-10-06T18-56-08.040Z-486288af-76b4-4993-84a1-a678c427b989` checked all 79 scenarios. These single before/after local runs support a readability refactor with small timing differences, not a speedup or statistical equivalence claim. Complexity, traversal counts and short-circuit behavior are unchanged. Independent static review found no correctness issue; full npm run verify passed 229 tests and all checks.
