@@ -1,3 +1,6 @@
+export const BenchmarkSuite = { Runtime: 'runtime', Mnemonist: 'mnemonist' } as const;
+export type BenchmarkSuite = ValueOf<typeof BenchmarkSuite>;
+
 export interface BenchmarkMeasurementResult {
   readonly name: string;
   readonly size: number;
@@ -21,6 +24,7 @@ export interface BenchmarkEnvironment {
 }
 
 export interface BenchmarkReportData {
+  readonly suite: BenchmarkSuite;
   readonly run: string;
   readonly scope: string;
   readonly warmupIterations: number;

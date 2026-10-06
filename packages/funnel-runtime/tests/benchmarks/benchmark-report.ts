@@ -5,6 +5,7 @@ import { appendFile, mkdir, readdir, readFile, writeFile } from 'node:fs/promise
 import { arch, cpus, platform } from 'node:os';
 import { relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { BenchmarkSuite } from './measurement-types.js';
 import { MeasurementPolicy } from './measurement-policy.js';
 import { MeasurementMessages } from './measurement-messages.js';
 import type {
@@ -112,8 +113,9 @@ const BenchmarkTable = {
 } as const;
 
 export const BenchmarkReport = {
-  async prepare(): Promise<Omit<BenchmarkReportData, 'results'>> {
+  async prepare(suite: BenchmarkSuite): Promise<Omit<BenchmarkReportData, 'results'>> {
     return {
+      suite,
       run: `${new Date().toISOString().replaceAll(':', '-')}-${randomUUID()}`,
       scope: MeasurementMessages.Scope,
       warmupIterations: MeasurementPolicy.WarmupIterations,
@@ -157,7 +159,7 @@ export const BenchmarkReport = {
 
     await appendFile(history, rows);
     await writeFile(
-      resolve(directory, MeasurementPolicy.LatestFile),
+      resolve(directory, report.suite === BenchmarkSuite.Mnemonist ? MeasurementPolicy.MnemonistLatestFile : MeasurementPolicy.LatestFile),
       `${MeasurementPolicy.HistoryHeader}\n${rows}`,
     );
 
