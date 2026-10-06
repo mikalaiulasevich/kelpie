@@ -1,10 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import {
-  IncompleteRequestFixture,
-  StartupPortFixture,
-  StartupProcessFixture,
-  StartupProcessPolicy,
-} from '../fixtures/startup-process.js';
+import { IncompleteRequestFixture } from '../fixtures/incomplete-request.js';
+import { StartupPortFixture } from '../fixtures/startup-port.js';
+import { StartupProcessFixture } from '../fixtures/startup-process.js';
+import { StartupProcessPolicy } from '../fixtures/startup-policy.js';
 
 describe('application process lifecycle', () => {
   it('exits after invalid environment input without disclosing its value', async () => {

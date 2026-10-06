@@ -6,6 +6,11 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 
 const restrictedSyntax = [
   {
+    selector:
+      'CallExpression[callee.type="MemberExpression"][callee.property.name="each"] > ArrayExpression.arguments',
+    message: 'Move scenario tables into the owning tests/cases catalog.',
+  },
+  {
     selector: 'ExportAllDeclaration',
     message: 'List public exports explicitly so ownership remains visible.',
   },
@@ -18,6 +23,19 @@ const restrictedSyntax = [
     selector:
       'ExportNamedDeclaration > VariableDeclaration > VariableDeclarator[id.type="ObjectPattern"]',
     message: 'Export the owning object instead of destructuring its members into exports.',
+  },
+];
+
+const inlineErrorRestrictions = [
+  {
+    selector:
+      'NewExpression[callee.name=/^(Error|TypeError|RangeError|AggregateError)$/] > Literal.arguments',
+    message: 'Keep authored error text in a domain-owned message catalog.',
+  },
+  {
+    selector:
+      'NewExpression[callee.name=/^(Error|TypeError|RangeError|AggregateError)$/] > TemplateLiteral.arguments',
+    message: 'Format authored error text through a domain-owned message catalog.',
   },
 ];
 
@@ -94,6 +112,35 @@ export default typescript.config(
       ],
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': ['error', { allowConstantExport: true }],
+    },
+  },
+  {
+    files: ['applications/*/source/**/*.{ts,tsx}', 'packages/*/source/**/*.ts', 'scripts/**/*.mjs'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        ...restrictedSyntax,
+        ...inlineErrorRestrictions,
+        {
+          selector: 'FunctionDeclaration',
+          message: 'Put helper operations in their owning const object or class.',
+        },
+      ],
+    },
+  },
+  {
+    files: ['applications/frontend/source/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        ...restrictedSyntax,
+        ...inlineErrorRestrictions,
+        {
+          selector: 'FunctionDeclaration:not([id.name=/^[A-Z]/]):not([id.name=/^use[A-Z]/])',
+          message:
+            'Put helpers in domain objects; standalone declarations are reserved for React components and hooks.',
+        },
+      ],
     },
   },
 );

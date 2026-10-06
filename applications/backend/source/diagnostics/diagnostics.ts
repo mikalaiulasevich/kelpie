@@ -6,7 +6,7 @@ import {
   DiagnosticSeverity,
 } from './diagnostic-policy.js';
 import type { Writable } from 'node:stream';
-import type { DiagnosticRecord } from './diagnostics-types.js';
+import type { DiagnosticRecord, RequestDiagnosticContext } from './diagnostics-types.js';
 
 const DiagnosticLevels = {
   resolve(record: DiagnosticRecord): ValueOf<typeof DiagnosticSeverity> {
@@ -22,7 +22,7 @@ const DiagnosticLevels = {
   },
 } as const;
 
-export const RequestContext = new AsyncLocalStorage<Readonly<{ requestIdentifier: string }>>();
+export const RequestContext = new AsyncLocalStorage<RequestDiagnosticContext>();
 
 export class DiagnosticSink {
   private blocked = false;

@@ -5,13 +5,14 @@ import {
   type FunnelStep,
   type SessionAnswers,
 } from '@kelpie/contracts';
+import { FixtureMessages } from './fixture-messages.js';
 
 export const RuntimeFixtures = {
   step(identifier: string): FunnelStep {
     const step = RuntimeFixtures.configuration(1).steps[identifier];
 
     if (step === undefined) {
-      throw new Error(`Missing fixture step: ${identifier}`);
+      throw new Error(FixtureMessages.MissingStep(identifier));
     }
 
     return step;
@@ -28,7 +29,7 @@ export const RuntimeFixtures = {
     );
 
     if (!result.valid) {
-      throw new Error(JSON.stringify(result.issues));
+      throw new Error(FixtureMessages.InvalidConfiguration(result.issues));
     }
 
     return result.configuration;

@@ -3,14 +3,11 @@ import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import { PrismaClient } from '../../generated/prisma/client.js';
 import { ApplicationEnvironmentService } from '../environment/application-environment.js';
 import { DatabaseMessages } from './database-messages.js';
-import { MigrationHistory, type MigrationSummary } from './migration-history.js';
+import { MigrationHistory } from './migration-history.js';
+import type { MigrationSummary, SQLiteForeignKeySetting } from './database-types.js';
 import { SQLiteFiles } from './sqlite-files.js';
 import { SQLiteStatements } from './sqlite-statements.js';
 import { SQLitePolicy } from './sqlite-policy.js';
-
-interface SQLiteForeignKeySetting {
-  readonly foreign_keys: bigint;
-}
 
 @Injectable()
 export class DatabaseService implements OnModuleInit, OnApplicationShutdown {
@@ -34,7 +31,7 @@ export class DatabaseService implements OnModuleInit, OnApplicationShutdown {
 
   async checkReadiness(): Promise<boolean> {
     const migrations = await this.client.$queryRawUnsafe<MigrationSummary[]>(
-      MigrationHistory.summaryQuery,
+      SQLiteStatements.MigrationSummary,
     );
 
     return MigrationHistory.isComplete(this.expectedMigrations, migrations);

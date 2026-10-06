@@ -1,8 +1,5 @@
 import { vi, type Mock } from 'vitest';
-
-const ServiceReadinessFixtureMessages = {
-  CancellationRequired: 'Readiness requests must supply a cancellation signal.',
-} as const;
+import { ServiceReadinessFixtureMessages } from './service-readiness-messages';
 
 export const ServiceReadinessFixture = {
   response(body: unknown, status = 200): Mock<typeof globalThis.fetch> {

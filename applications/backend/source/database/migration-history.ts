@@ -4,28 +4,9 @@ import { applicationDirectory } from '../application/application-directory.js';
 import { DatabasePaths } from './database-paths.js';
 import { DatabaseMessages } from './database-messages.js';
 
-export interface MigrationSummary {
-  readonly migration_name: string;
-  readonly successful: bigint;
-  readonly unresolved: bigint;
-}
+import type { MigrationSummary } from './database-types.js';
 
 export const MigrationHistory = {
-  summaryQuery: `
-    SELECT
-      "migration_name",
-      SUM(CASE
-        WHEN "finished_at" IS NOT NULL AND "rolled_back_at" IS NULL THEN 1
-        ELSE 0
-      END) AS "successful",
-      SUM(CASE
-        WHEN "finished_at" IS NULL AND "rolled_back_at" IS NULL THEN 1
-        ELSE 0
-      END) AS "unresolved"
-    FROM "_prisma_migrations"
-    GROUP BY "migration_name"
-  `,
-
   async expected(): Promise<ReadonlyList<string>> {
     const entries = await readdir(resolve(applicationDirectory, DatabasePaths.Migrations), {
       withFileTypes: true,

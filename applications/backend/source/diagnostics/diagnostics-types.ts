@@ -31,3 +31,7 @@ export interface DiagnosticRecord {
   readonly error?: ErrorDescription;
   readonly droppedRecords?: number;
 }
+
+export interface RequestDiagnosticContext {
+  readonly requestIdentifier: string;
+}

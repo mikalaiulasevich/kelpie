@@ -13,13 +13,7 @@ import { ApplicationEnvironmentReader } from '../../source/environment/read-appl
 import { ApplicationMode, EnvironmentFields } from '../../source/environment/environment-policy.js';
 import { SQLitePolicy } from '../../source/database/sqlite-policy.js';
 import { BackendTestPolicy } from './backend-test-policy.js';
-
-const BackendFixtureMessages = {
-  SetupCleanupFailed: 'Backend fixture setup failed and cleanup also failed.',
-  Closed: 'The backend fixture is closed.',
-  UnsupportedServer: 'Test HTTP server adapter is unsupported.',
-  AddressUnavailable: 'Test server has no network address.',
-} as const;
+import { BackendFixtureMessages } from './backend-fixture-messages.js';
 
 const Processes = { execute: promisify(execFile) } as const;
 
