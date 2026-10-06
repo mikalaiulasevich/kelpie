@@ -18,8 +18,5 @@
     "@kelpie/contracts": "0.1.0",
     "es-toolkit": "1.52.0",
     "ts-pattern": "5.9.0"
-  },
-  "devDependencies": {
-    "mnemonist": "0.40.5"
   }
 }

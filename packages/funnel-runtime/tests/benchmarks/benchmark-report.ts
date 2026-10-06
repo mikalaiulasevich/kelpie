@@ -113,14 +113,11 @@ const BenchmarkTable = {
 } as const;
 
 export const BenchmarkReport = {
-  async prepare(suite: BenchmarkSuite): Promise<Omit<BenchmarkReportData, 'results'>> {
+  async prepare(): Promise<Omit<BenchmarkReportData, 'results'>> {
     return {
-      suite,
+      suite: BenchmarkSuite.Runtime,
       run: `${new Date().toISOString().replaceAll(':', '-')}-${randomUUID()}`,
-      scope:
-        suite === BenchmarkSuite.Mnemonist
-          ? MeasurementMessages.MnemonistScope
-          : MeasurementMessages.Scope,
+      scope: MeasurementMessages.Scope,
       warmupIterations: MeasurementPolicy.WarmupIterations,
       samplingOrder: MeasurementMessages.SamplingOrder,
       environment: await BenchmarkIdentity.environment(),
@@ -162,12 +159,7 @@ export const BenchmarkReport = {
 
     await appendFile(history, rows);
     await writeFile(
-      resolve(
-        directory,
-        report.suite === BenchmarkSuite.Mnemonist
-          ? MeasurementPolicy.MnemonistLatestFile
-          : MeasurementPolicy.LatestFile,
-      ),
+      resolve(directory, MeasurementPolicy.LatestFile),
       `${MeasurementPolicy.HistoryHeader}\n${rows}`,
     );
 

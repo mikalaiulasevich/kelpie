@@ -5,7 +5,7 @@ export interface BenchmarkSampleCollection {
   readonly samples: number[];
 }
 
-export const BenchmarkSuite = { Runtime: 'runtime', Mnemonist: 'mnemonist' } as const;
+export const BenchmarkSuite = { Runtime: 'runtime' } as const;
 export type BenchmarkSuite = ValueOf<typeof BenchmarkSuite>;
 
 export interface BenchmarkMeasurementResult {

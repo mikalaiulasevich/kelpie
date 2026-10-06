@@ -6,8 +6,6 @@ export const MeasurementPolicy = {
   OutputDirectory: 'documentation/benchmarks',
   HistoryFile: 'history.csv',
   LatestFile: 'latest.csv',
-  MnemonistLatestFile: 'mnemonist-latest.csv',
-  MnemonistArgument: '--mnemonist',
   SourceDirectories: [
     'packages/contracts/source',
     'packages/funnel-runtime/source',
