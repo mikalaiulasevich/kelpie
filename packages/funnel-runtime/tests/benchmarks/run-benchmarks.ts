@@ -6,8 +6,11 @@ import { BenchmarkMeasurement } from './benchmark-measurement.js';
 import { BenchmarkReport } from './benchmark-report.js';
 import { MeasurementMessages } from './measurement-messages.js';
 
-const suite = process.argv.includes(MeasurementPolicy.MnemonistArgument) ? BenchmarkSuite.Mnemonist : BenchmarkSuite.Runtime;
-const scenarios = suite === BenchmarkSuite.Mnemonist ? MnemonistCases.create() : BenchmarkCases.create();
+const suite = process.argv.includes(MeasurementPolicy.MnemonistArgument)
+  ? BenchmarkSuite.Mnemonist
+  : BenchmarkSuite.Runtime;
+const scenarios =
+  suite === BenchmarkSuite.Mnemonist ? MnemonistCases.create() : BenchmarkCases.create();
 const metadata = await BenchmarkReport.prepare(suite);
 const results = BenchmarkMeasurement.run(scenarios);
 const directory = await BenchmarkReport.save(metadata, results);

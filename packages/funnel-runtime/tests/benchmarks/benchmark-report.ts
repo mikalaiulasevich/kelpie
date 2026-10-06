@@ -117,7 +117,10 @@ export const BenchmarkReport = {
     return {
       suite,
       run: `${new Date().toISOString().replaceAll(':', '-')}-${randomUUID()}`,
-      scope: MeasurementMessages.Scope,
+      scope:
+        suite === BenchmarkSuite.Mnemonist
+          ? MeasurementMessages.MnemonistScope
+          : MeasurementMessages.Scope,
       warmupIterations: MeasurementPolicy.WarmupIterations,
       samplingOrder: MeasurementMessages.SamplingOrder,
       environment: await BenchmarkIdentity.environment(),
@@ -159,7 +162,12 @@ export const BenchmarkReport = {
 
     await appendFile(history, rows);
     await writeFile(
-      resolve(directory, report.suite === BenchmarkSuite.Mnemonist ? MeasurementPolicy.MnemonistLatestFile : MeasurementPolicy.LatestFile),
+      resolve(
+        directory,
+        report.suite === BenchmarkSuite.Mnemonist
+          ? MeasurementPolicy.MnemonistLatestFile
+          : MeasurementPolicy.LatestFile,
+      ),
       `${MeasurementPolicy.HistoryHeader}\n${rows}`,
     );
 

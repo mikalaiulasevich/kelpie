@@ -95,6 +95,7 @@ const BenchmarkCaseFactory = {
     const multiple = BenchmarkFixtures.selection(size);
     const validSelections = multiple.input.options.map((option) => option.value);
     const oversizedSelections = [...validSelections, 'overflow_option'];
+    const duplicateSelections = validSelections.map(() => 'option_0');
     const invalidSelections = [...validSelections.slice(1), 'missing_option'];
     const iterations = BenchmarkPolicy.SimpleIterations;
     const lastOption = `option_${size - 1}`;
@@ -126,6 +127,13 @@ const BenchmarkCaseFactory = {
         size,
         iterations,
         () => FunnelRuntime.Answers.validate(multiple, oversizedSelections).valid,
+        false,
+      ),
+      BenchmarkCaseFactory.checked(
+        'answer.multiple-duplicate',
+        size,
+        iterations,
+        () => FunnelRuntime.Answers.validate(multiple, duplicateSelections).valid,
         false,
       ),
       BenchmarkCaseFactory.checked(

@@ -54,6 +54,7 @@ export const MnemonistFixtures = {
 
   nativeReferences(step: MultipleSelectionStep, referenceCount: number): number {
     const indexes = new Map<MultipleSelectionStep, ReadonlySet<string>>();
+    const searchedValue = `option_${step.input.options.length - 1}`;
     let matches = 0;
 
     for (let reference = 0; reference < referenceCount; reference += 1) {
@@ -64,7 +65,7 @@ export const MnemonistFixtures = {
         indexes.set(step, values);
       }
 
-      matches += Number(values.has(`option_${step.input.options.length - 1}`));
+      matches += Number(values.has(searchedValue));
     }
 
     return matches;
@@ -74,11 +75,12 @@ export const MnemonistFixtures = {
     const indexes = new DefaultMap<MultipleSelectionStep, ReadonlySet<string>>(
       (selection) => new Set(selection.input.options.map((option) => option.value)),
     );
+    const searchedValue = `option_${step.input.options.length - 1}`;
     let matches = 0;
 
     for (let reference = 0; reference < referenceCount; reference += 1) {
       const values = indexes.get(step);
-      matches += Number(values.has(`option_${step.input.options.length - 1}`));
+      matches += Number(values.has(searchedValue));
     }
 
     return matches;
