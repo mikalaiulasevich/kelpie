@@ -20,14 +20,13 @@ const selectionOperators: ReadonlyDictionary<
   [StepType.MultiSelect]: [ConditionOperator.Contains],
 };
 
-function values(condition: AnswerCondition): ReadonlyList<string | number> {
-  return match(condition)
-    .with({ operator: ConditionOperator.In }, ({ value }) => value)
-    .otherwise(({ value }) => [value]);
-}
-
 export const ConditionRules = {
-  values,
+  values(condition: AnswerCondition): ReadonlyList<string | number> {
+    return match(condition)
+      .with({ operator: ConditionOperator.In }, ({ value }) => value)
+      .otherwise(({ value }) => [value]);
+  },
+
   acceptsNumericOperands: numericOperands,
   acceptsSelectionOperator: (step: SelectionStep, condition: AnswerCondition): boolean =>
     selectionOperators[step.type].includes(condition.operator),

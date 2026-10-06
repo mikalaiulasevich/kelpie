@@ -97,6 +97,15 @@ describe('answer validation boundaries', () => {
     }
   });
 
+  it('rejects sparse selections instead of counting unselected array slots', () => {
+    const answer = new Array<string>(1);
+
+    expect(AnswerValidation.validate(selectionStep, answer)).toEqual({
+      valid: false,
+      issues: [{ code: AnswerIssueCode.Type, message: 'Select available options.' }],
+    });
+  });
+
   it('never reads inherited answers when evaluating a condition', () => {
     const answers = {};
     Object.setPrototypeOf(answers, { work_mode: 'remote' });

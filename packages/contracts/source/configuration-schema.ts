@@ -1,7 +1,6 @@
 import { Type } from 'typebox';
 
 import { ConfigurationSchemaPolicy } from './configuration-policy.js';
-
 import { conditionSchema } from './condition-schema.js';
 import { ConfigurationStatus, ExperimentVariant, StepType } from './domain-values.js';
 import { funnelResultSchema, resultOverrideSchema, resultRuleSchema } from './result-schema.js';
@@ -12,8 +11,6 @@ import {
   textSchema,
 } from './schema-primitives.js';
 import { funnelStepSchema, stepContentSchema } from './step-schema.js';
-
-export { informationContentSchema, interactiveContentSchema } from './step-schema.js';
 
 export const stepOverrideSchema = Type.Object(
   { content: stepContentSchema },

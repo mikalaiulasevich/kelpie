@@ -256,3 +256,65 @@ describe('configuration validation', () => {
     },
   );
 });
+
+describe('semantic validation phases', () => {
+  it('preserves step, variant, result, and event issue ordering', () => {
+    const parsed = FunnelConfigurations.validate(originalConfiguration(1));
+
+    if (!parsed.valid) {
+      throw new Error('Invalid fixture.');
+    }
+
+    const configuration = parsed.configuration;
+    const document = {
+      ...configuration,
+      steps: {
+        ...configuration.steps,
+        intro: { ...configuration.steps['intro'], id: 'different_identifier' },
+      },
+      experiment: {
+        ...configuration.experiment,
+        variants: {
+          ...configuration.experiment.variants,
+          A: { ...configuration.experiment.variants.A, weight: 1 },
+        },
+      },
+      defaultResultId: 'missing_result',
+      events: { ...configuration.events, baseProperties: ['unsupported_property'] },
+    };
+
+    const result = FunnelConfigurations.validate(document);
+
+    expect(result.valid).toBe(false);
+    expect(result.issues.map((issue) => issue.path)).toEqual([
+      '/steps/intro/id',
+      '/experiment/variants',
+      '/defaultResultId',
+      '/events/baseProperties',
+    ]);
+    // A failed traversal must not leak diagnostics or indexes into the next document.
+    expect(FunnelConfigurations.validate(originalConfiguration(1)).valid).toBe(true);
+  });
+
+  it('keeps a bounded diagnostic prefix for many semantic failures', () => {
+    const parsed = FunnelConfigurations.validate(originalConfiguration(1));
+
+    if (!parsed.valid) {
+      throw new Error('Invalid fixture.');
+    }
+
+    const document = {
+      ...parsed.configuration,
+      resultRules: Array.from({ length: FunnelConfigurations.limits.maximumIssues + 1 }, () => ({
+        resultId: 'missing_result',
+        when: { answer: 'missing_answer', operator: 'eq', value: 1 },
+      })),
+    };
+    const result = FunnelConfigurations.validate(document);
+
+    expect(result.valid).toBe(false);
+    expect(result.issues).toHaveLength(FunnelConfigurations.limits.maximumIssues);
+    expect(result.issues[0]?.path).toBe('/resultRules/0/resultId');
+    expect(result.issues[1]?.path).toBe('/resultRules/0/when');
+  });
+});

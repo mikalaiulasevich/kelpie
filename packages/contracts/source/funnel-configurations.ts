@@ -3,7 +3,7 @@ import { configurationSchemaCompiler } from './configuration-schema-compiler.js'
 import type { ConfigurationValidationResult, FunnelConfiguration } from './configuration-types.js';
 import { ConfigurationDocumentBounds } from './configuration-document-bounds.js';
 import { configurationLimits } from './configuration-policy.js';
-import { validateConfigurationSemantics } from './configuration-semantic-validation.js';
+import { ConfigurationSemantics } from './configuration-semantic-validation.js';
 import { funnelConfigurationSchema } from './configuration-schema.js';
 
 const structuralValidator =
@@ -32,7 +32,7 @@ export const FunnelConfigurations = {
     }
 
     const configuration = document;
-    const issues = validateConfigurationSemantics(configuration);
+    const issues = ConfigurationSemantics.validate(configuration);
 
     if (issues.length > 0) {
       return { valid: false, issues };

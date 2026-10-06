@@ -88,6 +88,19 @@ describe('Backend foundation with a real SQLite database', () => {
     });
   });
 
+  it('rejects malformed JSON without exposing submitted content', async () => {
+    const response = await fetch(`${baseUrl}/api/health/live`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: '{"secret":"private-value",',
+    });
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({
+      statusCode: 400,
+      message: 'Request could not be processed.',
+    });
+  });
+
   it('enforces journal, bounded busy timeout, and foreign keys', async () => {
     const database = application.get(DatabaseService).client;
     expect(await database.$queryRawUnsafe('PRAGMA journal_mode')).toEqual([

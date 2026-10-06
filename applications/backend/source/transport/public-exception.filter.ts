@@ -28,19 +28,16 @@ function resolvePublicStatus(exception: unknown): number {
 }
 
 function resolvePublicMessage(status: number): string {
-  if (status === HttpStatus.SERVICE_UNAVAILABLE) {
-    return TransportMessages.NotReady;
+  switch (status) {
+    case HttpStatus.SERVICE_UNAVAILABLE:
+      return TransportMessages.NotReady;
+    case HttpStatus.PAYLOAD_TOO_LARGE:
+      return TransportMessages.BodyTooLarge;
+    default:
+      return status >= HttpStatus.INTERNAL_SERVER_ERROR
+        ? TransportMessages.InternalFailure
+        : TransportMessages.RequestRejected;
   }
-
-  if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
-    return TransportMessages.InternalFailure;
-  }
-
-  if (status === HttpStatus.PAYLOAD_TOO_LARGE) {
-    return TransportMessages.BodyTooLarge;
-  }
-
-  return TransportMessages.RequestRejected;
 }
 
 @Catch()

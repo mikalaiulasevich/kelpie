@@ -6,7 +6,7 @@ import {
   type SessionAnswers,
 } from '@kelpie/contracts';
 import { match, P } from 'ts-pattern';
-import { isFiniteNumber } from './value-predicates.js';
+import { AnswerValues } from './answer-values.js';
 
 function evaluateAnswerCondition(condition: AnswerCondition, answers: SessionAnswers): boolean {
   const answer = readOwnProperty(answers, condition.answer);
@@ -24,7 +24,7 @@ function evaluateAnswerCondition(condition: AnswerCondition, answers: SessionAns
     )
     .with(
       { operator: ConditionOperator.GreaterThanOrEqual },
-      ({ value }) => isFiniteNumber(answer) && answer >= value,
+      ({ value }) => AnswerValues.isFiniteNumber(answer) && answer >= value,
     )
     .exhaustive();
 }

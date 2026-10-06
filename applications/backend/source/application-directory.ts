@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ApplicationMessages } from './application-messages.js';
 
 const moduleDirectory = dirname(fileURLToPath(import.meta.url));
 const candidateDirectories = [resolve(moduleDirectory, '..'), resolve(moduleDirectory, '../..')];
@@ -8,7 +9,7 @@ const resolvedDirectory = candidateDirectories.find((directory) =>
   existsSync(resolve(directory, 'prisma/schema.prisma')),
 );
 if (resolvedDirectory === undefined) {
-  throw new Error('Cannot locate the backend application directory.');
+  throw new Error(ApplicationMessages.DirectoryUnavailable);
 }
 
 export const applicationDirectory = resolvedDirectory;

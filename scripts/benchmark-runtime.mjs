@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { performance } from 'node:perf_hooks';
 import { platform, arch, cpus } from 'node:os';
@@ -5,6 +6,7 @@ import { FunnelConfigurations, StepType, ExperimentVariant } from '@kelpie/contr
 import { BenchmarkPolicy } from './script-policy.mjs';
 import { FunnelRuntime } from '@kelpie/funnel-runtime';
 
+/** @type {import('@kelpie/contracts').FunnelConfiguration[]} */
 const configurations = [];
 for (const version of BenchmarkPolicy.configurationVersions) {
   const document = JSON.parse(
@@ -18,17 +20,25 @@ for (const version of BenchmarkPolicy.configurationVersions) {
   configurations.push(validation.configuration);
 }
 
+/**
+ * @param {import('@kelpie/contracts').FunnelConfiguration} configuration
+ * @param {boolean} includeCompliance
+ */
 function buildSyntheticAnswers(configuration, includeCompliance) {
+  /** @type {Record<string, import('@kelpie/contracts').StepAnswer>} */
   const answers = {};
   for (const step of Object.values(configuration.steps)) {
     if (step.type === StepType.Number) {
       answers[step.input.name] = step.input.min;
     } else if (step.type === StepType.SingleSelect) {
-      answers[step.input.name] = step.input.options[0].value;
+      const firstOption = step.input.options[0];
+      assert.ok(firstOption, 'Validated selection steps must contain options.');
+      answers[step.input.name] = firstOption.value;
     } else if (step.type === StepType.MultiSelect) {
       const complianceOption = step.input.options.find((option) => option.value === 'compliance');
       const selectedOption =
         includeCompliance && complianceOption ? complianceOption : step.input.options[0];
+      assert.ok(selectedOption, 'Validated selection steps must contain options.');
       answers[step.input.name] = [selectedOption.value];
     }
   }
@@ -46,6 +56,11 @@ const scenarios = configurations.flatMap((configuration) =>
   ),
 );
 
+/**
+ * @param {string} name
+ * @param {number} iterations
+ * @param {(position: number) => void} operation
+ */
 function measure(name, iterations, operation) {
   for (let position = 0; position < BenchmarkPolicy.warmupIterations; position += 1) {
     operation(position);
@@ -63,18 +78,16 @@ function measure(name, iterations, operation) {
 
   durationSamples.sort((left, right) => left - right);
 
+  const median = durationSamples[Math.floor(durationSamples.length / 2)];
+  const maximum = durationSamples.at(-1);
+  assert.ok(median !== undefined && maximum !== undefined, 'At least one sample is required.');
+
   return {
     name,
     iterationsPerSample: iterations,
     samples: durationSamples.length,
-    medianSampleMilliseconds: Number(
-      durationSamples[Math.floor(BenchmarkPolicy.samples / 2)].toFixed(
-        BenchmarkPolicy.decimalPlaces,
-      ),
-    ),
-    maximumSampleMilliseconds: Number(
-      durationSamples.at(-1).toFixed(BenchmarkPolicy.decimalPlaces),
-    ),
+    medianSampleMilliseconds: Number(median.toFixed(BenchmarkPolicy.decimalPlaces)),
+    maximumSampleMilliseconds: Number(maximum.toFixed(BenchmarkPolicy.decimalPlaces)),
   };
 }
 
@@ -89,6 +102,7 @@ const results = [
   }),
   measure('route resolution', BenchmarkPolicy.runtimeIterations, (position) => {
     const scenario = scenarios[position % scenarios.length];
+    assert.ok(scenario, 'At least one benchmark scenario is required.');
     const route = FunnelRuntime.Routes.resolve(
       scenario.configuration,
       scenario.variant,
@@ -100,6 +114,7 @@ const results = [
   }),
   measure('result resolution', BenchmarkPolicy.runtimeIterations, (position) => {
     const scenario = scenarios[position % scenarios.length];
+    assert.ok(scenario, 'At least one benchmark scenario is required.');
     const result = FunnelRuntime.Results.resolve(
       scenario.configuration,
       scenario.variant,

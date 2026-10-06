@@ -1,9 +1,11 @@
 import { spawn } from 'node:child_process';
 
 import { DevelopmentPolicy } from './script-policy.mjs';
+/** @type {Set<import('node:child_process').ChildProcess>} */
 const childProcesses = new Set();
 let shuttingDown = false;
 
+/** @param {number} exitCode */
 function stopChildren(exitCode) {
   if (shuttingDown) {
     return;
@@ -12,35 +14,11 @@ function stopChildren(exitCode) {
   shuttingDown = true;
   process.exitCode = exitCode;
 
-  for (const childProcess of childProcesses) {
-    if (process.platform === 'win32') {
-      childProcess.kill('SIGTERM');
-    } else if (childProcess.pid !== undefined) {
-      try {
-        process.kill(-childProcess.pid, 'SIGTERM');
-      } catch (error) {
-        if (error.code !== 'ESRCH') {
-          console.error('Unable to stop development process:', error);
-        }
-      }
-    }
-  }
-
-  const shutdownDeadline = setTimeout(() => {
-    for (const childProcess of childProcesses) {
-      if (process.platform !== 'win32' && childProcess.pid !== undefined) {
-        try {
-          process.kill(-childProcess.pid, 'SIGKILL');
-        } catch (error) {
-          if (error.code !== 'ESRCH') {
-            console.error('Unable to terminate process:', error);
-          }
-        }
-      } else {
-        childProcess.kill('SIGKILL');
-      }
-    }
-  }, DevelopmentPolicy.shutdownTimeoutMilliseconds);
+  signalChildren('SIGTERM');
+  const shutdownDeadline = setTimeout(
+    () => signalChildren('SIGKILL'),
+    DevelopmentPolicy.shutdownTimeoutMilliseconds,
+  );
   shutdownDeadline.unref();
 }
 
@@ -65,3 +43,25 @@ for (const workspaceName of DevelopmentPolicy.workspaces) {
 
 process.once('SIGINT', () => stopChildren(DevelopmentPolicy.interruptExitCode));
 process.once('SIGTERM', () => stopChildren(DevelopmentPolicy.terminationExitCode));
+
+/** @param {unknown} error */
+function isMissingProcess(error) {
+  return error instanceof Error && 'code' in error && error.code === 'ESRCH';
+}
+
+/** @param {NodeJS.Signals} signal */
+function signalChildren(signal) {
+  for (const childProcess of childProcesses) {
+    try {
+      if (process.platform === 'win32') {
+        childProcess.kill(signal);
+      } else if (childProcess.pid !== undefined) {
+        process.kill(-childProcess.pid, signal);
+      }
+    } catch (error) {
+      if (!isMissingProcess(error)) {
+        console.error('Unable to signal development process:', error);
+      }
+    }
+  }
+}

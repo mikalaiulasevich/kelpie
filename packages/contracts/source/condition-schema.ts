@@ -1,7 +1,6 @@
 import { Type } from 'typebox';
 
 import { ConfigurationSchemaPolicy } from './configuration-policy.js';
-
 import { ConditionOperator } from './domain-values.js';
 import { identifierSchema } from './schema-primitives.js';
 

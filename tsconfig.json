@@ -2,7 +2,7 @@
   "extends": "./typescript.base.json",
   "compilerOptions": {
     "allowJs": true,
-    "checkJs": false,
+    "checkJs": true,
     "noEmit": true,
     "types": ["node"]
   },

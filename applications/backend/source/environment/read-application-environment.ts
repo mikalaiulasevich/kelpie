@@ -7,8 +7,6 @@ import { EnvironmentMessages } from './environment-messages.js';
 import { EnvironmentPolicy } from './environment-policy.js';
 import { EnvironmentSchemas } from './environment-schemas.js';
 
-export { ApplicationMode } from './environment-policy.js';
-
 export interface ApplicationEnvironment {
   readonly mode: Static<typeof EnvironmentSchemas.Mode>;
   readonly host: string;

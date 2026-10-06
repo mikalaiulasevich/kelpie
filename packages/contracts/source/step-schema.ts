@@ -1,7 +1,6 @@
 import { Type } from 'typebox';
 
 import { ConfigurationSchemaPolicy } from './configuration-policy.js';
-
 import { conditionReferenceSchema } from './condition-schema.js';
 import { StepType } from './domain-values.js';
 import {

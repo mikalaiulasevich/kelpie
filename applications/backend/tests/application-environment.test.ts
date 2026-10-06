@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { readApplicationEnvironment } from '../source/environment/application-environment.js';
+import { readApplicationEnvironment } from '../source/environment/read-application-environment.js';
 
 describe('Application environment validation', () => {
   it('uses loopback and an application-relative SQLite file by default', () => {

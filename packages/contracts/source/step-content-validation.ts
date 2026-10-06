@@ -2,7 +2,7 @@ import { match, P } from 'ts-pattern';
 
 import { ConfigurationMessages } from './configuration-messages.js';
 import type { ConfigurationIssue } from './configuration-types.js';
-import { informationContentSchema, interactiveContentSchema } from './configuration-schema.js';
+import { informationContentSchema, interactiveContentSchema } from './step-schema.js';
 import { configurationSchemaCompiler } from './configuration-schema-compiler.js';
 import { StepType } from './domain-values.js';
 import type { StepContent } from './step-types.js';
@@ -19,23 +19,21 @@ const interactiveContentRequirement = {
   message: ConfigurationMessages.InteractiveTitleRequired,
 };
 
-export function validateStepContent(
-  stepType: StepType,
-  content: StepContent,
-  path: string,
-): Optional<ConfigurationIssue> {
-  const requirement = match(stepType)
-    .with(StepType.Information, () => informationContentRequirement)
-    .with(StepType.Result, () => undefined)
-    .with(
-      P.union(StepType.Number, StepType.SingleSelect, StepType.MultiSelect),
-      () => interactiveContentRequirement,
-    )
-    .exhaustive();
+export const StepContentValidation = {
+  validate(stepType: StepType, content: StepContent, path: string): Optional<ConfigurationIssue> {
+    const requirement = match(stepType)
+      .with(StepType.Information, () => informationContentRequirement)
+      .with(StepType.Result, () => undefined)
+      .with(
+        P.union(StepType.Number, StepType.SingleSelect, StepType.MultiSelect),
+        () => interactiveContentRequirement,
+      )
+      .exhaustive();
 
-  if (requirement === undefined || requirement.validate(content)) {
-    return undefined;
-  }
+    if (requirement === undefined || requirement.validate(content)) {
+      return undefined;
+    }
 
-  return { path: `${path}${requirement.pathSuffix}`, message: requirement.message };
-}
+    return { path: `${path}${requirement.pathSuffix}`, message: requirement.message };
+  },
+} as const;
