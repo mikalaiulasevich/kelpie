@@ -27,23 +27,12 @@ export const NumberAnswerValidation = {
     }
 
     return new AnswerIssueCollection(validation)
-      .addFormattedWhen(
-        answer < input.min,
-        AnswerIssueCode.Minimum,
-        AnswerMessages.MinimumNumber,
-        input.min,
-      )
-      .addFormattedWhen(
-        answer > input.max,
-        AnswerIssueCode.Maximum,
-        AnswerMessages.MaximumNumber,
-        input.max,
-      )
-      .addFormattedWhen(
+      .addWhen(answer < input.min, AnswerIssueCode.Minimum, AnswerMessages.MinimumNumber(input.min))
+      .addWhen(answer > input.max, AnswerIssueCode.Maximum, AnswerMessages.MaximumNumber(input.max))
+      .addWhen(
         !NumericIncrements.accepts(step, answer),
         AnswerIssueCode.Increment,
-        AnswerMessages.NumericIncrement,
-        input.step,
+        AnswerMessages.NumericIncrement(input.step),
       )
       .toIssues();
   },

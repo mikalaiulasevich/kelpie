@@ -4,7 +4,7 @@ export const AnswerValues = {
   isFiniteNumber(value: unknown): value is number {
     return Number.isFinite(value);
   },
-  isMissing(answer: unknown): answer is null | undefined | '' {
+  isMissing(answer: unknown): answer is Nullable<''> {
     return isNil(answer) || answer === '';
   },
 

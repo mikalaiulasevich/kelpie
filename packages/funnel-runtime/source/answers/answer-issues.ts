@@ -34,19 +34,6 @@ export class AnswerIssueCollection {
     return this;
   }
 
-  addFormattedWhen<Value>(
-    condition: boolean,
-    code: AnswerIssueCode,
-    format: ValueMapper<Value, string>,
-    value: Value,
-  ): this {
-    if (condition) {
-      this.addWhen(condition, code, format(value));
-    }
-
-    return this;
-  }
-
   toIssues(): ReadonlyList<AnswerIssue> {
     return this.issues;
   }

@@ -41,6 +41,8 @@ export const AnswerCases = {
   presentNonNumeric: [
     { description: 'false', answer: false },
     { description: 'NaN', answer: NaN },
+    { description: 'bigint', answer: 1n },
+    { description: 'symbol', answer: Symbol('answer') },
     { description: 'empty array', answer: [] },
     { description: 'whitespace', answer: ' ' },
   ],

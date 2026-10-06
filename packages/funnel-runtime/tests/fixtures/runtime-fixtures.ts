@@ -4,10 +4,16 @@ import {
   type FunnelConfiguration,
   type FunnelStep,
   type SessionAnswers,
+  type StepType,
 } from '@kelpie/contracts';
 import { FixtureMessages } from './fixture-messages.js';
 
 export const RuntimeFixtures = {
+  progressConfiguration(excludeTypes: ReadonlyList<StepType>): FunnelConfiguration {
+    const configuration = RuntimeFixtures.configuration(1);
+
+    return { ...configuration, progress: { ...configuration.progress, excludeTypes } };
+  },
   step(identifier: string): FunnelStep {
     const step = RuntimeFixtures.configuration(1).steps[identifier];
 

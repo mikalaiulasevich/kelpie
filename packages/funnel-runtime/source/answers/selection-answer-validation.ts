@@ -30,11 +30,10 @@ const SelectionIssues = {
     const { minimum, maximum } = StepRules.selectionLimits(step);
 
     issues
-      .addFormattedWhen(
+      .addWhen(
         count < minimum,
         AnswerIssueCode.MinimumSelections,
-        AnswerMessages.MinimumSelections,
-        minimum,
+        AnswerMessages.MinimumSelections(minimum),
       )
       .addWhen(
         count > maximum,

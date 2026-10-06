@@ -1,9 +1,30 @@
+import { RouteCases } from '../cases/route-cases.js';
 import { describe, expect, it } from 'vitest';
 import { ExperimentVariant } from '@kelpie/contracts';
 import { FunnelRuntime, RouteResolution } from '../../source/index.js';
 import { RuntimeFixtures, RuntimeAnswers } from '../fixtures/runtime-fixtures.js';
 
 describe('routes', () => {
+  it.each(RouteCases.progressExclusions)(
+    'preserves routing with $description',
+    ({ excludedTypes, questionCount, completedQuestionCount }) => {
+      const answers = RuntimeAnswers.complete();
+      const configuration = RuntimeFixtures.progressConfiguration(excludedTypes);
+      const original = RouteResolution.resolve(
+        RuntimeFixtures.configuration(1),
+        ExperimentVariant.A,
+        answers,
+      );
+
+      const route = RouteResolution.resolve(configuration, ExperimentVariant.A, answers);
+
+      expect(route.questionCount).toBe(questionCount);
+      expect(route.completedQuestionCount).toBe(completedQuestionCount);
+      expect(route.steps).toEqual(original.steps);
+      expect(route.activeAnswers).toEqual(original.activeAnswers);
+    },
+  );
+
   it('keeps route state isolated across repeated resolutions and variants', () => {
     const document = RuntimeFixtures.configuration(1);
     const originalDocument = structuredClone(document);
