@@ -28,4 +28,3 @@ export const ExperimentResolution = Object.freeze({
     return { variant, stepSequence: selectedVariant.stepSequence, steps, results };
   },
 });
-export const resolveExperimentConfiguration = ExperimentResolution.resolve;

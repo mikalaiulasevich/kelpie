@@ -1,8 +1,7 @@
 import {
   StepType,
-  isInteractiveStep,
+  StepRules,
   readOwnProperty,
-  resolveSelectionLimits,
   type AnswerValidation,
   type FunnelStep,
   type NumberStep,
@@ -115,7 +114,7 @@ function validateMultipleSelections(
     );
   }
 
-  const { minimum, maximum } = resolveSelectionLimits(step);
+  const { minimum, maximum } = StepRules.selectionLimits(step);
 
   if (answer.length < minimum) {
     issues.push(
@@ -144,35 +143,37 @@ function validationResult(issues: readonly AnswerIssue[]): AnswerValidationResul
   return { valid: false, issues };
 }
 
-export function validateStepAnswer(step: FunnelStep, answer: unknown): AnswerValidationResult {
-  if (!isInteractiveStep(step)) {
-    return validationResult([
-      {
-        code: AnswerIssueCode.NotInteractive,
-        message: AnswerMessages.NonInteractiveStep,
-      },
-    ]);
-  }
-
-  if (isMissingAnswer(answer)) {
-    if (step.validation.required) {
+export const AnswerValidation = Object.freeze({
+  validate(step: FunnelStep, answer: unknown): AnswerValidationResult {
+    if (!StepRules.isInteractive(step)) {
       return validationResult([
-        createIssue(step.validation, AnswerIssueCode.Required, AnswerMessages.RequiredAnswer),
+        {
+          code: AnswerIssueCode.NotInteractive,
+          message: AnswerMessages.NonInteractiveStep,
+        },
       ]);
     }
 
-    return validationResult([]);
-  }
+    if (isMissingAnswer(answer)) {
+      if (step.validation.required) {
+        return validationResult([
+          createIssue(step.validation, AnswerIssueCode.Required, AnswerMessages.RequiredAnswer),
+        ]);
+      }
 
-  const issues = match(step)
-    .with({ type: StepType.Number }, (numberStep) => validateNumberAnswer(numberStep, answer))
-    .with({ type: StepType.SingleSelect }, (selectionStep) =>
-      validateSingleSelection(selectionStep, answer),
-    )
-    .with({ type: StepType.MultiSelect }, (selectionStep) =>
-      validateMultipleSelections(selectionStep, answer),
-    )
-    .exhaustive();
+      return validationResult([]);
+    }
 
-  return validationResult(issues);
-}
+    const issues = match(step)
+      .with({ type: StepType.Number }, (numberStep) => validateNumberAnswer(numberStep, answer))
+      .with({ type: StepType.SingleSelect }, (selectionStep) =>
+        validateSingleSelection(selectionStep, answer),
+      )
+      .with({ type: StepType.MultiSelect }, (selectionStep) =>
+        validateMultipleSelections(selectionStep, answer),
+      )
+      .exhaustive();
+
+    return validationResult(issues);
+  },
+});

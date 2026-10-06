@@ -3,8 +3,6 @@ import { match, P } from 'ts-pattern';
 import { ConfigurationMessages } from './configuration-messages.js';
 import { configurationLimits, DocumentAccountingPolicy } from './configuration-policy.js';
 
-export { configurationLimits } from './configuration-policy.js';
-
 interface PendingDocumentValue {
   readonly value: unknown;
   readonly depth: number;
@@ -78,42 +76,42 @@ function inspectValue(
     .otherwise(() => ConfigurationMessages.JsonValuesRequired);
 }
 
-export function checkDocumentBounds(document: unknown): Optional<string> {
-  const traversal: DocumentTraversal = {
-    pending: [{ value: document, depth: 0 }],
-    visitedObjects: new WeakSet<object>(),
-    estimatedBytes: 0,
-  };
-  let nodeCount = 0;
+export const ConfigurationDocumentBounds = Object.freeze({
+  check(document: unknown): Optional<string> {
+    const traversal: DocumentTraversal = {
+      pending: [{ value: document, depth: 0 }],
+      visitedObjects: new WeakSet<object>(),
+      estimatedBytes: 0,
+    };
+    let nodeCount = 0;
 
-  while (traversal.pending.length > 0) {
-    const current = traversal.pending.pop();
+    while (traversal.pending.length > 0) {
+      const current = traversal.pending.pop();
 
-    if (current === undefined) {
-      break;
+      if (current === undefined) {
+        break;
+      }
+
+      nodeCount += 1;
+
+      if (
+        nodeCount > configurationLimits.maximumNodes ||
+        current.depth > configurationLimits.maximumDepth
+      ) {
+        return ConfigurationMessages.DocumentTraversalLimit;
+      }
+
+      const issue = inspectValue(current, traversal);
+
+      if (issue !== undefined) {
+        return issue;
+      }
+
+      if (traversal.estimatedBytes > configurationLimits.maximumDocumentBytes) {
+        return ConfigurationMessages.DocumentSizeLimit;
+      }
     }
 
-    nodeCount += 1;
-
-    if (
-      nodeCount > configurationLimits.maximumNodes ||
-      current.depth > configurationLimits.maximumDepth
-    ) {
-      return ConfigurationMessages.DocumentTraversalLimit;
-    }
-
-    const issue = inspectValue(current, traversal);
-
-    if (issue !== undefined) {
-      return issue;
-    }
-
-    if (traversal.estimatedBytes > configurationLimits.maximumDocumentBytes) {
-      return ConfigurationMessages.DocumentSizeLimit;
-    }
-  }
-
-  return undefined;
-}
-
-export const ConfigurationDocumentBounds = Object.freeze({ check: checkDocumentBounds });
+    return undefined;
+  },
+});

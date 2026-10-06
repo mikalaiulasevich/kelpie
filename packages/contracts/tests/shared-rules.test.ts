@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  isInteractiveStep,
+  StepRules,
   readOwnProperty,
-  resolveSelectionLimits,
   StepType,
   type AnswerValidation,
   type SelectionStep,
@@ -51,23 +50,23 @@ describe('own dictionary properties', () => {
 
 describe('shared selection rules', () => {
   it('defaults required and optional limits while preserving explicit zero', () => {
-    expect(resolveSelectionLimits(selectionStep({ required: true, messages: {} }))).toEqual({
+    expect(StepRules.selectionLimits(selectionStep({ required: true, messages: {} }))).toEqual({
       minimum: 1,
       maximum: 2,
     });
-    expect(resolveSelectionLimits(selectionStep({ required: false, messages: {} }))).toEqual({
+    expect(StepRules.selectionLimits(selectionStep({ required: false, messages: {} }))).toEqual({
       minimum: 0,
       maximum: 2,
     });
     expect(
-      resolveSelectionLimits(
+      StepRules.selectionLimits(
         selectionStep({ required: true, minSelections: 0, maxSelections: 1, messages: {} }),
       ),
     ).toEqual({ minimum: 0, maximum: 1 });
   });
 
   it('uses the distinct available choice count when validating duplicate options', () => {
-    expect(resolveSelectionLimits(selectionStep({ required: true, messages: {} }), 1)).toEqual({
+    expect(StepRules.selectionLimits(selectionStep({ required: true, messages: {} }), 1)).toEqual({
       minimum: 1,
       maximum: 1,
     });
@@ -75,10 +74,12 @@ describe('shared selection rules', () => {
 
   it('excludes informational and result steps from interactive rules', () => {
     const multipleSelection = selectionStep({ required: true, messages: {} });
-    expect(isInteractiveStep(multipleSelection)).toBe(true);
-    expect(isInteractiveStep({ ...multipleSelection, type: StepType.SingleSelect })).toBe(true);
+    expect(StepRules.isInteractive(multipleSelection)).toBe(true);
+    expect(StepRules.isInteractive({ ...multipleSelection, type: StepType.SingleSelect })).toBe(
+      true,
+    );
     expect(
-      isInteractiveStep({
+      StepRules.isInteractive({
         id: 'age',
         type: StepType.Number,
         content: {},
@@ -86,9 +87,11 @@ describe('shared selection rules', () => {
         validation: { required: true, messages: {} },
       }),
     ).toBe(true);
-    expect(isInteractiveStep({ id: 'intro', type: StepType.Information, content: {} })).toBe(false);
+    expect(StepRules.isInteractive({ id: 'intro', type: StepType.Information, content: {} })).toBe(
+      false,
+    );
     expect(
-      isInteractiveStep({
+      StepRules.isInteractive({
         id: 'result',
         type: StepType.Result,
         content: {},

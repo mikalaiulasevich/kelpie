@@ -30,10 +30,16 @@ function evaluateAnswerCondition(condition: AnswerCondition, answers: SessionAns
 }
 
 /** Missing or inactive answers never satisfy a predicate. */
-export function evaluateCondition(condition: Condition, answers: SessionAnswers): boolean {
-  return match(condition)
-    .with({ all: P._ }, ({ all }) => all.every((child) => evaluateCondition(child, answers)))
-    .with({ any: P._ }, ({ any }) => any.some((child) => evaluateCondition(child, answers)))
-    .with({ answer: P.string }, (predicate) => evaluateAnswerCondition(predicate, answers))
-    .exhaustive();
-}
+export const ConditionEvaluation = Object.freeze({
+  evaluate(condition: Condition, answers: SessionAnswers): boolean {
+    return match(condition)
+      .with({ all: P._ }, ({ all }) =>
+        all.every((child) => ConditionEvaluation.evaluate(child, answers)),
+      )
+      .with({ any: P._ }, ({ any }) =>
+        any.some((child) => ConditionEvaluation.evaluate(child, answers)),
+      )
+      .with({ answer: P.string }, (predicate) => evaluateAnswerCondition(predicate, answers))
+      .exhaustive();
+  },
+});

@@ -5,7 +5,7 @@ import {
   type FunnelResult,
   type SessionAnswers,
 } from '@kelpie/contracts';
-import { evaluateCondition } from './condition-evaluation.js';
+import { ConditionEvaluation } from './condition-evaluation.js';
 import { RouteResolution } from './route-resolution.js';
 import { RouteSteps } from './route-steps.js';
 import { VariantOverrides } from './variant-overrides.js';
@@ -14,7 +14,7 @@ import { VariantOverrides } from './variant-overrides.js';
 const ResultRules = Object.freeze({
   selectIdentifier(configuration: FunnelConfiguration, answers: SessionAnswers): string {
     for (const rule of configuration.resultRules) {
-      if (evaluateCondition(rule.when, answers)) {
+      if (ConditionEvaluation.evaluate(rule.when, answers)) {
         return rule.resultId;
       }
     }
@@ -48,5 +48,3 @@ export const ResultResolution = Object.freeze({
     return VariantOverrides.result(result, configuration.experiment.variants[variant]);
   },
 });
-
-export const resolveFunnelResult = ResultResolution.resolve;

@@ -61,17 +61,17 @@ Validate identifiers, sequence uniqueness, referenced steps and results, overrid
 
 Require conditions to reference compatible answer types and earlier reachable steps in each variant. Reject future dependencies, invalid references, and cycles. Do not require every defined step to appear in every variant: v3 intentionally omits tool_count from B. Check merged variant configurations, not only the base document.
 
-Use pure functions with descriptive names:
+Expose pure operations through cohesive domain objects:
 
 ```text
-validateFunnelConfiguration
-resolveExperimentConfiguration
-evaluateCondition
-resolveAvailableSteps
-validateStepAnswer
-resolveNextStep
-resolvePreviousStep
-resolveFunnelResult
+FunnelConfigurations.validate
+ExperimentResolution.resolve
+ConditionEvaluation.evaluate
+RouteResolution.resolve
+AnswerValidation.validate
+RouteResolution.next
+RouteResolution.previous
+ResultResolution.resolve
 ```
 
 Resolve visibility in sequence order using only answers from currently available steps. Unknown dependencies do not satisfy a visibility condition. Inactive answers cannot activate downstream branches. Resolve result rules in document order; first matching rule wins, otherwise use defaultResultId.

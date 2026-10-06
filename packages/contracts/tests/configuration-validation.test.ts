@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { validateFunnelConfiguration } from '../source/index.js';
+import { FunnelConfigurations } from '../source/index.js';
 
 function originalConfiguration(version: number): unknown {
   return JSON.parse(
@@ -19,7 +19,7 @@ describe('configuration validation', () => {
   )(
     'rejects blank information content $field: $value in base and merged variants',
     ({ field, value }) => {
-      const parsed = validateFunnelConfiguration(originalConfiguration(1));
+      const parsed = FunnelConfigurations.validate(originalConfiguration(1));
 
       if (!parsed.valid) {
         throw new Error('Invalid fixture.');
@@ -33,7 +33,7 @@ describe('configuration validation', () => {
       }
 
       expect(
-        validateFunnelConfiguration({
+        FunnelConfigurations.validate({
           ...configuration,
           steps: {
             ...configuration.steps,
@@ -42,7 +42,7 @@ describe('configuration validation', () => {
         }),
       ).toMatchObject({ valid: false });
 
-      const overridden = validateFunnelConfiguration({
+      const overridden = FunnelConfigurations.validate({
         ...configuration,
         experiment: {
           ...configuration.experiment,
@@ -64,7 +64,7 @@ describe('configuration validation', () => {
   );
 
   it('accepts partial content overrides without trimming or mutating the configuration', () => {
-    const parsed = validateFunnelConfiguration(originalConfiguration(1));
+    const parsed = FunnelConfigurations.validate(originalConfiguration(1));
 
     if (!parsed.valid) {
       throw new Error('Invalid fixture.');
@@ -86,18 +86,18 @@ describe('configuration validation', () => {
     };
     const before = JSON.stringify(document);
 
-    expect(validateFunnelConfiguration(document).valid).toBe(true);
+    expect(FunnelConfigurations.validate(document).valid).toBe(true);
     expect(JSON.stringify(document)).toBe(before);
   });
 
   it.each([1, 2, 3])('accepts preserved version %s', (version) => {
-    expect(validateFunnelConfiguration(originalConfiguration(version))).toMatchObject({
+    expect(FunnelConfigurations.validate(originalConfiguration(version))).toMatchObject({
       valid: true,
     });
   });
 
   it('rejects prototype keys before schema validation', () => {
-    expect(validateFunnelConfiguration(JSON.parse('{"__proto__":{}}'))).toMatchObject({
+    expect(FunnelConfigurations.validate(JSON.parse('{"__proto__":{}}'))).toMatchObject({
       valid: false,
     });
   });
@@ -108,24 +108,24 @@ describe('configuration validation', () => {
       nested = { all: [nested] };
     }
 
-    expect(validateFunnelConfiguration(nested)).toMatchObject({ valid: false });
+    expect(FunnelConfigurations.validate(nested)).toMatchObject({ valid: false });
   });
 
   it('rejects circular input', () => {
     const circular: Record<string, unknown> = {};
     circular['self'] = circular;
-    expect(validateFunnelConfiguration(circular)).toMatchObject({ valid: false });
+    expect(FunnelConfigurations.validate(circular)).toMatchObject({ valid: false });
   });
 
   it('rejects inherited configuration fields', () => {
     const inherited: unknown = Object.create(originalConfiguration(1));
-    expect(validateFunnelConfiguration(inherited)).toMatchObject({ valid: false });
+    expect(FunnelConfigurations.validate(inherited)).toMatchObject({ valid: false });
   });
 
   it('rejects unknown fields instead of silently deleting them', () => {
     const document: unknown = originalConfiguration(1);
     expect(
-      validateFunnelConfiguration({
+      FunnelConfigurations.validate({
         ...(typeof document === 'object' ? document : {}),
         executableScript: 'anything',
       }),
@@ -133,7 +133,7 @@ describe('configuration validation', () => {
   });
 
   it('rejects future branch dependencies in either variant', () => {
-    const parsed = validateFunnelConfiguration(originalConfiguration(1));
+    const parsed = FunnelConfigurations.validate(originalConfiguration(1));
     if (!parsed.valid) {
       throw new Error('Invalid fixture.');
     }
@@ -148,7 +148,7 @@ describe('configuration validation', () => {
         },
       },
     };
-    const result = validateFunnelConfiguration(document);
+    const result = FunnelConfigurations.validate(document);
     expect(result.valid).toBe(false);
     if (!result.valid) {
       expect(result.issues.some((issue) => issue.message.includes('earlier'))).toBe(true);
@@ -156,7 +156,7 @@ describe('configuration validation', () => {
   });
 
   it('rejects invalid option references', () => {
-    const parsed = validateFunnelConfiguration(originalConfiguration(1));
+    const parsed = FunnelConfigurations.validate(originalConfiguration(1));
     if (!parsed.valid) {
       throw new Error('Invalid fixture.');
     }
@@ -170,11 +170,11 @@ describe('configuration validation', () => {
         },
       ],
     };
-    expect(validateFunnelConfiguration(document)).toMatchObject({ valid: false });
+    expect(FunnelConfigurations.validate(document)).toMatchObject({ valid: false });
   });
 
   it('rejects unequal identity keys and invalid experiment weights', () => {
-    const parsed = validateFunnelConfiguration(originalConfiguration(1));
+    const parsed = FunnelConfigurations.validate(originalConfiguration(1));
     if (!parsed.valid) {
       throw new Error('Invalid fixture.');
     }
@@ -189,11 +189,11 @@ describe('configuration validation', () => {
         },
       },
     };
-    expect(validateFunnelConfiguration(document)).toMatchObject({ valid: false });
+    expect(FunnelConfigurations.validate(document)).toMatchObject({ valid: false });
   });
 
   it('validates merged variant content instead of only the base step', () => {
-    const parsed = validateFunnelConfiguration(originalConfiguration(1));
+    const parsed = FunnelConfigurations.validate(originalConfiguration(1));
     if (!parsed.valid) {
       throw new Error('Invalid fixture.');
     }
@@ -211,7 +211,7 @@ describe('configuration validation', () => {
         },
       },
     };
-    const result = validateFunnelConfiguration(document);
+    const result = FunnelConfigurations.validate(document);
     expect(result.valid).toBe(false);
     if (!result.valid) {
       expect(result.issues.some((issue) => issue.path.includes('stepOverrides'))).toBe(true);
@@ -221,7 +221,7 @@ describe('configuration validation', () => {
   it.each(['constructor', 'toString', 'hasOwnProperty'])(
     'rejects inherited step and result reference %s without throwing',
     (reference) => {
-      const parsed = validateFunnelConfiguration(originalConfiguration(1));
+      const parsed = FunnelConfigurations.validate(originalConfiguration(1));
       if (!parsed.valid) {
         throw new Error('Invalid fixture.');
       }
@@ -246,8 +246,8 @@ describe('configuration validation', () => {
           },
         },
       };
-      expect(() => validateFunnelConfiguration(document)).not.toThrow();
-      expect(validateFunnelConfiguration(document)).toMatchObject({ valid: false });
+      expect(() => FunnelConfigurations.validate(document)).not.toThrow();
+      expect(FunnelConfigurations.validate(document)).toMatchObject({ valid: false });
     },
   );
 });

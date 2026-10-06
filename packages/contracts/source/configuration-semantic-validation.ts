@@ -6,7 +6,7 @@ import type { AnswerCondition, Condition } from './condition-types.js';
 import type { InteractiveStep, NumberStep, SelectionStep } from './step-types.js';
 import type { ConfigurationIssue, FunnelConfiguration } from './configuration-types.js';
 import { StepType } from './domain-values.js';
-import { configurationLimits } from './configuration-document-bounds.js';
+import { configurationLimits } from './configuration-policy.js';
 import { readOwnProperty } from './dictionary.js';
 import { StepRules } from './step-rules.js';
 import { ConditionRules } from './condition-rules.js';

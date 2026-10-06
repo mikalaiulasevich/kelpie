@@ -7,23 +7,21 @@ export interface SelectionLimits {
   readonly maximum: number;
 }
 
-export const isInteractiveStep = isMatching({
-  type: P.union(StepType.Number, StepType.SingleSelect, StepType.MultiSelect),
-});
-
-/** Semantic validation supplies a distinct choice count when options contain duplicates. */
-export function resolveSelectionLimits(
-  step: SelectionStep,
-  availableOptionCount = step.input.options.length,
-): SelectionLimits {
-  return {
-    minimum: step.validation.minSelections ?? (step.validation.required ? 1 : 0),
-    maximum: step.validation.maxSelections ?? availableOptionCount,
-  };
-}
-
 export const StepRules = Object.freeze({
-  isInteractive: isInteractiveStep,
-  selectionLimits: resolveSelectionLimits,
+  isInteractive: isMatching({
+    type: P.union(StepType.Number, StepType.SingleSelect, StepType.MultiSelect),
+  }),
+
+  /** Semantic validation supplies a distinct choice count when options contain duplicates. */
+  selectionLimits(
+    step: SelectionStep,
+    availableOptionCount = step.input.options.length,
+  ): SelectionLimits {
+    return {
+      minimum: step.validation.minSelections ?? (step.validation.required ? 1 : 0),
+      maximum: step.validation.maxSelections ?? availableOptionCount,
+    };
+  },
+
   hasSelectionLimits: isMatching(P.union({ minSelections: P.number }, { maxSelections: P.number })),
 });

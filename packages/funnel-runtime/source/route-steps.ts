@@ -1,5 +1,5 @@
 import {
-  isInteractiveStep,
+  StepRules,
   readOwnProperty,
   type FunnelConfiguration,
   type FunnelStep,
@@ -7,8 +7,8 @@ import {
   type StepAnswer,
   type VariantConfiguration,
 } from '@kelpie/contracts';
-import { validateStepAnswer } from './answer-validation.js';
-import { evaluateCondition } from './condition-evaluation.js';
+import { AnswerValidation } from './answer-validation.js';
+import { ConditionEvaluation } from './condition-evaluation.js';
 import { RuntimeMessages } from './runtime-messages.js';
 import { VariantOverrides } from './variant-overrides.js';
 
@@ -28,17 +28,19 @@ export const RouteSteps = Object.freeze({
   },
 
   isVisible(step: FunnelStep, answers: SessionAnswers): boolean {
-    return step.visibleWhen === undefined || evaluateCondition(step.visibleWhen, answers);
+    return (
+      step.visibleWhen === undefined || ConditionEvaluation.evaluate(step.visibleWhen, answers)
+    );
   },
 
   acceptedAnswer(step: FunnelStep, answers: SessionAnswers): Optional<AcceptedStepAnswer> {
-    if (!isInteractiveStep(step)) {
+    if (!StepRules.isInteractive(step)) {
       return undefined;
     }
 
     const value = readOwnProperty(answers, step.input.name);
 
-    if (value === undefined || !validateStepAnswer(step, value).valid) {
+    if (value === undefined || !AnswerValidation.validate(step, value).valid) {
       return undefined;
     }
 
@@ -46,11 +48,11 @@ export const RouteSteps = Object.freeze({
   },
 
   isComplete(step: FunnelStep, answers: SessionAnswers): boolean {
-    if (!isInteractiveStep(step)) {
+    if (!StepRules.isInteractive(step)) {
       return true;
     }
 
-    return validateStepAnswer(step, readOwnProperty(answers, step.input.name)).valid;
+    return AnswerValidation.validate(step, readOwnProperty(answers, step.input.name)).valid;
   },
 });
 

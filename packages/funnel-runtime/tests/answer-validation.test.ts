@@ -5,7 +5,7 @@ import {
   type NumberStep,
   type SelectionStep,
 } from '@kelpie/contracts';
-import { AnswerIssueCode, evaluateCondition, validateStepAnswer } from '../source/index.js';
+import { AnswerIssueCode, ConditionEvaluation, AnswerValidation } from '../source/index.js';
 
 const numberStep: NumberStep = {
   id: 'hours',
@@ -34,11 +34,11 @@ describe('answer validation boundaries', () => {
   it.each([undefined, null, ''])(
     'distinguishes missing required and optional answers: %s',
     (answer) => {
-      expect(validateStepAnswer(numberStep, answer).issues.map((issue) => issue.code)).toEqual([
-        AnswerIssueCode.Required,
-      ]);
       expect(
-        validateStepAnswer(
+        AnswerValidation.validate(numberStep, answer).issues.map((issue) => issue.code),
+      ).toEqual([AnswerIssueCode.Required]);
+      expect(
+        AnswerValidation.validate(
           {
             ...numberStep,
             validation: { ...numberStep.validation, required: false },
@@ -50,8 +50,8 @@ describe('answer validation boundaries', () => {
   );
 
   it('accepts floating point rounding noise but rejects values between increments', () => {
-    expect(validateStepAnswer(numberStep, 0.1 + 0.2).valid).toBe(true);
-    expect(validateStepAnswer(numberStep, 0.35).issues.map((issue) => issue.code)).toEqual([
+    expect(AnswerValidation.validate(numberStep, 0.1 + 0.2).valid).toBe(true);
+    expect(AnswerValidation.validate(numberStep, 0.35).issues.map((issue) => issue.code)).toEqual([
       AnswerIssueCode.Increment,
     ]);
   });
@@ -60,7 +60,7 @@ describe('answer validation boundaries', () => {
     const inheritedMessages: Record<string, string> = {};
     Object.setPrototypeOf(inheritedMessages, { required: 'Inherited message' });
 
-    const inheritedResult = validateStepAnswer(
+    const inheritedResult = AnswerValidation.validate(
       {
         ...numberStep,
         validation: { required: true, messages: inheritedMessages },
@@ -70,7 +70,7 @@ describe('answer validation boundaries', () => {
 
     expect(inheritedResult.issues[0]?.message).toBe('An answer is required.');
     expect(
-      validateStepAnswer(
+      AnswerValidation.validate(
         {
           ...numberStep,
           validation: { required: true, messages: { required: '' } },
@@ -91,9 +91,9 @@ describe('answer validation boundaries', () => {
     ];
 
     for (const [answer, expectedCodes] of cases) {
-      expect(validateStepAnswer(selectionStep, answer).issues.map((issue) => issue.code)).toEqual(
-        expectedCodes,
-      );
+      expect(
+        AnswerValidation.validate(selectionStep, answer).issues.map((issue) => issue.code),
+      ).toEqual(expectedCodes);
     }
   });
 
@@ -102,7 +102,7 @@ describe('answer validation boundaries', () => {
     Object.setPrototypeOf(answers, { work_mode: 'remote' });
 
     expect(
-      evaluateCondition(
+      ConditionEvaluation.evaluate(
         { answer: 'work_mode', operator: ConditionOperator.Equal, value: 'remote' },
         answers,
       ),

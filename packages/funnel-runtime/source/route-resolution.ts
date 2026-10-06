@@ -40,8 +40,3 @@ export const RouteResolution = Object.freeze({
     return adjacent(route, identifier, RouteDirection.Previous);
   },
 });
-
-// Compatibility exports reference the grouped implementation directly.
-export const resolveAvailableSteps = RouteResolution.resolve;
-export const resolveNextStep = RouteResolution.next;
-export const resolvePreviousStep = RouteResolution.previous;

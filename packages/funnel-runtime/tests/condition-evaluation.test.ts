@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ConditionOperator, type Condition, type SessionAnswers } from '@kelpie/contracts';
-import { evaluateCondition } from '../source/condition-evaluation.js';
+import { ConditionEvaluation } from '../source/condition-evaluation.js';
 
 interface ConditionExample {
   readonly description: string;
@@ -72,7 +72,7 @@ const examples: readonly ConditionExample[] = [
 
 describe('condition evaluation', () => {
   it.each(examples)('$description', ({ condition, answers, expected }) => {
-    expect(evaluateCondition(condition, answers)).toBe(expected);
+    expect(ConditionEvaluation.evaluate(condition, answers)).toBe(expected);
   });
 
   it('does not read inherited answers', () => {
@@ -80,7 +80,7 @@ describe('condition evaluation', () => {
     Object.setPrototypeOf(answers, { mode: 'remote' });
 
     expect(
-      evaluateCondition(
+      ConditionEvaluation.evaluate(
         { answer: 'mode', operator: ConditionOperator.Equal, value: 'remote' },
         answers,
       ),
@@ -110,7 +110,7 @@ describe('condition evaluation', () => {
       value: 'remote',
     };
 
-    expect(evaluateCondition({ any: [matching, untouched] }, answers)).toBe(true);
-    expect(evaluateCondition({ all: [missing, untouched] }, answers)).toBe(false);
+    expect(ConditionEvaluation.evaluate({ any: [matching, untouched] }, answers)).toBe(true);
+    expect(ConditionEvaluation.evaluate({ all: [missing, untouched] }, answers)).toBe(false);
   });
 });

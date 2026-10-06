@@ -31,6 +31,16 @@ export default typescript.config(
           selector: 'ExportAllDeclaration',
           message: 'List public exports explicitly so ownership remains visible.',
         },
+        {
+          selector:
+            'ExportNamedDeclaration > VariableDeclaration > VariableDeclarator[init.type="MemberExpression"]',
+          message: 'Export the owning object instead of creating a separate member alias.',
+        },
+        {
+          selector:
+            'ExportNamedDeclaration > VariableDeclaration > VariableDeclarator[id.type="ObjectPattern"]',
+          message: 'Export the owning object instead of destructuring its members into exports.',
+        },
       ],
       'padding-line-between-statements': [
         'error',

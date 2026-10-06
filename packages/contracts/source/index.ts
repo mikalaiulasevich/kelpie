@@ -50,11 +50,9 @@ export type {
   VariantConfiguration,
 } from './configuration-types.js';
 
-export { configurationLimits, validateFunnelConfiguration } from './configuration-validation.js';
-
 export { readOwnProperty } from './dictionary.js';
-export { isInteractiveStep, resolveSelectionLimits } from './step-rules.js';
 export type { SelectionLimits } from './step-rules.js';
 
 export { FunnelConfigurations } from './funnel-configurations.js';
 export { StepRules } from './step-rules.js';
+export { ConfigurationDocumentBounds } from './configuration-document-bounds.js';

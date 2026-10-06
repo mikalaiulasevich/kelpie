@@ -3,23 +3,21 @@ import { describe, expect, it } from 'vitest';
 import {
   ConditionOperator,
   ExperimentVariant,
-  validateFunnelConfiguration,
+  FunnelConfigurations,
   type FunnelConfiguration,
   type SessionAnswers,
 } from '@kelpie/contracts';
 import {
   FunnelRuntime,
-  evaluateCondition,
-  resolveAvailableSteps,
-  resolveExperimentConfiguration,
-  resolveFunnelResult,
-  resolveNextStep,
-  resolvePreviousStep,
-  validateStepAnswer,
+  ConditionEvaluation,
+  RouteResolution,
+  ExperimentResolution,
+  ResultResolution,
+  AnswerValidation,
 } from '../source/index.js';
 
 function configuration(version: number): FunnelConfiguration {
-  const result = validateFunnelConfiguration(
+  const result = FunnelConfigurations.validate(
     JSON.parse(
       readFileSync(
         new URL(`../../../configurations/funnel-v${version}.json`, import.meta.url),
@@ -118,8 +116,8 @@ describe('pure funnel runtime', () => {
       const before = JSON.stringify(document);
 
       for (const variant of [ExperimentVariant.A, ExperimentVariant.B]) {
-        const result = resolveFunnelResult(document, variant, completeAnswers);
-        const resolved = resolveExperimentConfiguration(document, variant);
+        const result = ResultResolution.resolve(document, variant, completeAnswers);
+        const resolved = ExperimentResolution.resolve(document, variant);
 
         expect(result).toBeDefined();
 
@@ -150,25 +148,25 @@ describe('pure funnel runtime', () => {
       },
     };
 
-    expect(resolveFunnelResult(inheritedDocument, ExperimentVariant.B, completeAnswers)).toEqual(
-      document.results['balanced'],
-    );
     expect(
-      resolveExperimentConfiguration(inheritedDocument, ExperimentVariant.B).results['balanced'],
+      ResultResolution.resolve(inheritedDocument, ExperimentVariant.B, completeAnswers),
+    ).toEqual(document.results['balanced']);
+    expect(
+      ExperimentResolution.resolve(inheritedDocument, ExperimentVariant.B).results['balanced'],
     ).toEqual(document.results['balanced']);
   });
 
   it('resolves variant order and copy without changing the original document', () => {
     const document = configuration(1);
     const before = JSON.stringify(document);
-    const resolved = resolveExperimentConfiguration(document, ExperimentVariant.B);
+    const resolved = ExperimentResolution.resolve(document, ExperimentVariant.B);
     expect(resolved.stepSequence[1]).toBe('work_mode');
     expect(resolved.steps['intro']?.content.primaryActionLabel).toBe('Show me');
     expect(JSON.stringify(document)).toBe(before);
   });
 
   it('omits office days for remote work and excludes retained answers', () => {
-    const route = resolveAvailableSteps(configuration(1), ExperimentVariant.A, completeAnswers);
+    const route = RouteResolution.resolve(configuration(1), ExperimentVariant.A, completeAnswers);
     expect(route.steps.some((step) => step.id === 'office_days')).toBe(false);
     expect(route.activeAnswers['office_days']).toBeUndefined();
     expect(route.questionCount).toBe(6);
@@ -176,19 +174,19 @@ describe('pure funnel runtime', () => {
   });
 
   it('restores the available office branch when the user changes work mode', () => {
-    const route = resolveAvailableSteps(configuration(1), ExperimentVariant.A, {
+    const route = RouteResolution.resolve(configuration(1), ExperimentVariant.A, {
       ...completeAnswers,
       work_mode: 'hybrid',
     });
     expect(route.activeAnswers['office_days']).toBe(2);
     expect(route.questionCount).toBe(7);
-    expect(resolveNextStep(route, 'timezone_span')?.id).toBe('office_days');
-    expect(resolvePreviousStep(route, 'office_days')?.id).toBe('timezone_span');
-    expect(resolveNextStep(route, 'unknown')).toBeUndefined();
+    expect(RouteResolution.next(route, 'timezone_span')?.id).toBe('office_days');
+    expect(RouteResolution.previous(route, 'office_days')?.id).toBe('timezone_span');
+    expect(RouteResolution.next(route, 'unknown')).toBeUndefined();
   });
 
   it('excludes tool_count in version three variant B', () => {
-    const route = resolveAvailableSteps(configuration(3), ExperimentVariant.B, completeAnswers);
+    const route = RouteResolution.resolve(configuration(3), ExperimentVariant.B, completeAnswers);
     expect(route.activeAnswers['tool_count']).toBeUndefined();
     expect(route.steps.some((step) => step.id === 'tool_count')).toBe(false);
   });
@@ -196,7 +194,7 @@ describe('pure funnel runtime', () => {
   it('resolves compliance priority first and ignores inactive compliance answers', () => {
     const document = configuration(3);
     expect(
-      resolveFunnelResult(document, ExperimentVariant.A, {
+      ResultResolution.resolve(document, ExperimentVariant.A, {
         ...completeAnswers,
         priorities: ['compliance'],
         security_constraints: 'regulated',
@@ -204,7 +202,7 @@ describe('pure funnel runtime', () => {
       })?.id,
     ).toBe('regulated_scale');
     expect(
-      resolveFunnelResult(document, ExperimentVariant.A, {
+      ResultResolution.resolve(document, ExperimentVariant.A, {
         ...completeAnswers,
         security_constraints: 'regulated',
       })?.id,
@@ -213,22 +211,25 @@ describe('pure funnel runtime', () => {
 
   it('requires all active required answers before resolving a result', () => {
     expect(
-      resolveFunnelResult(configuration(1), ExperimentVariant.A, { work_mode: 'remote' }),
+      ResultResolution.resolve(configuration(1), ExperimentVariant.A, { work_mode: 'remote' }),
     ).toBeUndefined();
     expect(
-      resolveFunnelResult(configuration(1), ExperimentVariant.B, completeAnswers)?.cta.label,
+      ResultResolution.resolve(configuration(1), ExperimentVariant.B, completeAnswers)?.cta.label,
     ).toBe('See the 30-day action list');
   });
 
   it('does not let invalid answers activate branches', () => {
     expect(
-      resolveAvailableSteps(configuration(3), ExperimentVariant.A, {
+      RouteResolution.resolve(configuration(3), ExperimentVariant.A, {
         ...completeAnswers,
         priorities: ['compliance', 'unknown'],
       }).activeAnswers['security_constraints'],
     ).toBeUndefined();
     expect(
-      evaluateCondition({ answer: 'missing', operator: ConditionOperator.Equal, value: 'x' }, {}),
+      ConditionEvaluation.evaluate(
+        { answer: 'missing', operator: ConditionOperator.Equal, value: 'x' },
+        {},
+      ),
     ).toBe(false);
   });
 
@@ -241,7 +242,7 @@ describe('pure funnel runtime', () => {
     }
 
     for (const answer of [NaN, Infinity, '10', 0, 201, 1.5]) {
-      expect(validateStepAnswer(numberStep, answer).valid).toBe(false);
+      expect(AnswerValidation.validate(numberStep, answer).valid).toBe(false);
     }
 
     for (const answer of [
@@ -250,9 +251,9 @@ describe('pure funnel runtime', () => {
       ['unknown'],
       ['focus', 'speed', 'culture', 'cost'],
     ]) {
-      expect(validateStepAnswer(selectionStep, answer).valid).toBe(false);
+      expect(AnswerValidation.validate(selectionStep, answer).valid).toBe(false);
     }
 
-    expect(validateStepAnswer(numberStep, 10).valid).toBe(true);
+    expect(AnswerValidation.validate(numberStep, 10).valid).toBe(true);
   });
 });

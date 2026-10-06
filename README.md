@@ -96,7 +96,7 @@ See [the development log](documentation/development-log.md) for actual implement
 
 ## Type conventions and module imports
 
-Related operations have frozen domain facades: `FunnelConfigurations.validate(document)`, `FunnelRuntime.Answers.validate(step, answer)`, `FunnelRuntime.Routes.resolve(configuration, variant, answers)`, and `FunnelRuntime.Results.resolve(configuration, variant, answers)`. Existing named exports remain compatible. Facades reference the existing functions and are constructed once.
+Related operations belong to frozen domain objects, exported whole: `FunnelConfigurations.validate(document)`, `AnswerValidation.validate(step, answer)`, `RouteResolution.resolve(configuration, variant, answers)`, and `ResultResolution.resolve(configuration, variant, answers)`. `FunnelRuntime` groups these same objects for callers using several runtime domains. Standalone method aliases are not exported. All in-repository consumers use the grouped API; objects are constructed once.
 
 Domain policy files own configuration limits and schema constraints, environment defaults, SQLite settings, transport timeouts, numeric tolerances, and readiness settings. Environment inputs use compiled TypeBox/Ajv schemas. Named rules encapsulate condition compatibility and selection constraints. Computed values remain local; message catalogs and policies remain with the subsystem that owns them.
 
