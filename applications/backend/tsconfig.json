@@ -1,0 +1,15 @@
+{
+  "extends": "../../typescript.base.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "rootDir": ".",
+    "outDir": "distribution",
+    "types": ["node"],
+    "noEmit": false
+  },
+  "include": ["source/**/*.ts", "generated/prisma/**/*.ts"],
+  "exclude": ["distribution", "node_modules", "tests"]
+}

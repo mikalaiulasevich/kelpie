@@ -1,0 +1,2 @@
+# This migration history targets the agreed local SQLite provider.
+provider = "sqlite"

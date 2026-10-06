@@ -1,0 +1,8 @@
+node_modules
+dist
+distribution
+coverage
+generated
+data
+package-lock.json
+configurations/funnel-v*.json

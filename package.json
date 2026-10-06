@@ -1,0 +1,50 @@
+{
+  "name": "kelpie",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Configurable funnel runtime with versioning, experiments, and session analytics",
+  "packageManager": "npm@11.19.1",
+  "engines": {
+    "node": "^24.0.0 || ^26.0.0",
+    "npm": "^11.0.0"
+  },
+  "workspaces": [
+    "applications/*",
+    "packages/*"
+  ],
+  "overrides": {
+    "deepmerge-ts": "8.0.2",
+    "mysql2": "3.24.5",
+    "shell-quote": "1.12.0"
+  },
+  "scripts": {
+    "development": "npm run build:packages && npm run database:generate && node scripts/development.mjs",
+    "build:packages": "npm run build --workspace=@kelpie/contracts && npm run build --workspace=@kelpie/funnel-runtime",
+    "build": "npm run build:packages && npm run database:generate && npm run build --workspace=@kelpie/backend && npm run build --workspace=@kelpie/frontend",
+    "typecheck": "npm run build:packages && npm run database:generate && npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "database:generate": "npm run database:generate --workspace=@kelpie/backend",
+    "database:migrate": "npm run database:migrate --workspace=@kelpie/backend",
+    "database:validate": "npm run database:validate --workspace=@kelpie/backend",
+    "configurations:verify": "node scripts/verify-configurations.mjs",
+    "verify": "npm run configurations:verify && npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build && npm run database:validate"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "24.19.1",
+    "concurrently": "10.0.5",
+    "eslint": "10.12.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "eslint-plugin-react-refresh": "0.5.7",
+    "globals": "17.13.0",
+    "prettier": "3.9.9",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.71.1",
+    "vitest": "5.0.3"
+  }
+}
