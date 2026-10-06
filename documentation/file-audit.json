@@ -1596,6 +1596,93 @@
           "reason": "Replaced the old benchmark script with the typed tests-owned suite; command and owners migrated."
         }
       ]
+    },
+    {
+      "name": "Measured Mnemonist evaluation without production adoption",
+      "reviewDate": "2026-10-06",
+      "verification": "Final npm run verify passed: 210 tests, types, lint, formatting, builds, checksums, test layout and Prisma. All 34 paired cases were verified before and after timing in three runs; 79 runtime cases compared native, candidate and restored implementations. No production import remains.",
+      "files": [
+        {
+          "path": "README.md",
+          "reason": "Documented paired Mnemonist command, separate latest table,79 runtime cases and dev-only adoption decision.",
+          "sha256": "497d80a2fccf6473f8f9b2feb5f7a355fc4f5701accf66cc35af84aab80bf9e6"
+        },
+        {
+          "path": "documentation/development-log.md",
+          "reason": "Recorded actual comparisons, production trial restoration and independent review correction.",
+          "sha256": "26480b7f105d4450e0a4c5b218a9f91919a6298decc1d0c85f82cf90bef12a66"
+        },
+        {
+          "path": "documentation/foundation-review.md",
+          "reason": "Recorded three paired comparisons and full-operation native/candidate/restored results with sources, limits and adoption rationale.",
+          "sha256": "cb3e1b7ba7b3a79f36c5b61c71db5ce71ad3bf86181d332def2a4efb412b46ee"
+        },
+        {
+          "path": "package-lock.json",
+          "reason": "npm-generated lock updated for pinned benchmark-only Mnemonist and transitive dependency; installation audit reported zero advisories.",
+          "sha256": "a6332e693622a6acca9a73f64266956e18da2dd08584732bd27c0adc8396186f"
+        },
+        {
+          "path": "package.json",
+          "reason": "Added reproducible benchmark:mnemonist command using existing build and measurement runner.",
+          "sha256": "c40cb4ffaa0040c0d45ec259aa6766de89b222c4706f9ca1cec37b339072b8cb"
+        },
+        {
+          "path": "packages/funnel-runtime/package.json",
+          "reason": "Pinned mnemonist 0.40.5 in devDependencies only; production dependency graph unchanged.",
+          "sha256": "a306036dfabd0c24657a662c00fd5abde949a8b524f5800ab7f6df8a5187bd60"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/benchmark-report.ts",
+          "reason": "Recorded suite-specific scope and selected separate latest table while sharing raw/history reporting.",
+          "sha256": "271b0449d25f6ada01504a37647cf366d643f056d1e71ec4b0180b1e1151aa21"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/measurement-messages.ts",
+          "reason": "Added explicit structure-comparison scope without claiming full-operation production measurements.",
+          "sha256": "7d5a3910d0dc2429e9c57df5d149de3446c7473034a84c5648c0b603140b8d01"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/measurement-policy.ts",
+          "reason": "Owned CLI argument and separate comparison output filename.",
+          "sha256": "44637dfab218511f00c8269f23d927ab40020923dc9d6d1d9f9fb1e19244752d"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/measurement-types.ts",
+          "reason": "Defined suite vocabulary and metadata field.",
+          "sha256": "2133fc9aae9f4b6352fc39a558f240961130c54885ad3aa33f02955bb3e88a76"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/mnemonist-policy.ts",
+          "reason": "Owned bounded comparison sizes, reference counts and missing-option fixture value.",
+          "sha256": "7da2d73dc5980ebf39f1f7e7b9aaf6fbb6912c684d25546820f79f2dae11b401"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/mnemonist-types.ts",
+          "reason": "Named fixture, workload and membership result contracts.",
+          "sha256": "42122dbf73bbf264ff22ed8599826911a15fa3986a4239edc679c6d166c20a03"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/benchmarks/run-benchmarks.ts",
+          "reason": "Selected runtime or paired structure cases through the existing report lifecycle.",
+          "sha256": "77f0c23e5dc75b9adc6fffb498c7d6b700fc71c4c49fc070a069a566b17a67ba"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/cases/benchmark-cases.ts",
+          "reason": "Added three duplicate-answer full-operation cases with independently expected rejection.",
+          "sha256": "b5e7c690ca236412e3efc76174a472ddb00d35ca7b9b21bc2ee505f90e131556"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/cases/mnemonist-cases.ts",
+          "reason": "Owned 34 paired cases and scenario tables; expected flags and order-sensitive stack checksum verified outside timing.",
+          "sha256": "d77b060676e4e305f411696ebaa81248072841a97bc0a01428f4d52d4f4de177"
+        },
+        {
+          "path": "packages/funnel-runtime/tests/fixtures/mnemonist-fixtures.ts",
+          "reason": "Implemented equivalent native/library workloads including construction costs; root ESM import tested.",
+          "sha256": "1f20884e774fe9c573d861e9555b9215f3886f9fd1b5af2fb60cdcc570b36e00"
+        }
+      ]
     }
   ]
 }

@@ -2,6 +2,10 @@ import { vi, type Mock } from 'vitest';
 import { ServiceReadinessFixtureMessages } from './service-readiness-messages';
 
 export const ServiceReadinessFixture = {
+  browser(): void {
+    vi.stubGlobal('location', { origin: 'http://localhost' });
+  },
+
   response(body: unknown, status = 200): Mock<typeof globalThis.fetch> {
     const fetch = vi
       .fn<typeof globalThis.fetch>()
@@ -24,21 +28,29 @@ export const ServiceReadinessFixture = {
     );
   },
 
-  stalledResponse(): void {
+  stalledBody(): void {
     vi.stubGlobal(
       'fetch',
-      vi.fn(
-        (_input: string, options: RequestInit) =>
-          new Promise<Response>((_resolve, reject) => {
-            const signal = options.signal;
-            if (signal === undefined || signal === null) {
-              throw new Error(ServiceReadinessFixtureMessages.CancellationRequired);
-            }
-
-            signal.throwIfAborted();
-            signal.addEventListener('abort', () => reject(signal.reason), { once: true });
-          }),
-      ),
+      vi.fn<typeof globalThis.fetch>().mockResolvedValue(new Response(new ReadableStream())),
     );
+  },
+
+  stalledResponse(): Mock<typeof globalThis.fetch> {
+    const fetch = vi.fn<typeof globalThis.fetch>(
+      (input) =>
+        new Promise<Response>((_resolve, reject) => {
+          const signal = input instanceof Request ? input.signal : undefined;
+
+          if (signal === undefined) {
+            throw new Error(ServiceReadinessFixtureMessages.CancellationRequired);
+          }
+
+          signal.throwIfAborted();
+          signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+        }),
+    );
+    vi.stubGlobal('fetch', fetch);
+
+    return fetch;
   },
 } as const;

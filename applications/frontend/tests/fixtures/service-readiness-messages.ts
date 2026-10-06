@@ -1,4 +1,4 @@
 export const ServiceReadinessFixtureMessages = {
-  NetworkUnavailable: 'The network connection failed.',
+  NetworkUnavailable: 'Failed to fetch',
   CancellationRequired: 'Readiness requests must supply a cancellation signal.',
 } as const;

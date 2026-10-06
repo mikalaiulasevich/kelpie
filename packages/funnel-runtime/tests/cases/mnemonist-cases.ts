@@ -1,8 +1,12 @@
+import type { MultipleSelectionStep } from '@kelpie/contracts';
 import assert from 'node:assert/strict';
 import { BenchmarkPolicy } from '../benchmarks/benchmark-policy.js';
 import type { BenchmarkCase } from '../benchmarks/benchmark-types.js';
 import { MnemonistPolicy } from '../benchmarks/mnemonist-policy.js';
-import type { SelectionMembershipImplementation } from '../benchmarks/mnemonist-types.js';
+import type {
+  SelectionMembershipImplementation,
+  SelectionMembershipScenario,
+} from '../benchmarks/mnemonist-types.js';
 import { BenchmarkFixtures } from '../fixtures/benchmark-fixtures.js';
 import { MnemonistFixtures } from '../fixtures/mnemonist-fixtures.js';
 
@@ -12,6 +16,24 @@ const MembershipImplementations: ReadonlyList<SelectionMembershipImplementation>
 ];
 
 const MnemonistCaseFactory = {
+  selectionScenarios(step: MultipleSelectionStep): ReadonlyList<SelectionMembershipScenario> {
+    const answers = step.input.options.map((option) => option.value);
+
+    return [
+      { name: 'valid', answers, expected: { duplicate: false, unavailable: false } },
+      {
+        name: 'duplicate',
+        answers: answers.map(() => 'option_0'),
+        expected: { duplicate: true, unavailable: false },
+      },
+      {
+        name: 'missing-tail',
+        answers: [...answers.slice(1), MnemonistPolicy.MissingOption],
+        expected: { duplicate: false, unavailable: true },
+      },
+    ];
+  },
+
   checked(name: string, size: number, run: () => unknown, expected: unknown): BenchmarkCase {
     return {
       name,
@@ -25,7 +47,7 @@ const MnemonistCaseFactory = {
   selections(size: number): ReadonlyList<BenchmarkCase> {
     const step = BenchmarkFixtures.selection(size);
 
-    return MnemonistFixtures.selections(step).flatMap((scenario) =>
+    return MnemonistCaseFactory.selectionScenarios(step).flatMap((scenario) =>
       MembershipImplementations.map((implementation) =>
         MnemonistCaseFactory.checked(
           `membership.${scenario.name}.${implementation.name}`,

@@ -1,39 +1,44 @@
+import ky, { isTimeoutError } from 'ky';
 import { isMatching } from 'ts-pattern';
-import { ServiceHealthPolicy } from './service-health-policy';
+import { ServiceHealthPolicy, ServiceHealthRequestPolicy } from './service-health-policy';
 import { ServiceHealthMessages } from './service-health-messages';
 import { ServiceHealthStatus } from './service-health';
 
 const ServiceReadinessResponse = {
   isReady: isMatching({ status: ServiceHealthStatus.Ready }),
+
+  requireSuccess(response: Response): void {
+    if (!response.ok) {
+      throw new Error(ServiceHealthMessages.Unavailable);
+    }
+  },
 } as const;
 
 export const ServiceReadiness = {
   async request(cancellationSignal: AbortSignal): Promise<void> {
     cancellationSignal.throwIfAborted();
-
-    const timeoutController = new AbortController();
-    const timeoutIdentifier = setTimeout(() => {
-      timeoutController.abort(new Error(ServiceHealthMessages.TimedOut));
-    }, ServiceHealthPolicy.RequestTimeoutMilliseconds);
+    const endpoint = new URL(ServiceHealthPolicy.ReadinessEndpoint, globalThis.location.origin);
 
     try {
-      const response = await fetch(ServiceHealthPolicy.ReadinessEndpoint, {
-        signal: AbortSignal.any([cancellationSignal, timeoutController.signal]),
-        cache: 'no-store',
-        credentials: 'same-origin',
-        headers: { Accept: 'application/json' },
-      });
+      const responseBody = await ky
+        .get(endpoint, {
+          ...ServiceHealthRequestPolicy,
+          signal: cancellationSignal,
+          hooks: {
+            afterResponse: [({ response }) => ServiceReadinessResponse.requireSuccess(response)],
+          },
+        })
+        .json<unknown>();
 
-      if (!response.ok) {
-        throw new Error(ServiceHealthMessages.Unavailable);
-      }
-
-      const responseBody: unknown = await response.json();
       if (!ServiceReadinessResponse.isReady(responseBody)) {
         throw new Error(ServiceHealthMessages.InvalidResponse);
       }
-    } finally {
-      clearTimeout(timeoutIdentifier);
+    } catch (error) {
+      if (isTimeoutError(error)) {
+        throw new Error(ServiceHealthMessages.TimedOut, { cause: error });
+      }
+
+      throw error;
     }
   },
 } as const;

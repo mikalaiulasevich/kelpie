@@ -1,31 +1,8 @@
 import type { MultipleSelectionStep } from '@kelpie/contracts';
 import { DefaultMap, set, Stack } from 'mnemonist';
-import { MnemonistPolicy } from '../benchmarks/mnemonist-policy.js';
-import type {
-  SelectionMembershipResult,
-  SelectionMembershipScenario,
-  TraversalPayload,
-} from '../benchmarks/mnemonist-types.js';
+import type { SelectionMembershipResult, TraversalPayload } from '../benchmarks/mnemonist-types.js';
 
 export const MnemonistFixtures = {
-  selections(step: MultipleSelectionStep): ReadonlyList<SelectionMembershipScenario> {
-    const answers = step.input.options.map((option) => option.value);
-
-    return [
-      { name: 'valid', answers, expected: { duplicate: false, unavailable: false } },
-      {
-        name: 'duplicate',
-        answers: answers.map(() => 'option_0'),
-        expected: { duplicate: true, unavailable: false },
-      },
-      {
-        name: 'missing-tail',
-        answers: [...answers.slice(1), MnemonistPolicy.MissingOption],
-        expected: { duplicate: false, unavailable: true },
-      },
-    ];
-  },
-
   nativeMembership(
     step: MultipleSelectionStep,
     answers: ReadonlyList<string>,
