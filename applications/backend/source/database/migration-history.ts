@@ -1,6 +1,6 @@
 import { readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { applicationDirectory } from '../application-directory.js';
+import { applicationDirectory } from '../application/application-directory.js';
 import { DatabasePaths } from './database-paths.js';
 import { DatabaseMessages } from './database-messages.js';
 

@@ -3,7 +3,7 @@ export {
   ConfigurationStatus,
   ExperimentVariant,
   StepType,
-} from './domain-values.js';
+} from './shared/domain-values.js';
 
 export type {
   AllConditions,

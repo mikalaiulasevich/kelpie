@@ -1,8 +1,8 @@
-import { AnswerValidation } from './answer-validation.js';
-import { ConditionEvaluation } from './condition-evaluation.js';
-import { ExperimentResolution } from './experiment-resolution.js';
-import { ResultResolution } from './result-resolution.js';
-import { RouteResolution } from './route-resolution.js';
+import { AnswerValidation } from './answers/answer-validation.js';
+import { ConditionEvaluation } from './conditions/condition-evaluation.js';
+import { ExperimentResolution } from './experiments/experiment-resolution.js';
+import { ResultResolution } from './results/result-resolution.js';
+import { RouteResolution } from './routes/route-resolution.js';
 
 /** Grouped domain entry points. */
 export const FunnelRuntime = {

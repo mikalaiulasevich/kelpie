@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ConditionOperator, type Condition, type SessionAnswers } from '@kelpie/contracts';
-import { ConditionEvaluation } from '../source/condition-evaluation.js';
+import { ConditionEvaluation } from '../source/conditions/condition-evaluation.js';
 
 interface ConditionExample {
   readonly description: string;

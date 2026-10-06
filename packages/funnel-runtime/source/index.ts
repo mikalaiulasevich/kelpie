@@ -1,13 +1,13 @@
 export { FunnelRuntime } from './funnel-runtime.js';
-export { AnswerValidation } from './answer-validation.js';
-export { ConditionEvaluation } from './condition-evaluation.js';
-export { RouteResolution } from './route-resolution.js';
+export { AnswerValidation } from './answers/answer-validation.js';
+export { ConditionEvaluation } from './conditions/condition-evaluation.js';
+export { RouteResolution } from './routes/route-resolution.js';
 export {
   AnswerIssueCode,
   type AnswerIssue,
   type AnswerValidationResult,
-  type AvailableRoute,
-  type ResolvedExperimentConfiguration,
-} from './runtime-types.js';
-export { ExperimentResolution } from './experiment-resolution.js';
-export { ResultResolution } from './result-resolution.js';
+} from './answers/answer-types.js';
+export type { AvailableRoute } from './routes/route-types.js';
+export type { ResolvedExperimentConfiguration } from './experiments/experiment-types.js';
+export { ExperimentResolution } from './experiments/experiment-resolution.js';
+export { ResultResolution } from './results/result-resolution.js';

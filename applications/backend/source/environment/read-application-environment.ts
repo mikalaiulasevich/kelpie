@@ -1,7 +1,7 @@
 import { Ajv, type ValidateFunction } from 'ajv';
 import { isAbsolute, resolve } from 'node:path';
 import type { Static } from 'typebox';
-import { applicationDirectory } from '../application-directory.js';
+import { applicationDirectory } from '../application/application-directory.js';
 import { SQLitePolicy } from '../database/sqlite-policy.js';
 import { EnvironmentMessages } from './environment-messages.js';
 import { EnvironmentFields, EnvironmentPolicy } from './environment-policy.js';

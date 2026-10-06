@@ -1,7 +1,7 @@
 import 'dotenv/config';
-import { ApplicationPolicy } from './application-policy.js';
-import { ApplicationMessages } from './application-messages.js';
-import { ApplicationFactory } from './create-application.js';
+import { ApplicationPolicy } from './application/application-policy.js';
+import { ApplicationMessages } from './application/application-messages.js';
+import { ApplicationFactory } from './application/create-application.js';
 import { ApplicationEnvironmentService } from './environment/application-environment.js';
 
 try {

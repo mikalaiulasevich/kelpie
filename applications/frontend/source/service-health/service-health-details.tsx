@@ -1,4 +1,4 @@
-import { ApplicationPolicy } from '../application-policy';
+import { ApplicationPolicy } from '../application/application-policy';
 import { ServiceHealthContent } from './service-health-content';
 import { match } from 'ts-pattern';
 import { ServiceHealthStatus, type ServiceHealth } from './service-health';

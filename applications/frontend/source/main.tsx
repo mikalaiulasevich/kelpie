@@ -1,8 +1,8 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Application } from './application';
+import { Application } from './application/application';
 import './styling/application.css';
-import { ApplicationPolicy, ApplicationMessages } from './application-policy';
+import { ApplicationPolicy, ApplicationMessages } from './application/application-policy';
 
 const rootElement = document.getElementById(ApplicationPolicy.rootElementIdentifier);
 
