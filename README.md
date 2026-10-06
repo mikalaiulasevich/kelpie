@@ -80,6 +80,8 @@ Applications keep bootstrap/composition in `source/application/`, alongside thei
 
 [AGENTS.md](AGENTS.md) is the canonical quality contract for every coding request: inspect existing work, search analogous defects, review the final diff, correct encountered violations and report exact verification boundaries. ESLint enforces selected recurring patterns, including inline test tables, inline error text in production/tooling, messages declared in policy modules and source imports from tests. Manual review still owns semantic cohesion, security and complexity; automated checks are not a proof of a defect-free repository.
 
+The [file-by-file audit](documentation/file-audit.json) records 216 authored files, the reason for each review decision and content hashes. It also records integrity checks for the three supplied configurations and dependency lock. This is a dated review snapshot; subsequent edits require renewed review.
+
 Every workspace keeps tests outside source, under `tests/<domain>/`, with reusable setup/data in `tests/fixtures/` and named input tables in `tests/cases/`. Contracts also keep compiler regressions in `tests/typechecks/`. `npm run tests:layout` checks recognized test/support filenames as part of verification; ESLint rejects Vitest imports from source. Integration tests use isolated temporary SQLite databases, real migrations and application startup, with teardown attempted after setup/test failures and both primary and cleanup errors preserved. Type checking includes suites, fixtures, cases and test configurations.
 
 Authored identifiers use full names. Original JSON fields and dependency/tool conventions remain compatible at external boundaries.

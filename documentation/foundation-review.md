@@ -4,6 +4,16 @@
 
 Review covers the application scaffold, configuration contracts/runtime, initial database schema, health endpoints, development startup, and dependency selection. Complete funnel behavior and public production deployment are outside this foundation milestone.
 
+## Complete authored-file review, October 6
+
+Reconciled the original inventory of 212 authored files with four additions: all 216 have individual decisions and content hashes in [the audit manifest](file-audit.json). This pass changed 55 files and retained 161 after review. The supplied configurations and generated dependency lock have separate integrity entries. Generated output, dependencies, local secrets/data and the evidence manifest itself are excluded from authored-source coverage.
+
+Corrections include domain ownership of compiler and launch settings, static path naming, dedicated button styles/types, test fixture resource ownership, catalogued fixture diagnostics and consistent script import order. Small private types and tool-required field names retain their documented cohesion and interoperability exceptions.
+
+Behavior checks cover an already-aborted frontend request creating neither a fetch nor timer, transport/JSON failures disposing timers, repeated shutdown retaining the original deadline, and simultaneous fixture close/removal failures preserving both errors. Cleanup is attempted; arbitrary resource failure is not a guarantee of successful release.
+
+Integrated Node.js 24.16.0 `npm run verify` passed: 201 cases (79 backend, 8 frontend, 63 contracts, 51 runtime), lint, formatting, strict types, clean builds, original configuration checksums, test layout and Prisma validation. Four of the additional reported contracts cases split existing assertions into case-table entries rather than add coverage. Installed and lock-only dependency trees passed `npm ls`. No new remote CI, browser acceptance, production deployment or penetration-test result is claimed. Earlier sections below are historical milestones.
+
 ## Follow-up ownership and enforcement review, October 6
 
 The follow-up found additional organizational inconsistencies despite earlier green checks: SQL embedded in migration operations, reusable database/health/context contracts embedded in implementation modules, and newly introduced test fixtures mixing several resource owners with policy/messages/types. These were moved to explicit owners and consumers migrated without compatibility aliases. Test scenarios and behavioral expectations were preserved.
