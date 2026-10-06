@@ -1,8 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { ErrorDiagnostics } from '../../source/diagnostics/error-diagnostics.js';
-import { DiagnosticFixtures } from '../fixtures/diagnostic-stream.js';
+import { DiagnosticFixtures } from '../fixtures/diagnostic-errors.js';
 
 describe('Error diagnostics', () => {
+  it('reports only an exact allowlisted environment message', () => {
+    const safe = ErrorDiagnostics.describe(new Error('PORT must be an integer from 1 to 65535.'));
+    const unsafe = ErrorDiagnostics.describe(
+      new Error('PORT must be an integer from 1 to 65535. private-value'),
+    );
+
+    expect(safe.safeMessage).toBe('PORT must be an integer from 1 to 65535.');
+    expect(unsafe.safeMessage).toBeUndefined();
+    expect(JSON.stringify(unsafe)).not.toContain('private-value');
+  });
+
   it('redacts multiline messages, file paths and unrecognized error codes', () => {
     const error = DiagnosticFixtures.error(
       'Error: password=private-password\nanswer=private-answer\n    at privateFunction (/private/user/private-file.ts:12:34)',

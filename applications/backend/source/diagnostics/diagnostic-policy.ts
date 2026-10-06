@@ -49,3 +49,24 @@ export const ErrorClassification = {
   Error: 'error',
   Unknown: 'unknown',
 } as const;
+
+export const DiagnosticSeverity = {
+  Information: 'info',
+  Warning: 'warn',
+  Error: 'error',
+} as const;
+
+export const DiagnosticEventSeverity = {
+  [DiagnosticEvents.RequestCompleted]: DiagnosticSeverity.Information,
+  [DiagnosticEvents.RequestAborted]: DiagnosticSeverity.Warning,
+  [DiagnosticEvents.RequestFailed]: DiagnosticSeverity.Error,
+  [DiagnosticEvents.ReadinessFailed]: DiagnosticSeverity.Error,
+  [DiagnosticEvents.ApplicationStarted]: DiagnosticSeverity.Information,
+  [DiagnosticEvents.ApplicationFailed]: DiagnosticSeverity.Error,
+  [DiagnosticEvents.ApplicationCleanupFailed]: DiagnosticSeverity.Error,
+  [DiagnosticEvents.RecordsDropped]: DiagnosticSeverity.Warning,
+  [DiagnosticEvents.ShutdownDeadlineExceeded]: DiagnosticSeverity.Warning,
+} as const satisfies ReadonlyDictionary<
+  ValueOf<typeof DiagnosticEvents>,
+  ValueOf<typeof DiagnosticSeverity>
+>;

@@ -1,3 +1,4 @@
+import { EnvironmentMessages } from '../environment/environment-messages.js';
 import { createHash } from 'node:crypto';
 import { DiagnosticPolicy, ErrorClassification } from './diagnostic-policy.js';
 
@@ -17,6 +18,7 @@ export const ErrorDiagnostics = {
       // Error subclasses can override stack/code accessors; diagnostics cannot trust them.
       return {
         classification: ErrorClassification.Unknown,
+        safeMessage: undefined,
         code: undefined,
         fingerprint: this.fingerprint('unreadable'),
         frames: [],
@@ -50,7 +52,13 @@ export const ErrorDiagnostics = {
         ? DiagnosticPolicy.ErrorCodes.find((candidate) => candidate === error.code)
         : undefined;
 
+    const safeMessage =
+      error instanceof Error
+        ? Object.values(EnvironmentMessages).find((message) => message === error.message)
+        : undefined;
+
     return {
+      safeMessage,
       classification:
         error instanceof Error ? ErrorClassification.Error : ErrorClassification.Unknown,
       code,

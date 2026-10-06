@@ -1,7 +1,26 @@
+import { HttpStatus } from '@nestjs/common';
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { DiagnosticEvents } from './diagnostic-policy.js';
+import {
+  DiagnosticEvents,
+  DiagnosticEventSeverity,
+  DiagnosticSeverity,
+} from './diagnostic-policy.js';
 import type { Writable } from 'node:stream';
 import type { DiagnosticRecord } from './diagnostics-types.js';
+
+const DiagnosticLevels = {
+  resolve(record: DiagnosticRecord): ValueOf<typeof DiagnosticSeverity> {
+    if (record.status !== undefined && record.status >= HttpStatus.INTERNAL_SERVER_ERROR) {
+      return DiagnosticSeverity.Error;
+    }
+
+    if (record.status !== undefined && record.status >= HttpStatus.BAD_REQUEST) {
+      return DiagnosticSeverity.Warning;
+    }
+
+    return DiagnosticEventSeverity[record.event];
+  },
+} as const;
 
 export const RequestContext = new AsyncLocalStorage<Readonly<{ requestIdentifier: string }>>();
 
@@ -25,7 +44,7 @@ export class DiagnosticSink {
 
     try {
       const ready = this.destination.write(
-        `${JSON.stringify({ timestamp: new Date().toISOString(), ...RequestContext.getStore(), ...record })}\n`,
+        `${JSON.stringify({ timestamp: new Date().toISOString(), level: DiagnosticLevels.resolve(record), ...RequestContext.getStore(), ...record })}\n`,
       );
 
       if (!ready) {

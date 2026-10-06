@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  IncompleteRequestFixture,
   StartupPortFixture,
   StartupProcessFixture,
   StartupProcessPolicy,
@@ -68,4 +69,33 @@ describe('application process lifecycle', () => {
       await application.close();
     }
   });
+
+  it(
+    'bounds SIGTERM drain time when a client never finishes its request body',
+    async () => {
+      const listener = await StartupPortFixture.create();
+      const port = listener.port;
+      await listener.close();
+      const application = await StartupProcessFixture.create({ PORT: String(port) });
+      let request: Optional<IncompleteRequestFixture>;
+
+      try {
+        await application.waitUntilLive(port);
+        request = await IncompleteRequestFixture.create(port);
+        application.terminate();
+        const outcome = await application.waitForExit(
+          StartupProcessPolicy.SlowRequestExitMilliseconds,
+        );
+        await request.waitForClose();
+
+        expect(outcome).toEqual({ code: null, signal: 'SIGTERM' });
+        expect(application.diagnostics).toContain('shutdown_deadline_exceeded');
+        expect(application.diagnostics).not.toContain('application_failed');
+      } finally {
+        request?.close();
+        await application.close();
+      }
+    },
+    StartupProcessPolicy.SlowRequestTestMilliseconds,
+  );
 });

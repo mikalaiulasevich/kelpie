@@ -12,6 +12,7 @@ export interface ErrorFrame {
 }
 
 export interface ErrorDescription {
+  readonly safeMessage: Optional<string>;
   readonly classification: ValueOf<typeof ErrorClassification>;
   readonly code: Optional<string>;
   readonly fingerprint: string;
