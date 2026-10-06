@@ -1,4 +1,6 @@
 import { match, P } from 'ts-pattern';
+
+import { ConfigurationMessages } from './configuration-messages.js';
 import { validateStepContent } from './step-content-validation.js';
 import type { AnswerCondition, Condition } from './condition-types.js';
 import type { InteractiveStep, NumberStep, SelectionStep } from './step-types.js';
@@ -34,14 +36,18 @@ function validateNumericStep(
   step: NumberStep,
 ): void {
   if (step.input.min > step.input.max) {
-    reportIssue(context, `/steps/${stepIdentifier}/input`, 'Minimum cannot exceed maximum.');
+    reportIssue(
+      context,
+      `/steps/${stepIdentifier}/input`,
+      ConfigurationMessages.InvalidNumericRange,
+    );
   }
 
   if (!Number.isFinite((step.input.max - step.input.min) / step.input.step)) {
     reportIssue(
       context,
       `/steps/${stepIdentifier}/input`,
-      'Numeric range and increment must support finite arithmetic.',
+      ConfigurationMessages.FiniteNumericArithmeticRequired,
     );
   }
 
@@ -49,7 +55,7 @@ function validateNumericStep(
     reportIssue(
       context,
       `/steps/${stepIdentifier}/validation`,
-      'Selection limits do not apply to numeric answers.',
+      ConfigurationMessages.NumericSelectionLimits,
     );
   }
 }
@@ -62,7 +68,11 @@ function validateSelectionStep(
   const optionValues = new Set(step.input.options.map((option) => option.value));
 
   if (optionValues.size !== step.input.options.length) {
-    reportIssue(context, `/steps/${stepIdentifier}/input/options`, 'Option values must be unique.');
+    reportIssue(
+      context,
+      `/steps/${stepIdentifier}/input/options`,
+      ConfigurationMessages.UniqueOptionValuesRequired,
+    );
   }
 
   if (
@@ -72,7 +82,7 @@ function validateSelectionStep(
     reportIssue(
       context,
       `/steps/${stepIdentifier}/validation`,
-      'Selection counts only apply to multi-select.',
+      ConfigurationMessages.MultipleSelectionLimitsRequired,
     );
   }
 
@@ -82,7 +92,7 @@ function validateSelectionStep(
     reportIssue(
       context,
       `/steps/${stepIdentifier}/validation`,
-      'Selection limits must fit available options.',
+      ConfigurationMessages.SelectionLimitsOutsideOptions,
     );
   }
 }
@@ -95,7 +105,7 @@ function validateSteps(context: ConfigurationValidationContext): void {
       reportIssue(
         context,
         `/steps/${stepIdentifier}/id`,
-        'Step identifier must match its dictionary key.',
+        ConfigurationMessages.StepIdentifierMismatch,
       );
     }
 
@@ -108,7 +118,7 @@ function validateSteps(context: ConfigurationValidationContext): void {
         reportIssue(
           context,
           `/steps/${stepIdentifier}/visibleWhen`,
-          'The final result step must always be available.',
+          ConfigurationMessages.UnconditionalResultRequired,
         );
       }
 
@@ -116,7 +126,11 @@ function validateSteps(context: ConfigurationValidationContext): void {
     }
 
     if (answerSteps.has(step.input.name)) {
-      reportIssue(context, `/steps/${stepIdentifier}/input/name`, 'Answer names must be unique.');
+      reportIssue(
+        context,
+        `/steps/${stepIdentifier}/input/name`,
+        ConfigurationMessages.UniqueAnswerNamesRequired,
+      );
     }
 
     answerSteps.set(step.input.name, step);
@@ -139,13 +153,13 @@ function validateCondition(
     const answerStep = context.answerSteps.get(predicate.answer);
 
     if (answerStep === undefined) {
-      reportIssue(context, path, `Unknown answer reference: ${predicate.answer}.`);
+      reportIssue(context, path, ConfigurationMessages.UnknownAnswer(predicate.answer));
 
       return;
     }
 
     if (earlierAnswers !== undefined && !earlierAnswers.has(predicate.answer)) {
-      reportIssue(context, path, `Answer ${predicate.answer} must occur earlier in this variant.`);
+      reportIssue(context, path, ConfigurationMessages.AnswerOrder(predicate.answer));
     }
 
     const values = Array.isArray(predicate.value) ? predicate.value : [predicate.value];
@@ -155,11 +169,7 @@ function validateCondition(
         predicate.operator === ConditionOperator.Contains ||
         values.some((value) => typeof value !== 'number')
       ) {
-        reportIssue(
-          context,
-          path,
-          'Numeric conditions require numeric operands and a compatible operator.',
-        );
+        reportIssue(context, path, ConfigurationMessages.NumericConditionOperandsRequired);
       }
     } else {
       if (
@@ -167,13 +177,13 @@ function validateCondition(
           (answerStep.type === StepType.MultiSelect) ||
         predicate.operator === ConditionOperator.GreaterThanOrEqual
       ) {
-        reportIssue(context, path, 'Condition operator does not match the answer type.');
+        reportIssue(context, path, ConfigurationMessages.ConditionOperatorMismatch);
       }
 
       const availableValues = new Set(answerStep.input.options.map((option) => option.value));
 
       if (values.some((value) => typeof value !== 'string' || !availableValues.has(value))) {
-        reportIssue(context, path, 'Condition refers to an unavailable option.');
+        reportIssue(context, path, ConfigurationMessages.UnavailableConditionOption);
       }
     }
   });
@@ -194,7 +204,7 @@ function validateVariants(context: ConfigurationValidationContext): void {
         reportIssue(
           context,
           `/experiment/variants/${variantIdentifier}/stepSequence`,
-          `Unknown step: ${stepIdentifier}.`,
+          ConfigurationMessages.UnknownStep(stepIdentifier),
         );
         continue;
       }
@@ -229,7 +239,7 @@ function validateVariants(context: ConfigurationValidationContext): void {
           reportIssue(
             context,
             `/experiment/variants/${variantIdentifier}/stepSequence`,
-            'Result must be the final step.',
+            ConfigurationMessages.FinalResultPositionRequired,
           );
         }
       } else if (step.type !== StepType.Information) {
@@ -241,7 +251,7 @@ function validateVariants(context: ConfigurationValidationContext): void {
       reportIssue(
         context,
         `/experiment/variants/${variantIdentifier}/stepSequence`,
-        'Exactly one final result step is required.',
+        ConfigurationMessages.SingleResultRequired,
       );
     }
 
@@ -250,7 +260,7 @@ function validateVariants(context: ConfigurationValidationContext): void {
         reportIssue(
           context,
           `/experiment/variants/${variantIdentifier}/stepOverrides/${stepIdentifier}`,
-          'Override must target a step in this variant.',
+          ConfigurationMessages.OverrideOutsideVariant,
         );
       }
     }
@@ -260,7 +270,7 @@ function validateVariants(context: ConfigurationValidationContext): void {
         reportIssue(
           context,
           `/experiment/variants/${variantIdentifier}/resultOverrides/${resultIdentifier}`,
-          'Override refers to an unknown result.',
+          ConfigurationMessages.UnknownResultOverride,
         );
       }
     }
@@ -270,7 +280,7 @@ function validateVariants(context: ConfigurationValidationContext): void {
     configuration.experiment.variants.A.weight + configuration.experiment.variants.B.weight !==
     100
   ) {
-    reportIssue(context, '/experiment/variants', 'Variant weights must total 100.');
+    reportIssue(context, '/experiment/variants', ConfigurationMessages.InvalidVariantWeightTotal);
   }
 }
 
@@ -282,18 +292,22 @@ function validateResults(context: ConfigurationValidationContext): void {
       reportIssue(
         context,
         `/results/${resultIdentifier}/id`,
-        'Result identifier must match its dictionary key.',
+        ConfigurationMessages.ResultIdentifierMismatch,
       );
     }
   }
 
   if (!Object.hasOwn(configuration.results, configuration.defaultResultId)) {
-    reportIssue(context, '/defaultResultId', 'Unknown default result.');
+    reportIssue(context, '/defaultResultId', ConfigurationMessages.UnknownDefaultResult);
   }
 
   configuration.resultRules.forEach((rule, position) => {
     if (!Object.hasOwn(configuration.results, rule.resultId)) {
-      reportIssue(context, `/resultRules/${position}/resultId`, 'Unknown result.');
+      reportIssue(
+        context,
+        `/resultRules/${position}/resultId`,
+        ConfigurationMessages.UnknownResult,
+      );
     }
 
     validateCondition(context, rule.when, `/resultRules/${position}/when`);
@@ -305,7 +319,7 @@ function validateEvents(context: ConfigurationValidationContext): void {
   const eventNames = new Set(configuration.events.allowed.map((event) => event.name));
 
   if (eventNames.size !== configuration.events.allowed.length) {
-    reportIssue(context, '/events/allowed', 'Event names must be unique.');
+    reportIssue(context, '/events/allowed', ConfigurationMessages.UniqueEventNamesRequired);
   }
 
   const supportedProperties = new Set([
@@ -339,7 +353,7 @@ function validateEvents(context: ConfigurationValidationContext): void {
       reportIssue(
         context,
         '/events/baseProperties',
-        `Unsupported base event property: ${property}.`,
+        ConfigurationMessages.UnsupportedBaseEventProperty(property),
       );
     }
   }
@@ -347,7 +361,11 @@ function validateEvents(context: ConfigurationValidationContext): void {
   for (const event of configuration.events.allowed) {
     for (const property of event.properties) {
       if (!supportedProperties.has(property)) {
-        reportIssue(context, '/events/allowed', `Unsupported event property: ${property}.`);
+        reportIssue(
+          context,
+          '/events/allowed',
+          ConfigurationMessages.UnsupportedEventProperty(property),
+        );
       }
     }
   }
@@ -362,7 +380,7 @@ function validateEvents(context: ConfigurationValidationContext): void {
     'cta_clicked',
   ]) {
     if (!eventNames.has(name)) {
-      reportIssue(context, '/events/allowed', `Required event missing: ${name}.`);
+      reportIssue(context, '/events/allowed', ConfigurationMessages.MissingRequiredEvent(name));
     }
   }
 }

@@ -6,6 +6,7 @@ import {
   type FunnelConfiguration,
   type FunnelResult,
   type FunnelStep,
+  type Optional,
   type SessionAnswers,
   type StepAnswer,
   type VariantConfiguration,
@@ -125,7 +126,7 @@ export function resolveAvailableSteps(
 export function resolveNextStep(
   route: AvailableRoute,
   currentStepIdentifier: string,
-): FunnelStep | undefined {
+): Optional<FunnelStep> {
   const currentPosition = route.steps.findIndex((step) => step.id === currentStepIdentifier);
 
   if (currentPosition < 0) {
@@ -138,7 +139,7 @@ export function resolveNextStep(
 export function resolvePreviousStep(
   route: AvailableRoute,
   currentStepIdentifier: string,
-): FunnelStep | undefined {
+): Optional<FunnelStep> {
   const currentPosition = route.steps.findIndex((step) => step.id === currentStepIdentifier);
 
   if (currentPosition <= 0) {
@@ -152,7 +153,7 @@ export function resolveFunnelResult(
   configuration: FunnelConfiguration,
   variant: ExperimentVariant,
   answers: SessionAnswers,
-): FunnelResult | undefined {
+): Optional<FunnelResult> {
   const route = resolveAvailableSteps(configuration, variant, answers);
 
   for (const step of route.steps) {

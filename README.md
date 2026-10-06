@@ -93,3 +93,11 @@ Security overrides pin patched transitive dependencies while keeping Prisma 7.10
 The GitHub repository is initially private. No public application URL exists yet. Free hosting with persistent SQLite storage remains to be selected; GitHub Pages can only serve the frontend.
 
 See [the development log](documentation/development-log.md) for actual implementation evidence and [AGENTS.md](AGENTS.md) for mandatory engineering and review rules. The assignment's 48-hour start is not yet recorded.
+
+## Type conventions and module imports
+
+`Optional<Value>` means `Value | undefined`, `Nullable<Value>` means `Value | null`, and `Maybe<Value>` means either absence representation. Use the narrowest alias supported by the existing contract; these are compile-time aliases, not runtime containers or validators. Boundary validation remains TypeBox/Ajv; local predicates use ts-pattern's `isMatching` where that makes the domain check clearer. Authored validation text lives in ConfigurationMessages and AnswerMessages; configured custom answer messages still take precedence.
+
+Backend and shared packages compile using TypeScript NodeNext and execute as Node ESM. A source import such as `./index.js` resolves to `index.ts` during typechecking and remains `./index.js` in emitted JavaScript. Explicit relative extensions are the runtime module contract, not a source-file naming convention. Public package imports such as `@kelpie/contracts` use package exports; Vite's Bundler resolution permits extensionless frontend imports. We retain the existing module strategy rather than adding a runtime loader solely to hide extensions.
+
+An additional collection utility dependency is not currently required by the bounded runtime loops. Remeda's `pipe` API is a candidate when concrete data-transformation pipelines emerge; it would not replace configuration validation or domain branching.

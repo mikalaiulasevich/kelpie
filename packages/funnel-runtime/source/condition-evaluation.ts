@@ -5,7 +5,8 @@ import {
   type Condition,
   type SessionAnswers,
 } from '@kelpie/contracts';
-import { match } from 'ts-pattern';
+import { match, P } from 'ts-pattern';
+import { isFiniteNumber } from './value-predicates.js';
 
 function evaluateAnswerCondition(condition: AnswerCondition, answers: SessionAnswers): boolean {
   const answer = readOwnProperty(answers, condition.answer);
@@ -23,20 +24,16 @@ function evaluateAnswerCondition(condition: AnswerCondition, answers: SessionAns
     )
     .with(
       { operator: ConditionOperator.GreaterThanOrEqual },
-      ({ value }) => typeof answer === 'number' && Number.isFinite(answer) && answer >= value,
+      ({ value }) => isFiniteNumber(answer) && answer >= value,
     )
     .exhaustive();
 }
 
 /** Missing or inactive answers never satisfy a predicate. */
 export function evaluateCondition(condition: Condition, answers: SessionAnswers): boolean {
-  if ('all' in condition) {
-    return condition.all.every((child) => evaluateCondition(child, answers));
-  }
-
-  if ('any' in condition) {
-    return condition.any.some((child) => evaluateCondition(child, answers));
-  }
-
-  return evaluateAnswerCondition(condition, answers);
+  return match(condition)
+    .with({ all: P._ }, ({ all }) => all.every((child) => evaluateCondition(child, answers)))
+    .with({ any: P._ }, ({ any }) => any.some((child) => evaluateCondition(child, answers)))
+    .with({ answer: P.string }, (predicate) => evaluateAnswerCondition(predicate, answers))
+    .exhaustive();
 }

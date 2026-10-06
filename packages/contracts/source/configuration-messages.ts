@@ -1,0 +1,46 @@
+// Authored validation text is owned here; schema-engine diagnostics remain with Ajv.
+export const ConfigurationMessages = Object.freeze({
+  InvalidConfiguration: 'Invalid configuration.',
+  DocumentTraversalLimit: 'Document exceeds nesting or node limits.',
+  FiniteNumbersRequired: 'Numbers must be finite.',
+  PlainObjectsRequired: 'Document objects must be plain JSON objects.',
+  AcyclicDocumentRequired:
+    'Document must be an acyclic JSON value without shared object references.',
+  DocumentPropertyLimit: 'Document contains too many properties.',
+  ReservedObjectKeys: 'Reserved object keys are not allowed.',
+  JsonValuesRequired: 'Document contains a non-JSON value.',
+  DocumentSizeLimit: 'Document exceeds the size limit.',
+  InformationContentRequired: 'Information steps require title, body, and primary action label.',
+  InteractiveTitleRequired: 'Interactive steps require a title.',
+  InvalidNumericRange: 'Minimum cannot exceed maximum.',
+  FiniteNumericArithmeticRequired: 'Numeric range and increment must support finite arithmetic.',
+  NumericSelectionLimits: 'Selection limits do not apply to numeric answers.',
+  UniqueOptionValuesRequired: 'Option values must be unique.',
+  MultipleSelectionLimitsRequired: 'Selection counts only apply to multi-select.',
+  SelectionLimitsOutsideOptions: 'Selection limits must fit available options.',
+  StepIdentifierMismatch: 'Step identifier must match its dictionary key.',
+  UnconditionalResultRequired: 'The final result step must always be available.',
+  UniqueAnswerNamesRequired: 'Answer names must be unique.',
+  NumericConditionOperandsRequired:
+    'Numeric conditions require numeric operands and a compatible operator.',
+  ConditionOperatorMismatch: 'Condition operator does not match the answer type.',
+  UnavailableConditionOption: 'Condition refers to an unavailable option.',
+  FinalResultPositionRequired: 'Result must be the final step.',
+  SingleResultRequired: 'Exactly one final result step is required.',
+  OverrideOutsideVariant: 'Override must target a step in this variant.',
+  UnknownResultOverride: 'Override refers to an unknown result.',
+  InvalidVariantWeightTotal: 'Variant weights must total 100.',
+  ResultIdentifierMismatch: 'Result identifier must match its dictionary key.',
+  UnknownDefaultResult: 'Unknown default result.',
+  UnknownResult: 'Unknown result.',
+  UniqueEventNamesRequired: 'Event names must be unique.',
+  UnknownAnswer: (answerName: string): string => `Unknown answer reference: ${answerName}.`,
+  AnswerOrder: (answerName: string): string =>
+    `Answer ${answerName} must occur earlier in this variant.`,
+  UnknownStep: (stepIdentifier: string): string => `Unknown step: ${stepIdentifier}.`,
+  UnsupportedBaseEventProperty: (propertyName: string): string =>
+    `Unsupported base event property: ${propertyName}.`,
+  UnsupportedEventProperty: (propertyName: string): string =>
+    `Unsupported event property: ${propertyName}.`,
+  MissingRequiredEvent: (eventName: string): string => `Required event missing: ${eventName}.`,
+});

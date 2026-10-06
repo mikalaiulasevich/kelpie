@@ -1,3 +1,4 @@
+import { ConfigurationMessages } from './configuration-messages.js';
 import { configurationSchemaCompiler } from './configuration-schema-compiler.js';
 import type { ConfigurationValidationResult, FunnelConfiguration } from './configuration-types.js';
 import { checkDocumentBounds, configurationLimits } from './configuration-document-bounds.js';
@@ -23,7 +24,7 @@ export function validateFunnelConfiguration(document: unknown): ConfigurationVal
         .slice(0, configurationLimits.maximumIssues)
         .map((error) => ({
           path: error.instancePath || '/',
-          message: error.message ?? 'Invalid configuration.',
+          message: error.message ?? ConfigurationMessages.InvalidConfiguration,
         })),
     };
   }

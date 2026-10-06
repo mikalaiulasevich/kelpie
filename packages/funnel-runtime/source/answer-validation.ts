@@ -10,6 +10,9 @@ import {
   type MultipleSelectionStep,
 } from '@kelpie/contracts';
 import { match } from 'ts-pattern';
+
+import { isFiniteNumber, isMissingAnswer } from './value-predicates.js';
+import { AnswerMessages } from './answer-messages.js';
 import { AnswerIssueCode, type AnswerIssue, type AnswerValidationResult } from './runtime-types.js';
 
 // Decimal inputs can accumulate rounding error when divided into increments.
@@ -28,19 +31,21 @@ function createIssue(
 function validateNumberAnswer(step: NumberStep, answer: unknown): readonly AnswerIssue[] {
   const { input, validation } = step;
 
-  if (typeof answer !== 'number' || !Number.isFinite(answer)) {
-    return [createIssue(validation, AnswerIssueCode.Type, 'Enter a finite number.')];
+  if (!isFiniteNumber(answer)) {
+    return [createIssue(validation, AnswerIssueCode.Type, AnswerMessages.FiniteNumberRequired)];
   }
 
   const issues: AnswerIssue[] = [];
 
   if (answer < input.min) {
-    issues.push(createIssue(validation, AnswerIssueCode.Minimum, `Enter at least ${input.min}.`));
+    issues.push(
+      createIssue(validation, AnswerIssueCode.Minimum, AnswerMessages.MinimumNumber(input.min)),
+    );
   }
 
   if (answer > input.max) {
     issues.push(
-      createIssue(validation, AnswerIssueCode.Maximum, `Enter no more than ${input.max}.`),
+      createIssue(validation, AnswerIssueCode.Maximum, AnswerMessages.MaximumNumber(input.max)),
     );
   }
 
@@ -49,7 +54,11 @@ function validateNumberAnswer(step: NumberStep, answer: unknown): readonly Answe
 
   if (!Number.isFinite(increments) || incrementDistance > NumericIncrementTolerance) {
     issues.push(
-      createIssue(validation, AnswerIssueCode.Increment, `Use increments of ${input.step}.`),
+      createIssue(
+        validation,
+        AnswerIssueCode.Increment,
+        AnswerMessages.NumericIncrement(input.step),
+      ),
     );
   }
 
@@ -64,7 +73,9 @@ function validateSingleSelection(
     typeof answer === 'string' && step.input.options.some((option) => option.value === answer);
 
   if (!isAvailableOption) {
-    return [createIssue(step.validation, AnswerIssueCode.Option, 'Select an available option.')];
+    return [
+      createIssue(step.validation, AnswerIssueCode.Option, AnswerMessages.AvailableOptionRequired),
+    ];
   }
 
   return [];
@@ -86,7 +97,7 @@ function validateMultipleSelections(
 
   // Bound work before inspecting values or constructing membership sets.
   if (!isBoundedSelection(answer, input.options.length)) {
-    return [createIssue(validation, AnswerIssueCode.Type, 'Select available options.')];
+    return [createIssue(validation, AnswerIssueCode.Type, AnswerMessages.AvailableOptionsRequired)];
   }
 
   const issues: AnswerIssue[] = [];
@@ -94,11 +105,15 @@ function validateMultipleSelections(
   const optionValues = new Set(input.options.map((option) => option.value));
 
   if (selectedValues.size !== answer.length) {
-    issues.push(createIssue(validation, AnswerIssueCode.Duplicate, 'Selections must be unique.'));
+    issues.push(
+      createIssue(validation, AnswerIssueCode.Duplicate, AnswerMessages.UniqueSelectionsRequired),
+    );
   }
 
   if (answer.some((value) => !optionValues.has(value))) {
-    issues.push(createIssue(validation, AnswerIssueCode.Option, 'Select an available option.'));
+    issues.push(
+      createIssue(validation, AnswerIssueCode.Option, AnswerMessages.AvailableOptionRequired),
+    );
   }
 
   const { minimum, maximum } = resolveSelectionLimits(step);
@@ -108,13 +123,15 @@ function validateMultipleSelections(
       createIssue(
         validation,
         AnswerIssueCode.MinimumSelections,
-        `Choose at least ${minimum} options.`,
+        AnswerMessages.MinimumSelections(minimum),
       ),
     );
   }
 
   if (answer.length > maximum) {
-    issues.push(createIssue(validation, AnswerIssueCode.MaximumSelections, 'Too many selections.'));
+    issues.push(
+      createIssue(validation, AnswerIssueCode.MaximumSelections, AnswerMessages.TooManySelections),
+    );
   }
 
   return issues;
@@ -133,15 +150,15 @@ export function validateStepAnswer(step: FunnelStep, answer: unknown): AnswerVal
     return validationResult([
       {
         code: AnswerIssueCode.NotInteractive,
-        message: 'This step does not accept answers.',
+        message: AnswerMessages.NonInteractiveStep,
       },
     ]);
   }
 
-  if (answer === undefined || answer === null || answer === '') {
+  if (isMissingAnswer(answer)) {
     if (step.validation.required) {
       return validationResult([
-        createIssue(step.validation, AnswerIssueCode.Required, 'An answer is required.'),
+        createIssue(step.validation, AnswerIssueCode.Required, AnswerMessages.RequiredAnswer),
       ]);
     }
 

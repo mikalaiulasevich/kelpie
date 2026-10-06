@@ -1,3 +1,6 @@
+import type { Optional } from './optional-types.js';
+import { ConfigurationMessages } from './configuration-messages.js';
+
 interface PendingDocumentValue {
   readonly value: unknown;
   readonly depth: number;
@@ -10,7 +13,7 @@ export const configurationLimits = Object.freeze({
   maximumIssues: 30,
 });
 
-export function checkDocumentBounds(document: unknown): string | undefined {
+export function checkDocumentBounds(document: unknown): Optional<string> {
   const pending: PendingDocumentValue[] = [{ value: document, depth: 0 }];
   const visitedObjects = new WeakSet<object>();
   let nodeCount = 0;
@@ -29,45 +32,45 @@ export function checkDocumentBounds(document: unknown): string | undefined {
       nodeCount > configurationLimits.maximumNodes ||
       current.depth > configurationLimits.maximumDepth
     ) {
-      return 'Document exceeds nesting or node limits.';
+      return ConfigurationMessages.DocumentTraversalLimit;
     }
 
     if (typeof current.value === 'string') {
       estimatedBytes += current.value.length * 3;
     } else if (typeof current.value === 'number' && !Number.isFinite(current.value)) {
-      return 'Numbers must be finite.';
+      return ConfigurationMessages.FiniteNumbersRequired;
     } else if (current.value !== null && typeof current.value === 'object') {
       const prototype: unknown = Object.getPrototypeOf(current.value);
 
       if (!Array.isArray(current.value) && prototype !== Object.prototype && prototype !== null) {
-        return 'Document objects must be plain JSON objects.';
+        return ConfigurationMessages.PlainObjectsRequired;
       }
 
       if (visitedObjects.has(current.value)) {
-        return 'Document must be an acyclic JSON value without shared object references.';
+        return ConfigurationMessages.AcyclicDocumentRequired;
       }
 
       visitedObjects.add(current.value);
       const keys = Object.keys(current.value);
 
       if (keys.length > configurationLimits.maximumNodes) {
-        return 'Document contains too many properties.';
+        return ConfigurationMessages.DocumentPropertyLimit;
       }
 
       for (const [key, value] of Object.entries(current.value)) {
         if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
-          return 'Reserved object keys are not allowed.';
+          return ConfigurationMessages.ReservedObjectKeys;
         }
 
         estimatedBytes += key.length * 3 + 8;
         pending.push({ value, depth: current.depth + 1 });
       }
     } else if (current.value !== null && !['boolean', 'number'].includes(typeof current.value)) {
-      return 'Document contains a non-JSON value.';
+      return ConfigurationMessages.JsonValuesRequired;
     }
 
     if (estimatedBytes > configurationLimits.maximumDocumentBytes) {
-      return 'Document exceeds the size limit.';
+      return ConfigurationMessages.DocumentSizeLimit;
     }
   }
 

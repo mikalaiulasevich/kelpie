@@ -34,6 +34,9 @@ Apply the readability and ownership principles reviewed in the Template referenc
 - Define named contracts for meaningful inputs, overrides, policies, and outputs. Keep them with their domain owner. Keep `unknown` at untrusted input boundaries and narrow it with validation.
 - Define structural contracts with TypeBox and derive their TypeScript types from schemas. Ajv compiles validation once; keep partial override schemas separate from required resolved content. Preserve explicit recursive type edges where library inference would widen to any.
 - Use ts-pattern with exhaustive matching for meaningful discriminated alternatives. Keep straightforward guards simple and measure hot-path overhead before expanding pattern matching.
+- Use `Optional<T>` for `T | undefined`, `Nullable<T>` for `T | null`, and `Maybe<T>` only when both are valid. These aliases do not provide runtime validation and must not widen existing contracts.
+- Keep authored error text in domain-owned message catalogs, including named formatting functions for parameters. Keep serialized identifiers, schema keywords, paths, and Ajv diagnostics with their existing owners.
+- Preserve `.js` relative import specifiers in NodeNext packages: they target emitted JavaScript. Source files remain `.ts`; public package imports use the package entry point. Frontend Bundler resolution is a separate tool contract.
 - Keep package exports explicit. Import another package through its public entry point.
 - Always use braces for control-flow blocks. Separate guards, calculations, and returns with blank lines. Do not nest ternary expressions.
 - Give distinct validation phases and step-specific rules named functions. Prefer straightforward dispatch and guard clauses over long mixed-purpose functions.
