@@ -6,6 +6,21 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 
 const restrictedSyntax = [
   {
+    selector:
+      'BinaryExpression[operator=/^(===|!==)$/][right.type="Identifier"][right.name="undefined"]:not(CallExpression[callee.name="expect"] > BinaryExpression)',
+    message: 'Use es-toolkit isUndefined for guards; keep independent test expectations explicit.',
+  },
+  {
+    selector:
+      'BinaryExpression[operator=/^(===|!==)$/][right.raw="null"]:not(CallExpression[callee.name="expect"] > BinaryExpression)',
+    message: 'Use es-toolkit isNull when the check must distinguish null from undefined.',
+  },
+  {
+    selector:
+      'BinaryExpression[operator=/^(===|!==)$/][left.type="UnaryExpression"][left.operator="typeof"][right.value="string"]:not(CallExpression[callee.name="expect"] > BinaryExpression)',
+    message: 'Use es-toolkit isString for string guards.',
+  },
+  {
     selector: 'TSUnionType:has(> TSStringKeyword):has(> TSNumberKeyword)',
     message:
       'Use the shared TextOrNumber alias or an existing domain type instead of repeating primitive unions.',
