@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { BackendApplicationFixture } from '../fixtures/backend-application.js';
 import { SessionBrowserFixture, SessionFlowFixture } from '../fixtures/session-flow.js';
+import { EventBatchCases } from '../cases/event-batch-cases.js';
 import { EventBatchFixture } from '../fixtures/event-batch-fixture.js';
 
 describe('event batches', () => {
@@ -16,6 +17,20 @@ describe('event batches', () => {
   afterEach(async () => {
     await backend?.close();
   });
+
+  it.each(EventBatchCases.InvalidEnvelope)(
+    'rejects $name before creating facts',
+    async ({ body }) => {
+      await browser.create();
+      const response = await backend.request('/api/events/batches', {
+        method: 'POST',
+        headers: { ...SessionFlowFixture.Headers, cookie: browser.cookie },
+        body: JSON.stringify(body),
+      });
+      expect(response.status).toBe(400);
+      expect(await backend.database.event.count({ where: { source: 'client' } })).toBe(0);
+    },
+  );
 
   it('retains positions, isolates malformed elements and replays the original timestamp', async () => {
     const event = EventBatchFixture.view(await browser.create());

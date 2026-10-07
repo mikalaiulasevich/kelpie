@@ -5,7 +5,9 @@ import type { AnalyticsQuery } from './analytics-types.js';
 
 export const AnalyticsQueries = {
   cohort(query: AnalyticsQuery, versionIdentifiers: readonly string[], now: Date): Prisma.Sql {
-    const conditions = [Prisma.sql`s."versionIdentifier" IN (${Prisma.join([...versionIdentifiers])})`];
+    const conditions = [
+      Prisma.sql`s."versionIdentifier" IN (${Prisma.join([...versionIdentifiers])})`,
+    ];
     if (!query.includeForced) {
       conditions.push(Prisma.sql`s."assignmentSource" <> 'forced'`);
     }
@@ -20,7 +22,9 @@ export const AnalyticsQueries = {
 
     return Prisma.sql`WITH cohort AS (
       SELECT s."identifier", s."versionIdentifier", s."variant",
-        CASE WHEN s."expiresAt" <= ${now.getTime()} THEN 1 ELSE 0 END AS expired
+        CASE WHEN typeof(s."expiresAt") IN ('integer', 'real')
+          THEN s."expiresAt" <= ${now.getTime()}
+          ELSE julianday(s."expiresAt") <= julianday(${now.toISOString()}) END AS expired
       FROM "Session" s
       WHERE ${Prisma.join(conditions, ' AND ')}
         AND EXISTS (SELECT 1 FROM "Event" e WHERE e."sessionIdentifier" = s."identifier"

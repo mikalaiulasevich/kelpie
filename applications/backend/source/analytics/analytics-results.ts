@@ -1,9 +1,20 @@
 import { Ajv } from 'ajv';
 import { isPlainObject } from 'es-toolkit/predicate';
 import { AnalyticsMessages } from './analytics-messages.js';
-import { AnalyticsSchemas, type AnalyticsSummaryRow, type AnalyticsStepRow, type AnalyticsEdgeRow, type AnalyticsRatio } from './analytics-types.js';
+import {
+  AnalyticsSchemas,
+  type AnalyticsSummaryRow,
+  type AnalyticsStepRow,
+  type AnalyticsEdgeRow,
+  type AnalyticsRatio,
+} from './analytics-types.js';
 
-const compiler = new Ajv({ strict: true, allErrors: false, coerceTypes: false, ownProperties: true });
+const compiler = new Ajv({
+  strict: true,
+  allErrors: false,
+  coerceTypes: false,
+  ownProperties: true,
+});
 const validators = {
   summary: compiler.compile<AnalyticsSummaryRow>(AnalyticsSchemas.SummaryRow),
   step: compiler.compile<AnalyticsStepRow>(AnalyticsSchemas.StepRow),
@@ -16,7 +27,12 @@ export const AnalyticsResults = {
       throw new Error(AnalyticsMessages.InvalidAggregate);
     }
 
-    return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, typeof child === 'bigint' ? Number(child) : child]));
+    return Object.fromEntries(
+      Object.entries(value).map(([key, child]) => [
+        key,
+        typeof child === 'bigint' ? Number(child) : child,
+      ]),
+    );
   },
 
   summaries(rows: readonly unknown[]): readonly AnalyticsSummaryRow[] {
