@@ -23,6 +23,7 @@ export const PublicationFixtures = {
       service: backend.getService(PublicationService),
     };
   },
+
   request(
     funnelIdentifier: string,
     targetVersionIdentifier: string,

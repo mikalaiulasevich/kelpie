@@ -24,7 +24,9 @@ export const AdministrationSchemas = {
   Provisioning: Type.Object(
     {
       username: AdministrationFields.Username,
-      password: AdministrationFields.password(AdministrationPolicy.MinimumProvisionPasswordCharacters),
+      password: AdministrationFields.password(
+        AdministrationPolicy.MinimumProvisionPasswordCharacters,
+      ),
     },
     { additionalProperties: false },
   ),

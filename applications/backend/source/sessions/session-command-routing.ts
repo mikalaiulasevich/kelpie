@@ -1,7 +1,13 @@
 import { isNull } from 'es-toolkit/predicate';
 import { HttpStatus } from '@nestjs/common';
 import { AnswerValidation, FunnelEvaluation, RouteResolution } from '@kelpie/funnel-runtime';
-import { DictionaryAccess, StepRules, StepType, type FunnelConfiguration, type FunnelStep } from '@kelpie/contracts';
+import {
+  DictionaryAccess,
+  StepRules,
+  StepType,
+  type FunnelConfiguration,
+  type FunnelStep,
+} from '@kelpie/contracts';
 import type { EvaluatedFunnel } from '@kelpie/funnel-runtime';
 import { PublicRequestError } from '../transport/public-request-error.js';
 import { SessionTransitionKind } from '../events/session-event-policy.js';

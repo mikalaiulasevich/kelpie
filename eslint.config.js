@@ -4,6 +4,45 @@ import typescript from 'typescript-eslint';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 
+/** @type {import('eslint').Rule.RuleModule} */
+const objectMethodSpacing = {
+  meta: {
+    type: 'layout',
+    fixable: 'whitespace',
+    schema: [],
+    messages: { missing: 'Separate domain object methods with a blank line.' },
+  },
+  create(context) {
+    return {
+      ObjectExpression(node) {
+        const source = context.sourceCode;
+        for (const [index, property] of node.properties.entries()) {
+          const previous = node.properties[index - 1];
+          if (
+            property.type !== 'Property' ||
+            !property.method ||
+            previous?.type !== 'Property' ||
+            !previous.method ||
+            !previous.range ||
+            !property.range
+          ) {
+            continue;
+          }
+
+          const between = source.text.slice(previous.range[1], property.range[0]);
+          if (!/\n[\t \r]*\n/.test(between)) {
+            context.report({
+              node: property,
+              messageId: 'missing',
+              fix: (fixer) => fixer.insertTextBefore(property, '\n'),
+            });
+          }
+        }
+      },
+    };
+  },
+};
+
 const restrictedSyntax = [
   {
     selector:
@@ -93,7 +132,9 @@ export default typescript.config(
     languageOptions: {
       globals: globals.node,
     },
+    plugins: { kelpie: { rules: { 'object-method-spacing': objectMethodSpacing } } },
     rules: {
+      'kelpie/object-method-spacing': 'error',
       'no-console': ['error', { allow: ['warn', 'error', 'info'] }],
       curly: ['error', 'all'],
       'no-nested-ternary': 'error',

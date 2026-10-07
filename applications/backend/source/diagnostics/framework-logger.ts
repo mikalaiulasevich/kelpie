@@ -35,18 +35,23 @@ export const FrameworkLogger = {
   log(message: unknown, ...parameters: unknown[]): void {
     FrameworkRecords.write(DiagnosticSeverity.Information, message, parameters);
   },
+
   error(message: unknown, ...parameters: unknown[]): void {
     FrameworkRecords.write(DiagnosticSeverity.Error, message, parameters);
   },
+
   warn(message: unknown, ...parameters: unknown[]): void {
     FrameworkRecords.write(DiagnosticSeverity.Warning, message, parameters);
   },
+
   debug(message: unknown, ...parameters: unknown[]): void {
     FrameworkRecords.write(DiagnosticSeverity.Debug, message, parameters);
   },
+
   verbose(message: unknown, ...parameters: unknown[]): void {
     FrameworkRecords.write(DiagnosticSeverity.Trace, message, parameters);
   },
+
   fatal(message: unknown, ...parameters: unknown[]): void {
     FrameworkRecords.write(DiagnosticSeverity.Fatal, message, parameters);
   },

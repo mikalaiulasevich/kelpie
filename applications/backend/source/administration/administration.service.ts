@@ -109,7 +109,11 @@ export class AdministrationService {
     const passwordHash = await this.passwords.hash(password);
 
     return this.database.client.$transaction(async (transaction) => {
-      const administrator = await AdministrationRecords.provision(transaction, username, passwordHash);
+      const administrator = await AdministrationRecords.provision(
+        transaction,
+        username,
+        passwordHash,
+      );
       await transaction.administratorSession.updateMany({
         where: { administratorIdentifier: administrator.identifier, revokedAt: null },
         data: { revokedAt: new Date() },

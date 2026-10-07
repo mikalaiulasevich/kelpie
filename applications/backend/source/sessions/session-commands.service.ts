@@ -22,7 +22,7 @@ import {
   SessionCommandErrorCode,
 } from './session-command-policy.js';
 import { SessionCommandMessages } from './session-command-messages.js';
-import type { SessionCommand } from './session-command-types.js';
+import type { SessionCommand, SessionCommandContext } from './session-command-types.js';
 
 const SessionCommandChecks = {
   replay(operation: SessionOperation, fingerprint: string): SessionState {
@@ -162,14 +162,13 @@ export class SessionCommandsService {
     const current = SessionCommandRouting.current(record, initial, command);
     SessionCommandChecks.step(current, command);
     const revision = record.revision + 1;
-    const transition = await this.prepareTransition(
-      transaction,
+    const transition = await this.prepareTransition(transaction, {
       record,
       credentialHash,
       command,
       revision,
       configuration,
-    );
+    });
     await this.advance(transaction, record, transition, revision);
     const changed = await SessionRecords.requireOwned(transaction, credentialHash);
 
@@ -178,13 +177,10 @@ export class SessionCommandsService {
 
   private async prepareTransition(
     transaction: Prisma.TransactionClient,
-    record: OwnedSession,
-    credentialHash: string,
-    command: SessionCommand,
-    revision: number,
-    configuration: FunnelConfiguration,
+    context: SessionCommandContext,
   ): Promise<SessionTransitionEvent> {
-    const answered = await this.storeAnswer(transaction, record, credentialHash, command, revision);
+    const { record, command, configuration } = context;
+    const answered = await this.storeAnswer(transaction, context);
     const evaluation = SessionCommandRouting.evaluate(answered, configuration);
     const invalidated = SessionCommandRouting.invalidatedAnswers(answered, evaluation);
     if (invalidated.length > 0) {
@@ -249,11 +245,9 @@ export class SessionCommandsService {
 
   private async storeAnswer(
     transaction: Prisma.TransactionClient,
-    record: OwnedSession,
-    credentialHash: string,
-    command: SessionCommand,
-    revision: number,
+    context: SessionCommandContext,
   ): Promise<OwnedSession> {
+    const { record, credentialHash, command, revision } = context;
     if (command.kind !== SessionCommandKind.Answer) {
       return record;
     }

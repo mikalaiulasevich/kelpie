@@ -1,3 +1,5 @@
+import type { FunnelConfiguration } from '@kelpie/contracts';
+import type { OwnedSession } from './session-types.js';
 import { SessionPolicy } from './session-policy.js';
 import { Type, type Static } from 'typebox';
 import { ManagementSchemas } from '../management/management-types.js';
@@ -38,3 +40,11 @@ export type SessionCommand =
   | (SessionNavigationRequest & {
       readonly kind: typeof SessionCommandKind.Continue | typeof SessionCommandKind.Back;
     });
+
+export interface SessionCommandContext {
+  readonly record: OwnedSession;
+  readonly credentialHash: string;
+  readonly command: SessionCommand;
+  readonly revision: number;
+  readonly configuration: FunnelConfiguration;
+}

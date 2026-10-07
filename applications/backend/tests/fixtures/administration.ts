@@ -12,6 +12,10 @@ export const AdministrationFixture = {
     'content-type': 'application/json',
   },
 
+  inheritedCredentials(): unknown {
+    return Object.create(AdministrationFixture.Credentials);
+  },
+
   async create(): Promise<BackendApplicationFixture> {
     const application = await BackendApplicationFixture.create();
     try {

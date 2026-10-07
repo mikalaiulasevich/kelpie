@@ -15,6 +15,7 @@ export const ConfigurationIntegrityMessages = /** @type {const} */ ({
     return `Unexpected configuration manifest entry: ${fileName}`;
   },
   /** @param {string} fileName */
+
   changedContents(fileName) {
     return `Configuration changed from its supplied contents: ${fileName}`;
   },

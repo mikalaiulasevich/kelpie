@@ -39,9 +39,11 @@ export const SessionCommandFixtures = {
         administrator.identifier,
       );
   },
+
   rejectEvents(backend: BackendApplicationFixture): Promise<number> {
     return backend.database.$executeRawUnsafe(SessionFailureStatements.Install);
   },
+
   restoreEvents(backend: BackendApplicationFixture): Promise<number> {
     return backend.database.$executeRawUnsafe(SessionFailureStatements.Remove);
   },

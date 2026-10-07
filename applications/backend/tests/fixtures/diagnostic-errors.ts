@@ -10,6 +10,13 @@ export const DiagnosticFixtures = {
     });
   },
 
+  metadataAccessors(message: () => string, code: () => string): Error {
+    return Object.defineProperties(new Error(), {
+      message: { get: message },
+      code: { get: code },
+    });
+  },
+
   multilineError(message: string): Error {
     return new Error(message);
   },

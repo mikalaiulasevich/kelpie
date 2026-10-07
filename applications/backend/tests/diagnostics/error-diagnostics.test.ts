@@ -93,6 +93,20 @@ describe('Error diagnostics', () => {
     expect(stackGetter).not.toHaveBeenCalled();
   });
 
+  it('reads allowlisted metadata once per report', () => {
+    const messageGetter = vi.fn(() => 'PORT must be an integer from 1 to 65535.');
+    const codeGetter = vi.fn(() => 'P2021');
+    const error = DiagnosticFixtures.metadataAccessors(messageGetter, codeGetter);
+
+    expect(ErrorDiagnostics.describe(error)).toMatchObject({
+      classification: 'error',
+      safeMessage: 'PORT must be an integer from 1 to 65535.',
+      code: 'P2021',
+    });
+    expect(messageGetter).toHaveBeenCalledTimes(1);
+    expect(codeGetter).toHaveBeenCalledTimes(1);
+  });
+
   it('contains failures from error metadata accessors', () => {
     const error = DiagnosticFixtures.unreadableMessage();
 
