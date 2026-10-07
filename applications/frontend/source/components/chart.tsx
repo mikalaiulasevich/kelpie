@@ -2,18 +2,17 @@ import { isString, isUndefined } from 'es-toolkit';
 import { ChartMessages } from './chart-messages';
 import { ChartPayload } from './chart-payload';
 
-interface ChartIndicatorStyle extends React.CSSProperties {
-  '--color-bg'?: Optional<string>;
-  '--color-border'?: Optional<string>;
-}
-
 import * as React from 'react';
 import { ClassNames } from '../styling/combine-class-names';
 import * as RechartsPrimitive from 'recharts';
 import type { TooltipValueType } from 'recharts';
 
-// Format: { THEME_NAME: CSS_SELECTOR }
 import { ChartPolicy } from './chart-policy';
+
+interface ChartIndicatorStyle extends React.CSSProperties {
+  '--color-bg'?: Optional<string>;
+  '--color-border'?: Optional<string>;
+}
 
 type TooltipNameType = TextOrNumber;
 
@@ -29,7 +28,7 @@ export type ChartConfig = Record<
 >;
 
 type ChartContextProperties = {
-  config: ChartConfig;
+  configuration: ChartConfig;
 };
 
 const ChartContext = React.createContext<ChartContextProperties | null>(null);
@@ -45,10 +44,10 @@ function useChart() {
 }
 
 function ChartContainer({
-  id,
+  id: identifier,
   className,
   children,
-  config,
+  config: configuration,
   initialDimension = ChartPolicy.InitialDimension,
   ...properties
 }: React.ComponentProps<'div'> & {
@@ -60,10 +59,10 @@ function ChartContainer({
   };
 }) {
   const uniqueIdentifier = React.useId();
-  const chartIdentifier = `chart-${id ?? uniqueIdentifier.replace(/:/g, '')}`;
+  const chartIdentifier = `chart-${identifier ?? uniqueIdentifier.replace(/:/g, '')}`;
 
   return (
-    <ChartContext.Provider value={{ config }}>
+    <ChartContext.Provider value={{ configuration }}>
       <div
         data-slot="chart"
         data-chart={chartIdentifier}
@@ -73,7 +72,7 @@ function ChartContainer({
         )}
         {...properties}
       >
-        <ChartStyle id={chartIdentifier} config={config} />
+        <ChartStyle id={chartIdentifier} config={configuration} />
         <RechartsPrimitive.ResponsiveContainer initialDimension={initialDimension}>
           {children}
         </RechartsPrimitive.ResponsiveContainer>
@@ -82,9 +81,15 @@ function ChartContainer({
   );
 }
 
-const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
-  const colorConfiguration = Object.entries(config).filter(
-    ([, config]) => config.theme ?? config.color,
+const ChartStyle = ({
+  id: identifier,
+  config: configuration,
+}: {
+  id: string;
+  config: ChartConfig;
+}) => {
+  const colorConfiguration = Object.entries(configuration).filter(
+    ([, itemConfiguration]) => itemConfiguration.theme ?? itemConfiguration.color,
   );
 
   if (!colorConfiguration.length) {
@@ -97,7 +102,7 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
         __html: ChartPolicy.Themes.map((theme) => [theme, ChartPolicy.Selectors[theme]] as const)
           .map(
             ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
+${prefix} [data-chart=${identifier}] {
 ${colorConfiguration
   .map(([key, itemConfiguration]) => {
     const color = itemConfiguration.theme?.[theme] ?? itemConfiguration.color;
@@ -141,7 +146,7 @@ function ChartTooltipContent({
     RechartsPrimitive.DefaultTooltipContentProps<TooltipValueType, TooltipNameType>,
     'accessibilityLayer'
   >) {
-  const { config } = useChart();
+  const { configuration } = useChart();
 
   const tooltipLabel = React.useMemo(() => {
     if (hideLabel || !payload?.length) {
@@ -150,9 +155,11 @@ function ChartTooltipContent({
 
     const [item] = payload;
     const key = `${labelKey ?? item?.dataKey ?? item?.name ?? 'value'}`;
-    const itemConfiguration = ChartPayload.configuration(config, item, key);
+    const itemConfiguration = ChartPayload.configuration(configuration, item, key);
     const value =
-      !labelKey && isString(label) ? (config[label]?.label ?? label) : itemConfiguration?.label;
+      !labelKey && isString(label)
+        ? (configuration[label]?.label ?? label)
+        : itemConfiguration?.label;
 
     if (labelFormatter) {
       return (
@@ -167,7 +174,7 @@ function ChartTooltipContent({
     }
 
     return <div className={ClassNames.combine('font-medium', labelClassName)}>{value}</div>;
-  }, [label, labelFormatter, payload, hideLabel, labelClassName, config, labelKey]);
+  }, [label, labelFormatter, payload, hideLabel, labelClassName, configuration, labelKey]);
 
   if (!active || !payload?.length) {
     return null;
@@ -188,7 +195,7 @@ function ChartTooltipContent({
           .filter((item) => item.type !== 'none')
           .map((item, index) => {
             const key = `${nameKey ?? item.name ?? item.dataKey ?? 'value'}`;
-            const itemConfiguration = ChartPayload.configuration(config, item, key);
+            const itemConfiguration = ChartPayload.configuration(configuration, item, key);
             const indicatorColor = color ?? ChartPayload.fill(item.payload) ?? item.color;
             const indicatorStyle: ChartIndicatorStyle = {
               '--color-bg': indicatorColor,
@@ -268,7 +275,7 @@ function ChartLegendContent({
   hideIcon?: boolean;
   nameKey?: string;
 } & RechartsPrimitive.DefaultLegendContentProps) {
-  const { config } = useChart();
+  const { configuration } = useChart();
 
   if (!payload?.length) {
     return null;
@@ -286,7 +293,7 @@ function ChartLegendContent({
         .filter((item) => item.type !== 'none')
         .map((item, index) => {
           const key = `${nameKey ?? item.dataKey ?? 'value'}`;
-          const itemConfiguration = ChartPayload.configuration(config, item, key);
+          const itemConfiguration = ChartPayload.configuration(configuration, item, key);
 
           return (
             <div

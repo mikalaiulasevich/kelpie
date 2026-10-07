@@ -257,7 +257,9 @@ export function AnalyticsVersionPanel({ version }: { readonly version: Analytics
             </p>
           </div>
         </div>
-        <Badge variant="outline">{version.variants.length} variants</Badge>
+        <Badge variant="outline">
+          {version.variants.length} {version.variants.length === 1 ? 'variant' : 'variants'}
+        </Badge>
       </div>
       <Tabs defaultValue="summary" className="min-w-0 gap-5">
         <TabsList aria-label={`Version ${version.funnelVersion} detail views`}>
@@ -291,7 +293,22 @@ export function AnalyticsVersionPanel({ version }: { readonly version: Analytics
                       <CartesianGrid vertical={false} />
                       <XAxis dataKey="variant" tickLine={false} axisLine={false} tickMargin={12} />
                       <YAxis tickLine={false} axisLine={false} domain={[0, 100]} unit="%" />
-                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <ChartTooltip
+                        content={
+                          <ChartTooltipContent
+                            formatter={(value, name) => (
+                              <div className="flex w-full items-center justify-between gap-4">
+                                <span className="text-muted-foreground">
+                                  {name === 'results' ? 'Result completion' : 'CTA conversion'}
+                                </span>
+                                <span className="font-medium tabular-nums">
+                                  {typeof value === 'number' ? `${value.toFixed(1)}%` : value}
+                                </span>
+                              </div>
+                            )}
+                          />
+                        }
+                      />
                       <Bar dataKey="results" fill="var(--color-results)" radius={4} />
                       <Bar
                         dataKey="recommendations"
