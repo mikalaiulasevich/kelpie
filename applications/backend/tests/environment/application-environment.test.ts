@@ -7,6 +7,7 @@ describe('Application environment validation', () => {
     const environment = ApplicationEnvironmentReader.read({});
     expect(environment.host).toBe('127.0.0.1');
     expect(environment.port).toBe(3000);
+    expect(environment.logLevel).toBe('info');
     expect(environment.databaseUrl).toMatch(
       /\/applications\/backend\/data\/funnel-runtime\.sqlite$/,
     );
@@ -31,6 +32,19 @@ describe('Application environment validation', () => {
 });
 
 describe('Application environment boundary compatibility', () => {
+  it.each(EnvironmentCases.AcceptedLogLevels)('accepts log level %s', (logLevel) => {
+    expect(ApplicationEnvironmentReader.read({ LOG_LEVEL: logLevel }).logLevel).toBe(logLevel);
+  });
+
+  it.each(EnvironmentCases.RejectedLogLevels)(
+    'rejects unsupported log level %j without echoing it',
+    (logLevel) => {
+      expect(() => ApplicationEnvironmentReader.read({ LOG_LEVEL: logLevel })).toThrow(
+        /^LOG_LEVEL must be trace, debug, info, warn, error, or fatal\.$/,
+      );
+    },
+  );
+
   it.each(EnvironmentCases.acceptedModes)('accepts mode %s', (mode) => {
     expect(ApplicationEnvironmentReader.read({ NODE_ENV: mode }).mode).toBe(mode);
   });
@@ -70,6 +84,7 @@ describe('Application environment boundary compatibility', () => {
     expect(
       ApplicationEnvironmentReader.read({
         NODE_ENV: undefined,
+        LOG_LEVEL: undefined,
         HOST: undefined,
         PORT: undefined,
         DATABASE_URL: undefined,

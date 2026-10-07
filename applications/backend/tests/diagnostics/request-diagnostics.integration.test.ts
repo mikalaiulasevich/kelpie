@@ -14,6 +14,7 @@ describe('Request diagnostics and privacy', () => {
       records.push({ ...RequestContext.getStore(), ...record });
     });
     backend = await BackendApplicationFixture.create();
+    records.length = 0;
   });
 
   afterEach(async () => {
@@ -67,6 +68,7 @@ describe('Request diagnostics and privacy', () => {
     await backend.close();
     RequestFailureFixture.unrecognizedApplicationError();
     backend = await BackendApplicationFixture.create();
+    records.length = 0;
 
     const response = await backend.request('/api/health/live');
 

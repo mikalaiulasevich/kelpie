@@ -7,6 +7,5 @@ export const ApplicationPolicy = {
 
 export const ApplicationCreationOptions = {
   bodyParser: false,
-  logger: false,
   abortOnError: false,
 } as const satisfies NestApplicationOptions;

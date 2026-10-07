@@ -1,5 +1,7 @@
 import { isError } from 'es-toolkit/predicate';
 import { attempt } from 'es-toolkit/util';
+import { Diagnostics } from '../diagnostics/diagnostics.js';
+import { DiagnosticEvents } from '../diagnostics/diagnostic-policy.js';
 import { ErrorDiagnostics } from '../diagnostics/error-diagnostics.js';
 import { ConfigurationCommandMessages } from './configuration-command-messages.js';
 import type {
@@ -41,6 +43,9 @@ export const ConfigurationCommandDiagnostics = {
   },
 
   report(error: unknown): void {
-    console.error(JSON.stringify(ConfigurationCommandDiagnostics.describe(error)));
+    Diagnostics.write({
+      event: DiagnosticEvents.ConfigurationImportFailed,
+      ...ConfigurationCommandDiagnostics.describe(error),
+    });
   },
 } as const;

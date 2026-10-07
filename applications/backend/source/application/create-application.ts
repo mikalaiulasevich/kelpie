@@ -6,6 +6,8 @@ import { Server } from 'node:http';
 import { isNull } from 'es-toolkit/predicate';
 import { attemptAsync } from 'es-toolkit/util';
 
+import { Diagnostics } from '../diagnostics/diagnostics.js';
+import { FrameworkLogger } from '../diagnostics/framework-logger.js';
 import { RequestDiagnostics } from '../diagnostics/request-diagnostics.js';
 import { ApplicationMessages } from './application-messages.js';
 import { ApplicationCreationOptions } from './application-policy.js';
@@ -68,6 +70,7 @@ export const ApplicationFactory = {
   async create(
     environment: ApplicationEnvironment = ApplicationEnvironmentReader.read(process.env),
   ): Promise<NestFastifyApplication> {
+    Diagnostics.setLevel(environment.logLevel);
     const adapter = new FastifyAdapter({
       bodyLimit: TransportPolicy.JsonBodyLimit,
       logger: false,
@@ -77,7 +80,7 @@ export const ApplicationFactory = {
       NestFactory.create<NestFastifyApplication>(
         ApplicationModule.register(environment),
         adapter,
-        ApplicationCreationOptions,
+        { ...ApplicationCreationOptions, logger: FrameworkLogger },
       ),
     );
 

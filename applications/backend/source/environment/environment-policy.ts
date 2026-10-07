@@ -1,8 +1,10 @@
+import { DiagnosticSeverity } from '../diagnostics/diagnostic-policy.js';
 import { DatabasePaths } from '../database/database-paths.js';
 import { SQLitePolicy } from '../database/sqlite-policy.js';
 
 export const EnvironmentFields = {
   Mode: 'NODE_ENV',
+  LogLevel: 'LOG_LEVEL',
   Port: 'PORT',
   Host: 'HOST',
   DatabaseUrl: 'DATABASE_URL',
@@ -18,6 +20,7 @@ export type ApplicationMode = ValueOf<typeof ApplicationMode>;
 
 export const EnvironmentPolicy = {
   DefaultMode: ApplicationMode.Development,
+  DefaultLogLevel: DiagnosticSeverity.Information,
   DefaultPort: '3000',
   DefaultHost: '127.0.0.1',
   DefaultDatabaseUrl: `${SQLitePolicy.FileUrlPrefix}${DatabasePaths.DefaultDatabase}`,

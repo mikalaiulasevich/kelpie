@@ -2,6 +2,8 @@ import { isUndefined } from 'es-toolkit/predicate';
 import { HttpStatus } from '@nestjs/common';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import type { Writable } from 'node:stream';
+import { pino, type Logger } from 'pino';
+import { LoggingPolicy } from './logging-policy.js';
 
 import {
   DiagnosticEvents,
@@ -26,31 +28,36 @@ const DiagnosticLevels = {
 
 export const RequestContext = new AsyncLocalStorage<RequestDiagnosticContext>();
 
-const DiagnosticRecords = {
-  serialize(record: DiagnosticRecord): string {
-    const entry = {
-      timestamp: new Date().toISOString(),
-      level: DiagnosticLevels.resolve(record),
-      ...RequestContext.getStore(),
-      ...record,
-    };
-
-    return `${JSON.stringify(entry)}\n`;
-  },
-} as const;
-
 export class DiagnosticSink {
+  private readonly logger: Logger;
   private blocked = false;
   private droppedRecords = 0;
   private failed = false;
 
-  constructor(private readonly destination: Writable) {
+  constructor(
+    private readonly destination: Writable,
+    minimumLevel: ValueOf<typeof DiagnosticSeverity> = LoggingPolicy.DefaultLevel,
+  ) {
     this.destination.on('error', () => {
       this.failed = true;
     });
+    this.logger = pino(
+      { ...LoggingPolicy.Options, level: minimumLevel },
+      { write: (serialized: string) => this.writeSerialized(serialized) },
+    );
   }
 
-  write(record: DiagnosticRecord): void {
+  setLevel(level: ValueOf<typeof DiagnosticSeverity>): void {
+    this.logger.level = level;
+  }
+
+  write(record: DiagnosticRecord, level?: ValueOf<typeof DiagnosticSeverity>): void {
+    const severity = level ?? DiagnosticLevels.resolve(record);
+
+    if (!this.logger.isLevelEnabled(severity)) {
+      return;
+    }
+
     if (this.blocked || this.failed) {
       this.dropRecord();
 
@@ -58,15 +65,19 @@ export class DiagnosticSink {
     }
 
     try {
-      const ready = this.destination.write(DiagnosticRecords.serialize(record));
-
-      if (!ready) {
-        this.blocked = true;
-        this.destination.once('drain', () => this.resume());
-      }
+      this.logger[severity]({ ...RequestContext.getStore(), ...record });
     } catch {
       // Logging must never replace the original request/startup failure.
       this.dropRecord();
+    }
+  }
+
+  private writeSerialized(serialized: string): void {
+    const ready = this.destination.write(serialized);
+
+    if (!ready) {
+      this.blocked = true;
+      this.destination.once('drain', () => this.resume());
     }
   }
 

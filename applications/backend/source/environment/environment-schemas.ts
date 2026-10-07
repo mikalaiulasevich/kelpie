@@ -1,8 +1,10 @@
+import { DiagnosticSeverity } from '../diagnostics/diagnostic-policy.js';
 import { Type, type Static } from 'typebox';
 import { ApplicationMode, EnvironmentPolicy } from './environment-policy.js';
 
 export const EnvironmentSchemas = {
   Mode: Type.Enum(ApplicationMode),
+  LogLevel: Type.Enum(DiagnosticSeverity),
   PortText: Type.String({ pattern: EnvironmentPolicy.PortPattern }),
   Port: Type.Integer({
     minimum: EnvironmentPolicy.MinimumPort,
@@ -14,6 +16,7 @@ export const EnvironmentSchemas = {
 
 export const ApplicationEnvironmentSchema = Type.Object({
   mode: EnvironmentSchemas.Mode,
+  logLevel: EnvironmentSchemas.LogLevel,
   host: EnvironmentSchemas.Host,
   port: EnvironmentSchemas.Port,
   databaseUrl: EnvironmentSchemas.DatabaseUrl,

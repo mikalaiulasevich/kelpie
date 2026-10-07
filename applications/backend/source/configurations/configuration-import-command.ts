@@ -47,6 +47,6 @@ export const ConfigurationImportCommand = {
 
     const result = await ConfigurationApplicationImport.execute(application, document);
     await application.close();
-    console.info(JSON.stringify(result));
+    process.stdout.write(`${JSON.stringify(result)}\n`);
   },
 } as const;

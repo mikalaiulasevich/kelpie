@@ -1,4 +1,14 @@
 export const EnvironmentCases = {
+  AcceptedLogLevels: ['trace', 'debug', 'info', 'warn', 'error', 'fatal'],
+  RejectedLogLevels: [
+    '',
+    'INFO',
+    'verbose',
+    'silent',
+    'debug ',
+    'info\n',
+    'private-log-level-marker',
+  ],
   invalidPorts: ['0', '65536', '3000suffix', '1.5', '-1'],
   unsupportedDatabaseUrls: ['postgresql://localhost/example', 'file:', 'file:./example?mode=ro'],
   acceptedModes: ['development', 'test', 'production'],

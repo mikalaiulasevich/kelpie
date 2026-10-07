@@ -1,3 +1,4 @@
+import type { ConfigurationIssue } from '@kelpie/contracts';
 import type {
   DiagnosticEvents,
   DiagnosticPhase,
@@ -21,7 +22,15 @@ export interface ErrorDescription {
   readonly frames: ReadonlyList<ErrorFrame>;
 }
 
+export interface DiagnosticValidationFailure {
+  readonly code: string;
+  readonly issues: ReadonlyList<ConfigurationIssue>;
+}
+
 export interface DiagnosticRecord {
+  readonly message?: string;
+  readonly context?: string;
+  readonly details?: ErrorDescription | DiagnosticValidationFailure;
   readonly event: ValueOf<typeof DiagnosticEvents>;
   readonly requestIdentifier?: string;
   readonly method?: string;

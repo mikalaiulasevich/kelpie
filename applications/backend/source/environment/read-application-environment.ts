@@ -9,6 +9,9 @@ import { EnvironmentSchemas, type ApplicationEnvironment } from './environment-s
 
 const schemaCompiler = new Ajv({ strict: true, coerceTypes: false });
 const environmentValidators = {
+  logLevel: schemaCompiler.compile<Static<typeof EnvironmentSchemas.LogLevel>>(
+    EnvironmentSchemas.LogLevel,
+  ),
   mode: schemaCompiler.compile<Static<typeof EnvironmentSchemas.Mode>>(EnvironmentSchemas.Mode),
   portText: schemaCompiler.compile<string>(EnvironmentSchemas.PortText),
   port: schemaCompiler.compile<number>(EnvironmentSchemas.Port),
@@ -42,6 +45,11 @@ export const ApplicationEnvironmentReader = {
       values[EnvironmentFields.Mode] ?? EnvironmentPolicy.DefaultMode,
       EnvironmentMessages.InvalidMode,
     );
+    const logLevel = EnvironmentValues.validate(
+      environmentValidators.logLevel,
+      values[EnvironmentFields.LogLevel] ?? EnvironmentPolicy.DefaultLogLevel,
+      EnvironmentMessages.InvalidLogLevel,
+    );
     const portText = EnvironmentValues.validate(
       environmentValidators.portText,
       values[EnvironmentFields.Port] ?? EnvironmentPolicy.DefaultPort,
@@ -63,6 +71,12 @@ export const ApplicationEnvironmentReader = {
       EnvironmentMessages.InvalidDatabaseUrl,
     );
 
-    return { mode, host, port, databaseUrl: EnvironmentValues.resolveDatabaseUrl(databaseUrl) };
+    return {
+      mode,
+      logLevel,
+      host,
+      port,
+      databaseUrl: EnvironmentValues.resolveDatabaseUrl(databaseUrl),
+    };
   },
 } as const;
