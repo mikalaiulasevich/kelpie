@@ -40,6 +40,7 @@ const PublicationRecords = {
       )
       .digest(PublicationPolicy.HashEncoding);
   },
+
   response(publication: Publication): PublicationResponse {
     return {
       identifier: publication.identifier,
@@ -53,6 +54,7 @@ const PublicationRecords = {
       createdAt: publication.createdAt.toISOString(),
     };
   },
+
   replay(publication: Publication, fingerprint: string): PublicationResponse {
     if (publication.requestFingerprint !== fingerprint) {
       throw new PublicRequestError(
@@ -76,6 +78,7 @@ const PublicationChecks = {
       );
     }
   },
+
   inactiveTarget(
     activeIdentifier: FunnelReference['activeVersionIdentifier'],
     targetIdentifier: string,

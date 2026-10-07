@@ -13,10 +13,12 @@ const compiler = new Ajv({
   coerceTypes: false,
   ownProperties: true,
 });
+
 const validators = {
   publish: compiler.compile<PublishRequest>(PublicationSchemas.PublishRequest),
   rollback: compiler.compile<RollbackRequest>(PublicationSchemas.RollbackRequest),
 };
+
 export const PublicationInputs = {
   publish(value: unknown): PublishRequest {
     if (!validators.publish(value)) {
@@ -25,6 +27,7 @@ export const PublicationInputs = {
 
     return { ...value };
   },
+
   rollback(value: unknown): RollbackRequest {
     if (!validators.rollback(value)) {
       throw new BadRequestException(PublicationMessages.InvalidRequest);

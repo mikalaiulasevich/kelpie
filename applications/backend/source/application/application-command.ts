@@ -2,14 +2,12 @@ import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { DatabaseService } from '../database/database.service.js';
 import type { ApplicationCommandMessages } from './application-command-types.js';
 
-export const ApplicationCommand = {
-  async run<Result>(
+const ApplicationCommandExecution = {
+  async execute<Result>(
     application: NestFastifyApplication,
     operation: () => Promise<Result>,
     messages: ApplicationCommandMessages,
   ): Promise<Result> {
-    let result: Result;
-
     try {
       await application.init();
 
@@ -17,7 +15,7 @@ export const ApplicationCommand = {
         throw new Error(messages.DatabaseNotReady);
       }
 
-      result = await operation();
+      return await operation();
     } catch (error) {
       try {
         await application.close();
@@ -29,6 +27,16 @@ export const ApplicationCommand = {
 
       throw error;
     }
+  },
+} as const;
+
+export const ApplicationCommand = {
+  async run<Result>(
+    application: NestFastifyApplication,
+    operation: () => Promise<Result>,
+    messages: ApplicationCommandMessages,
+  ): Promise<Result> {
+    const result = await ApplicationCommandExecution.execute(application, operation, messages);
 
     // A failed close must not be retried or reported as a failed operation.
     await application.close();
