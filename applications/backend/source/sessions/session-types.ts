@@ -4,12 +4,14 @@ import type { Prisma } from '../../generated/prisma/client.js';
 import { ManagementSchemas } from '../management/management-types.js';
 import { SessionPolicy } from './session-policy.js';
 
-const answerValue = Type.Union([
-  Type.String(),
-  Type.Number(),
-  Type.Array(Type.String()),
-  Type.Null(),
-]);
+const SessionFields = {
+  Answer: Type.Object({
+    stepIdentifier: Type.String(),
+    value: Type.Union([Type.String(), Type.Number(), Type.Array(Type.String()), Type.Null()]),
+    confirmationRevision: Type.Union([Type.Integer(), Type.Null()]),
+  }),
+  Progress: Type.Object({ completed: Type.Integer(), total: Type.Integer() }),
+} as const;
 
 export const SessionSchemas = {
   Create: Type.Object(
@@ -34,14 +36,8 @@ export const SessionSchemas = {
     variant: Type.Enum(ExperimentVariant),
     configuration: Type.Unknown(),
     currentStepIdentifier: Type.String(),
-    answers: Type.Array(
-      Type.Object({
-        stepIdentifier: Type.String(),
-        value: answerValue,
-        confirmationRevision: Type.Union([Type.Integer(), Type.Null()]),
-      }),
-    ),
-    progress: Type.Object({ completed: Type.Integer(), total: Type.Integer() }),
+    answers: Type.Array(SessionFields.Answer),
+    progress: SessionFields.Progress,
     result: Type.Unknown(),
   }),
 } as const;

@@ -8,9 +8,12 @@ import { SessionSchemas, type SessionState } from './session-types.js';
 import type { Static } from 'typebox';
 import { SessionMessages } from './session-messages.js';
 
-const validateSnapshot = new Ajv({ strict: true }).compile<Static<typeof SessionSchemas.State>>(
-  SessionSchemas.State,
-);
+const SessionSnapshotValidators = {
+  state: new Ajv({ strict: true }).compile<Static<typeof SessionSchemas.State>>(
+    SessionSchemas.State,
+  ),
+} as const;
+
 const SnapshotJson = {
   value(value: unknown): Prisma.InputJsonValue | null {
     if (isNull(value) || isString(value) || isBoolean(value)) {
@@ -45,7 +48,7 @@ export const SessionSnapshots = {
   },
 
   read(value: unknown): SessionState {
-    if (!validateSnapshot(value)) {
+    if (!SessionSnapshotValidators.state(value)) {
       throw new Error(SessionMessages.Corrupted);
     }
 

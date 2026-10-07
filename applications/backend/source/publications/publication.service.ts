@@ -1,4 +1,3 @@
-import { DatabaseErrors } from '../database/database-errors.js';
 import {
   HttpStatus,
   Inject,
@@ -8,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { createHash } from 'node:crypto';
 import type { Prisma, Publication } from '../../generated/prisma/client.js';
+import { DatabaseErrors } from '../database/database-errors.js';
 import { DatabaseService } from '../database/database.service.js';
 import { ConfigurationImportDocument } from '../configurations/configuration-import-document.js';
 import { PublicRequestError } from '../transport/public-request-error.js';

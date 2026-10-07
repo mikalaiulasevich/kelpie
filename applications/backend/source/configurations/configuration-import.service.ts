@@ -1,6 +1,6 @@
-import { DatabaseErrors } from '../database/database-errors.js';
 import { Inject, Injectable } from '@nestjs/common';
 import { isNull } from 'es-toolkit/predicate';
+import { DatabaseErrors } from '../database/database-errors.js';
 import { DatabaseService } from '../database/database.service.js';
 import { ConfigurationImportDocument } from './configuration-import-document.js';
 import { ConfigurationImportError } from './configuration-import-error.js';

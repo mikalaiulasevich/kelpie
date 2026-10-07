@@ -31,10 +31,18 @@ const objectMethodSpacing = {
 
           const between = source.text.slice(previous.range[1], property.range[0]);
           if (!/\n[\t \r]*\n/.test(between)) {
+            const firstLineBreak = between.indexOf('\n');
+            const separator = source.getTokenAfter(previous);
+            const insertionOffset =
+              firstLineBreak >= 0
+                ? previous.range[1] + firstLineBreak + 1
+                : (separator?.range?.[1] ?? previous.range[1]);
+            const padding = firstLineBreak >= 0 ? '\n' : '\n\n';
             context.report({
               node: property,
               messageId: 'missing',
-              fix: (fixer) => fixer.insertTextBefore(property, '\n'),
+              fix: (fixer) =>
+                fixer.insertTextAfterRange([insertionOffset, insertionOffset], padding),
             });
           }
         }

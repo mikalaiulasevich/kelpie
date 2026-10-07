@@ -6,29 +6,32 @@ import { ManagementSchemas } from '../management/management-types.js';
 import type { SessionCommandKind } from './session-command-policy.js';
 import { SessionCommandPolicy } from './session-command-policy.js';
 
-const commandProperties = {
-  operationIdentifier: Type.String({ pattern: SessionPolicy.OperationPattern }),
-  expectedSessionRevision: Type.Integer({
-    minimum: 0,
-    maximum: SessionCommandPolicy.MaximumRevision,
-  }),
-  stepIdentifier: ManagementSchemas.Identifier,
-  clientTimestamp: Type.String({ pattern: SessionPolicy.TimestampPattern }),
-};
-const answerSchema = Type.Union([
-  Type.String({ maxLength: SessionCommandPolicy.MaximumAnswerLength }),
-  Type.Number(),
-  Type.Array(Type.String({ maxLength: SessionCommandPolicy.MaximumAnswerLength }), {
-    maxItems: SessionCommandPolicy.MaximumSelections,
-  }),
-  Type.Null(),
-]);
+const SessionCommandFields = {
+  Common: {
+    operationIdentifier: Type.String({ pattern: SessionPolicy.OperationPattern }),
+    expectedSessionRevision: Type.Integer({
+      minimum: 0,
+      maximum: SessionCommandPolicy.MaximumRevision,
+    }),
+    stepIdentifier: ManagementSchemas.Identifier,
+    clientTimestamp: Type.String({ pattern: SessionPolicy.TimestampPattern }),
+  },
+  Answer: Type.Union([
+    Type.String({ maxLength: SessionCommandPolicy.MaximumAnswerLength }),
+    Type.Number(),
+    Type.Array(Type.String({ maxLength: SessionCommandPolicy.MaximumAnswerLength }), {
+      maxItems: SessionCommandPolicy.MaximumSelections,
+    }),
+    Type.Null(),
+  ]),
+} as const;
+
 export const SessionCommandSchemas = {
   Answer: Type.Object(
-    { ...commandProperties, answer: answerSchema },
+    { ...SessionCommandFields.Common, answer: SessionCommandFields.Answer },
     { additionalProperties: false },
   ),
-  Navigation: Type.Object(commandProperties, { additionalProperties: false }),
+  Navigation: Type.Object(SessionCommandFields.Common, { additionalProperties: false }),
 } as const;
 
 export type SubmitSessionAnswerRequest = DeepReadonly<Static<typeof SessionCommandSchemas.Answer>>;

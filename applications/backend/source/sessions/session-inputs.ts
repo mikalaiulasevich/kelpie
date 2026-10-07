@@ -8,14 +8,15 @@ import { SessionPolicy, SessionErrorCode } from './session-policy.js';
 import { SessionMessages } from './session-messages.js';
 
 const compiler = new Ajv({ strict: true, ownProperties: true });
-const validators = {
+
+const SessionValidators = {
   create: compiler.compile<CreateSessionRequest>(SessionSchemas.Create),
   query: compiler.compile<SessionQuery>(SessionSchemas.Query),
 } as const;
 
 export const SessionInputs = {
   create(body: unknown): CreateSessionRequest {
-    if (!validators.create(body) || !SessionTimestamps.isCanonical(body.clientTimestamp)) {
+    if (!SessionValidators.create(body) || !SessionTimestamps.isCanonical(body.clientTimestamp)) {
       throw new PublicRequestError(
         HttpStatus.BAD_REQUEST,
         SessionErrorCode.Invalid,
@@ -27,7 +28,7 @@ export const SessionInputs = {
   },
 
   query(value: unknown): SessionQuery {
-    if (!validators.query(value)) {
+    if (!SessionValidators.query(value)) {
       throw new PublicRequestError(
         HttpStatus.BAD_REQUEST,
         SessionErrorCode.Invalid,
