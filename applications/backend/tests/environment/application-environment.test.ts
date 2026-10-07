@@ -46,7 +46,12 @@ describe('Application environment boundary compatibility', () => {
   );
 
   it.each(EnvironmentCases.acceptedModes)('accepts mode %s', (mode) => {
-    expect(ApplicationEnvironmentReader.read({ NODE_ENV: mode }).mode).toBe(mode);
+    expect(
+      ApplicationEnvironmentReader.read({
+        NODE_ENV: mode,
+        ADMINISTRATION_ORIGIN: 'https://kelpie.example',
+      }).mode,
+    ).toBe(mode);
   });
 
   it.each(EnvironmentCases.acceptedPorts)('preserves valid port %j', (port) => {
@@ -98,5 +103,40 @@ describe('Application environment boundary compatibility', () => {
     expect(() =>
       ApplicationEnvironmentReader.read({ DATABASE_URL: 'https://secret:password@host' }),
     ).toThrow('DATABASE_URL must identify a local SQLite file without query parameters.');
+  });
+});
+
+describe('Administration origin boundary', () => {
+  it.each(EnvironmentCases.RejectedAdministrationOrigins)(
+    'rejects malformed origin %j',
+    (origin) => {
+      expect(() => ApplicationEnvironmentReader.read({ ADMINISTRATION_ORIGIN: origin })).toThrow(
+        'ADMINISTRATION_ORIGIN',
+      );
+    },
+  );
+
+  it.each(EnvironmentCases.RejectedProductionOrigins)(
+    'requires an explicit HTTPS origin in production: %j',
+    (origin) => {
+      expect(() =>
+        ApplicationEnvironmentReader.read({
+          NODE_ENV: 'production',
+          ADMINISTRATION_ORIGIN: origin,
+        }),
+      ).toThrow('ADMINISTRATION_ORIGIN');
+    },
+  );
+
+  it('preserves an exact HTTPS origin and uses loopback only outside production', () => {
+    expect(ApplicationEnvironmentReader.read({}).administrationOrigin).toBe(
+      'http://127.0.0.1:5173',
+    );
+    expect(
+      ApplicationEnvironmentReader.read({
+        NODE_ENV: 'production',
+        ADMINISTRATION_ORIGIN: 'https://kelpie.example:8443',
+      }).administrationOrigin,
+    ).toBe('https://kelpie.example:8443');
   });
 });

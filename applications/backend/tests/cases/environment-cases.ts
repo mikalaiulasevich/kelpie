@@ -1,4 +1,17 @@
 export const EnvironmentCases = {
+  RejectedAdministrationOrigins: [
+    '',
+    'null',
+    'https://user:secret@example.com',
+    'https://example.com/',
+    'https://example.com/path',
+    'https://example.com?query',
+    'ftp://example.com',
+    'https://example.com#fragment',
+    'https://example.com\n',
+  ],
+  RejectedProductionOrigins: [undefined, 'http://example.com', 'http://localhost:5173'],
+
   AcceptedLogLevels: ['trace', 'debug', 'info', 'warn', 'error', 'fatal'],
   RejectedLogLevels: [
     '',

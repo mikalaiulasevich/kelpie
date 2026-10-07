@@ -37,7 +37,10 @@ describe('Backend foundation with a real SQLite database', () => {
       expect(response.headers.get('x-content-type-options')).toBe('nosniff');
       expect(response.headers.get('x-request-id')).toMatch(/^[0-9a-f-]{36}$/);
       expect(response.status).toBe(expectedStatus);
-      expect(await response.json()).toEqual(expectedResponse);
+      expect(await response.json()).toEqual({
+        ...expectedResponse,
+        requestIdentifier: response.headers.get('x-request-id'),
+      });
     },
   );
 
@@ -58,6 +61,8 @@ describe('Backend foundation with a real SQLite database', () => {
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({
       statusCode: 503,
+      code: 'unavailable',
+      requestIdentifier: response.headers.get('x-request-id'),
       message: 'Application is not ready.',
     });
   });

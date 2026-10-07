@@ -75,6 +75,8 @@ describe('Request diagnostics and privacy', () => {
     expect(response.status).toBe(500);
     expect(await response.json()).toEqual({
       statusCode: 500,
+      code: 'internal_error',
+      requestIdentifier: response.headers.get('x-request-id'),
       message: 'An internal error occurred.',
     });
     expect(JSON.stringify(records)).not.toContain('private failure');
@@ -91,6 +93,8 @@ describe('Request diagnostics and privacy', () => {
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({
       statusCode: 503,
+      code: 'unavailable',
+      requestIdentifier: response.headers.get('x-request-id'),
       message: 'Application is not ready.',
     });
     expect(records).toContainEqual(

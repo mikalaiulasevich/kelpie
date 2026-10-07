@@ -1,3 +1,4 @@
+import type { Type } from '@nestjs/common';
 import { isNull, isString, isUndefined } from 'es-toolkit/predicate';
 import 'reflect-metadata';
 import { execFile } from 'node:child_process';
@@ -31,6 +32,14 @@ export class BackendApplicationFixture {
     await fixture.start();
 
     return fixture;
+  }
+
+  getService<Service>(token: Type<Service>): Service {
+    if (!this.application) {
+      throw new Error(BackendFixtureMessages.Closed);
+    }
+
+    return this.application.get(token);
   }
 
   get database(): DatabaseService['client'] {

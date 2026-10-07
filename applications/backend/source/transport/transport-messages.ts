@@ -1,4 +1,5 @@
 export const TransportMessages = {
+  RateLimited: 'Too many requests. Try again later.',
   UnsupportedServer: 'HTTP server adapter is unsupported.',
   NotReady: 'Application is not ready.',
   InternalFailure: 'An internal error occurred.',

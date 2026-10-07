@@ -1,3 +1,6 @@
+import { AdministrationController } from '../administration/administration.controller.js';
+import { AdministrationGuard } from '../administration/administration.guard.js';
+import { AdministrationService } from '../administration/administration.service.js';
 import { Module, type DynamicModule } from '@nestjs/common';
 
 import { ApplicationShutdown } from './application-shutdown.js';
@@ -9,8 +12,10 @@ import { ConfigurationImportService } from '../configurations/configuration-impo
 import { HealthController } from '../health/health.controller.js';
 
 @Module({
-  controllers: [HealthController],
+  controllers: [HealthController, AdministrationController],
   providers: [
+    AdministrationService,
+    AdministrationGuard,
     ApplicationEnvironmentService,
     DatabaseService,
     ApplicationShutdown,

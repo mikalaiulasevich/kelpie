@@ -1,6 +1,8 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
+import cookie from '@fastify/cookie';
+import rateLimit from '@fastify/rate-limit';
 import helmet from '@fastify/helmet';
 import { Server } from 'node:http';
 import { isNull } from 'es-toolkit/predicate';
@@ -17,6 +19,7 @@ import { ApplicationModule } from './application.module.js';
 import { TransportMessages } from '../transport/transport-messages.js';
 import { TransportPolicy } from '../transport/transport-policy.js';
 import { RequestBodyPolicy } from '../transport/request-body-policy.js';
+import { RateLimitResponses } from '../transport/rate-limit-responses.js';
 import { PublicExceptionFilter } from '../transport/public-exception.filter.js';
 
 const ApplicationSetup = {
@@ -25,6 +28,12 @@ const ApplicationSetup = {
     application.setGlobalPrefix(TransportPolicy.ApiPrefix);
     server.addHook('onRequest', RequestDiagnostics.onRequest);
     await application.register(helmet);
+    await application.register(cookie);
+    await application.register(rateLimit, {
+      global: false,
+      cache: TransportPolicy.RateLimitCacheSize,
+      errorResponseBuilder: RateLimitResponses.rejected,
+    });
     server.addHook('onRequest', RequestBodyPolicy.validate);
     server.removeAllContentTypeParsers();
     server.addContentTypeParser(

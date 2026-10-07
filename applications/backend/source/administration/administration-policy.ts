@@ -1,0 +1,32 @@
+export const AdministrationPolicy = {
+  Route: 'administration',
+  SignInRoute: 'sign-in',
+  SignOutRoute: 'sign-out',
+  SessionRoute: 'session',
+  CookieName: 'kelpie_administration',
+  CookiePath: '/api/administration',
+  CookieSameSite: 'strict',
+  MutationHeader: 'x-kelpie-administration',
+  MutationHeaderValue: '1',
+  ReadMethods: ['GET', 'HEAD', 'OPTIONS'],
+  SessionLifetimeMilliseconds: 8 * 60 * 60 * 1000,
+  TokenBytes: 32,
+  TokenPattern: /^[A-Za-z0-9_-]{43}$/,
+  TokenHashAlgorithm: 'sha256',
+  TokenHashEncoding: 'hex',
+  BinaryEncoding: 'base64url',
+  UsernamePattern: '^[a-zA-Z0-9._-]{1,64}$',
+  MaximumPasswordCharacters: 128,
+  MinimumProvisionPasswordCharacters: 12,
+  SignInRateLimit: { max: 5, timeWindow: 60_000 },
+} as const;
+
+export const AdministrationPasswordPolicy = {
+  Version: 'scrypt-v1',
+  Separator: '$',
+  SaltBytes: 16,
+  KeyBytes: 64,
+  SaltPattern: /^[A-Za-z0-9_-]{22}$/,
+  KeyPattern: /^[A-Za-z0-9_-]{86}$/,
+  Parameters: { N: 131_072, r: 8, p: 1, maxmem: 256 * 1024 * 1024 },
+} as const;

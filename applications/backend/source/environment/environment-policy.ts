@@ -4,6 +4,7 @@ import { SQLitePolicy } from '../database/sqlite-policy.js';
 
 export const EnvironmentFields = {
   Mode: 'NODE_ENV',
+  AdministrationOrigin: 'ADMINISTRATION_ORIGIN',
   LogLevel: 'LOG_LEVEL',
   Port: 'PORT',
   Host: 'HOST',
@@ -19,6 +20,9 @@ export const ApplicationMode = {
 export type ApplicationMode = ValueOf<typeof ApplicationMode>;
 
 export const EnvironmentPolicy = {
+  DefaultAdministrationOrigin: 'http://127.0.0.1:5173',
+  OriginProtocols: ['http:', 'https:'],
+  SecureOriginProtocol: 'https:',
   DefaultMode: ApplicationMode.Development,
   DefaultLogLevel: DiagnosticSeverity.Information,
   DefaultPort: '3000',

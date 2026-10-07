@@ -41,6 +41,7 @@ model Publication {
   identifier                String         @id @default(uuid())
   operationIdentifier       String         @unique
   requestFingerprint        String
+  revision                  Int
   action                    String
   funnelIdentifier          String
   targetVersionIdentifier   String
@@ -53,6 +54,7 @@ model Publication {
   administrator             Administrator  @relation(fields: [administratorIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
 
   @@index([funnelIdentifier, createdAt])
+  @@unique([funnelIdentifier, revision])
 }
 
 model Session {
