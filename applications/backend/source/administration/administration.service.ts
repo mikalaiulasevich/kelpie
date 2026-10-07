@@ -6,33 +6,25 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Ajv } from 'ajv';
 import { isNull, isString } from 'es-toolkit/predicate';
 import type { FastifyReply, FastifyRequest } from 'fastify';
+import type { Administrator } from '../../generated/prisma/client.js';
 import { DatabaseService } from '../database/database.service.js';
 import { ApplicationEnvironmentService } from '../environment/application-environment.js';
 import { ApplicationMode } from '../environment/environment-policy.js';
 import { AdministrationMessages } from './administration-messages.js';
 import { AdministrationPolicy } from './administration-policy.js';
 import { AdministrationPasswords } from './administration-passwords.js';
-import {
-  AdministrationSchemas,
-  type AdministratorCredentials,
-  type AdministratorIdentity,
-} from './administration-types.js';
+import { AdministrationValidation } from './administration-validation.js';
+import type { AdministratorCredentials, AdministratorIdentity } from './administration-types.js';
 
-const validateCredentials = new Ajv({ strict: true }).compile<AdministratorCredentials>(
-  AdministrationSchemas.Credentials,
-);
-const validateProvisioning = new Ajv({ strict: true }).compile<AdministratorCredentials>(
-  AdministrationSchemas.Provisioning,
-);
 const AdministrationTokens = {
   hash(token: string): string {
     return createHash(AdministrationPolicy.TokenHashAlgorithm)
       .update(token)
       .digest(AdministrationPolicy.TokenHashEncoding);
   },
+
   read(request: FastifyRequest): string {
     const token = request.cookies[AdministrationPolicy.CookieName];
     if (!isString(token) || !AdministrationPolicy.TokenPattern.test(token)) {
@@ -89,7 +81,7 @@ export class AdministrationService {
   }
 
   async provision(username: string, password: string): Promise<AdministratorIdentity> {
-    if (!validateProvisioning({ username, password })) {
+    if (!AdministrationValidation.provisioning({ username, password })) {
       throw new BadRequestException(AdministrationMessages.InvalidProvisioning);
     }
 
@@ -118,17 +110,40 @@ export class AdministrationService {
     body: unknown,
   ): Promise<AdministratorIdentity> {
     this.assertMutationOrigin(request);
-    if (!validateCredentials(body)) {
+    if (!AdministrationValidation.credentials(body)) {
       throw new UnauthorizedException(AdministrationMessages.InvalidCredentials);
     }
 
-    const { username, password } = body;
+    const administrator = await this.verifyCredentials(body);
+    await this.createSession(administrator, reply);
+
+    return { identifier: administrator.identifier, username: administrator.username };
+  }
+
+  async signOut(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    this.assertMutationOrigin(request);
+    await this.authorize(request);
+    await this.database.client.administratorSession.updateMany({
+      where: {
+        accessTokenHash: AdministrationTokens.hash(AdministrationTokens.read(request)),
+        revokedAt: null,
+      },
+      data: { revokedAt: new Date() },
+    });
+    reply.clearCookie(AdministrationPolicy.CookieName, { path: AdministrationPolicy.CookiePath });
+  }
+
+  private async verifyCredentials(credentials: AdministratorCredentials): Promise<Administrator> {
     const administrator = await this.database.client.administrator.findFirst();
-    const verified = await this.passwords.verify(password, administrator?.passwordHash);
-    if (!verified || isNull(administrator) || administrator.username !== username) {
+    const verified = await this.passwords.verify(credentials.password, administrator?.passwordHash);
+    if (!verified || isNull(administrator) || administrator.username !== credentials.username) {
       throw new UnauthorizedException(AdministrationMessages.InvalidCredentials);
     }
 
+    return administrator;
+  }
+
+  private async createSession(administrator: Administrator, reply: FastifyReply): Promise<void> {
     const token = randomBytes(AdministrationPolicy.TokenBytes).toString(
       AdministrationPolicy.BinaryEncoding,
     );
@@ -159,20 +174,5 @@ export class AdministrationService {
       secure: this.environment.values.mode === ApplicationMode.Production,
       expires: expiresAt,
     });
-
-    return { identifier: administrator.identifier, username: administrator.username };
-  }
-
-  async signOut(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-    this.assertMutationOrigin(request);
-    await this.authorize(request);
-    await this.database.client.administratorSession.updateMany({
-      where: {
-        accessTokenHash: AdministrationTokens.hash(AdministrationTokens.read(request)),
-        revokedAt: null,
-      },
-      data: { revokedAt: new Date() },
-    });
-    reply.clearCookie(AdministrationPolicy.CookieName, { path: AdministrationPolicy.CookiePath });
   }
 }

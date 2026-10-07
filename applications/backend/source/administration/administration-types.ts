@@ -28,3 +28,9 @@ export const AdministrationSchemas = {
 
 export type AdministratorCredentials = Readonly<Static<typeof AdministrationSchemas.Credentials>>;
 export type AdministratorIdentity = Readonly<Static<typeof AdministrationSchemas.Identity>>;
+
+export type DecodedPasswordMaterial = Readonly<{
+  valid: boolean;
+  salt: Buffer;
+  key: Buffer;
+}>;

@@ -10,10 +10,16 @@ import { Prisma, type Publication } from '../../generated/prisma/client.js';
 import { DatabaseService } from '../database/database.service.js';
 import { ConfigurationImportDocument } from '../configurations/configuration-import-document.js';
 import { PublicRequestError } from '../transport/public-request-error.js';
-import { PublicationErrorCode } from './publication-policy.js';
+import { ManagementQueries } from '../management/management-queries.js';
+import { ManagementRecords } from '../management/management-records.js';
+import type { FunnelReference } from '../management/management-types.js';
 import { PublicationInputs } from './publication-inputs.js';
 import { PublicationMessages } from './publication-messages.js';
-import { PublicationAction, PublicationPolicy } from './publication-policy.js';
+import {
+  PublicationAction,
+  PublicationPolicy,
+  PublicationErrorCode,
+} from './publication-policy.js';
 import type {
   PublicationIntent,
   PublicationResponse,
@@ -60,6 +66,27 @@ const PublicationRecords = {
   },
 } as const;
 
+const PublicationChecks = {
+  expectedRevision(actual: number, expected: number): void {
+    if (actual !== expected) {
+      throw new PublicRequestError(
+        HttpStatus.CONFLICT,
+        PublicationErrorCode.StaleRevision,
+        PublicationMessages.StaleRevision,
+      );
+    }
+  },
+  inactiveTarget(activeIdentifier: Nullable<string>, targetIdentifier: string): void {
+    if (activeIdentifier === targetIdentifier) {
+      throw new PublicRequestError(
+        HttpStatus.CONFLICT,
+        PublicationErrorCode.AlreadyActive,
+        PublicationMessages.AlreadyActive,
+      );
+    }
+  },
+} as const;
+
 @Injectable()
 export class PublicationService {
   constructor(@Inject(DatabaseService) private readonly database: DatabaseService) {}
@@ -71,6 +98,7 @@ export class PublicationService {
       administratorIdentifier,
     });
   }
+
   rollback(document: unknown, administratorIdentifier: string): Promise<PublicationResponse> {
     return this.execute({
       ...PublicationInputs.rollback(document),
@@ -78,17 +106,13 @@ export class PublicationService {
       administratorIdentifier,
     });
   }
+
   async history(query: unknown): Promise<PublicationHistory> {
-    const { funnelIdentifier, limit, offset } = PublicationInputs.query(query);
+    const pagination = ManagementQueries.read(query);
+    const { funnelIdentifier, limit, offset } = pagination;
 
     return this.database.client.$transaction(async (transaction) => {
-      const funnel = await transaction.funnel.findUnique({
-        where: { identifier: funnelIdentifier },
-        select: { identifier: true, activeVersionIdentifier: true, revision: true },
-      });
-      if (!funnel) {
-        throw new NotFoundException(PublicationMessages.MissingFunnel);
-      }
+      const funnel = await ManagementRecords.readFunnel(transaction, funnelIdentifier);
 
       const publications = await transaction.publication.findMany({
         where: { funnelIdentifier },
@@ -97,13 +121,12 @@ export class PublicationService {
         take: limit + 1,
       });
 
-      return {
-        funnel,
-        items: publications.slice(0, limit).map(PublicationRecords.response),
-        nextOffset: publications.length > limit ? offset + limit : null,
-      };
+      const page = ManagementRecords.page(publications, pagination);
+
+      return { funnel, ...page, items: page.items.map(PublicationRecords.response) };
     });
   }
+
   private async execute(intent: PublicationIntent): Promise<PublicationResponse> {
     const fingerprint = PublicationRecords.fingerprint(intent);
     const existing = await this.database.client.publication.findUnique({
@@ -142,39 +165,39 @@ export class PublicationService {
       return PublicationRecords.replay(winner, fingerprint);
     }
   }
+
   private async activate(
     transaction: Prisma.TransactionClient,
     intent: PublicationIntent,
     fingerprint: string,
   ): Promise<PublicationResponse> {
-    const funnel = await transaction.funnel.findUnique({
-      where: { identifier: intent.funnelIdentifier },
-    });
-    if (!funnel) {
-      throw new NotFoundException(PublicationMessages.MissingFunnel);
-    }
-
-    if (funnel.revision !== intent.expectedRevision) {
-      throw new PublicRequestError(
-        HttpStatus.CONFLICT,
-        PublicationErrorCode.StaleRevision,
-        PublicationMessages.StaleRevision,
-      );
-    }
+    const funnel = await ManagementRecords.readFunnel(transaction, intent.funnelIdentifier);
+    PublicationChecks.expectedRevision(funnel.revision, intent.expectedRevision);
 
     const targetIdentifier = await this.targetIdentifier(transaction, intent);
-    if (funnel.activeVersionIdentifier === targetIdentifier) {
-      throw new PublicRequestError(
-        HttpStatus.CONFLICT,
-        PublicationErrorCode.AlreadyActive,
-        PublicationMessages.AlreadyActive,
-      );
-    }
+    PublicationChecks.inactiveTarget(funnel.activeVersionIdentifier, targetIdentifier);
 
     await this.validateTarget(transaction, intent.funnelIdentifier, targetIdentifier);
+    const revision = await this.updateActiveVersion(transaction, funnel, targetIdentifier);
+
+    return this.recordPublication(
+      transaction,
+      intent,
+      fingerprint,
+      funnel,
+      targetIdentifier,
+      revision,
+    );
+  }
+
+  private async updateActiveVersion(
+    transaction: Prisma.TransactionClient,
+    funnel: FunnelReference,
+    targetIdentifier: string,
+  ): Promise<number> {
     const revision = funnel.revision + 1;
     const changed = await transaction.funnel.updateMany({
-      where: { identifier: funnel.identifier, revision: intent.expectedRevision },
+      where: { identifier: funnel.identifier, revision: funnel.revision },
       data: { activeVersionIdentifier: targetIdentifier, revision },
     });
     if (changed.count !== 1) {
@@ -185,6 +208,17 @@ export class PublicationService {
       );
     }
 
+    return revision;
+  }
+
+  private async recordPublication(
+    transaction: Prisma.TransactionClient,
+    intent: PublicationIntent,
+    fingerprint: string,
+    funnel: FunnelReference,
+    targetIdentifier: string,
+    revision: number,
+  ): Promise<PublicationResponse> {
     const publication = await transaction.publication.create({
       data: {
         operationIdentifier: intent.operationIdentifier,
@@ -200,6 +234,7 @@ export class PublicationService {
 
     return PublicationRecords.response(publication);
   }
+
   private async targetIdentifier(
     transaction: Prisma.TransactionClient,
     intent: PublicationIntent,
@@ -222,6 +257,7 @@ export class PublicationService {
 
     return previous.previousVersionIdentifier;
   }
+
   private async validateTarget(
     transaction: Prisma.TransactionClient,
     funnelIdentifier: string,

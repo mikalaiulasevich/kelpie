@@ -9,6 +9,7 @@ export const AdministrationFixture = {
     'x-kelpie-administration': '1',
     'content-type': 'application/json',
   },
+
   async create(): Promise<BackendApplicationFixture> {
     const application = await BackendApplicationFixture.create();
     try {
@@ -29,6 +30,7 @@ export const AdministrationFixture = {
       throw error;
     }
   },
+
   signIn(application: BackendApplicationFixture, password?: string): Promise<Response> {
     return application.request('/api/administration/sign-in', {
       method: 'POST',
@@ -39,6 +41,15 @@ export const AdministrationFixture = {
       }),
     });
   },
+
+  async sessionStatus(application: BackendApplicationFixture, cookie: string): Promise<number> {
+    const response = await application.request('/api/administration/session', {
+      headers: { cookie },
+    });
+
+    return response.status;
+  },
+
   cookie(response: Response): string {
     return response.headers.get('set-cookie')?.split(';')[0] ?? '';
   },

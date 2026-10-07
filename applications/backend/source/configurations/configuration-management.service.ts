@@ -1,13 +1,13 @@
-import { Inject, Injectable, NotFoundException, HttpStatus } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service.js';
-import { PublicationInputs } from '../publications/publication-inputs.js';
-import { PublicationMessages } from '../publications/publication-messages.js';
+import { ManagementQueries } from '../management/management-queries.js';
+import { ManagementRecords } from '../management/management-records.js';
 import { PublicRequestError } from '../transport/public-request-error.js';
 import { ConfigurationImportError } from './configuration-import-error.js';
 import { ConfigurationImportService } from './configuration-import.service.js';
 import type { ConfigurationList } from './configuration-management-types.js';
 import type { ConfigurationImportResult } from './configuration-import-types.js';
-import { ConfigurationImportErrorCode } from './configuration-import-types.js';
+import { ConfigurationImportHttpStatus } from './configuration-import-policy.js';
 import { ConfigurationImportPolicy } from './configuration-import-policy.js';
 
 @Injectable()
@@ -25,25 +25,17 @@ export class ConfigurationManagementService {
         throw error;
       }
 
-      const status =
-        error.code === ConfigurationImportErrorCode.Invalid
-          ? HttpStatus.UNPROCESSABLE_ENTITY
-          : HttpStatus.CONFLICT;
-      throw new PublicRequestError(status, error.code, error.message, error.issues);
+
+      throw new PublicRequestError(ConfigurationImportHttpStatus[error.code], error.code, error.message, error.issues);
     }
   }
 
   async list(query: unknown): Promise<ConfigurationList> {
-    const { funnelIdentifier, limit, offset } = PublicationInputs.query(query);
+    const pagination = ManagementQueries.read(query);
+    const { funnelIdentifier, limit, offset } = pagination;
 
     return this.database.client.$transaction(async (transaction) => {
-      const funnel = await transaction.funnel.findUnique({
-        where: { identifier: funnelIdentifier },
-        select: { identifier: true, activeVersionIdentifier: true, revision: true },
-      });
-      if (!funnel) {
-        throw new NotFoundException(PublicationMessages.MissingFunnel);
-      }
+      const funnel = await ManagementRecords.readFunnel(transaction, funnelIdentifier);
 
       const versions = await transaction.funnelVersion.findMany({
         where: { funnelIdentifier },
@@ -55,8 +47,7 @@ export class ConfigurationManagementService {
 
       return {
         funnel,
-        items: versions.slice(0, limit),
-        nextOffset: versions.length > limit ? offset + limit : null,
+        ...ManagementRecords.page(versions, pagination),
       };
     });
   }

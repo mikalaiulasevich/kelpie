@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { PublicationService } from '../../source/publications/publication.service.js';
-import type { PublishRequest } from '../../source/publications/publication-inputs.js';
+import type { PublishRequest } from '../../source/publications/publication-types.js';
 import type { BackendApplicationFixture } from './backend-application.js';
 import { ConfigurationImportFixtures } from './configuration-import-fixtures.js';
 

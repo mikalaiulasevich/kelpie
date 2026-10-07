@@ -1,3 +1,4 @@
+import type { PublicationResponse } from './publication-types.js';
 import { Body, Controller, Inject, Post, Req, UseGuards } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
 import { AdministrationGuard } from '../administration/administration.guard.js';
@@ -14,7 +15,10 @@ export class RollbackController {
   ) {}
 
   @Post()
-  async rollback(@Body() document: unknown, @Req() request: FastifyRequest) {
+  async rollback(
+    @Body() document: unknown,
+    @Req() request: FastifyRequest,
+  ): Promise<PublicationResponse> {
     const administrator = await this.administration.authorize(request);
 
     return this.publications.rollback(document, administrator.identifier);

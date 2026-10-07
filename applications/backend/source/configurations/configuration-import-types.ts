@@ -8,7 +8,7 @@ export type ConfigurationImportOutcome = ValueOf<typeof ConfigurationImportOutco
 export const ConfigurationImportErrorCode = { Invalid: 'invalid', Conflict: 'conflict' } as const;
 export type ConfigurationImportErrorCode = ValueOf<typeof ConfigurationImportErrorCode>;
 
-const configurationVersionMetadataSchema = Type.Object({
+const versionMetadata = Type.Object({
   identifier: Type.String(),
   funnelIdentifier: Type.String(),
   version: Type.Integer(),
@@ -16,17 +16,16 @@ const configurationVersionMetadataSchema = Type.Object({
   checksum: Type.String(),
 });
 
-export const ConfigurationImportResultSchema = Type.Object({
-  outcome: Type.Enum(ConfigurationImportOutcome),
-  version: configurationVersionMetadataSchema,
-});
+export const ConfigurationImportSchemas = {
+  VersionMetadata: versionMetadata,
+  Result: Type.Object({
+    outcome: Type.Enum(ConfigurationImportOutcome),
+    version: versionMetadata,
+  }),
+} as const;
 
-export type ConfigurationVersionMetadata = Readonly<
-  Static<typeof configurationVersionMetadataSchema>
->;
-export type ConfigurationImportResult = DeepReadonly<
-  Static<typeof ConfigurationImportResultSchema>
->;
+export type ConfigurationVersionMetadata = Readonly<Static<typeof ConfigurationImportSchemas.VersionMetadata>>;
+export type ConfigurationImportResult = DeepReadonly<Static<typeof ConfigurationImportSchemas.Result>>;
 
 export interface PreparedConfigurationImport {
   readonly configuration: FunnelConfiguration;

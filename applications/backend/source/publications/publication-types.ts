@@ -1,6 +1,7 @@
 import { Type, type Static } from 'typebox';
 import type { PublicationAction } from './publication-policy.js';
-import type { PublishRequest, RollbackRequest } from './publication-inputs.js';
+import { ManagementSchemas } from '../management/management-types.js';
+import { PublicationPolicy } from './publication-policy.js';
 
 export type PublicationIntent =
   | (PublishRequest & {
@@ -12,7 +13,7 @@ export type PublicationIntent =
       readonly administratorIdentifier: string;
     });
 
-export const PublicationResponseSchema = Type.Object({
+const responseSchema = Type.Object({
   identifier: Type.String(),
   operationIdentifier: Type.String(),
   action: Type.String(),
@@ -23,15 +24,31 @@ export const PublicationResponseSchema = Type.Object({
   revision: Type.Integer(),
   createdAt: Type.String(),
 });
-export type PublicationResponse = Readonly<Static<typeof PublicationResponseSchema>>;
-export const FunnelReferenceSchema = Type.Object({
-  identifier: Type.String(),
-  activeVersionIdentifier: Type.Union([Type.String(), Type.Null()]),
-  revision: Type.Integer(),
-});
-export const PublicationHistorySchema = Type.Object({
-  funnel: FunnelReferenceSchema,
-  items: Type.Array(PublicationResponseSchema),
-  nextOffset: Type.Union([Type.Integer(), Type.Null()]),
-});
-export type PublicationHistory = DeepReadonly<Static<typeof PublicationHistorySchema>>;
+
+const commandProperties = {
+  operationIdentifier: Type.String({ pattern: PublicationPolicy.UuidPattern }),
+  funnelIdentifier: ManagementSchemas.Identifier,
+  expectedRevision: Type.Integer({ minimum: 0, maximum: PublicationPolicy.MaximumRevision }),
+};
+
+export const PublicationSchemas = {
+  PublishRequest: Type.Object(
+    {
+      ...commandProperties,
+      targetVersionIdentifier: Type.String({ pattern: PublicationPolicy.UuidPattern }),
+    },
+    { additionalProperties: false },
+  ),
+  RollbackRequest: Type.Object(commandProperties, { additionalProperties: false }),
+  Response: responseSchema,
+  History: Type.Object({
+    funnel: ManagementSchemas.FunnelReference,
+    items: Type.Array(responseSchema),
+    nextOffset: Type.Union([Type.Integer(), Type.Null()]),
+  }),
+} as const;
+
+export type PublishRequest = Readonly<Static<typeof PublicationSchemas.PublishRequest>>;
+export type RollbackRequest = Readonly<Static<typeof PublicationSchemas.RollbackRequest>>;
+export type PublicationResponse = Readonly<Static<typeof PublicationSchemas.Response>>;
+export type PublicationHistory = DeepReadonly<Static<typeof PublicationSchemas.History>>;

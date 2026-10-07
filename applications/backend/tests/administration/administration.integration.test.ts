@@ -5,9 +5,11 @@ import type { BackendApplicationFixture } from '../fixtures/backend-application.
 
 describe('administrator sessions', () => {
   let application: BackendApplicationFixture;
+
   beforeEach(async () => {
     application = await AdministrationFixture.create();
   });
+
   afterEach(async () => {
     await application?.close();
   });
@@ -98,22 +100,14 @@ describe('administrator sessions', () => {
       body: '{}',
     });
     expect(signedOut.status).toBe(204);
-    expect(
-      (await application.request('/api/administration/session', { headers: { cookie } })).status,
-    ).toBe(401);
+    expect(await AdministrationFixture.sessionStatus(application, cookie)).toBe(401);
     const replacement = AdministrationFixture.cookie(
       await AdministrationFixture.signIn(application),
     );
     await application.database.administratorSession.updateMany({
       data: { expiresAt: new Date(0) },
     });
-    expect(
-      (
-        await application.request('/api/administration/session', {
-          headers: { cookie: replacement },
-        })
-      ).status,
-    ).toBe(401);
+    expect(await AdministrationFixture.sessionStatus(application, replacement)).toBe(401);
   });
 
   it('rotates one administrator credential and invalidates old sessions', async () => {
@@ -124,9 +118,7 @@ describe('administrator sessions', () => {
       .provision('reviewer', 'a-new-long-password');
     expect(identity.identifier).toBe(previous.identifier);
     expect(await application.database.administrator.count()).toBe(1);
-    expect(
-      (await application.request('/api/administration/session', { headers: { cookie } })).status,
-    ).toBe(401);
+    expect(await AdministrationFixture.sessionStatus(application, cookie)).toBe(401);
     expect((await AdministrationFixture.signIn(application)).status).toBe(401);
     expect((await AdministrationFixture.signIn(application, 'a-new-long-password')).status).toBe(
       200,
@@ -140,16 +132,8 @@ describe('administrator sessions', () => {
     );
     expect(replacement).not.toBe(cookie);
     expect(await application.database.administratorSession.count()).toBe(1);
-    expect(
-      (await application.request('/api/administration/session', { headers: { cookie } })).status,
-    ).toBe(401);
-    expect(
-      (
-        await application.request('/api/administration/session', {
-          headers: { cookie: replacement },
-        })
-      ).status,
-    ).toBe(200);
+    expect(await AdministrationFixture.sessionStatus(application, cookie)).toBe(401);
+    expect(await AdministrationFixture.sessionStatus(application, replacement)).toBe(200);
   });
 
   it('bounds sign-in attempts per IP', async () => {
