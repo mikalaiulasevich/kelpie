@@ -1,14 +1,23 @@
-import { isEqual, isNull, isUndefined } from 'es-toolkit/predicate';
+import { isEqual, isNull, isUndefined, isPlainObject } from 'es-toolkit/predicate';
 import { FunnelEvaluation } from '@kelpie/funnel-runtime';
 import type { Prisma } from '../../generated/prisma/client.js';
 import { SessionProjection } from '../sessions/session-projection.js';
 import { SessionSnapshots } from '../sessions/session-snapshots.js';
 import type { OwnedSession, SessionState } from '../sessions/session-types.js';
-import { EventIngestionPolicy, EventRejectionCode, ObservationName } from './event-ingestion-policy.js';
+import { SessionPolicy } from '../sessions/session-policy.js';
+import {
+  EventIngestionPolicy,
+  EventRejectionCode,
+  ObservationName,
+} from './event-ingestion-policy.js';
 import type { ObservationEvent } from './event-ingestion-types.js';
 
 const HistoricalObservations = {
-  async state(transaction: Prisma.TransactionClient, session: OwnedSession, revision: number): Promise<Optional<SessionState>> {
+  async state(
+    transaction: Prisma.TransactionClient,
+    session: OwnedSession,
+    revision: number,
+  ): Promise<Optional<SessionState>> {
     if (revision === 0) {
       return isNull(session.initialState) ? undefined : SessionSnapshots.read(session.initialState);
     }
@@ -21,7 +30,10 @@ const HistoricalObservations = {
     return isNull(transition) ? undefined : SessionSnapshots.read(transition.operation.response);
   },
 
-  properties(state: SessionState, event: ObservationEvent): Optional<Readonly<Record<string, TextOrNumber>>> {
+  properties(
+    state: SessionState,
+    event: ObservationEvent,
+  ): Optional<Readonly<Record<string, TextOrNumber>>> {
     const confirmed = SessionProjection.confirmedAnswers(state, state.configuration);
     const evaluation = FunnelEvaluation.evaluate(state.configuration, state.variant, confirmed);
     const index = evaluation.route.steps.findIndex((step) => step.id === event.step_id);
@@ -31,7 +43,11 @@ const HistoricalObservations = {
     }
 
     if (event.name === ObservationName.StepViewed) {
-      return { step_type: step.type, visible_step_index: index, visible_step_count: evaluation.route.steps.length };
+      return {
+        step_type: step.type,
+        visible_step_index: index,
+        visible_step_count: evaluation.route.steps.length,
+      };
     }
 
     const result = state.result;
@@ -51,12 +67,20 @@ const HistoricalObservations = {
       return undefined;
     }
 
-    return { result_id: result.id, action: result.cta.action, source: EventIngestionPolicy.ExpansionSource };
+    return {
+      result_id: result.id,
+      action: result.cta.action,
+      source: EventIngestionPolicy.ExpansionSource,
+    };
   },
 } as const;
 
 export const EventEligibility = {
-  async rejection(transaction: Prisma.TransactionClient, session: OwnedSession, event: ObservationEvent): Promise<Optional<ValueOf<typeof EventRejectionCode>>> {
+  async rejection(
+    transaction: Prisma.TransactionClient,
+    session: OwnedSession,
+    event: ObservationEvent,
+  ): Promise<Optional<ValueOf<typeof EventRejectionCode>>> {
     const configuration = SessionProjection.configuration(session);
     const metadata = {
       session_id: session.identifier,
@@ -64,24 +88,47 @@ export const EventEligibility = {
       funnel_version: configuration.version,
       experiment_id: session.experimentIdentifier,
       variant: session.variant,
-      ...Object(session.acquisitionParameters),
+      ...(isPlainObject(session.acquisitionParameters) ? session.acquisitionParameters : {}),
     };
-    if (Object.entries(metadata).some(([key, value]) => Object.hasOwn(event, key) && !isEqual(Reflect.get(event, key), value))) {
+    if (
+      Object.entries(metadata).some(
+        ([key, value]) => Object.hasOwn(event, key) && !isEqual(Reflect.get(event, key), value),
+      )
+    ) {
       return EventRejectionCode.Metadata;
     }
 
     const acquisition = session.acquisitionParameters;
-    if (['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'].some((key) => Object.hasOwn(event, key) && (!acquisition || !Object.hasOwn(acquisition, key)))) {
+    if (
+      SessionPolicy.AcquisitionFields.some(
+        (key) =>
+          Object.hasOwn(event, key) &&
+          (!isPlainObject(acquisition) || !Object.hasOwn(acquisition, key)),
+      )
+    ) {
       return EventRejectionCode.Metadata;
     }
 
     const declaration = configuration.events.allowed.find((allowed) => allowed.name === event.name);
-    if (isUndefined(declaration) || !isEqual([...declaration.properties].sort(), Object.keys(event.properties).sort())) {
+    if (
+      isUndefined(declaration) ||
+      !isEqual([...declaration.properties].sort(), Object.keys(event.properties).sort())
+    ) {
       return EventRejectionCode.Invalid;
     }
 
-    const state = await HistoricalObservations.state(transaction, session, event.observationRevision);
-    if (isUndefined(state) || state.sessionIdentifier !== session.identifier || state.versionIdentifier !== session.versionIdentifier || state.variant !== session.variant || state.revision !== event.observationRevision) {
+    const state = await HistoricalObservations.state(
+      transaction,
+      session,
+      event.observationRevision,
+    );
+    if (
+      isUndefined(state) ||
+      state.sessionIdentifier !== session.identifier ||
+      state.versionIdentifier !== session.versionIdentifier ||
+      state.variant !== session.variant ||
+      state.revision !== event.observationRevision
+    ) {
       return EventRejectionCode.Ineligible;
     }
 
