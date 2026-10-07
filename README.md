@@ -22,7 +22,7 @@ Bun uses the official `@prisma/adapter-libsql` against a local SQLite file; Node
 
 Open the quiz at http://127.0.0.1:3001 and administration at http://127.0.0.1:5173. Both proxy `/api` to http://127.0.0.1:3000. The separate Next.js App Router application lives in `applications/quiz`; its cream, terracotta and warm-brown design follows the Kelpie reference. It renders information, single-select, multi-select, number and result screens from the pinned backend configuration. Start just the quiz with `npm run development:quiz` after building shared packages and starting the backend. `?funnel=workstyle-planner` selects the default funnel; configured variant overrides and campaign parameters are forwarded during creation.
 
-The default database is `applications/backend/data/funnel-runtime.sqlite`. For custom settings, copy `applications/backend/.env.example` to `applications/backend/.env`; relative database paths resolve from the backend directory. If you change backend `HOST` or `PORT`, also update the `/api` proxy target in `applications/frontend/vite.config.ts` to the matching reachable address. Secrets, local data and generated outputs are ignored by Git.
+The default database is `applications/backend/data/funnel-runtime.sqlite`. For custom settings, copy `applications/backend/.env.example` to `applications/backend/.env`; relative database paths resolve from the backend directory. If you change backend `HOST` or `PORT`, also update both `/api` proxy targets in `applications/frontend/vite.config.ts` and `applications/quiz/next.config.ts` to the matching reachable address. Secrets, local data and generated outputs are ignored by Git.
 
 Application files are watched. Restart development after changing shared packages. Ctrl+C stops all three development processes. Builds clean only their configured workspace output directories before compiling.
 
@@ -75,7 +75,11 @@ The authenticated workspace uses a new custom sidebar with funnel context, descr
 
 Action buttons expose keyboard hints using shadcn `Kbd`: Alt+F opens analytics filters, Alt+R refreshes the current data page, and Alt+O opens configuration import. These shortcuts pause during text entry, open overlays and disabled/loading actions.
 
-Current local integration verification passed `npm run verify:bun` on Node.js 24.16.0 and Bun 1.3.14: 644 Node tests (322 backend, 181 frontend, 65 contracts, 76 runtime), then the same 322 backend tests on Bun, plus lint, formatting, types, builds, supplied configuration checksums and Prisma validation. Browser checks used a separate real Bun backend and isolated SQLite database: cookie login/logout, invalid JSON validation, importing version 27 from page two, publication and rollback through revision 3, and analytics for eight HTTP-created sessions (five result views, three CTA clicks). The UI displayed 62.5% result completion, 37.5% CTA conversion and 60% result-to-CTA click-through. Mobile analytics had no document overflow at 390px; sign-in including validation fitted 1280×650. Import replacement/cancellation has seven deferred-read lifecycle regressions. The local development database retains the separate, explicitly synthetic `demo-workstyle-studio` fixture; this audit did not modify it. Node 26 cannot use the currently installed Node 24 native SQLite binary without reinstalling/rebuilding dependencies for that runtime. Remote CI, public deployment, public quiz acceptance, physical-device and exhaustive accessibility testing remain unverified.
+The current three-application review uses real SQLite and a separate local API with same-origin proxies. Browser acceptance covers administrator publication and rollback, quiz draft restoration, required-answer validation, Back, the v3 compliance branch, a result and its CTA, and matching dashboard milestones. Existing v3 sessions continue after v2 activation and rollback. The engineering review records exact commands and evidence; local verification does not establish public deployment, physical-device coverage or exhaustive accessibility.
+
+For a reviewer walkthrough, start all three applications using the commands above, provision an administrator, import the three original configurations, and publish v3 in Configurations. Open the quiz, choose Hybrid and Compliance to exercise both conditional questions, reload an unfinished answer, then continue to the result and open its recommendations. Refresh Analytics for v3 to see the received views and CTA. Publish v2 while retaining the v3 browser session; the session must retain its original questions and recommendation. Publication and rollback affect only new sessions.
+
+Remaining assignment gates are an authorized, reproducible 100-session traffic generator with independently checked metrics; public hosting and URLs; restart/backup recovery acceptance; and the remaining browser expiry, cross-tab, accessibility and device scenarios. Existing local synthetic fixtures are not evidence that the required generator is delivered.
 
 ## User-session API
 
@@ -123,14 +127,14 @@ The response contains `generatedAt`, resolved filters, pagination and separate v
 
 SQLite counts unique session sets. Starts require the persisted session and authoritative start event. Step completion intersects observed viewers with authoritative forward transitions; information Continue counts as a transition. Noncompletion is split into open sessions and expired dropout. CTA conversion divides clickers by starters; CTA CTR divides sessions with both result and CTA observations by result viewers. Edge metrics distinguish observed source-to-destination conversion, branch share, transition-to-view conversion and open/expired destination nonreach. Repeated views, Back, duplicate identifiers and arrival order do not increase these counts. Branch shares can sum above 100% when a session changes branches. [The plan](IMPLEMENTATION_PLAN.md#analytics-definitions) defines the exact sets and denominators.
 
-The API aggregates in SQLite rather than loading individual event rows into Node.js. It returns bounded version pages; the underlying database still processes matching historical facts. A read transaction provides one consistent snapshot, but its timeout cannot interrupt a synchronous SQLite statement. Query-plan checks exercise the existing session/event/transition indexes. No throughput benchmark, analytics UI or synthetic traffic command is included yet.
+The API aggregates in SQLite rather than loading individual event rows into Node.js. It returns bounded version pages; the underlying database still processes matching historical facts. A read transaction provides one consistent snapshot, but its timeout cannot interrupt a synchronous SQLite statement. Query-plan checks exercise the existing session/event/transition indexes. The analytics UI is implemented. No throughput benchmark or reproducible authorized synthetic traffic command is included yet.
 
 ## Repository map
 
 ```text
 applications/backend       NestJS, SQLite lifecycle, health and diagnostics
 applications/frontend      React/Vite administration workspace; authentication, versions and analytics
-applications/quiz          Planned separate Next.js quiz (not scaffolded yet)
+applications/quiz          Next.js quiz; pinned sessions, local drafts and durable observations
 packages/contracts         TypeBox/Ajv schemas and semantic validation
 packages/funnel-runtime    Answers, conditions, variants, routes and results
 configurations             Original JSON and SHA-256 manifest
@@ -156,7 +160,7 @@ Validation checks bounded JSON structure, references, condition types/order, mer
 
 Use `FunnelRuntime.Evaluation.evaluate(configuration, variant, answers)` when both route and result are needed; it computes them with one route traversal. Hidden, omitted and invalid answers cannot influence active routing/results. Required unanswered questions block results even when excluded from progress. The session command layer separately tracks confirmation revisions: hidden answers remain stored but cannot drive routing or results until explicitly confirmed again.
 
-The initial database schema separates answers from events and constrains version, operation and event identities. Backend services now enforce authorization, immutable imports, transactional commands and retry-safe replay. Client observational event ingestion and analytical aggregation are implemented; the public quiz and its browser delivery queue remain planned.
+The initial database schema separates answers from events and constrains version, operation and event identities. Backend services now enforce authorization, immutable imports, transactional commands and retry-safe replay. Client observational event ingestion and analytical aggregation are implemented; the Next.js quiz and its browser delivery queue are implemented locally.
 
 **Experiment hypothesis:** B increases the share of started sessions opening recommendations through question order and result framing. The primary metric is unique CTA-clicking sessions / unique started sessions; result completion and CTA CTR among result viewers are secondary. Compare within one version/experiment, excluding forced assignments by default. Synthetic traffic will verify calculations, not prove the hypothesis.
 
