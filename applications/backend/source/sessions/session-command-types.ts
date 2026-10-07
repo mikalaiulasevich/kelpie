@@ -1,15 +1,17 @@
+import { SessionPolicy } from './session-policy.js';
 import { Type, type Static } from 'typebox';
 import { ManagementSchemas } from '../management/management-types.js';
-import { SessionCommandKind, SessionCommandPolicy } from './session-command-policy.js';
+import type { SessionCommandKind } from './session-command-policy.js';
+import { SessionCommandPolicy } from './session-command-policy.js';
 
 const commandProperties = {
-  operationIdentifier: Type.String({ pattern: SessionCommandPolicy.UuidPattern }),
+  operationIdentifier: Type.String({ pattern: SessionPolicy.OperationPattern }),
   expectedSessionRevision: Type.Integer({
     minimum: 0,
     maximum: SessionCommandPolicy.MaximumRevision,
   }),
   stepIdentifier: ManagementSchemas.Identifier,
-  clientTimestamp: Type.String({ pattern: SessionCommandPolicy.TimestampPattern }),
+  clientTimestamp: Type.String({ pattern: SessionPolicy.TimestampPattern }),
 };
 const answerSchema = Type.Union([
   Type.String({ maxLength: SessionCommandPolicy.MaximumAnswerLength }),
@@ -26,8 +28,11 @@ export const SessionCommandSchemas = {
   ),
   Navigation: Type.Object(commandProperties, { additionalProperties: false }),
 } as const;
+
 export type SubmitSessionAnswerRequest = DeepReadonly<Static<typeof SessionCommandSchemas.Answer>>;
+
 export type SessionNavigationRequest = Readonly<Static<typeof SessionCommandSchemas.Navigation>>;
+
 export type SessionCommand =
   | (SubmitSessionAnswerRequest & { readonly kind: typeof SessionCommandKind.Answer })
   | (SessionNavigationRequest & {

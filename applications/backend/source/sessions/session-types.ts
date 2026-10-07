@@ -56,3 +56,5 @@ export type OwnedSession = Prisma.SessionGetPayload<{
 }>;
 export type CurrentSessionResponse = Readonly<{ state: SessionState | null; expired: boolean }>;
 export type CredentialVerification = Readonly<{ hash: string | null; expired: boolean }>;
+
+export type SessionAnswerSource = Readonly<{ answers: ReadonlyList<Readonly<{ stepIdentifier: string; value: unknown; confirmationRevision: number | null }>> }>;

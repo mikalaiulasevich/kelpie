@@ -10,7 +10,7 @@ import {
 import { FunnelEvaluation } from '@kelpie/funnel-runtime';
 import { isNull, isString } from 'es-toolkit/predicate';
 import { SessionMessages } from './session-messages.js';
-import type { OwnedSession, SessionState } from './session-types.js';
+import type { OwnedSession, SessionState, SessionAnswerSource } from './session-types.js';
 
 export const SessionProjection = {
   configuration(record: OwnedSession): FunnelConfiguration {
@@ -44,7 +44,7 @@ export const SessionProjection = {
     throw new Error(SessionMessages.Corrupted);
   },
 
-  confirmedAnswers(record: OwnedSession, configuration: FunnelConfiguration): SessionAnswers {
+  confirmedAnswers(record: SessionAnswerSource, configuration: FunnelConfiguration): SessionAnswers {
     const answers: Record<string, StepAnswer> = {};
     for (const answer of record.answers) {
       const step = configuration.steps[answer.stepIdentifier];

@@ -1,3 +1,4 @@
+import { isNull } from 'es-toolkit/predicate';
 import { HttpStatus } from '@nestjs/common';
 import { AnswerValidation, FunnelEvaluation, RouteResolution } from '@kelpie/funnel-runtime';
 import { DictionaryAccess, StepRules, StepType, type FunnelStep } from '@kelpie/contracts';
@@ -14,6 +15,7 @@ import { SessionCommandMessages } from './session-command-messages.js';
 export const SessionCommandRouting = {
   evaluate(record: OwnedSession): EvaluatedFunnel {
     const configuration = SessionProjection.configuration(record);
+
     return FunnelEvaluation.evaluate(
       configuration,
       SessionProjection.variant(record.variant),
@@ -32,17 +34,21 @@ export const SessionCommandRouting = {
         SessionCommandMessages.InvalidStep,
       );
     }
+
     return step;
   },
 
   invalidatedAnswers(record: OwnedSession, evaluation: EvaluatedFunnel): ReadonlyList<string> {
     const available = new Map(evaluation.route.steps.map((step) => [step.id, step]));
+
     return record.answers
       .filter((answer) => {
-        if (answer.confirmationRevision === null) {
+        if (isNull(answer.confirmationRevision)) {
           return false;
         }
+
         const step = available.get(answer.stepIdentifier);
+
         return (
           !step ||
           !StepRules.isInteractive(step) ||
@@ -91,6 +97,7 @@ export const SessionCommandRouting = {
         SessionCommandMessages.UnavailableNavigation,
       );
     }
+
     return {
       operationIdentifier: command.operationIdentifier,
       kind: unavailableResult ? SessionTransitionKind.RouteCorrection : direction,

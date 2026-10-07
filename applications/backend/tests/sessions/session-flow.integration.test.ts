@@ -50,6 +50,38 @@ describe('session HTTP acceptance', () => {
     expect(await backend.database.event.count()).toBe(0);
   });
 
+  it('deduplicates simultaneous creation and rejects changed intent under its identifier', async () => {
+    await browser.current();
+    const creation = SessionFlowFixture.creation();
+    const responses = await Promise.all([
+      browser.post('?variant=B', creation),
+      browser.post('?variant=B', creation),
+    ]);
+    const states = await Promise.all(responses.map(SessionFlowFixture.state));
+    expect(states[0]).toEqual(states[1]);
+    expect(await backend.database.session.count()).toBe(1);
+    expect(await backend.database.event.count()).toBe(1);
+    expect(await backend.database.sessionOperation.count()).toBe(1);
+
+    const changed = await browser.post('?variant=A', creation);
+    expect(changed.status).toBe(409);
+    expect(await changed.json()).toMatchObject({ code: 'operation_conflict' });
+    expect(await backend.database.session.count()).toBe(1);
+  });
+
+  it('rejects a tampered bootstrap cookie instead of binding an attacker-selected credential', async () => {
+    await browser.current();
+    const cookie = browser.cookie;
+    const lastCharacter = cookie.at(-1);
+    browser.cookie = `${cookie.slice(0, -1)}${lastCharacter === 'A' ? 'B' : 'A'}`;
+
+    expect((await browser.post('', SessionFlowFixture.creation())).status).toBe(401);
+    expect(await backend.database.session.count()).toBe(0);
+    expect(await backend.database.event.count()).toBe(0);
+    expect(await (await browser.current()).json()).toEqual({ state: null, expired: false });
+    expect(browser.cookie).not.toBe(cookie);
+  });
+
   it('replays a lost creation response and retains its version and assignment through publish and rollback', async () => {
     await browser.current();
     const creation = SessionFlowFixture.creation();
@@ -170,6 +202,7 @@ describe('session HTTP acceptance', () => {
           expect(Object.keys(event.properties ?? {})).toEqual(['answer_kind']);
         }
       }
+
       expect(
         await backend.database.sessionTransition.count({
           where: { sessionIdentifier: state.sessionIdentifier },
@@ -190,6 +223,7 @@ describe('session HTTP acceptance', () => {
     for (let remaining = 4; remaining > 0; remaining -= 1) {
       state = await browser.back(state);
     }
+
     expect(state.currentStepIdentifier).toBe('work_mode');
     state = await browser.answer(state, 'remote');
     expect(state.answers).toContainEqual({

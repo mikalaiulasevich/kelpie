@@ -1,3 +1,4 @@
+import { isNull } from 'es-toolkit/predicate';
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
 import { AnswerValidation } from '@kelpie/funnel-runtime';
@@ -31,6 +32,7 @@ const SessionCommandChecks = {
         SessionCommandMessages.Conflict,
       );
     }
+
     return SessionSnapshots.read(operation.response);
   },
   revision(record: OwnedSession, command: SessionCommand): void {
@@ -46,14 +48,17 @@ const SessionCommandChecks = {
     if (command.kind === SessionCommandKind.Back) {
       return;
     }
+
     if (command.kind === SessionCommandKind.Continue && step.type === StepType.Information) {
       return;
     }
+
     if (command.kind === SessionCommandKind.Answer && StepRules.isInteractive(step)) {
       const validation = AnswerValidation.validate(step, command.answer);
       if (validation.valid) {
         return;
       }
+
       throw new PublicRequestError(
         HttpStatus.UNPROCESSABLE_ENTITY,
         SessionCommandErrorCode.InvalidAnswer,
@@ -64,6 +69,7 @@ const SessionCommandChecks = {
         })),
       );
     }
+
     throw new PublicRequestError(
       HttpStatus.CONFLICT,
       SessionCommandErrorCode.InvalidStep,
@@ -82,9 +88,11 @@ export class SessionCommandsService {
   submit(request: FastifyRequest, body: unknown): Promise<SessionState> {
     return this.execute(request, SessionCommandInputs.read(SessionCommandKind.Answer, body));
   }
+
   continue(request: FastifyRequest, body: unknown): Promise<SessionState> {
     return this.execute(request, SessionCommandInputs.read(SessionCommandKind.Continue, body));
   }
+
   back(request: FastifyRequest, body: unknown): Promise<SessionState> {
     return this.execute(request, SessionCommandInputs.read(SessionCommandKind.Back, body));
   }
@@ -104,6 +112,7 @@ export class SessionCommandsService {
         if (operation) {
           return SessionCommandChecks.replay(operation, fingerprint);
         }
+
         return this.apply(transaction, record, credentialHash, command, fingerprint);
       });
     } catch (error) {
@@ -113,6 +122,7 @@ export class SessionCommandsService {
       ) {
         throw error;
       }
+
       return this.database.client.$transaction(async (transaction) => {
         const record = await SessionRecords.requireOwned(transaction, credentialHash);
         const winner = await this.findOperation(
@@ -123,6 +133,7 @@ export class SessionCommandsService {
         if (!winner) {
           throw error;
         }
+
         return SessionCommandChecks.replay(winner, fingerprint);
       });
     }
@@ -180,6 +191,7 @@ export class SessionCommandsService {
         data: { confirmationRevision: null },
       });
     }
+
     return SessionCommandRouting.transition(answered, evaluation, command);
   }
 
@@ -228,6 +240,7 @@ export class SessionCommandsService {
       },
     });
     await SessionEvents.transition(transaction, changed, transition);
+
     return response;
   }
 
@@ -240,7 +253,8 @@ export class SessionCommandsService {
     if (command.kind !== SessionCommandKind.Answer) {
       return;
     }
-    const value = command.answer === null ? Prisma.JsonNull : command.answer;
+
+    const value = isNull(command.answer) ? Prisma.JsonNull : command.answer;
     await transaction.sessionAnswer.upsert({
       where: {
         sessionIdentifier_stepIdentifier: {
