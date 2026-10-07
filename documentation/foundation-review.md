@@ -150,9 +150,17 @@ Startup uses immutable acquisition results (`attemptAsync`) and separate creatio
 
 Real HTTP integration tests cover parser rejection, accepted JSON through routing, health/readiness, concurrent correlation and redacted failures. Subprocess tests cover startup failures, port release and bounded shutdown with an incomplete request. This migration does not establish a throughput improvement or Bun runtime compatibility.
 
+## Configuration draft persistence
+
+Backend iteration 1 provides a local import command, not the administrator HTTP interface. Draft identity is `(funnelIdentifier, version)` plus a SHA-256 checksum of canonical JSON. Object property order is ignored; array order remains meaningful. Validation and a detached document snapshot precede asynchronous persistence. Funnel creation and version insertion commit together; uniqueness conflicts resolve by reading and comparing the committed version. No existing document or active pointer is updated.
+
+File reads are bounded to the shared 256 KiB limit; streams cannot grow unbounded after the size check. File handles use scoped asynchronous disposal. Errors expose bounded validation issues or redacted diagnostics rather than raw file contents and filesystem paths. The CLI requires local database access and migrations; administrator HTTP authorization remains a later gate. Canonicalization costs `O(N + sum(k log k))` for JSON nodes N and each object's k keys, with `O(N)` snapshot/storage space; configuration bounds cap work before persistence. No throughput claim is made.
+
+Thirteen real SQLite import tests cover supplied versions, invalid input, replay, conflicting content, concurrent identical/conflicting imports, caller mutation and transaction rollback after a SQLite trigger abort. Six file-boundary tests verify size limits, growth after stat, parsing and actual descriptor release. A separate CLI smoke used a disposable migrated database: root-command import, stable replay, conflict/usage exit codes and no activation/publication all passed. No private development database was modified.
+
 ## Verification evidence
 
-After the Fastify migration, the full Node.js 24.16.0 check passed `npm run verify`: 257 tests (104 backend, 12 frontend, 65 contracts, 76 runtime), strict types, lint, formatting, clean builds, configuration checksums, test layout and Prisma validation. This section owns verification updates; benchmark assertions are separate from test counts.
+After backend iteration 1, the full Node.js 24.16.0 check passed `npm run verify`: 276 tests (123 backend, 12 frontend, 65 contracts, 76 runtime), strict types, lint, formatting, clean builds, configuration checksums, test layout and Prisma validation. This section owns verification updates; benchmark assertions are separate from test counts.
 
 A subsequent isolated `npm run benchmark:runtime` run completed all 79 scenarios with correctness assertions and source/build identity checks. Its [raw report](benchmarks/2026-10-06T19-43-53.019Z-5f307b82-ef08-42de-a7eb-88403317d91a.json) and CSV tables are retained; one run does not establish a performance improvement. An initial concurrent attempt overlapped clean builds and failed before saving a report; the successful rerun started after verification finished.
 

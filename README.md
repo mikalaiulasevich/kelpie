@@ -1,6 +1,6 @@
 # Funnel Runtime
 
-A TypeScript/NestJS (Fastify)/React foundation for configurable funnels. Implemented: configuration validation, pure funnel evaluation, the initial Prisma/SQLite schema, backend lifecycle and health endpoints, and a frontend readiness screen.
+A TypeScript/NestJS (Fastify)/React foundation for configurable funnels. Implemented: configuration validation, pure funnel evaluation, the initial Prisma/SQLite schema, backend lifecycle and health endpoints, immutable configuration draft imports, and a frontend readiness screen.
 
 **The product is not complete.** Session commands, administrator access, publication/rollback, event ingestion, analytics, synthetic traffic and public deployment remain in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). No public application URL or agreed 48-hour start is recorded.
 
@@ -67,6 +67,18 @@ Use `FunnelRuntime.Evaluation.evaluate(configuration, variant, answers)` when bo
 The initial database schema separates answers from events and constrains version, operation and event identities. Those constraints alone do not implement authorization, version immutability, transactional commands or retry-safe replay. Their planned contracts and aggregation rules remain in the implementation plan.
 
 **Experiment hypothesis:** B increases the share of started sessions opening recommendations through question order and result framing. The primary metric is unique CTA-clicking sessions / unique started sessions; result completion and CTA CTR among result viewers are secondary. Compare within one version/experiment, excluding forced assignments by default. Synthetic traffic will verify calculations, not prove the hypothesis.
+
+## Configuration draft import
+
+After applying migrations, import a supplied configuration into the local database:
+
+```sh
+npm run configurations:import -- "$PWD/configurations/funnel-v1.json"
+```
+
+Use an absolute file path: the command runs in the backend workspace. It prints version metadata and `created` or `existing`, without the document. All three supplied files are supported. Import validates and snapshots the configuration, hashes canonical JSON (object key order is ignored; array order is preserved), and writes an immutable draft. Repeating the same content returns the same record; changing content under the same funnel/version fails. A configuration's `status` field never activates it. The checksum here identifies canonical content; provenance checksums under `configurations/` still identify the original file bytes.
+
+This is a trusted local operator command with database filesystem access. No unauthenticated import endpoint is exposed. Administrator authentication, publication/rollback and their HTTP interfaces remain subsequent backend iterations. Failure returns a nonzero exit code; correct the input or storage failure before retrying. A committed import is safe to repeat after a lost command result.
 
 ## Diagnostics and troubleshooting
 

@@ -9,6 +9,7 @@ import { promisify } from 'node:util';
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { applicationDirectory } from '../../source/application/application-directory.js';
 import { ApplicationFactory } from '../../source/application/create-application.js';
+import { ConfigurationImportService } from '../../source/configurations/configuration-import.service.js';
 import { DatabaseService } from '../../source/database/database.service.js';
 import { ApplicationEnvironmentReader } from '../../source/environment/read-application-environment.js';
 import { ApplicationMode, EnvironmentFields } from '../../source/environment/environment-policy.js';
@@ -38,6 +39,14 @@ export class BackendApplicationFixture {
     }
 
     return this.application.get(DatabaseService).client;
+  }
+
+  get configurationImports(): ConfigurationImportService {
+    if (!this.application) {
+      throw new Error(BackendFixtureMessages.Closed);
+    }
+
+    return this.application.get(ConfigurationImportService);
   }
 
   async request(path: string, options?: RequestInit): Promise<Response> {

@@ -11,10 +11,12 @@
     "database:generate": "prisma generate",
     "database:migrate": "tsx source/database/prepare-database-directory.ts && prisma migrate deploy",
     "database:validate": "prisma validate",
-    "test": "vitest run"
+    "test": "vitest run",
+    "configurations:import": "tsx source/configurations/import-configuration.ts"
   },
   "dependencies": {
     "@fastify/helmet": "13.1.1",
+    "@kelpie/contracts": "0.1.0",
     "@nestjs/common": "12.1.2",
     "@nestjs/core": "12.1.2",
     "@nestjs/platform-fastify": "12.1.2",
