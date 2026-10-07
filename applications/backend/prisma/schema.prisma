@@ -69,11 +69,13 @@ model Session {
   campaign              String?
   currentStepIdentifier String
   revision              Int                @default(0)
+  initialState          Json?
   createdAt             DateTime           @default(now())
   expiresAt             DateTime
   version               FunnelVersion      @relation(fields: [versionIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
   answers               SessionAnswer[]
   operations            SessionOperation[]
+  transitions           SessionTransition[]
   events                Event[]
 
   @@index([versionIdentifier, variant, createdAt])
@@ -86,6 +88,7 @@ model SessionAnswer {
   sessionIdentifier String
   stepIdentifier    String
   value             Json
+  confirmationRevision Int?
   updatedAt         DateTime @updatedAt
   session           Session  @relation(fields: [sessionIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
 
@@ -97,6 +100,7 @@ model SessionOperation {
   sessionIdentifier   String
   requestFingerprint  String
   response            Json
+  transitions         SessionTransition[]
   createdAt           DateTime @default(now())
   session             Session  @relation(fields: [sessionIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
 
@@ -140,4 +144,26 @@ model AdministratorSession {
   administrator           Administrator @relation(fields: [administratorIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
 
   @@index([expiresAt])
+}
+
+model SessionTransition {
+  identifier String @id @default(uuid())
+  sessionIdentifier String
+  operationIdentifier String
+  revision Int
+  kind String
+  fromStepIdentifier String
+  toStepIdentifier String
+  createdAt DateTime @default(now())
+  session Session @relation(fields: [sessionIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
+  operation SessionOperation @relation(fields: [sessionIdentifier, operationIdentifier], references: [sessionIdentifier, operationIdentifier], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([sessionIdentifier, revision])
+  @@index([sessionIdentifier, fromStepIdentifier, kind])
+}
+
+model ApplicationSecret {
+  identifier String @id
+  value String
+  createdAt DateTime @default(now())
 }

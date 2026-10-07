@@ -1,0 +1,30 @@
+export const SessionPolicy = {
+  CookieName: 'kelpie_session',
+  CookiePath: '/api',
+  SameSite: 'strict',
+  MutationHeader: 'x-kelpie-session',
+  MutationHeaderValue: '1',
+  SecretIdentifier: 'session-cookie-signing',
+  TokenBytes: 32,
+  SecretBytes: 32,
+  CookieLifetimeMilliseconds: 72 * 60 * 60 * 1000,
+  MillisecondsPerHour: 60 * 60 * 1000,
+  CookiePattern: /^([A-Za-z0-9_-]{43})\.([0-9]{13})\.([A-Za-z0-9_-]{43})$/,
+  HashAlgorithm: 'sha256',
+  HashEncoding: 'hex',
+  BinaryEncoding: 'base64url',
+  OperationPattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+  TimestampPattern: '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$',
+  MaximumAcquisitionCharacters: 200,
+  AcquisitionFields: ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'],
+  Assignment: { Random: 'random', Forced: 'forced' },
+  TrafficOrigin: 'production',
+  RandomResolution: 1_000_000,
+  RecordInclude: { version: true, answers: true },
+} as const;
+
+export const SessionErrorCode = {
+  Unauthorized: 'session_unauthorized', Invalid: 'invalid_session_request',
+  Conflict: 'operation_conflict', Bound: 'session_already_exists',
+  Unavailable: 'funnel_unavailable', Corrupted: 'session_corrupted', Forbidden: 'forbidden',
+} as const;
