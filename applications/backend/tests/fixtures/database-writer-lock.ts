@@ -1,7 +1,13 @@
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
+import { SQLiteStatements } from '../../source/database/sqlite-statements.js';
+import { BackendTestPolicy } from './backend-test-policy.js';
 import { ApplicationEnvironmentService } from '../../source/environment/application-environment.js';
 import type { BackendApplicationFixture } from './backend-application.js';
+
+const WriterLockMessages = {
+  NotReady: 'The database writer process exited before acquiring the lock.',
+} as const;
 
 const WriterLockPolicy = {
   Script: `import { DatabaseSync } from 'node:sqlite';
@@ -32,13 +38,21 @@ export const DatabaseWriterLock = {
     );
     const exited = once(child, 'exit');
     try {
-      await once(child.stdout, 'data');
+      await Promise.race([
+        once(child.stdout, 'data', {
+          signal: AbortSignal.timeout(BackendTestPolicy.TimeoutMilliseconds),
+        }),
+        exited.then(() => {
+          throw new Error(WriterLockMessages.NotReady);
+        }),
+      ]);
       await backend.database.$queryRawUnsafe(WriterLockPolicy.ShortBusyTimeout);
 
       return await operation();
     } finally {
       child.stdin.end();
       await exited;
+      await backend.database.$queryRawUnsafe(SQLiteStatements.ConfigureBusyTimeout);
     }
   },
 } as const;
