@@ -48,6 +48,7 @@ describe('event ingestion independent HTTP acceptance', () => {
     ]);
 
     expect(response.status).toBe(200);
+    expect(response.headers.get('cache-control')).toBe('no-store');
     expect(await response.json()).toMatchObject({
       receipts: [
         { position: 0, event_id: delayed.event_id, status: 'accepted' },

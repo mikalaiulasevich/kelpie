@@ -79,9 +79,11 @@ export type RejectedEventReceipt = Readonly<Static<typeof EventReceiptSchemas.Re
 
 export type EventReceipt = StoredEventReceipt | RejectedEventReceipt;
 
-export interface EventBatchResponse {
-  readonly receipts: ReadonlyList<EventReceipt>;
-}
+export const EventBatchResponseSchema = Type.Object({
+  receipts: Type.Array(Type.Union([EventReceiptSchemas.Stored, EventReceiptSchemas.Rejected])),
+});
+
+export type EventBatchResponse = DeepReadonly<Static<typeof EventBatchResponseSchema>>;
 
 export interface ParsedObservation {
   readonly identifier: Optional<string>;

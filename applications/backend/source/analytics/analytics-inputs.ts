@@ -1,3 +1,4 @@
+import { ManagementPolicy } from '../management/management-policy.js';
 import { BadRequestException } from '@nestjs/common';
 import { Ajv } from 'ajv';
 import {
@@ -14,13 +15,13 @@ const compiler = new Ajv({
   coerceTypes: false,
   ownProperties: true,
 });
-const validators = {
+const AnalyticsValidators = {
   query: compiler.compile<AnalyticsQueryInput>(AnalyticsSchemas.Query),
 } as const;
 
 export const AnalyticsInputs = {
   query(value: unknown): AnalyticsQuery {
-    if (!validators.query(value)) {
+    if (!AnalyticsValidators.query(value)) {
       throw new BadRequestException(AnalyticsMessages.InvalidQuery);
     }
 
@@ -29,7 +30,7 @@ export const AnalyticsInputs = {
     if (
       limit < 1 ||
       limit > AnalyticsPolicy.MaximumLimit ||
-      offset > AnalyticsPolicy.MaximumOffset
+      offset > ManagementPolicy.MaximumOffset
     ) {
       throw new BadRequestException(AnalyticsMessages.InvalidQuery);
     }
