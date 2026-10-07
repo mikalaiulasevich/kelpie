@@ -103,6 +103,9 @@ body {
   font-size: 14px;
   line-height: 1.5;
 }
+html {
+  scroll-padding-top: 10rem;
+}
 button:not(:disabled),
 a {
   cursor: pointer;
@@ -263,9 +266,6 @@ a:focus-visible {
   line-height: 1.6;
   max-width: 650px;
 }
-.workspace-page {
-  scroll-margin-top: 96px;
-}
 .workspace-page [data-slot='card-description'] {
   max-width: 66ch;
   line-height: 1.6;
@@ -324,6 +324,12 @@ a:focus-visible {
   }
 }
 @media (max-width: 1023px) {
+  .workspace-header {
+    position: static;
+  }
+  html {
+    scroll-padding-top: 1rem;
+  }
   .auth-layout {
     grid-template-columns: minmax(0, 1fr);
   }

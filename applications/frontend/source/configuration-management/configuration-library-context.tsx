@@ -64,7 +64,7 @@ export function ConfigurationHighlights({
             <div
               aria-hidden="true"
               className={ClassNames.combine(
-                'relative flex h-40 items-end justify-center overflow-hidden border-b px-6 pt-5',
+                'relative flex h-24 items-end justify-center overflow-hidden border-b px-6 pt-5 sm:h-40',
                 version.identifier === configurations.funnel.activeVersionIdentifier
                   ? 'bg-gradient-to-br from-primary/15 via-primary/5 to-card'
                   : 'bg-gradient-to-br from-muted/70 to-card',
@@ -73,7 +73,7 @@ export function ConfigurationHighlights({
               <div className="absolute bottom-0 h-28 w-36 translate-x-3 rotate-6 rounded-t-xl border border-border/70 bg-background/40" />
               <div
                 className={ClassNames.combine(
-                  'relative flex h-32 w-40 flex-col gap-3 rounded-t-xl border bg-card px-4 pt-4 shadow-lg',
+                  'relative flex h-20 w-40 flex-col gap-3 rounded-t-xl border bg-card px-4 pt-4 shadow-lg sm:h-32',
                   version.identifier === configurations.funnel.activeVersionIdentifier
                     ? 'border-primary/40'
                     : 'border-border',
@@ -207,14 +207,14 @@ export function ConfigurationLibraryContext({
           <Separator />
           <dl className="grid grid-cols-2 gap-x-4 gap-y-5 text-sm">
             <div className="flex min-w-0 flex-col gap-2">
-              <dt className="flex items-center gap-2 text-muted-foreground">
+              <dt className="flex min-h-10 items-center gap-2 text-muted-foreground">
                 <History aria-hidden="true" className="size-4 shrink-0" />
                 {ConfigurationContent.Revision}
               </dt>
               <dd className="text-xl font-medium tabular-nums">{configurations.funnel.revision}</dd>
             </div>
             <div className="flex min-w-0 flex-col gap-2 border-l pl-4">
-              <dt className="flex items-center gap-2 text-muted-foreground">
+              <dt className="flex min-h-10 items-center gap-2 text-muted-foreground">
                 <Layers3 aria-hidden="true" className="size-4 shrink-0" />
                 {ConfigurationContent.ListedVersions}
               </dt>

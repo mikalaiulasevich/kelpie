@@ -2,6 +2,12 @@
 
 This document explains current foundation decisions and their evidence. Feature scope and acceptance gates belong to [the implementation plan](../IMPLEMENTATION_PLAN.md); actual milestones belong to [the development log](development-log.md). The [file inventory](file-audit.json) records current paths and hashes; it is not a claim that every line was re-reviewed in the latest pass. Earlier review chronology remains in Git; raw benchmark reports remain in this repository.
 
+## Administration composition review — October 7, 2026
+
+The visual refinement differentiates conversion metrics, comparison charts, experiment context, configuration document previews and publication activity. Existing Geist typography and amber/emerald/violet tokens remain in use. Metric bars use existing ratios; document illustrations are decorative rather than purported configuration screenshots. No trend history or experimental significance is fabricated. Narrow layouts shorten document previews and stack cards. The translucent workspace header is sticky only on desktop; root scroll padding reserves space for keyboard focus, while narrow headers remain in document flow.
+
+Safari browser review used an isolated NestJS/SQLite fixture on ports 5300/5175: sign-in, empty production cohorts, synthetic v1 ratios, version selection, filter application, configuration highlights and mobile sidebar navigation. Desktop and 390 × 844 responsive views were visually inspected. This is browser evidence against test data, not deployed behavior, a physical-device run or an exhaustive accessibility audit. Frontend verification passed 130 tests, TypeScript/production build, ESLint and formatting. An independent static review identified the sticky-header focus risk, addressed with scroll padding and the narrow-screen fallback. The default Node 26 could not load the installed Node 24 SQLite binary; the isolated backend ran with the already installed Node 24.16.0. No dependency rebuild was needed.
+
 ## Implemented boundaries
 
 - **Configuration contracts:** TypeBox schemas with once-compiled Ajv validation; bounded preflight precedes structural and semantic checks. Explicit recursive type edges retain readonly condition safety. Original configuration bytes are checksum-protected.
