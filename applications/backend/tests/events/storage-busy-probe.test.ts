@@ -1,3 +1,4 @@
+import { writeFileSync } from 'node:fs';
 import { inspect } from 'node:util';
 import { DatabaseSync } from 'node:sqlite';
 import { it } from 'vitest';
@@ -10,11 +11,13 @@ it('probe', async () => {
   const database = new DatabaseSync(url.slice(5));
   try {
     await backend.database.$queryRawUnsafe('PRAGMA busy_timeout=1');
+    writeFileSync('/tmp/kelpie-busy-path.txt', inspect([url, database.prepare('PRAGMA database_list').all(), await backend.database.$queryRawUnsafe('PRAGMA database_list')]));
     database.exec('BEGIN IMMEDIATE');
     try {
-      await backend.database.applicationSecret.create({ data: { identifier: 'probe', value: 'probe' } });
+      const record = await backend.database.applicationSecret.create({ data: { identifier: 'probe', value: 'probe' } });
+      writeFileSync('/tmp/kelpie-busy-success.txt', inspect(record));
     } catch (error) {
-      console.log(inspect(error, { depth: 10, showHidden: true }));
+      writeFileSync('/tmp/kelpie-busy-error.txt', inspect(error, { depth: 10, showHidden: true }));
     }
   } finally {
     database.exec('ROLLBACK');

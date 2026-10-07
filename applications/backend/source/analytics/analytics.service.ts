@@ -18,7 +18,7 @@ export class AnalyticsService {
 
     return this.database.client.$transaction(
       async (transaction) => {
-        const versions = await transaction.funnelVersion.findMany({
+        const page = await transaction.funnelVersion.findMany({
           where: {
             funnelIdentifier: query.funnelIdentifier,
             ...(!isUndefined(query.versionIdentifier)
@@ -26,13 +26,14 @@ export class AnalyticsService {
               : {}),
           },
           orderBy: { version: 'desc' },
-          take: query.limit,
+          take: query.limit + 1,
           skip: query.offset,
         });
+        const versions = page.slice(0, query.limit);
         const metadata = {
           generatedAt: now.toISOString(),
           filters: query,
-          pagination: { limit: query.limit, offset: query.offset },
+          pagination: { limit: query.limit, offset: query.offset, hasMore: page.length > query.limit },
         };
         if (versions.length === 0) {
           return { ...metadata, versions: [] };
@@ -53,12 +54,9 @@ export class AnalyticsService {
           await transaction.$queryRaw<unknown[]>(AnalyticsQueries.edges(cohort)),
         );
 
-        return {
-          ...metadata,
-          versions: versions.map((version) =>
-            AnalyticsProjection.version(version, { summaries, steps, edges }),
-          ),
-        };
+        const aggregates = AnalyticsProjection.group({ summaries, steps, edges });
+
+        return { ...metadata, versions: versions.map((version) => AnalyticsProjection.version(version, aggregates)) };
       },
       { timeout: AnalyticsPolicy.TransactionTimeout },
     );

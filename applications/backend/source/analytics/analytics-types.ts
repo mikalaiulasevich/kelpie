@@ -29,9 +29,19 @@ export const AnalyticsSchemas = {
     },
     { additionalProperties: false },
   ),
-  ResolvedQuery: Type.Object({ ...AnalyticsQueryFields, includeForced: Type.Boolean(), trafficOrigin: Type.Enum(AnalyticsTrafficOrigin), limit: AnalyticsFields.Count, offset: AnalyticsFields.Count }),
+  ResolvedQuery: Type.Object({
+    ...AnalyticsQueryFields,
+    includeForced: Type.Boolean(),
+    trafficOrigin: Type.Enum(AnalyticsTrafficOrigin),
+    limit: AnalyticsFields.Count,
+    offset: AnalyticsFields.Count,
+  }),
   Count: AnalyticsFields.Count,
-  Ratio: Type.Object({ numerator: AnalyticsFields.Count, denominator: AnalyticsFields.Count, value: Type.Union([Type.Number({ minimum: 0, maximum: 1 }), Type.Null()]) }),
+  Ratio: Type.Object({
+    numerator: AnalyticsFields.Count,
+    denominator: AnalyticsFields.Count,
+    value: Type.Union([Type.Number({ minimum: 0, maximum: 1 }), Type.Null()]),
+  }),
   SummaryRow: Type.Object({
     ...AnalyticsFields.Group,
     started: AnalyticsFields.Count,
@@ -64,11 +74,15 @@ export const AnalyticsSchemas = {
 } as const;
 
 export type AnalyticsQueryInput = Readonly<Static<typeof AnalyticsSchemas.Query>>;
+
 export type AnalyticsQuery = Readonly<Static<typeof AnalyticsSchemas.ResolvedQuery>>;
 
 export type AnalyticsRatio = Readonly<Static<typeof AnalyticsSchemas.Ratio>>;
+
 export type AnalyticsSummaryRow = Readonly<Static<typeof AnalyticsSchemas.SummaryRow>>;
+
 export type AnalyticsStepRow = Readonly<Static<typeof AnalyticsSchemas.StepRow>>;
+
 export type AnalyticsEdgeRow = Readonly<Static<typeof AnalyticsSchemas.EdgeRow>>;
 
 export interface AnalyticsAggregates {

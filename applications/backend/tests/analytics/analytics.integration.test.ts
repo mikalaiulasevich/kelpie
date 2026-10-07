@@ -38,13 +38,11 @@ describe('analytics SQLite session sets', () => {
   });
 
   it('counts unique intersections, information Continue, pending and expired observations', async () => {
-    const response = await backend
-      .getService(AnalyticsService)
-      .read({
-        funnelIdentifier: 'workstyle-planner',
-        versionIdentifier: versions.firstVersion,
-        campaign: 'launch',
-      });
+    const response = await backend.getService(AnalyticsService).read({
+      funnelIdentifier: 'workstyle-planner',
+      versionIdentifier: versions.firstVersion,
+      campaign: 'launch',
+    });
     const variant = response.versions[0]?.variants[0];
     expect(variant).toMatchObject({
       variant: 'A',
@@ -72,13 +70,11 @@ describe('analytics SQLite session sets', () => {
   });
 
   it('retains historical branches, excludes Back and repeated transitions, and separates destination loss', async () => {
-    const response = await backend
-      .getService(AnalyticsService)
-      .read({
-        funnelIdentifier: 'workstyle-planner',
-        versionIdentifier: versions.firstVersion,
-        campaign: 'launch',
-      });
+    const response = await backend.getService(AnalyticsService).read({
+      funnelIdentifier: 'workstyle-planner',
+      versionIdentifier: versions.firstVersion,
+      campaign: 'launch',
+    });
     const edges = response.versions[0]?.variants[0]?.edges;
     expect(
       edges?.find(
@@ -102,13 +98,11 @@ describe('analytics SQLite session sets', () => {
   });
 
   it('includes zero-traffic variants and not-applicable ratios in configuration order', async () => {
-    const response = await backend
-      .getService(AnalyticsService)
-      .read({
-        funnelIdentifier: 'workstyle-planner',
-        versionIdentifier: versions.firstVersion,
-        campaign: 'launch',
-      });
+    const response = await backend.getService(AnalyticsService).read({
+      funnelIdentifier: 'workstyle-planner',
+      versionIdentifier: versions.firstVersion,
+      campaign: 'launch',
+    });
     expect(response.versions[0]?.variants[1]).toMatchObject({
       variant: 'B',
       started: 0,
@@ -178,8 +172,10 @@ describe('analytics SQLite session sets', () => {
     const plan = await backend.database.$queryRaw<unknown[]>(
       Prisma.sql`EXPLAIN QUERY PLAN ${AnalyticsQueries.steps(cohort)}`,
     );
-    expect(JSON.stringify(plan)).toContain('Event_sessionIdentifier_name_stepIdentifier_idx');
-    expect(JSON.stringify(plan)).toContain(
+    expect(AnalyticsFixture.queryPlan(plan)).toContain(
+      'Event_sessionIdentifier_name_stepIdentifier_idx',
+    );
+    expect(AnalyticsFixture.queryPlan(plan)).toContain(
       'SessionTransition_sessionIdentifier_fromStepIdentifier_kind_idx',
     );
   });

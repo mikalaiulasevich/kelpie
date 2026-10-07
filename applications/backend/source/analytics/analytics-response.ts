@@ -1,73 +1,91 @@
 import { Type, type Static } from 'typebox';
 import { StepType, ExperimentVariant } from '@kelpie/contracts';
-import { AnalyticsTrafficOrigin } from './analytics-policy.js';
 import { AnalyticsSchemas } from './analytics-types.js';
 
-const count = Type.Integer({ minimum: 0 });
-const stepProperties = {
-  stepIdentifier: Type.String(),
-  type: Type.Enum(StepType),
-  conditional: Type.Boolean(),
-  reached: count,
-};
-const nonterminalStep = Type.Object({
-  ...stepProperties,
-  completed: count,
-  completion: AnalyticsSchemas.Ratio,
-  noncompletion: Type.Object({ open: count, expired: count }),
-  expiredDropout: AnalyticsSchemas.Ratio,
-});
-const terminalStep = Type.Object(stepProperties);
-const edge = Type.Object({
-  fromStepIdentifier: Type.String(),
-  toStepIdentifier: Type.String(),
-  transitions: count,
-  observedConversion: AnalyticsSchemas.Ratio,
-  branchShare: AnalyticsSchemas.Ratio,
-  transitionToView: AnalyticsSchemas.Ratio,
-  destinationNonreach: Type.Object({ open: count, expired: count }),
-});
-const variant = Type.Object({
-  variant: Type.Enum(ExperimentVariant),
-  started: count,
-  resultCompletion: AnalyticsSchemas.Ratio,
-  ctaConversion: AnalyticsSchemas.Ratio,
-  ctaClickThrough: AnalyticsSchemas.Ratio,
-  steps: Type.Array(Type.Union([nonterminalStep, terminalStep])),
-  edges: Type.Array(edge),
-});
-const version = Type.Object({
-  versionIdentifier: Type.String(),
-  funnelVersion: count,
-  experimentIdentifier: Type.String(),
-  variants: Type.Array(variant),
-});
-
-export const AnalyticsResponseSchemas = {
-  Step: Type.Union([nonterminalStep, terminalStep]),
-  Edge: edge,
-  Variant: variant,
-  Version: version,
+const AnalyticsResponseFields = {
+  Step: {
+    stepIdentifier: Type.String(),
+    conditional: Type.Boolean(),
+    reached: AnalyticsSchemas.Count,
+  },
+  NonterminalType: Type.Enum({
+    Information: StepType.Information,
+    Number: StepType.Number,
+    SingleSelect: StepType.SingleSelect,
+    MultiSelect: StepType.MultiSelect,
+  }),
+  Noncompletion: Type.Object({ open: AnalyticsSchemas.Count, expired: AnalyticsSchemas.Count }),
 } as const;
 
-export type AnalyticsStep = Static<typeof AnalyticsResponseSchemas.Step>;
-export type AnalyticsEdge = Static<typeof AnalyticsResponseSchemas.Edge>;
-export type AnalyticsVariant = Static<typeof AnalyticsResponseSchemas.Variant>;
-export type AnalyticsVersion = Static<typeof AnalyticsResponseSchemas.Version>;
-
-export const AnalyticsResponseSchema = Type.Object({
-  generatedAt: Type.String(),
-  filters: Type.Object({
-    funnelIdentifier: Type.String(),
-    versionIdentifier: Type.Optional(Type.String()),
-    campaign: Type.Optional(Type.String()),
-    includeForced: Type.Boolean(),
-    trafficOrigin: Type.Enum(AnalyticsTrafficOrigin),
-    limit: count,
-    offset: count,
+const AnalyticsStepSchemas = {
+  Nonterminal: Type.Object(
+    {
+      ...AnalyticsResponseFields.Step,
+      type: AnalyticsResponseFields.NonterminalType,
+      completed: AnalyticsSchemas.Count,
+      completion: AnalyticsSchemas.Ratio,
+      noncompletion: AnalyticsResponseFields.Noncompletion,
+      expiredDropout: AnalyticsSchemas.Ratio,
+    },
+    { additionalProperties: false },
+  ),
+  Terminal: Type.Object(
+    { ...AnalyticsResponseFields.Step, type: Type.Literal(StepType.Result) },
+    { additionalProperties: false },
+  ),
+  Edge: Type.Object({
+    fromStepIdentifier: Type.String(),
+    toStepIdentifier: Type.String(),
+    transitions: AnalyticsSchemas.Count,
+    observedConversion: AnalyticsSchemas.Ratio,
+    branchShare: AnalyticsSchemas.Ratio,
+    transitionToView: AnalyticsSchemas.Ratio,
+    destinationNonreach: AnalyticsResponseFields.Noncompletion,
   }),
-  pagination: Type.Object({ limit: count, offset: count }),
-  versions: Type.Array(version),
-});
+} as const;
 
-export type AnalyticsResponse = Static<typeof AnalyticsResponseSchema>;
+const AnalyticsVariantSchemas = {
+  Variant: Type.Object({
+    variant: Type.Enum(ExperimentVariant),
+    started: AnalyticsSchemas.Count,
+    resultCompletion: AnalyticsSchemas.Ratio,
+    ctaConversion: AnalyticsSchemas.Ratio,
+    ctaClickThrough: AnalyticsSchemas.Ratio,
+    steps: Type.Array(
+      Type.Union([AnalyticsStepSchemas.Nonterminal, AnalyticsStepSchemas.Terminal]),
+    ),
+    edges: Type.Array(AnalyticsStepSchemas.Edge),
+  }),
+} as const;
+
+const AnalyticsVersionSchemas = {
+  Version: Type.Object({
+    versionIdentifier: Type.String(),
+    funnelVersion: AnalyticsSchemas.Count,
+    experimentIdentifier: Type.String(),
+    variants: Type.Array(AnalyticsVariantSchemas.Variant),
+  }),
+} as const;
+
+export const AnalyticsResponseSchemas = {
+  Step: Type.Union([AnalyticsStepSchemas.Nonterminal, AnalyticsStepSchemas.Terminal]),
+  Edge: AnalyticsStepSchemas.Edge,
+  Variant: AnalyticsVariantSchemas.Variant,
+  Version: AnalyticsVersionSchemas.Version,
+  Response: Type.Object({
+    generatedAt: Type.String(),
+    filters: AnalyticsSchemas.ResolvedQuery,
+    pagination: Type.Object({ limit: AnalyticsSchemas.Count, offset: AnalyticsSchemas.Count, hasMore: Type.Boolean() }),
+    versions: Type.Array(AnalyticsVersionSchemas.Version),
+  }),
+} as const;
+
+export type AnalyticsStep = DeepReadonly<Static<typeof AnalyticsResponseSchemas.Step>>;
+
+export type AnalyticsEdge = DeepReadonly<Static<typeof AnalyticsResponseSchemas.Edge>>;
+
+export type AnalyticsVariant = DeepReadonly<Static<typeof AnalyticsResponseSchemas.Variant>>;
+
+export type AnalyticsVersion = DeepReadonly<Static<typeof AnalyticsResponseSchemas.Version>>;
+
+export type AnalyticsResponse = DeepReadonly<Static<typeof AnalyticsResponseSchemas.Response>>;

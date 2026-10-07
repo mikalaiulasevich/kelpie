@@ -4,11 +4,17 @@ import {
   type FunnelConfiguration,
   type FunnelStep,
 } from '@kelpie/contracts';
+import { groupBy } from 'es-toolkit/array';
 import type { FunnelVersion } from '../../generated/prisma/client.js';
 import { ConfigurationImportDocument } from '../configurations/configuration-import-document.js';
 import { AnalyticsMessages } from './analytics-messages.js';
 import { AnalyticsResults } from './analytics-results.js';
-import type { AnalyticsEdgeRow, AnalyticsStepRow, AnalyticsAggregates } from './analytics-types.js';
+import type {
+  AnalyticsEdgeRow,
+  AnalyticsStepRow,
+  AnalyticsAggregates,
+  AnalyticsAggregateGroups,
+} from './analytics-types.js';
 import type {
   AnalyticsStep,
   AnalyticsEdge,
@@ -17,19 +23,34 @@ import type {
 } from './analytics-response.js';
 
 export const AnalyticsProjection = {
+  groupKey(versionIdentifier: string, variant: string): string {
+    return `${versionIdentifier}/${variant}`;
+  },
+
+  group(aggregates: AnalyticsAggregates): AnalyticsAggregateGroups {
+    const key = (row: { readonly versionIdentifier: string; readonly variant: string }) =>
+      AnalyticsProjection.groupKey(row.versionIdentifier, row.variant);
+
+    return {
+      summaries: groupBy(aggregates.summaries, key),
+      steps: groupBy(aggregates.steps, key),
+      edges: groupBy(aggregates.edges, key),
+    };
+  },
+
   step(step: FunnelStep, row: Optional<AnalyticsStepRow>): AnalyticsStep {
     const base = {
       stepIdentifier: step.id,
-      type: step.type,
       conditional: Boolean(step.visibleWhen),
       reached: row?.reached ?? 0,
     };
     if (step.type === StepType.Result) {
-      return base;
+      return { ...base, type: StepType.Result };
     }
 
     return {
       ...base,
+      type: step.type,
       completed: row?.completed ?? 0,
       completion: AnalyticsResults.ratio(row?.observedCompleted ?? 0, base.reached),
       noncompletion: { open: row?.openNoncompletion ?? 0, expired: row?.expiredNoncompletion ?? 0 },
@@ -56,19 +77,12 @@ export const AnalyticsProjection = {
     versionIdentifier: string,
     configuration: FunnelConfiguration,
     variant: ExperimentVariant,
-    aggregates: AnalyticsAggregates,
+    aggregates: AnalyticsAggregateGroups,
   ): AnalyticsVariant {
-    const summary = aggregates.summaries.find(
-      (row) => row.versionIdentifier === versionIdentifier && row.variant === variant,
-    );
-    const steps = new Map(
-      aggregates.steps
-        .filter((row) => row.versionIdentifier === versionIdentifier && row.variant === variant)
-        .map((row) => [row.stepIdentifier, row]),
-    );
-    const edges = aggregates.edges.filter(
-      (row) => row.versionIdentifier === versionIdentifier && row.variant === variant,
-    );
+    const key = AnalyticsProjection.groupKey(versionIdentifier, variant);
+    const summary = aggregates.summaries[key]?.[0];
+    const steps = new Map((aggregates.steps[key] ?? []).map((row) => [row.stepIdentifier, row]));
+    const edges = aggregates.edges[key] ?? [];
     const started = summary?.started ?? 0;
 
     return {
@@ -89,7 +103,7 @@ export const AnalyticsProjection = {
     };
   },
 
-  version(record: FunnelVersion, aggregates: AnalyticsAggregates): AnalyticsVersion {
+  version(record: FunnelVersion, aggregates: AnalyticsAggregateGroups): AnalyticsVersion {
     const prepared = ConfigurationImportDocument.prepare(record.document);
     if (!ConfigurationImportDocument.matchesVersion(record, prepared)) {
       throw new Error(AnalyticsMessages.InvalidConfiguration);

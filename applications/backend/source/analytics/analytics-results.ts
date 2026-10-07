@@ -1,4 +1,4 @@
-import { Ajv } from 'ajv';
+import { Ajv, type ValidateFunction } from 'ajv';
 import { isPlainObject } from 'es-toolkit/predicate';
 import { AnalyticsMessages } from './analytics-messages.js';
 import {
@@ -15,7 +15,7 @@ const compiler = new Ajv({
   coerceTypes: false,
   ownProperties: true,
 });
-const validators = {
+const AnalyticsValidators = {
   summary: compiler.compile<AnalyticsSummaryRow>(AnalyticsSchemas.SummaryRow),
   step: compiler.compile<AnalyticsStepRow>(AnalyticsSchemas.StepRow),
   edge: compiler.compile<AnalyticsEdgeRow>(AnalyticsSchemas.EdgeRow),
@@ -35,37 +35,27 @@ export const AnalyticsResults = {
     );
   },
 
-  summaries(rows: readonly unknown[]): readonly AnalyticsSummaryRow[] {
+  rows<Row>(rows: readonly unknown[], validate: ValidateFunction<Row>): readonly Row[] {
     return rows.map((row) => {
       const value = AnalyticsResults.normalize(row);
-      if (!validators.summary(value)) {
+      if (!validate(value)) {
         throw new Error(AnalyticsMessages.InvalidAggregate);
       }
 
       return value;
     });
+  },
+
+  summaries(rows: readonly unknown[]): readonly AnalyticsSummaryRow[] {
+    return AnalyticsResults.rows(rows, AnalyticsValidators.summary);
   },
 
   steps(rows: readonly unknown[]): readonly AnalyticsStepRow[] {
-    return rows.map((row) => {
-      const value = AnalyticsResults.normalize(row);
-      if (!validators.step(value)) {
-        throw new Error(AnalyticsMessages.InvalidAggregate);
-      }
-
-      return value;
-    });
+    return AnalyticsResults.rows(rows, AnalyticsValidators.step);
   },
 
   edges(rows: readonly unknown[]): readonly AnalyticsEdgeRow[] {
-    return rows.map((row) => {
-      const value = AnalyticsResults.normalize(row);
-      if (!validators.edge(value)) {
-        throw new Error(AnalyticsMessages.InvalidAggregate);
-      }
-
-      return value;
-    });
+    return AnalyticsResults.rows(rows, AnalyticsValidators.edge);
   },
 
   ratio(numerator: number, denominator: number): AnalyticsRatio {

@@ -1,9 +1,10 @@
+import { isPlainObject, isString } from 'es-toolkit/predicate';
 import { randomUUID } from 'node:crypto';
 import { Ajv } from 'ajv';
 import type { BackendApplicationFixture } from './backend-application.js';
 import { ConfigurationImportFixtures } from './configuration-import-fixtures.js';
 import {
-  AnalyticsResponseSchema,
+  AnalyticsResponseSchemas,
   type AnalyticsResponse,
 } from '../../source/analytics/analytics-response.js';
 
@@ -18,9 +19,17 @@ interface AnalyticsSessionScenario {
   readonly started?: boolean;
 }
 
-const validator = new Ajv({ strict: true }).compile<AnalyticsResponse>(AnalyticsResponseSchema);
+const validator = new Ajv({ strict: true }).compile<AnalyticsResponse>(
+  AnalyticsResponseSchemas.Response,
+);
 
 export const AnalyticsFixture = {
+  queryPlan(rows: readonly unknown[]): string {
+    return rows
+      .flatMap((row) => (isPlainObject(row) && isString(row.detail) ? [row.detail] : []))
+      .join('\n');
+  },
+
   async prepare(backend: BackendApplicationFixture) {
     const first = await backend.configurationImports.import(
       ConfigurationImportFixtures.original(1),
