@@ -17,6 +17,7 @@ export const EnvironmentSchemas = {
 export const ApplicationEnvironmentSchema = Type.Object({
   mode: EnvironmentSchemas.Mode,
   administrationOrigin: Type.String(),
+  quizOrigin: Type.String(),
   logLevel: EnvironmentSchemas.LogLevel,
   host: EnvironmentSchemas.Host,
   port: EnvironmentSchemas.Port,

@@ -22,7 +22,7 @@
   "scripts": {
     "development": "npm run build:packages && npm run database:generate && node scripts/development.mjs",
     "build:packages": "npm run build --workspace=@kelpie/contracts && npm run build --workspace=@kelpie/funnel-runtime",
-    "build": "npm run build:packages && npm run database:generate && npm run build --workspace=@kelpie/backend && npm run build --workspace=@kelpie/frontend",
+    "build": "npm run build:packages && npm run database:generate && npm run build --workspace=@kelpie/backend && npm run build --workspace=@kelpie/frontend && npm run build --workspace=@kelpie/quiz",
     "typecheck": "npm run build:packages && npm run database:generate && npm run typecheck --workspaces --if-present && tsc -p tsconfig.json",
     "test": "npm run test --workspaces --if-present",
     "lint": "eslint . --max-warnings=0",
@@ -41,7 +41,8 @@
     "start:bun": "bun run --cwd applications/backend start:bun",
     "start:node": "npm run start --workspace=@kelpie/backend",
     "test:bun": "bun run --cwd applications/backend test:bun",
-    "verify:bun": "npm run verify && npm run test:bun"
+    "verify:bun": "npm run verify && npm run test:bun",
+    "development:quiz": "npm run development --workspace=@kelpie/quiz"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

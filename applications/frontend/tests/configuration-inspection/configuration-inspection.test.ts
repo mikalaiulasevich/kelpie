@@ -89,7 +89,7 @@ describe('configuration inspection', () => {
     expect(markup).toContain('Open the implementation details');
     expect(markup).toContain('expand_recommendation');
     expect(markup).toContain('Separate decision records from restricted source material.');
-    expect(markup).toContain('Default result');
+    expect(markup).toContain('Otherwise show');
     expect(markup.indexOf('regulated_scale')).toBeLessThan(markup.indexOf('meeting_heavy'));
     expect(JSON.stringify(configuration)).toBe(originalDocument);
   });

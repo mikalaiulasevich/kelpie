@@ -2,8 +2,11 @@ import {
   ArrowUpRight,
   CircleCheck,
   CircleDashed,
+  FilePenLine,
   History,
   Layers3,
+  FileJson2,
+  Fingerprint,
   ShieldCheck,
 } from 'lucide-react';
 import { Badge } from '../components/badge';
@@ -26,8 +29,8 @@ import { ClassNames } from '../styling/combine-class-names';
 
 export function ConfigurationStatus({ live }: { live: boolean }): UIElement {
   return (
-    <Badge variant={live ? 'success' : 'outline'}>
-      {live ? <CircleCheck /> : <CircleDashed />}
+    <Badge variant={live ? 'success' : 'warning'} className={live ? undefined : 'bg-warning/5'}>
+      {live ? <CircleCheck aria-hidden="true" /> : <FilePenLine aria-hidden="true" />}
       {live ? ConfigurationContent.Live : ConfigurationContent.Draft}
     </Badge>
   );
@@ -50,7 +53,7 @@ export function ConfigurationHighlights({
           {ConfigurationContent.HighlightsScope}
         </span>
       </div>
-      <div className="configuration-highlights grid gap-4 md:grid-cols-[1.3fr_1fr_1fr]">
+      <div className="configuration-highlights grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))]">
         {versions.map((version) => (
           <Card
             key={version.identifier}
@@ -60,9 +63,17 @@ export function ConfigurationHighlights({
                 'border-primary/35',
             )}
           >
-            <CardHeader className="flex flex-col items-start gap-4 px-5">
+            <CardHeader className="gap-3 px-5">
+              <div className="flex items-center justify-between gap-2">
+                <span className="flex size-9 items-center justify-center rounded-[10px] bg-primary/10 text-primary">
+                  <FileJson2 className="size-4" strokeWidth={1.5} aria-hidden="true" />
+                </span>
+                <ConfigurationStatus
+                  live={version.identifier === configurations.funnel.activeVersionIdentifier}
+                />
+              </div>
               <a
-                className="w-fit rounded-sm text-3xl font-medium tracking-tight underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+                className="w-fit rounded-sm text-xl font-medium tracking-tight underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
                 href={WorkspaceNavigation.href(
                   WorkspacePage.Version,
                   version.funnelIdentifier,
@@ -71,14 +82,31 @@ export function ConfigurationHighlights({
               >
                 {ConfigurationContent.Version} {version.version}
               </a>
-              <ConfigurationStatus
-                live={version.identifier === configurations.funnel.activeVersionIdentifier}
-              />
+              <CardDescription className="text-xs leading-relaxed">
+                {version.identifier === configurations.funnel.activeVersionIdentifier
+                  ? 'Serving new sessions. Existing sessions keep their assigned version.'
+                  : 'Saved configuration. Inspect its steps and experiment before activation.'}
+              </CardDescription>
             </CardHeader>
+            <CardContent>
+              <dl className="grid grid-cols-2 gap-3 border-t pt-3 text-xs">
+                <div>
+                  <dt className="mb-1 text-muted-foreground">Schema</dt>
+                  <dd>{version.schemaVersion}</dd>
+                </div>
+                <div className="min-w-0">
+                  <dt className="mb-1 flex items-center gap-1 text-muted-foreground">
+                    <Fingerprint className="size-3" aria-hidden="true" />
+                    Fingerprint
+                  </dt>
+                  <dd className="truncate" title={version.checksum}>
+                    {version.checksum.slice(0, 12)}
+                  </dd>
+                </div>
+              </dl>
+            </CardContent>
             <CardFooter className="mt-auto justify-between gap-2 px-5 text-xs text-muted-foreground">
-              <span className="min-w-0 break-words">
-                {ConfigurationContent.Schema} {version.schemaVersion}
-              </span>
+              <span>View configuration</span>
               <Button variant="ghost" size="icon" asChild>
                 <a
                   aria-label={`Inspect version ${version.version}`}
@@ -116,7 +144,7 @@ export function ConfigurationLibraryContext({
             <CardTitle>{ConfigurationContent.CurrentVersion}</CardTitle>
             <span
               className={ClassNames.combine(
-                'flex size-8 items-center justify-center rounded-lg',
+                'flex size-8 items-center justify-center rounded-[10px]',
                 configurations.funnel.activeVersionIdentifier
                   ? 'bg-success/10 text-success'
                   : 'bg-muted text-muted-foreground',
@@ -133,7 +161,7 @@ export function ConfigurationLibraryContext({
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           <div>
-            <p className="break-words text-3xl font-semibold tracking-tight tabular-nums text-primary">
+            <p className="break-words text-2xl font-medium tracking-tight tabular-nums text-primary">
               {ConfigurationFormat.activeVersion(configurations)}
             </p>
             <p className="mt-2 break-all text-xs text-muted-foreground">

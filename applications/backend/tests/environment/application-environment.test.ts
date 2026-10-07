@@ -140,3 +140,38 @@ describe('Administration origin boundary', () => {
     ).toBe('https://kelpie.example:8443');
   });
 });
+
+describe('Quiz origin boundary', () => {
+  it.each(EnvironmentCases.RejectedAdministrationOrigins)(
+    'rejects malformed quiz origin %j',
+    (origin) => {
+      expect(() => ApplicationEnvironmentReader.read({ QUIZ_ORIGIN: origin })).toThrow(
+        'QUIZ_ORIGIN',
+      );
+    },
+  );
+
+  it('defaults to the local quiz in development and the explicit administration origin in production', () => {
+    expect(ApplicationEnvironmentReader.read({}).quizOrigin).toBe('http://127.0.0.1:3001');
+    expect(
+      ApplicationEnvironmentReader.read({
+        NODE_ENV: 'production',
+        ADMINISTRATION_ORIGIN: 'https://admin.example',
+      }).quizOrigin,
+    ).toBe('https://admin.example');
+    expect(
+      ApplicationEnvironmentReader.read({
+        NODE_ENV: 'production',
+        ADMINISTRATION_ORIGIN: 'https://admin.example',
+        QUIZ_ORIGIN: 'https://quiz.example',
+      }).quizOrigin,
+    ).toBe('https://quiz.example');
+    expect(() =>
+      ApplicationEnvironmentReader.read({
+        NODE_ENV: 'production',
+        ADMINISTRATION_ORIGIN: 'https://admin.example',
+        QUIZ_ORIGIN: 'http://quiz.example',
+      }),
+    ).toThrow('QUIZ_ORIGIN');
+  });
+});

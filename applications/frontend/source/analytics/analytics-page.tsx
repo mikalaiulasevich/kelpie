@@ -3,7 +3,7 @@ import { ActionShortcutCatalog } from '../workspace/action-shortcuts';
 import { useActionShortcuts } from '../workspace/use-action-shortcuts';
 import { JourneyIllustration } from '../flow-visuals/flow-illustrations';
 import { useMemo, useState } from 'react';
-import { ChevronDown, RefreshCw, SlidersHorizontal } from 'lucide-react';
+import { ChevronDown, RefreshCw, SlidersHorizontal, Radio, Shuffle, Megaphone } from 'lucide-react';
 import { LoadErrorState } from '../components/load-error-state';
 import { Badge } from '../components/badge';
 import { Button } from '../components/button';
@@ -60,22 +60,22 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
 
   return (
     <div className="workspace-page flex min-w-0 flex-col gap-8">
-      <div className="screen-heading flex flex-col gap-3">
-        <h1 className="page-title">Analytics</h1>
-      </div>
       <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
         <div className="analytics-toolbar flex flex-col gap-2">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary">
+              <Badge variant="secondary" className="analytics-context-chip" data-tone="traffic">
+                <Radio aria-hidden="true" />
                 {AnalyticsFilterSelection.trafficLabel(appliedFilters)}
               </Badge>
-              <Badge variant="outline">
+              <Badge variant="secondary" className="analytics-context-chip">
+                <Shuffle aria-hidden="true" />
                 {appliedFilters.includeForced
                   ? 'Forced assignments included'
                   : 'Forced assignments excluded'}
               </Badge>
-              <Badge variant="outline">
+              <Badge variant="secondary" className="analytics-context-chip">
+                <Megaphone aria-hidden="true" />
                 {AnalyticsFilterSelection.campaignLabel(appliedFilters)}
               </Badge>
             </div>

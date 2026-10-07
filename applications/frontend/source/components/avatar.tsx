@@ -29,7 +29,7 @@ function AvatarImage({
   return (
     <AvatarPrimitive.Image
       data-slot="avatar-image"
-      className={ClassNames.combine('aspect-square size-full', className)}
+      className={ClassNames.combine('aspect-square size-full rounded-full object-cover', className)}
       {...properties}
     />
   );

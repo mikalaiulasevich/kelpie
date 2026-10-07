@@ -1,0 +1,36 @@
+{
+  "name": "@kelpie/quiz",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "development": "next dev --port 3001",
+    "development:bun": "next dev --port 3001",
+    "build": "next build",
+    "start": "next start --port 3001",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@kelpie/contracts": "0.1.0",
+    "@kelpie/funnel-runtime": "0.1.0",
+    "@radix-ui/react-slot": "1.4.0",
+    "ajv": "8.20.0",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "es-toolkit": "1.52.0",
+    "lucide-react": "1.52.0",
+    "next": "16.4.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "tailwind-merge": "3.7.0",
+    "ts-pattern": "5.9.0",
+    "typebox": "1.3.36"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "tailwindcss": "4.3.3"
+  }
+}

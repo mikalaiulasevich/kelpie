@@ -440,27 +440,37 @@ export function AnalyticsVersionPanel({
           </Card>
         </div>
       </div>
-      <Tabs defaultValue={version.variants[0]?.variant ?? ''} className="min-w-0 gap-4 pt-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+      <Tabs
+        defaultValue={version.variants[0]?.variant ?? ''}
+        className="analytics-detail-tabs min-w-0 gap-4 pt-3"
+      >
+        <div className="analytics-detail-heading">
           <div className="flex flex-col gap-1">
             <h3 className="text-base font-semibold">Step-by-step results</h3>
             <p className="text-xs text-muted-foreground">
               Choose a variant to review its steps and paths.
             </p>
           </div>
-          <TabsList aria-label={`Version ${version.funnelVersion} variants`}>
-            {version.variants.map((variant) => (
-              <TabsTrigger key={variant.variant} value={variant.variant}>
-                Variant {variant.variant}
-                <span className="ml-1 rounded bg-background/60 px-1.5 text-xs tabular-nums">
-                  {variant.steps.length}
-                </span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
         </div>
+        <TabsList
+          className="analytics-variant-tabs"
+          aria-label={`Version ${version.funnelVersion} variants`}
+        >
+          {version.variants.map((variant) => (
+            <TabsTrigger key={variant.variant} value={variant.variant}>
+              Variant {variant.variant}
+              <span className="ml-1 rounded bg-background/60 px-1.5 text-xs tabular-nums">
+                {variant.steps.length}
+              </span>
+            </TabsTrigger>
+          ))}
+        </TabsList>
         {version.variants.map((variant) => (
-          <TabsContent key={variant.variant} value={variant.variant}>
+          <TabsContent
+            className="analytics-detail-panel"
+            key={variant.variant}
+            value={variant.variant}
+          >
             <Tabs defaultValue="steps" className="min-w-0 gap-4">
               <TabsList aria-label={`Variant ${variant.variant} detail views`}>
                 <TabsTrigger value="steps">

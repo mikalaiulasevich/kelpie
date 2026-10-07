@@ -149,13 +149,17 @@ export function Workspace({ identity, signOut, onUnauthorized }: WorkspaceProper
       <div className="workspace-page">
         <header className="workspace-header flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbPage>{title}</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
+            {page === WorkspacePage.Analytics ? (
+              <h1 className="page-title">{title}</h1>
+            ) : (
+              <Breadcrumb>
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>{title}</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
+            )}
           </div>
           <FunnelSelector key={funnelIdentifier} funnelIdentifier={funnelIdentifier} page={page} />
         </header>

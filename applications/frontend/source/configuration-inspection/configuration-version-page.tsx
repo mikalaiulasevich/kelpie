@@ -1,5 +1,14 @@
+import { ConfigurationStatus } from '@kelpie/contracts';
 import { useCallback, useState } from 'react';
-import { ArrowLeft, ChevronDown, FileJson2, Globe2, Layers3, RefreshCw } from 'lucide-react';
+import {
+  ArrowLeft,
+  ChevronDown,
+  FileJson2,
+  Globe2,
+  Layers3,
+  LockKeyhole,
+  RefreshCw,
+} from 'lucide-react';
 import { ManagementClient, ManagementError } from '../management/management-client';
 import { ManagementMessages } from '../management/management-messages';
 import { useManagementRead } from '../management/use-management-read';
@@ -7,7 +16,6 @@ import { Button } from '../components/button';
 import { LoadErrorState } from '../components/load-error-state';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../components/collapsible';
 import { SkeletonSummary, SkeletonRows } from '../components/skeleton';
-import { Badge } from '../components/badge';
 import { Card } from '../components/card';
 import { WorkspaceNavigation, WorkspacePage } from '../workspace/workspace-navigation';
 import { ConfigurationInspection } from './configuration-inspection';
@@ -83,7 +91,7 @@ export function ConfigurationVersionPage({
           >
             <div className="flex flex-wrap items-start justify-between gap-5 p-5 sm:p-6">
               <div className="flex min-w-0 flex-1 items-start gap-4">
-                <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-info/20 bg-info/10 text-info">
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-[10px] border border-info/20 bg-info/10 text-info">
                   <FileJson2 className="size-5" aria-hidden="true" />
                 </div>
                 <div className="flex min-w-0 flex-col gap-1.5">
@@ -95,7 +103,10 @@ export function ConfigurationVersionPage({
                   </p>
                 </div>
               </div>
-              <Badge variant="outline">Read-only</Badge>
+              <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                <LockKeyhole className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
+                Read-only
+              </span>
             </div>
             <div className="flex flex-col gap-3 border-t bg-muted/15 px-5 py-4 sm:px-6">
               <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm lg:grid-cols-[minmax(0,2fr)_1fr_1fr_1fr]">
@@ -105,7 +116,18 @@ export function ConfigurationVersionPage({
                   { label: 'Schema', value: resource.data.version.schemaVersion, icon: FileJson2 },
                   {
                     label: 'Document status',
-                    value: resource.data.document.status,
+                    value: (
+                      <span
+                        className={
+                          resource.data.document.status === ConfigurationStatus.Published
+                            ? 'inline-flex items-center gap-2 text-success'
+                            : 'inline-flex items-center gap-2 text-muted-foreground'
+                        }
+                      >
+                        <span className="size-1.5 rounded-full bg-current" aria-hidden="true" />
+                        {resource.data.document.status}
+                      </span>
+                    ),
                     icon: FileJson2,
                   },
                 ].map((item) => (

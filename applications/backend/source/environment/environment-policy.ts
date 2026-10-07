@@ -5,6 +5,7 @@ import { SQLitePolicy } from '../database/sqlite-policy.js';
 export const EnvironmentFields = {
   Mode: 'NODE_ENV',
   AdministrationOrigin: 'ADMINISTRATION_ORIGIN',
+  QuizOrigin: 'QUIZ_ORIGIN',
   LogLevel: 'LOG_LEVEL',
   Port: 'PORT',
   Host: 'HOST',
@@ -21,6 +22,7 @@ export type ApplicationMode = ValueOf<typeof ApplicationMode>;
 
 export const EnvironmentPolicy = {
   DefaultAdministrationOrigin: 'http://127.0.0.1:5173',
+  DefaultQuizOrigin: 'http://127.0.0.1:3001',
   OriginProtocols: ['http:', 'https:'],
   SecureOriginProtocol: 'https:',
   DefaultMode: ApplicationMode.Development,

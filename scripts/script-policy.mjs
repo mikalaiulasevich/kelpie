@@ -1,6 +1,6 @@
 export const DevelopmentPolicy = /** @type {const} */ ({
   // Protect the shared process-launch list from accidental mutation.
-  Workspaces: Object.freeze(['@kelpie/backend', '@kelpie/frontend']),
+  Workspaces: Object.freeze(['@kelpie/backend', '@kelpie/frontend', '@kelpie/quiz']),
   PackageManager: 'npm',
   DevelopmentArguments: ['run', 'development'],
   BunDevelopmentArguments: ['run', '--filter'],
@@ -48,10 +48,11 @@ export const TestLayoutPolicy = /** @type {const} */ ({
   Workspaces: [
     'applications/backend',
     'applications/frontend',
+    'applications/quiz',
     'packages/contracts',
     'packages/funnel-runtime',
   ],
-  IgnoredDirectories: new Set(['node_modules', 'distribution', 'generated', 'coverage']),
+  IgnoredDirectories: new Set(['node_modules', 'distribution', 'generated', 'coverage', '.next']),
   TestFilePattern: /[.-](?:test|spec|fixture|fixtures|case|cases|typecheck)\.[cm]?[jt]sx?$/,
   Directory: 'tests',
 });

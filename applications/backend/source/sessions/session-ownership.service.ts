@@ -34,7 +34,8 @@ export class SessionOwnershipService {
 
   assertMutation(request: FastifyRequest): void {
     if (
-      request.headers.origin !== this.environment.values.administrationOrigin ||
+      (request.headers.origin !== this.environment.values.administrationOrigin &&
+        request.headers.origin !== this.environment.values.quizOrigin) ||
       request.headers[SessionPolicy.MutationHeader] !== SessionPolicy.MutationHeaderValue
     ) {
       throw new PublicRequestError(

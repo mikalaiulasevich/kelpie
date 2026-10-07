@@ -8,8 +8,13 @@ import {
   FlaskConical,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/card';
+import { Progress } from '../components/progress';
 import { Badge } from '../components/badge';
-import type { AnalyticsVariant, AnalyticsVersion } from '../management/management-types';
+import type {
+  AnalyticsRatio,
+  AnalyticsVariant,
+  AnalyticsVersion,
+} from '../management/management-types';
 import { AnalyticsFormat } from './analytics-format';
 import { AnalyticsMarketingMetrics } from './analytics-marketing-metrics';
 
@@ -25,7 +30,7 @@ function MarketingRibbon({
     variant.resultCompletion.numerator,
     variant.ctaClickThrough.numerator,
   ];
-  const tone = variant.variant === 'A' ? 'text-primary' : 'text-success';
+  const tone = variant.variant === 'A' ? 'text-primary' : 'text-violet';
 
   return (
     <div className="min-w-0 rounded-2xl bg-background/25 px-3 py-4 sm:px-5">
@@ -85,6 +90,99 @@ function MarketingRibbon({
   );
 }
 
+interface VariantMetricDetailsProperties {
+  version: AnalyticsVersion;
+  metric: 'started' | 'resultCompletion' | 'ctaConversion';
+}
+
+function MetricPercentage({ ratio }: { readonly ratio: AnalyticsRatio }): UIElement {
+  return (
+    <p className="metric-summary-value" aria-label={AnalyticsFormat.ratio(ratio)}>
+      {isNull(ratio.value) ? (
+        '—'
+      ) : (
+        <>
+          <span>{AnalyticsFormat.ratio(ratio).replace('%', '')}</span>
+          <span className="metric-percent-sign">%</span>
+        </>
+      )}
+    </p>
+  );
+}
+
+function MetricComparison({
+  version,
+  metric,
+}: {
+  readonly version: AnalyticsVersion;
+  readonly metric: 'resultCompletion' | 'ctaConversion';
+}): UIElement {
+  const rateA = version.variants.find((variant) => variant.variant === 'A')?.[metric].value ?? null;
+  const rateB = version.variants.find((variant) => variant.variant === 'B')?.[metric].value ?? null;
+  const difference = isNull(rateA) || isNull(rateB) ? null : (rateB - rateA) * 100;
+
+  return (
+    <p className="metric-comparison-note">
+      {isNull(difference) ? (
+        'A/B comparison needs sessions in both variants.'
+      ) : (
+        <>
+          B vs A <strong>{AnalyticsMarketingMetrics.difference(difference)}</strong>
+          <span>Percentage points · significance not tested</span>
+        </>
+      )}
+    </p>
+  );
+}
+
+function VariantMetricDetails({ version, metric }: VariantMetricDetailsProperties) {
+  const totalStarted = version.variants.reduce((total, variant) => total + variant.started, 0);
+
+  return (
+    <dl className="metric-variant-details">
+      {version.variants.map((variant) => {
+        const value = variant[metric];
+
+        return (
+          <div key={variant.variant}>
+            <dt>Variant {variant.variant}</dt>
+            <dd>
+              {typeof value === 'number'
+                ? AnalyticsFormat.count(value)
+                : AnalyticsFormat.ratio(value)}
+            </dd>
+            {typeof value === 'number' && (
+              <>
+                <dd className="metric-variant-count">
+                  {AnalyticsFormat.ratio(AnalyticsMarketingMetrics.ratio(value, totalStarted))} of
+                  starts
+                </dd>
+                <Progress
+                  className="mt-2 h-1"
+                  value={100 * (AnalyticsMarketingMetrics.ratio(value, totalStarted).value ?? 0)}
+                  aria-label={`Variant ${variant.variant}: share of starts`}
+                />
+              </>
+            )}
+            {typeof value !== 'number' && (
+              <>
+                <dd className="metric-variant-count">{AnalyticsFormat.fraction(value)}</dd>
+                {!isNull(value.value) && (
+                  <Progress
+                    className="mt-2 h-1"
+                    value={Math.min(100, value.value * 100)}
+                    aria-label={`Variant ${variant.variant}: ${metric === 'resultCompletion' ? 'result completion' : 'CTA conversion'}`}
+                  />
+                )}
+              </>
+            )}
+          </div>
+        );
+      })}
+    </dl>
+  );
+}
+
 export function AnalyticsMarketingOverview({ version }: { readonly version: AnalyticsVersion }) {
   const metrics = AnalyticsMarketingMetrics.summarize(version);
   const maximum = Math.max(...version.variants.map((variant) => variant.started), 0);
@@ -95,52 +193,63 @@ export function AnalyticsMarketingOverview({ version }: { readonly version: Anal
       aria-label="Marketing performance overview"
     >
       <div className="grid min-w-0 gap-3 @min-[36rem]/marketing:grid-cols-3">
-        <Card className="compact-card min-w-0 gap-3 bg-primary/5">
+        <Card className="metric-summary compact-card min-w-0 gap-3">
           <CardHeader>
             <CardDescription className="flex items-center gap-2">
-              <Users className="size-4 text-primary" />
+              <span className="metric-summary-icon">
+                <Users className="size-4" strokeWidth={1.5} />
+              </span>
               Started sessions
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-semibold tracking-tight tabular-nums">
-              {AnalyticsFormat.count(metrics.started)}
+            <p className="metric-summary-value">{AnalyticsFormat.count(metrics.started)}</p>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Version {version.funnelVersion} · Across selected variants
             </p>
-            <p className="mt-2 text-xs text-muted-foreground">Across selected variants</p>
+            <VariantMetricDetails version={version} metric="started" />
+            <p className="metric-comparison-note">
+              Observed session split
+              <span>Counts follow the current traffic and campaign filters.</span>
+            </p>
           </CardContent>
         </Card>
-        <Card className="compact-card min-w-0 gap-3">
+        <Card className="metric-summary compact-card min-w-0 gap-3">
           <CardHeader>
             <CardDescription className="flex items-center gap-2">
-              <CircleCheck className="size-4 text-success" />
+              <span className="metric-summary-icon">
+                <CircleCheck className="size-4" strokeWidth={1.5} />
+              </span>
               Result completion
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold tracking-tight tabular-nums">
-              {isNull(metrics.resultRate.value) ? '—' : AnalyticsFormat.ratio(metrics.resultRate)}
-            </p>
+            <MetricPercentage ratio={metrics.resultRate} />
             <p className="mt-2 text-xs text-muted-foreground">
-              {AnalyticsFormat.count(metrics.results)} sessions viewed a result
+              {AnalyticsFormat.count(metrics.results)} of {AnalyticsFormat.count(metrics.started)}{' '}
+              starts viewed a result
             </p>
+            <VariantMetricDetails version={version} metric="resultCompletion" />
+            <MetricComparison version={version} metric="resultCompletion" />
           </CardContent>
         </Card>
-        <Card className="compact-card min-w-0 gap-3">
+        <Card className="metric-summary compact-card min-w-0 gap-3">
           <CardHeader>
             <CardDescription className="flex items-center gap-2">
-              <MousePointer2 className="size-4 text-primary" />
+              <span className="metric-summary-icon">
+                <MousePointer2 className="size-4" strokeWidth={1.5} />
+              </span>
               CTA conversion
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold tracking-tight tabular-nums">
-              {isNull(metrics.conversionRate.value)
-                ? '—'
-                : AnalyticsFormat.ratio(metrics.conversionRate)}
-            </p>
+            <MetricPercentage ratio={metrics.conversionRate} />
             <p className="mt-2 text-xs text-muted-foreground">
-              {AnalyticsFormat.count(metrics.clicks)} sessions clicked a CTA
+              {AnalyticsFormat.count(metrics.clicks)} of {AnalyticsFormat.count(metrics.started)}{' '}
+              starts clicked a CTA
             </p>
+            <VariantMetricDetails version={version} metric="ctaConversion" />
+            <MetricComparison version={version} metric="ctaConversion" />
           </CardContent>
         </Card>
       </div>
@@ -156,7 +265,7 @@ export function AnalyticsMarketingOverview({ version }: { readonly version: Anal
             </div>
             <CardDescription>Ribbon width shows session count on a shared scale.</CardDescription>
           </CardHeader>
-          <CardContent className="grid min-w-0 gap-3">
+          <CardContent className="flex min-w-0 flex-1 flex-col gap-3">
             <div className="grid grid-cols-3 gap-2 px-3 text-center text-[11px] text-muted-foreground sm:text-xs">
               <span>Started</span>
               <span>Result viewed</span>
@@ -167,7 +276,7 @@ export function AnalyticsMarketingOverview({ version }: { readonly version: Anal
                 <MarketingRibbon key={variant.variant} variant={variant} maximum={maximum} />
               ))
             ) : (
-              <div className="flex min-h-48 flex-col items-center justify-center gap-3 rounded-2xl bg-muted/30 px-5 text-center">
+              <div className="flex min-h-48 flex-1 flex-col items-center justify-center gap-3 rounded-2xl bg-muted/30 px-5 py-6 text-center">
                 <ChartNoAxesCombined className="size-7 text-muted-foreground" />
                 <p className="text-sm font-medium">Your funnel will appear here</p>
                 <p className="max-w-sm text-xs leading-relaxed text-muted-foreground">
@@ -211,13 +320,24 @@ export function AnalyticsMarketingOverview({ version }: { readonly version: Anal
             <CardDescription>CTA conversion · B minus A</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-5">
-            <div className="rounded-2xl bg-primary/5 p-5">
-              <p className="text-3xl font-semibold tracking-tight tabular-nums">
-                {AnalyticsMarketingMetrics.difference(metrics.conversionDifference)}
-              </p>
-              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                Difference in percentage points; statistical significance is not tested.
-              </p>
+            <div className="rounded-lg bg-muted/40 px-3 py-3">
+              {isNull(metrics.conversionDifference) ? (
+                <>
+                  <p className="text-sm font-medium">No comparison yet</p>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    Both variants need sessions to compare CTA conversion.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-xl font-medium tracking-tight tabular-nums">
+                    {AnalyticsMarketingMetrics.difference(metrics.conversionDifference)}
+                  </p>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    Percentage-point difference. Statistical significance is not tested.
+                  </p>
+                </>
+              )}
             </div>
             <div className="grid gap-4">
               {version.variants.map((variant) => (
@@ -230,7 +350,7 @@ export function AnalyticsMarketingOverview({ version }: { readonly version: Anal
                   </div>
                   <div className="h-2 overflow-hidden rounded-full bg-muted" aria-hidden="true">
                     <div
-                      className={`h-full rounded-full ${variant.variant === 'A' ? 'bg-primary' : 'bg-success'}`}
+                      className={`h-full rounded-full ${variant.variant === 'A' ? 'bg-primary' : 'bg-violet'}`}
                       style={{ width: `${(variant.ctaConversion.value ?? 0) * 100}%` }}
                     />
                   </div>

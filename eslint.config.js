@@ -135,6 +135,7 @@ export default typescript.config(
       '**/generated/**',
       '**/node_modules/**',
       '**/coverage/**',
+      '**/.next/**',
     ],
   },
   javascript.configs.recommended,
@@ -169,7 +170,11 @@ export default typescript.config(
     },
   },
   {
-    files: ['applications/*/source/**/*.{ts,tsx}', 'packages/*/source/**/*.ts'],
+    files: [
+      'applications/*/source/**/*.{ts,tsx}',
+      'applications/quiz/app/**/*.{ts,tsx}',
+      'packages/*/source/**/*.ts',
+    ],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -186,7 +191,11 @@ export default typescript.config(
     },
   },
   {
-    files: ['global-types.d.ts', 'applications/frontend/source/ui-types.d.ts'],
+    files: [
+      'global-types.d.ts',
+      'applications/*/source/ui-types.d.ts',
+      'applications/quiz/ui-types.d.ts',
+    ],
     rules: {
       // Ambient declarations are consumed by other files through TypeScript's program scope.
       '@typescript-eslint/no-unused-vars': 'off',
@@ -203,6 +212,15 @@ export default typescript.config(
     },
   },
   {
+    files: ['applications/quiz/**/*.{ts,tsx}'],
+    languageOptions: { globals: globals.browser },
+    plugins: { 'react-hooks': reactHooks },
+    rules: {
+      'no-restricted-syntax': ['error', ...restrictedSyntax, declarationRestrictions.reactHelpers],
+      ...reactHooks.configs.recommended.rules,
+    },
+  },
+  {
     files: ['applications/*/source/**/*.{ts,tsx}', 'packages/*/source/**/*.ts', 'scripts/**/*.mjs'],
     rules: {
       'no-restricted-syntax': [
@@ -214,7 +232,11 @@ export default typescript.config(
     },
   },
   {
-    files: ['applications/frontend/source/**/*.{ts,tsx}'],
+    files: [
+      'applications/frontend/source/**/*.{ts,tsx}',
+      'applications/quiz/source/**/*.{ts,tsx}',
+      'applications/quiz/app/**/*.{ts,tsx}',
+    ],
     rules: {
       'no-restricted-syntax': [
         'error',
@@ -244,7 +266,11 @@ export default typescript.config(
     rules: { 'no-console': ['error', {}] },
   },
   {
-    files: ['applications/*/source/**/*.{ts,tsx}', 'packages/*/source/**/*.ts'],
+    files: [
+      'applications/*/source/**/*.{ts,tsx}',
+      'applications/quiz/app/**/*.{ts,tsx}',
+      'packages/*/source/**/*.ts',
+    ],
     rules: {
       'lines-between-class-members': ['error', 'always'],
       'padding-line-between-statements': [

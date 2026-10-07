@@ -31,28 +31,33 @@ const EnvironmentValues = {
     return value;
   },
 
-  administrationOrigin(value: Optional<string>, mode: ApplicationEnvironment['mode']): string {
-    const origin = value ?? EnvironmentPolicy.DefaultAdministrationOrigin;
+  origin(
+    value: Optional<string>,
+    fallback: string,
+    mode: ApplicationEnvironment['mode'],
+    message: string,
+  ): string {
+    const origin = value ?? fallback;
     const [, parsed] = attempt(() => new URL(origin));
 
     if (isNull(parsed) || parsed.origin !== origin) {
-      throw new Error(EnvironmentMessages.InvalidAdministrationOrigin);
+      throw new Error(message);
     }
 
     if (!EnvironmentPolicy.OriginProtocols.some((protocol) => protocol === parsed.protocol)) {
-      throw new Error(EnvironmentMessages.InvalidAdministrationOrigin);
+      throw new Error(message);
     }
 
     if (mode === ApplicationMode.Production) {
-      EnvironmentValues.requireSecureOrigin(value, parsed);
+      EnvironmentValues.requireSecureOrigin(value, parsed, message);
     }
 
     return origin;
   },
 
-  requireSecureOrigin(value: Optional<string>, parsed: URL): void {
+  requireSecureOrigin(value: Optional<string>, parsed: URL, message: string): void {
     if (!value || parsed.protocol !== EnvironmentPolicy.SecureOriginProtocol) {
-      throw new Error(EnvironmentMessages.InvalidAdministrationOrigin);
+      throw new Error(message);
     }
   },
 
@@ -99,12 +104,24 @@ export const ApplicationEnvironmentReader = {
       EnvironmentMessages.InvalidDatabaseUrl,
     );
 
+    const administrationOrigin = EnvironmentValues.origin(
+      values[EnvironmentFields.AdministrationOrigin],
+      EnvironmentPolicy.DefaultAdministrationOrigin,
+      mode,
+      EnvironmentMessages.InvalidAdministrationOrigin,
+    );
+    const quizOrigin = EnvironmentValues.origin(
+      values[EnvironmentFields.QuizOrigin] ??
+        (mode === ApplicationMode.Production ? administrationOrigin : undefined),
+      EnvironmentPolicy.DefaultQuizOrigin,
+      mode,
+      EnvironmentMessages.InvalidQuizOrigin,
+    );
+
     return {
       mode,
-      administrationOrigin: EnvironmentValues.administrationOrigin(
-        values[EnvironmentFields.AdministrationOrigin],
-        mode,
-      ),
+      administrationOrigin,
+      quizOrigin,
       logLevel,
       host,
       port,

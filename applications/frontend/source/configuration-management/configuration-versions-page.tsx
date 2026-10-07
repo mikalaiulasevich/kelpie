@@ -185,11 +185,11 @@ export function ConfigurationVersionsPage({
 
           return (
             <>
-              <div className="grid min-w-0 items-start gap-6 min-[1280px]:grid-cols-[minmax(0,1fr)_280px]">
-                <div className="flex min-w-0 flex-col gap-7">
-                  {configurations.items.length > 0 && (
-                    <ConfigurationHighlights configurations={configurations} />
-                  )}
+              {configurations.items.length > 0 && (
+                <ConfigurationHighlights configurations={configurations} />
+              )}
+              <div className="grid min-w-0 items-start gap-5 min-[1280px]:grid-cols-[minmax(0,1fr)_300px]">
+                <div className="flex min-w-0 flex-col gap-5">
                   <Card className="gap-0 overflow-hidden">
                     <CardHeader className="flex flex-wrap items-center justify-between gap-4 pb-6">
                       <div className="flex flex-col gap-1.5">
@@ -394,7 +394,7 @@ export function ConfigurationVersionsPage({
                                         )}
                                         aria-label={`Details for version ${version.version}`}
                                       >
-                                        <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                                        <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-primary/10 text-primary">
                                           <FileJson className="size-5" />
                                         </span>
                                         <span className="flex flex-col gap-1 text-left">

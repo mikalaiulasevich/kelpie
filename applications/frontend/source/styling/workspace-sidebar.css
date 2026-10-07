@@ -1,6 +1,7 @@
 /* A quiet, persistent workspace rail keeps navigation beside the work. */
 .workspace-shell {
   position: relative;
+  display: flex;
   min-height: 100dvh;
   padding: 24px 32px 32px 308px;
 }
@@ -120,7 +121,7 @@
 }
 .workspace-sidebar-links a[aria-current='page'] {
   color: var(--primary);
-  background: rgb(131 180 255 / 10%);
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
   box-shadow: none;
 }
 .workspace-sidebar-icon {
@@ -233,7 +234,7 @@
   height: 34px;
   border-radius: 50%;
   color: var(--primary);
-  background: #263345;
+  background: color-mix(in srgb, var(--primary) 12%, var(--card));
   box-shadow: inset 0 1px rgb(246 236 223 / 9%);
   font-size: 13px;
   font-weight: 500;

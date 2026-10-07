@@ -156,7 +156,7 @@ export function ConfigurationImportDialog({
             className="rounded-xl border border-dashed bg-muted/30 p-6 sm:p-8"
           >
             <div className="flex flex-col items-center gap-4 text-center">
-              <span className="flex size-12 items-center justify-center rounded-xl border bg-background text-muted-foreground">
+              <span className="flex size-12 items-center justify-center rounded-[10px] border bg-background text-muted-foreground">
                 {reading ? (
                   <LoaderCircle className="form-pending-icon size-5" aria-hidden="true" />
                 ) : (
@@ -201,7 +201,7 @@ export function ConfigurationImportDialog({
         </p>
         {selected && (
           <div className="form-feedback flex items-center gap-4 rounded-xl border bg-card p-5">
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-[10px] bg-muted text-muted-foreground">
               <FileJson className="size-5" strokeWidth={1.5} aria-hidden="true" />
             </span>
             <div className="flex min-w-0 flex-col gap-1">

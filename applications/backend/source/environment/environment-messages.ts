@@ -1,6 +1,7 @@
 export const EnvironmentMessages = {
   InvalidAdministrationOrigin:
     'ADMINISTRATION_ORIGIN must be an exact HTTP origin; production requires an explicit HTTPS origin.',
+  InvalidQuizOrigin: 'QUIZ_ORIGIN must be an exact HTTP origin; production requires HTTPS.',
   InvalidLogLevel: 'LOG_LEVEL must be trace, debug, info, warn, error, or fatal.',
   InvalidMode: 'NODE_ENV must be development, test, or production.',
   InvalidPort: 'PORT must be an integer from 1 to 65535.',
