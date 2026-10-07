@@ -181,6 +181,78 @@ describe('event ingestion independent HTTP acceptance', () => {
     );
   });
 
+  it('aggregates the real command and observation flow once across shuffled and repeated batches', async () => {
+    const initial = await browser.create('A');
+    const question = await browser.continue(initial);
+    const result = await EventAcceptanceFixture.answerSequence(
+      browser,
+      question,
+      EventAcceptanceCases.RemoteCompletion,
+    );
+    const click = EventAcceptanceFixture.result(result, 'cta_clicked');
+    const viewed = EventAcceptanceFixture.result(result, 'result_viewed');
+    const intro = EventAcceptanceFixture.view(initial);
+    const teamSize = EventAcceptanceFixture.view(question);
+    const events = [click, viewed, viewed, intro, teamSize, intro];
+    const first = await EventAcceptanceFixture.post(backend, browser, events);
+    expect(first.status).toBe(200);
+    expect(await first.json()).toMatchObject({
+      receipts: [
+        { status: 'accepted' },
+        { status: 'accepted' },
+        { status: 'duplicate' },
+        { status: 'accepted' },
+        { status: 'accepted' },
+        { status: 'duplicate' },
+      ],
+    });
+    const repeated = await EventAcceptanceFixture.post(backend, browser, events);
+    expect(repeated.status).toBe(200);
+    expect(await repeated.json()).toMatchObject({
+      receipts: events.map(() => ({ status: 'duplicate' })),
+    });
+    const cookie = await EventAcceptanceFixture.administratorCookie(backend);
+    const query = {
+      funnelIdentifier: 'workstyle-planner',
+      versionIdentifier: initial.versionIdentifier,
+      campaign: 'acceptance',
+    };
+    const included = await EventAcceptanceFixture.analytics(backend, cookie, {
+      ...query,
+      includeForced: 'true',
+    });
+    const variant = included.versions[0]?.variants[0];
+    expect(variant).toMatchObject({
+      variant: 'A',
+      started: 1,
+      resultCompletion: { numerator: 1, denominator: 1, value: 1 },
+      ctaConversion: { numerator: 1, denominator: 1, value: 1 },
+      ctaClickThrough: { numerator: 1, denominator: 1, value: 1 },
+    });
+    expect(variant?.steps.find((step) => step.stepIdentifier === 'intro')).toMatchObject({
+      reached: 1,
+      completed: 1,
+      completion: { numerator: 1, denominator: 1, value: 1 },
+    });
+    expect(variant?.edges.find((edge) => edge.fromStepIdentifier === 'intro')).toMatchObject({
+      fromStepIdentifier: 'intro',
+      toStepIdentifier: 'team_size',
+      transitions: 1,
+      observedConversion: { numerator: 1, denominator: 1, value: 1 },
+    });
+    const excluded = await EventAcceptanceFixture.analytics(backend, cookie, query);
+    expect(excluded.versions[0]?.variants[0]).toMatchObject({
+      started: 0,
+      resultCompletion: { numerator: 0, denominator: 0, value: null },
+    });
+    const anotherCampaign = await EventAcceptanceFixture.analytics(backend, cookie, {
+      ...query,
+      campaign: 'unrelated',
+      includeForced: 'true',
+    });
+    expect(anotherCampaign.versions[0]?.variants[0]?.started).toBe(0);
+  });
+
   it('retains the first committed batch element after a later database failure and safely retries the batch', async () => {
     const state = await browser.create();
     const events = [EventAcceptanceFixture.view(state), EventAcceptanceFixture.view(state)];

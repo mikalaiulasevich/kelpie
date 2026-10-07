@@ -25,7 +25,8 @@ const inputErrorStatuses = new Map<string, number>(Object.entries(TransportPolic
 export class PublicExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost): void {
     const response = host.switchToHttp().getResponse<FastifyReply>();
-    const status = this.resolvePublicStatus(exception);
+    const storageUnavailable = DatabaseErrors.isUnavailable(exception);
+    const status = this.resolvePublicStatus(exception, storageUnavailable);
     const domainError = exception instanceof PublicRequestError ? exception : undefined;
     const message = domainError?.message ?? this.resolvePublicMessage(status);
     const requestIdentifier =
@@ -40,7 +41,7 @@ export class PublicExceptionFilter implements ExceptionFilter {
       });
     }
 
-    if (DatabaseErrors.isUnavailable(exception)) {
+    if (storageUnavailable) {
       response.header(TransportPolicy.RetryAfterHeader, TransportPolicy.StorageRetryAfterSeconds);
     }
 
@@ -55,12 +56,12 @@ export class PublicExceptionFilter implements ExceptionFilter {
     });
   }
 
-  private resolvePublicStatus(exception: unknown): number {
+  private resolvePublicStatus(exception: unknown, storageUnavailable: boolean): number {
     if (exception instanceof HttpException) {
       return exception.getStatus();
     }
 
-    if (DatabaseErrors.isUnavailable(exception)) {
+    if (storageUnavailable) {
       return HttpStatus.SERVICE_UNAVAILABLE;
     }
 

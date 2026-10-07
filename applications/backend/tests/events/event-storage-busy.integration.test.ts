@@ -3,6 +3,9 @@ import { BackendApplicationFixture } from '../fixtures/backend-application.js';
 import { SessionBrowserFixture, SessionFlowFixture } from '../fixtures/session-flow.js';
 import { EventBatchFixture } from '../fixtures/event-batch-fixture.js';
 import { DatabaseWriterLock } from '../fixtures/database-writer-lock.js';
+import { DatabaseErrors } from '../../source/database/database-errors.js';
+import { DatabaseErrorFixture } from '../fixtures/database-error-fixture.js';
+import { EventIngestionService } from '../../source/events/event-ingestion.service.js';
 import { Diagnostics } from '../../source/diagnostics/diagnostics.js';
 
 describe('event storage contention', () => {
@@ -16,6 +19,33 @@ describe('event storage contention', () => {
   afterEach(async () => {
     vi.restoreAllMocks();
     await backend?.close();
+  });
+
+  it('contains a throwing database code accessor at the public error boundary', async () => {
+    const error = DatabaseErrorFixture.withCode(() => {
+      throw new Error('Code getter failed.');
+    });
+    vi.spyOn(backend.getService(EventIngestionService), 'ingest').mockRejectedValue(error);
+    const response = await EventBatchFixture.post(backend, new SessionBrowserFixture(backend), []);
+    expect(response.status).toBe(500);
+    expect(response.headers.get('retry-after')).toBeNull();
+    expect(await response.json()).toEqual({
+      statusCode: 500,
+      code: 'internal_error',
+      message: 'An internal error occurred.',
+      requestIdentifier: expect.any(String),
+    });
+  });
+
+  it('classifies a changing database code once for both status and retry header', async () => {
+    const readCode = vi.fn<() => string>().mockReturnValueOnce('P1008').mockReturnValue('P2002');
+    const error = DatabaseErrorFixture.withCode(readCode);
+    const classify = vi.spyOn(DatabaseErrors, 'isUnavailable');
+    vi.spyOn(backend.getService(EventIngestionService), 'ingest').mockRejectedValue(error);
+    const response = await EventBatchFixture.post(backend, new SessionBrowserFixture(backend), []);
+    expect(response.status).toBe(503);
+    expect(response.headers.get('retry-after')).toBe('1');
+    expect(classify).toHaveBeenCalledExactlyOnceWith(error);
   });
 
   it('reports actual writer contention as retryable and accepts the identical retry after release', async () => {

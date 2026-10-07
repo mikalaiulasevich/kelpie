@@ -85,18 +85,18 @@ The `kelpie_session` cookie is HttpOnly, SameSite=Strict, scoped to `/api`, and 
 
 `POST /api/events/batches` accepts `{ "events": [...] }` with 1–50 elements and the same session cookie, exact Origin and `X-Kelpie-Session: 1` as session commands. Each element has `event_id` (UUID), `session_id`, `name`, `client_timestamp` (canonical UTC ISO), `step_id`, `observationRevision` and `properties`. The revision identifies the committed state in which the event was observed, including revision 0 for initial state. An old revision can remain eligible after the user changes branches or a newer configuration is published.
 
-| Client event | Required properties |
-| --- | --- |
-| `step_viewed` | `step_type`, `visible_step_index` (zero-based), `visible_step_count` (all available route screens) |
-| `result_viewed` | `result_id` |
-| `cta_clicked` | `result_id`, `action` |
+| Client event              | Required properties                                                                                                                 |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `step_viewed`             | `step_type`, `visible_step_index` (zero-based), `visible_step_count` (all available route screens)                                  |
+| `result_viewed`           | `result_id`                                                                                                                         |
+| `cta_clicked`             | `result_id`, `action`                                                                                                               |
 | `recommendation_expanded` | `result_id`, `action: "expand_recommendation"`, `source: "primary_cta"`; requires that action and declaration in the pinned version |
 
 The backend checks the exact historical current screen, eligible result and configured action. These checks establish permitted state, not proof of human viewing. Server-owned `session_started`, `answer_submitted`, `step_completed` and `back_clicked` cannot be submitted by clients. Undeclared properties, raw answers and contradictory metadata are rejected. Optional `funnel_id`, `funnel_version`, `experiment_id`, `variant` and the five UTM fields must match the immutable session; omitting them lets the backend derive them. Event storage joins the immutable session/version for this metadata and stores both timestamps and observation revision.
 
 The response is `{ "receipts": [...] }`, preserving each input `position`. Accepted/duplicate receipts contain `event_id`, `status` and the original `server_timestamp`; rejected receipts contain a stable `code` and the identifier only when valid. One invalid element does not discard valid siblings. Identical replay is a duplicate; changed content under the same identifier is a conflict, including cross-owner collisions without disclosing another session. Authentication and expiry are checked before sensitive replay.
 
-Each valid element commits independently. A timeout or server error can therefore mean an earlier prefix committed: retry the unchanged batch with the same identifiers and client timestamps. Only accepted/duplicate receipts acknowledge storage. Ingestion is limited to 60 requests per minute per IP and the shared 256 KiB body limit. Browser queue persistence, backoff and unsent-event recovery remain frontend work.
+Each valid element commits independently. A timeout or server error can therefore mean an earlier prefix committed: retry the unchanged batch with the same identifiers and client timestamps. Only accepted/duplicate receipts acknowledge storage. A verified Prisma operation timeout, including SQLite writer contention, returns 503 with `Retry-After: 1`; unexpected storage failures remain 500. Preserve the original identifiers for either unknown outcome. Ingestion is limited to 60 requests per minute per IP and the shared 256 KiB body limit. Browser queue persistence, backoff and unsent-event recovery remain frontend work.
 
 ## Analytics API
 

@@ -1,15 +1,14 @@
 import assert from 'node:assert/strict';
+import { AdministrationService } from '../../source/administration/administration.service.js';
+import { AdministrationFixture } from './administration.js';
+import { AnalyticsFixture } from './analytics-fixture.js';
 import { randomUUID } from 'node:crypto';
 import { FunnelEvaluation } from '@kelpie/funnel-runtime';
 import { SessionProjection } from '../../source/sessions/session-projection.js';
 import { SessionSnapshots } from '../../source/sessions/session-snapshots.js';
 import type { BackendApplicationFixture } from './backend-application.js';
-import type {
-  SessionBrowserFixture} from './session-flow.js';
-import {
-  SessionFlowFixture,
-  type SessionFlowState,
-} from './session-flow.js';
+import type { SessionBrowserFixture } from './session-flow.js';
+import { SessionFlowFixture, type SessionFlowState } from './session-flow.js';
 
 const EventAcceptanceStatements = {
   RejectSecond: `CREATE TEMP TRIGGER reject_second_observation BEFORE INSERT ON Event
@@ -19,6 +18,29 @@ const EventAcceptanceStatements = {
 } as const;
 
 export const EventAcceptanceFixture = {
+  async administratorCookie(backend: BackendApplicationFixture): Promise<string> {
+    const { username, password } = AdministrationFixture.Credentials;
+    await backend.getService(AdministrationService).provision(username, password);
+    const response = await AdministrationFixture.signIn(backend);
+    assert.equal(response.status, 200);
+
+    return AdministrationFixture.cookie(response);
+  },
+
+  async analytics(
+    backend: BackendApplicationFixture,
+    cookie: string,
+    query: ReadonlyDictionary<string, string>,
+  ) {
+    const response = await backend.request(
+      `/api/administration/analytics?${new URLSearchParams(query)}`,
+      { headers: { cookie } },
+    );
+    assert.equal(response.status, 200);
+
+    return AnalyticsFixture.response(response);
+  },
+
   post(
     backend: BackendApplicationFixture,
     browser: SessionBrowserFixture,

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Prisma } from '../../generated/prisma/client.js';
 import { DatabaseErrors } from '../../source/database/database-errors.js';
+import { DatabaseErrorFixture } from '../fixtures/database-error-fixture.js';
 import { DatabaseErrorCases } from '../cases/database-error-cases.js';
 
 describe('database error classification', () => {
@@ -10,6 +11,14 @@ describe('database error classification', () => {
       clientVersion: 'test',
     });
     expect(DatabaseErrors.isUnavailable(error)).toBe(false);
+  });
+
+  it('contains a throwing code accessor on a known Prisma error', () => {
+    const error = DatabaseErrorFixture.withCode(() => {
+      throw new Error('Code getter failed.');
+    });
+    expect(DatabaseErrors.isUnavailable(error)).toBe(false);
+    expect(DatabaseErrors.isUniqueConstraint(error)).toBe(false);
   });
 
   it('does not trust arbitrary errors carrying a timeout code', () => {

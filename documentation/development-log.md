@@ -39,6 +39,12 @@ Scoped real SQLite/HTTP tests cover creation retries, sticky versions/variants t
 
 A subsequent cross-module maintenance pass grouped session/contract schemas and validators, reused validated configuration within each command, tightened credential validation and made diagnostics read metadata once. Tooling now enforces spacing between adjacent object methods and validates complete integrity manifests before file reads. This adds no product iteration. Final `npm run verify` passed 412 tests; npm audit reported zero known vulnerabilities. Public API schemas and supplied configuration bytes were preserved.
 
+## Backend iterations 6 and 7 — event ingestion and analytics (October 7, 2026)
+
+Iteration 6 adds authenticated bounded event batches, historical revision eligibility, declaration/property checks and independent durable receipts. Real HTTP/SQLite tests cover malformed siblings, concurrent retries, delayed branch events, v3 actions after rollback and partial batch failure. An additive migration preserves existing facts. A separate-process writer lock verified retryable 503 behavior and unchanged-intent recovery.
+
+Iteration 7 adds administrator SQL analytics with consistent cohort filters, version/A/B groups, distinct session sets, historical edges and explicit ratio operands. Review corrected DateTime comparison for SQLite ISO storage; tests also preserve numeric legacy support. Exact aggregate fixtures and query-plan inspection cover the main definitions. These are backend APIs; the dashboard, browser event queue and synthetic generator are not yet implemented. Final verification evidence is maintained in the engineering review.
+
 ## Verification history
 
 The initial foundation was installed and checked locally on Node.js 24 and 26. A frontend readiness check was inspected in desktop/mobile layouts at that milestone. Subsequent refactors were checked on Node.js 24.16.0; they do not constitute new browser or Node.js 26 verification.
