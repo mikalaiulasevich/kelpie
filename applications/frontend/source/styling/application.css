@@ -4,6 +4,10 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-foreground-subtle: var(--foreground-subtle);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
@@ -72,6 +76,10 @@
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: var(--primary);
+  --success: oklch(0.765 0.177 163.223);
+  --warning: oklch(0.828 0.189 84.429);
+  --info: oklch(0.809 0.105 251.813);
+  --foreground-subtle: oklch(0.64 0 0);
   --radius: 0.625rem;
   --sidebar: oklch(0.235 0 0);
   --sidebar-foreground: var(--foreground);
@@ -282,6 +290,34 @@ a:focus-visible {
   }
   .auth-content {
     min-height: 100svh;
+  }
+}
+[data-slot='table-row'],
+[data-sidebar='menu-button'],
+[data-slot='tabs-trigger'],
+[data-slot='input'],
+[data-slot='input-group'] {
+  transition-duration: 150ms;
+}
+[data-sidebar='menu-button'][data-active='true'] > svg {
+  color: var(--info);
+}
+[data-slot='table-head'] {
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-weight: 500;
+}
+[data-slot='dropdown-menu-content'][data-state='open'],
+[data-slot='dialog-content'][data-state='open'],
+[data-slot='popover-content'][data-state='open'] {
+  animation: surface-enter 150ms ease-out;
+}
+@keyframes surface-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -103,6 +103,10 @@ The subsequent plan-conformance pass corrected optional-answer progress, scoped 
 
 A historical GitHub Actions attempt failed before jobs started; this cleanup does not establish current remote CI status. No public deployment has been verified.
 
+## 2026-10-07 — Reference-based administration composition
+
+Adapted the supplied shadcnexamples references using the existing shadcn components: split authentication with a generated blue glass cover, larger cards and table spacing, four desktop A/B metrics, horizontal conversion comparison, collapsible filters and grouped configuration/import surfaces. Backend contracts, library dependencies and authentication behavior remain unchanged. Local browser checks covered the isolated API fixture, real upload validation, mobile layouts and collapsed navigation. Frontend verification passed 125 tests and production compilation; design-qa.md records visual comparisons and limitations. No deployment or remote CI result is implied.
+
 ## Remaining delivery milestones
 
 | Iteration            | Status                                                                                                                                                                                                                                                             |

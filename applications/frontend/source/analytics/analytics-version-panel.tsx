@@ -2,8 +2,18 @@ import { DeferredView } from '../application/deferred-view';
 import { lazy } from 'react';
 import { isNull } from 'es-toolkit/predicate';
 import { Skeleton } from '../components/skeleton';
-import { GitBranch } from 'lucide-react';
+import {
+  GitBranch,
+  MousePointer2,
+  Users,
+  ListOrdered,
+  Route,
+  FlaskConical,
+  Info,
+} from 'lucide-react';
 import { Alert, AlertDescription } from '../components/alert';
+import { Progress } from '../components/progress';
+import { Button } from '../components/button';
 import { Badge } from '../components/badge';
 import {
   Card,
@@ -50,44 +60,61 @@ function AnalyticsRatioValue({ ratio }: { readonly ratio: AnalyticsRatio }) {
 
 function AnalyticsVariantSummary({ variant }: { readonly variant: AnalyticsVariant }) {
   return (
-    <>
-      <Card>
-        <CardHeader>
-          <CardDescription>Variant {variant.variant}</CardDescription>
-          <CardTitle>Started sessions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-4xl font-semibold tracking-tight tabular-nums">
+    <Card className="gap-3 py-4">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary font-semibold">
+            {variant.variant}
+          </span>
+          <div className="flex flex-col gap-1">
+            <CardTitle>Variant {variant.variant}</CardTitle>
+            <CardDescription>
+              {variant.steps.length} steps · {variant.edges.length} paths
+            </CardDescription>
+          </div>
+        </div>
+        <Badge variant="outline">
+          <GitBranch data-icon="inline-start" />
+          Experiment
+        </Badge>
+      </CardHeader>
+      <CardContent className="grid grid-cols-2 gap-5">
+        <div className="flex flex-col gap-2">
+          <span className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Users className="size-3.5" />
+            Started sessions
+          </span>
+          <p className="text-2xl font-semibold tracking-tight tabular-nums">
             {AnalyticsFormat.count(variant.started)}
           </p>
-        </CardContent>
-        <CardFooter className="mt-auto flex-col items-start gap-2">
-          <span className="text-sm text-muted-foreground">Result completion</span>
-          <AnalyticsRatioValue ratio={variant.resultCompletion} />
-        </CardFooter>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardDescription>Variant {variant.variant}</CardDescription>
-          <CardTitle>CTA conversion · primary</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-2">
+        </div>
+        <div className="flex flex-col gap-2">
+          <span className="flex items-center gap-2 text-xs text-muted-foreground">
+            <MousePointer2 className="size-3.5" />
+            CTA conversion · primary
+          </span>
           <p
             data-applicable={!isNull(variant.ctaConversion.value)}
-            className="text-4xl font-semibold tracking-tight tabular-nums data-[applicable=false]:text-xl"
+            className="text-2xl font-semibold tracking-tight tabular-nums data-[applicable=false]:text-lg"
           >
             {AnalyticsFormat.ratio(variant.ctaConversion)}
           </p>
-          <p className="text-xs text-muted-foreground tabular-nums">
+          <span className="text-xs text-muted-foreground tabular-nums">
             {AnalyticsFormat.fraction(variant.ctaConversion)}
-          </p>
-        </CardContent>
-        <CardFooter className="mt-auto flex-col items-start gap-2">
-          <span className="text-sm text-muted-foreground">CTA click-through</span>
+          </span>
+        </div>
+      </CardContent>
+      <CardFooter className="grid grid-cols-2 gap-5 border-t [.border-t]:pt-3">
+        <div className="flex flex-col gap-2">
+          <span className="text-xs text-muted-foreground">Result completion</span>
+          <AnalyticsRatioValue ratio={variant.resultCompletion} />
+        </div>
+        <div className="flex flex-col gap-2">
+          <span className="text-xs text-muted-foreground">CTA click-through</span>
           <AnalyticsRatioValue ratio={variant.ctaClickThrough} />
-        </CardFooter>
-      </Card>
-    </>
+        </div>
+      </CardFooter>
+    </Card>
   );
 }
 
@@ -120,10 +147,12 @@ function AnalyticsSteps({ variant }: { readonly variant: AnalyticsVariant }) {
           </TableHeader>
           <TableBody>
             {variant.steps.map((step, index) => (
-              <TableRow key={step.stepIdentifier}>
+              <TableRow key={step.stepIdentifier} className="transition-colors duration-150">
                 <TableCell>
                   <div className="flex items-start gap-3">
-                    <span className="text-muted-foreground tabular-nums">{index + 1}</span>
+                    <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-xs text-primary tabular-nums">
+                      {index + 1}
+                    </span>
                     <div className="flex flex-col gap-2">
                       <span className="font-medium">{step.stepIdentifier}</span>
                       <div className="flex flex-wrap gap-1.5">
@@ -143,7 +172,7 @@ function AnalyticsSteps({ variant }: { readonly variant: AnalyticsVariant }) {
                 </TableCell>
                 {step.type === 'result' ? (
                   <TableCell colSpan={5}>
-                    <Badge variant="outline">Terminal · reach only</Badge>
+                    <Badge variant="success">Terminal · reach only</Badge>
                   </TableCell>
                 ) : (
                   <>
@@ -151,7 +180,16 @@ function AnalyticsSteps({ variant }: { readonly variant: AnalyticsVariant }) {
                       {AnalyticsFormat.count(step.completed)}
                     </TableCell>
                     <TableCell>
-                      <AnalyticsRatioValue ratio={step.completion} />
+                      <div className="flex min-w-24 flex-col gap-2">
+                        <AnalyticsRatioValue ratio={step.completion} />
+                        {!isNull(step.completion.value) && (
+                          <Progress
+                            className="h-1"
+                            value={step.completion.value * 100}
+                            aria-label={`${step.stepIdentifier} completion`}
+                          />
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="tabular-nums">
                       {AnalyticsFormat.count(step.noncompletion.open)}
@@ -202,6 +240,19 @@ function AnalyticsPaths({ variant }: { readonly variant: AnalyticsVariant }) {
             </TableRow>
           </TableHeader>
           <TableBody>
+            {variant.edges.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={7} className="h-28 text-center">
+                  <div className="flex flex-col items-center gap-2">
+                    <Route className="size-5 text-muted-foreground" />
+                    <span className="font-medium">No committed paths</span>
+                    <span className="text-xs text-muted-foreground">
+                      Paths appear after a session moves forward between steps.
+                    </span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            )}
             {variant.edges.map((edge) => (
               <TableRow key={`${edge.fromStepIdentifier}:${edge.toStepIdentifier}`}>
                 <TableCell>
@@ -237,93 +288,154 @@ function AnalyticsPaths({ variant }: { readonly variant: AnalyticsVariant }) {
   );
 }
 
-export function AnalyticsVersionPanel({ version }: { readonly version: AnalyticsVersion }) {
+export function AnalyticsVersionPanel({
+  version,
+  onOpenFilters,
+}: {
+  readonly version: AnalyticsVersion;
+  readonly onOpenFilters?: () => void;
+}) {
   const hasObservations = version.variants.some((variant) => variant.started > 0);
+  const startedSessions = version.variants.reduce((total, variant) => total + variant.started, 0);
 
   return (
     <section
-      className="@container/analytics-version flex min-w-0 flex-col gap-6"
+      className="@container/analytics-version flex min-w-0 flex-col gap-5"
       aria-label={`Version ${version.funnelVersion} analytics`}
     >
-      <Tabs defaultValue="summary" className="min-w-0 gap-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-3">
-              <h2 className="text-lg font-semibold tracking-tight">
-                Version {version.funnelVersion}
-              </h2>
-              <Badge variant="outline">
-                {version.variants.length} {version.variants.length === 1 ? 'variant' : 'variants'}
-              </Badge>
+      <div className="grid gap-4 @min-[38rem]/analytics-version:grid-cols-2">
+        {version.variants.map((variant) => (
+          <AnalyticsVariantSummary key={variant.variant} variant={variant} />
+        ))}
+      </div>
+      <div className="grid min-w-0 gap-5 @min-[60rem]/analytics-version:grid-cols-[minmax(0,1fr)_17rem]">
+        <Card className="min-w-0 gap-4 py-5">
+          <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
+            <div className="flex flex-col gap-2">
+              <CardTitle>Conversion performance</CardTitle>
+              <CardDescription>Result reach and recommendation opens, by variant.</CardDescription>
             </div>
-            <p className="text-xs text-muted-foreground break-all">
-              Experiment {version.experimentIdentifier}
+            <Badge variant="outline">Version {version.funnelVersion}</Badge>
+          </CardHeader>
+          <CardContent>
+            {hasObservations ? (
+              <DeferredView
+                loading={<Skeleton aria-label="Loading comparison chart" className="h-56 w-full" />}
+              >
+                <AnalyticsComparisonChart variants={version.variants} />
+              </DeferredView>
+            ) : (
+              <Empty className="min-h-56">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <GitBranch />
+                  </EmptyMedia>
+                  <EmptyTitle>No sessions yet</EmptyTitle>
+                  <EmptyDescription>
+                    This cohort has no started sessions. Adjust the traffic filters or start a
+                    funnel session to begin measuring. Ratios remain not applicable until a
+                    denominator exists.
+                  </EmptyDescription>
+                </EmptyHeader>
+                {onOpenFilters && (
+                  <Button variant="outline" onClick={onOpenFilters}>
+                    Adjust filters
+                  </Button>
+                )}
+              </Empty>
+            )}
+          </CardContent>
+        </Card>
+        <Card className="gap-4">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <FlaskConical className="size-4 text-primary" />
+              <CardTitle>Experiment context</CardTitle>
+            </div>
+            <CardDescription className="break-all">{version.experimentIdentifier}</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-5">
+            <div className="flex items-end justify-between gap-2">
+              <span className="text-sm text-muted-foreground">Started sessions</span>
+              <span className="text-2xl font-semibold tabular-nums">
+                {AnalyticsFormat.count(startedSessions)}
+              </span>
+            </div>
+            <div className="flex flex-col gap-3">
+              {version.variants.map((variant) => (
+                <div key={variant.variant} className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span>Variant {variant.variant}</span>
+                    <span className="text-muted-foreground tabular-nums">
+                      {AnalyticsFormat.count(variant.started)} sessions
+                    </span>
+                  </div>
+                  <Progress
+                    className="h-1.5"
+                    value={startedSessions > 0 ? (variant.started / startedSessions) * 100 : 0}
+                    aria-label={`Variant ${variant.variant} share of started sessions`}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2 border-t pt-4 text-xs leading-relaxed text-muted-foreground">
+              <Info className="mt-0.5 size-3.5 shrink-0" />
+              <p>
+                Both chart rates use started sessions. CTA click-through uses result viewers.
+                Compare variants within this version and experiment.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      <Tabs defaultValue={version.variants[0]?.variant ?? ''} className="min-w-0 gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-col gap-1">
+            <h3 className="text-base font-semibold">Journey breakdown</h3>
+            <p className="text-xs text-muted-foreground">
+              Inspect step completion and committed paths for each variant.
             </p>
           </div>
-          <TabsList aria-label={`Version ${version.funnelVersion} detail views`}>
-            <TabsTrigger value="summary">Summary</TabsTrigger>
-            <TabsTrigger value="steps">Steps</TabsTrigger>
-            <TabsTrigger value="paths">Paths</TabsTrigger>
+          <TabsList aria-label={`Version ${version.funnelVersion} variants`}>
+            {version.variants.map((variant) => (
+              <TabsTrigger key={variant.variant} value={variant.variant}>
+                Variant {variant.variant}
+                <span className="ml-1 rounded bg-background/60 px-1.5 text-xs tabular-nums">
+                  {variant.steps.length}
+                </span>
+              </TabsTrigger>
+            ))}
           </TabsList>
         </div>
-        <TabsContent value="summary" className="flex flex-col gap-6">
-          <div className="grid gap-6 @min-[34rem]/analytics-version:grid-cols-2 @min-[58rem]/analytics-version:grid-cols-4">
-            {version.variants.map((variant) => (
-              <AnalyticsVariantSummary key={variant.variant} variant={variant} />
-            ))}
-          </div>
-          <Card>
-            <CardHeader>
-              <CardTitle>Conversion rates</CardTitle>
-              <CardDescription>
-                Result completion and CTA conversion use started sessions as their denominator.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {hasObservations ? (
-                <DeferredView
-                  loading={
-                    <Skeleton
-                      aria-label="Loading comparison chart"
-                      className="h-80 w-full sm:h-96"
-                    />
-                  }
-                >
-                  <AnalyticsComparisonChart variants={version.variants} />
-                </DeferredView>
-              ) : (
-                <Empty className="min-h-80 sm:min-h-96">
-                  <EmptyHeader>
-                    <EmptyMedia variant="icon">
-                      <GitBranch />
-                    </EmptyMedia>
-                    <EmptyTitle>No sessions yet</EmptyTitle>
-                    <EmptyDescription>
-                      This cohort has no started sessions. Ratios remain not applicable until a
-                      denominator exists.
-                    </EmptyDescription>
-                  </EmptyHeader>
-                </Empty>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="steps" className="flex min-w-0 flex-col gap-4">
-          {version.variants.map((variant) => (
-            <AnalyticsSteps key={variant.variant} variant={variant} />
-          ))}
-          <Alert>
-            <AlertDescription>
-              Historical views persist when a visitor goes Back or changes branches. These counts
-              need not form a single monotone funnel. Unsent events remain unobservable.
-            </AlertDescription>
-          </Alert>
-        </TabsContent>
-        <TabsContent value="paths" className="flex min-w-0 flex-col gap-4">
-          {version.variants.map((variant) => (
-            <AnalyticsPaths key={variant.variant} variant={variant} />
-          ))}
-        </TabsContent>
+        {version.variants.map((variant) => (
+          <TabsContent key={variant.variant} value={variant.variant}>
+            <Tabs defaultValue="steps" className="min-w-0 gap-4">
+              <TabsList aria-label={`Variant ${variant.variant} detail views`}>
+                <TabsTrigger value="steps">
+                  <ListOrdered className="size-4" />
+                  Steps
+                </TabsTrigger>
+                <TabsTrigger value="paths">
+                  <Route className="size-4" />
+                  Paths
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="steps" className="flex min-w-0 flex-col gap-4">
+                <AnalyticsSteps variant={variant} />
+                <Alert>
+                  <AlertDescription>
+                    Historical views persist when a visitor goes Back or changes branches. These
+                    counts need not form a single monotone funnel. Unsent events remain
+                    unobservable.
+                  </AlertDescription>
+                </Alert>
+              </TabsContent>
+              <TabsContent value="paths">
+                <AnalyticsPaths variant={variant} />
+              </TabsContent>
+            </Tabs>
+          </TabsContent>
+        ))}
       </Tabs>
     </section>
   );

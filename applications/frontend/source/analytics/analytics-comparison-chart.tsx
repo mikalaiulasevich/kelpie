@@ -25,7 +25,7 @@ export function AnalyticsComparisonChart({
 
   return (
     <>
-      <ChartContainer config={comparisonChart} className="h-70 w-full sm:h-80">
+      <ChartContainer config={comparisonChart} className="h-52 w-full sm:h-56">
         <BarChart
           accessibilityLayer
           layout="vertical"
@@ -66,12 +66,14 @@ export function AnalyticsComparisonChart({
             }
           />
           <Bar
+            isAnimationActive={false}
             dataKey="results"
             fill="var(--color-results)"
             radius={[0, 6, 6, 0]}
             maxBarSize={32}
           />
           <Bar
+            isAnimationActive={false}
             dataKey="recommendations"
             fill="var(--color-recommendations)"
             radius={[0, 6, 6, 0]}

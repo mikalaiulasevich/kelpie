@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
   BarChart3,
   ChevronDown,
@@ -12,6 +12,7 @@ import { Badge } from '../components/badge';
 import { Button } from '../components/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../components/collapsible';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '../components/empty';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/tabs';
 import { Skeleton } from '../components/skeleton';
 import type { AnalyticsQuery } from '../management/management-types';
 import { ManagementPolicy } from '../management/management-policy';
@@ -32,6 +33,9 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
     AnalyticsFilterSelection.Initial,
   );
   const [offset, setOffset] = useState(0);
+  const [selectedVersionIdentifier, setSelectedVersionIdentifier] = useState('');
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const filtersTrigger = useRef<HTMLButtonElement>(null);
   const [refreshSequence, setRefreshSequence] = useState(0);
   const query = useMemo<AnalyticsQuery>(
     () => AnalyticsFilterSelection.query(funnelIdentifier, appliedFilters, offset),
@@ -45,12 +49,23 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
     setAppliedFilters(filters);
   };
 
+  const openFilters = () => {
+    setFiltersOpen(true);
+    filtersTrigger.current?.focus();
+    filtersTrigger.current?.scrollIntoView({ block: 'nearest' });
+  };
+
   const refresh = () => setRefreshSequence((sequence) => sequence + 1);
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
-      <h1 className="sr-only">Analytics</h1>
-      <Collapsible className="flex flex-col gap-6">
+      <div className="flex flex-col gap-1">
+        <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
+        <p className="text-sm text-muted-foreground">
+          Explore acquisition, journey completion, and recommendation conversion.
+        </p>
+      </div>
+      <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen} className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-2">
@@ -69,7 +84,7 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
             </div>
             <div className="flex gap-2">
               <CollapsibleTrigger asChild>
-                <Button variant="outline" className="group">
+                <Button ref={filtersTrigger} variant="outline" className="group">
                   <SlidersHorizontal data-icon="inline-start" />
                   Filters
                   <ChevronDown
@@ -125,7 +140,10 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
       {analytics.status === 'ready' && (
         <>
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-            <span>{analytics.response.versions.length} versions on this page</span>
+            <span>
+              {analytics.response.versions.length}{' '}
+              {analytics.response.versions.length === 1 ? 'version' : 'versions'} on this page
+            </span>
             <span>Updated {AnalyticsFormat.generatedAt(analytics.response.generatedAt)}</span>
           </div>
           {analytics.response.versions.length === 0 ? (
@@ -140,13 +158,41 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
                   this funnel.
                 </EmptyDescription>
               </EmptyHeader>
+              <Button variant="outline" onClick={openFilters}>
+                <SlidersHorizontal data-icon="inline-start" />
+                Adjust filters
+              </Button>
             </Empty>
           ) : (
-            <div className="flex min-w-0 flex-col gap-6">
+            <Tabs
+              value={
+                analytics.response.versions.some(
+                  (version) => version.versionIdentifier === selectedVersionIdentifier,
+                )
+                  ? selectedVersionIdentifier
+                  : (analytics.response.versions[0]?.versionIdentifier ?? '')
+              }
+              onValueChange={setSelectedVersionIdentifier}
+              className="min-w-0 gap-5"
+            >
+              <TabsList className="h-auto max-w-full flex-wrap" aria-label="Configuration versions">
+                {analytics.response.versions.map((version) => (
+                  <TabsTrigger key={version.versionIdentifier} value={version.versionIdentifier}>
+                    Version {version.funnelVersion}
+                    <span className="ml-1 rounded bg-background/60 px-1.5 text-xs tabular-nums">
+                      {AnalyticsFormat.count(
+                        version.variants.reduce((total, variant) => total + variant.started, 0),
+                      )}
+                    </span>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
               {analytics.response.versions.map((version) => (
-                <AnalyticsVersionPanel key={version.versionIdentifier} version={version} />
+                <TabsContent key={version.versionIdentifier} value={version.versionIdentifier}>
+                  <AnalyticsVersionPanel version={version} onOpenFilters={openFilters} />
+                </TabsContent>
               ))}
-            </div>
+            </Tabs>
           )}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <span className="text-xs text-muted-foreground">

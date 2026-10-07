@@ -1,6 +1,6 @@
 import { useSidebar } from '../navigation/use-sidebar';
 // Composition adapted from the official shadcn/ui sidebar-07 block.
-import { BarChart3, Command, Files, History, LogOut } from 'lucide-react';
+import { BarChart3, Command, Files, History, LogOut, Layers3 } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -65,6 +65,15 @@ export function WorkspaceSidebar({
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
+        <SidebarGroup className="px-5 pt-6 pb-0 group-data-[collapsible=icon]:hidden">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Layers3 className="size-3.5" aria-hidden="true" />
+            {WorkspaceContent.CurrentFunnel}
+          </div>
+          <p className="mt-2 truncate text-sm font-medium" title={funnelIdentifier}>
+            {funnelIdentifier}
+          </p>
+        </SidebarGroup>
         <SidebarGroup className="px-3 py-5 group-data-[collapsible=icon]:p-2">
           <SidebarGroupLabel>{WorkspaceContent.Scope}</SidebarGroupLabel>
           <SidebarMenu>

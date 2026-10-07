@@ -1,4 +1,4 @@
-import { Ellipsis } from 'lucide-react';
+import { Ellipsis, FileSearch, Rocket } from 'lucide-react';
 import { useRef } from 'react';
 import { Button } from '../components/button';
 import {
@@ -51,6 +51,7 @@ export function ConfigurationVersionActions({
                 version.identifier,
               )}
             >
+              <FileSearch />
               {ConfigurationContent.Inspect}
             </a>
           </DropdownMenuItem>
@@ -64,6 +65,7 @@ export function ConfigurationVersionActions({
               onPublish(trigger.current);
             }}
           >
+            <Rocket />
             {ConfigurationContent.Publish}
           </DropdownMenuItem>
         </DropdownMenuGroup>

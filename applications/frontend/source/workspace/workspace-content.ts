@@ -12,4 +12,5 @@ export const WorkspaceContent = {
   InvalidFunnel: 'Use letters, numbers, underscores or hyphens; begin with a letter.',
   RequestFailure: 'The request could not be completed. Please try again.',
   Scope: 'Funnel operations',
+  CurrentFunnel: 'Current funnel',
 } as const;
