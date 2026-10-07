@@ -1,29 +1,41 @@
-import { ServiceConnection } from '../service-health/service-connection';
-import { ApplicationContent } from './application-content';
+import { useEffect } from 'react'
+import { Command, Layers3, ScanLine } from 'lucide-react'
+import { AdministrationAccess } from '../administration/administration-access'
+import { AdministrationContent } from '../administration/administration-content'
+
+
+function Brand(): UIElement {
+  return <a href="/" className="brand" aria-label="Kelpie administration"><span className="brand-icon"><Command aria-hidden="true" /></span><span>{AdministrationContent.Brand}<span className="brand-dot">.</span></span></a>;
+}
 
 export function Application(): UIElement {
+  useEffect(() => { document.title = AdministrationContent.PageTitle; }, []);
+
+  return () => window.removeEventListener('hashchange', onHash)
+  }, [])
+  useEffect(() => { document.title = recovery ? 'Восстановление доступа · Kelpie' : 'Вход · Kelpie' }, [recovery])
+
   return (
-    <div className="min-h-screen">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-5 sm:px-10">
-          <span className="font-semibold tracking-tight">{ApplicationContent.Name}</span>
-          <span className="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600">
-            {ApplicationContent.Stage}
-          </span>
+    <main className="auth-layout">
+      <section className="auth-main" aria-label="Administrator access">
+        <header className="auth-header"><Brand /><span className="workspace-label">{AdministrationContent.WorkspaceLabel}</span></header>
+        <div className="form-container"><AdministrationAccess /></div>
+        <footer className="auth-footer"><span>© {new Date().getFullYear()} Kelpie</span><span>{AdministrationContent.CookieNote}</span></footer>
+      </section>
+      <aside className="brand-panel" aria-label="About your workspace">
+        <div className="panel-top"><span className="panel-kicker"><span className="status-dot" />{AdministrationContent.PanelKicker}</span><ScanLine aria-hidden="true" /></div>
+        <div className="orbital-art" aria-hidden="true">
+          <div className="orbit orbit-one" /><div className="orbit orbit-two" /><div className="orbit orbit-three" />
+          <div className="orbit-cross cross-horizontal" /><div className="orbit-cross cross-vertical" />
+          <div className="orbit-core"><Command /></div>
+          <span className="orbit-point point-one" /><span className="orbit-point point-two" /><span className="orbit-point point-three" />
+          <span className="orbit-coordinate coordinate-top">01 / WORKSPACE</span><span className="orbit-coordinate coordinate-bottom">CONNECTED BY DESIGN</span>
+          <div className="art-label"><Layers3 /><span>{AdministrationContent.PanelArtLabel}</span></div>
         </div>
-      </header>
-      <main className="mx-auto max-w-5xl px-6 py-14 sm:px-10 sm:py-20">
-        <p className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-          {ApplicationContent.Eyebrow}
-        </p>
-        <h1 className="max-w-2xl text-3xl font-semibold tracking-tight sm:text-5xl sm:leading-tight">
-          {ApplicationContent.Heading}
-        </h1>
-        <p className="mt-6 max-w-xl text-base leading-7 text-slate-600">
-          {ApplicationContent.Description}
-        </p>
-        <ServiceConnection />
-      </main>
-    </div>
-  );
+        <div className="panel-copy"><p className="panel-eyebrow">{AdministrationContent.PanelEyebrow}</p><h2>{AdministrationContent.PanelHeading}<br /><span>{AdministrationContent.PanelHeadingAccent}</span></h2><p>{AdministrationContent.PanelDescription}<br />{AdministrationContent.PanelDescriptionSecond}</p></div>
+        <div className="panel-footer"><span>{AdministrationContent.PanelFooter}</span><span>{AdministrationContent.PanelStep}</span></div>
+      </aside>
+    </main>
+  )
 }
+

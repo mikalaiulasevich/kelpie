@@ -1,4 +1,5 @@
 import { Ajv } from 'ajv';
+import { isNull } from 'es-toolkit/predicate';
 import ky, { isTimeoutError } from 'ky';
 import { AdministrationMessages } from './administration-messages';
 import { AdministrationPolicy, AdministrationRequestPolicy } from './administration-policy';
@@ -78,11 +79,18 @@ export const AdministrationClient = {
         .get(AdministrationResponse.endpoint(AdministrationPolicy.SessionEndpoint), {
           ...AdministrationRequestPolicy,
           signal,
+          parseJson: (text, { response }) => {
+            if (response.status === 401) {
+              return null;
+            }
+
+            return AdministrationResponse.identity(JSON.parse(text));
+          },
           hooks: {
             afterResponse: [
               ({ response }) => {
                 if (response.status === 401) {
-                  return Response.json(null);
+                  return Response.json(null, { status: 401 });
                 }
 
                 AdministrationResponse.requireSuccess(response);
@@ -92,7 +100,7 @@ export const AdministrationClient = {
         })
         .json<unknown>();
 
-      if (body === null) {
+      if (isNull(body)) {
         return null;
       }
 
@@ -100,11 +108,13 @@ export const AdministrationClient = {
     });
   },
 
-  signIn(credentials: AdministratorCredentials, signal: AbortSignal): Promise<AdministratorIdentity> {
+  signIn(
+    credentials: AdministratorCredentials,
+    signal: AbortSignal,
+  ): Promise<AdministratorIdentity> {
     return AdministrationResponse.request(signal, async () => {
-      const body = await ky.post(
-        AdministrationResponse.endpoint(AdministrationPolicy.SignInEndpoint),
-        {
+      const body = await ky
+        .post(AdministrationResponse.endpoint(AdministrationPolicy.SignInEndpoint), {
           ...AdministrationRequestPolicy,
           signal,
           json: credentials,
@@ -112,10 +122,12 @@ export const AdministrationClient = {
             [AdministrationPolicy.MutationHeader]: AdministrationPolicy.MutationHeaderValue,
           },
           hooks: {
-            afterResponse: [({ response }) => AdministrationResponse.requireSuccess(response, true)],
+            afterResponse: [
+              ({ response }) => AdministrationResponse.requireSuccess(response, true),
+            ],
           },
-        },
-      ).json<unknown>();
+        })
+        .json<unknown>();
 
       return AdministrationResponse.identity(body);
     });
