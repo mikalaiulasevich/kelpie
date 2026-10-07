@@ -15,6 +15,7 @@ export const RuntimeFixtures = {
 
     return { ...configuration, progress: { ...configuration.progress, excludeTypes } };
   },
+
   step(identifier: string): FunnelStep {
     const step = RuntimeFixtures.configuration(1).steps[identifier];
 

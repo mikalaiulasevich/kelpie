@@ -71,8 +71,10 @@ export const SessionProjection = {
     return answers;
   },
 
-  read(record: OwnedSession): SessionState {
-    const configuration = SessionProjection.configuration(record);
+  read(
+    record: OwnedSession,
+    configuration: FunnelConfiguration = SessionProjection.configuration(record),
+  ): SessionState {
     const variant = SessionProjection.variant(record.variant);
     const answers = record.answers.map((answer) => ({
       stepIdentifier: answer.stepIdentifier,

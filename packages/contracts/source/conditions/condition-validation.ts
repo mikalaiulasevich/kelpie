@@ -20,6 +20,7 @@ export const ConditionValidation = {
       .with({ answer: P.string }, visit)
       .exhaustive();
   },
+
   selectionOperands(
     context: ConfigurationValidationContext,
     step: SelectionStep,

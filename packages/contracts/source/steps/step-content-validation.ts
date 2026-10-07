@@ -10,26 +10,27 @@ import { configurationSchemaCompiler } from '../configurations/validation/config
 import { StepType } from '../shared/domain-values.js';
 import type { StepContent } from './step-types.js';
 
-const informationContentRequirement = {
-  validate: configurationSchemaCompiler.compile(StepSchemas.InformationContent),
-  path: identity<string>,
-  message: ConfigurationMessages.InformationContentRequired,
-};
-
-const interactiveContentRequirement = {
-  validate: configurationSchemaCompiler.compile(StepSchemas.InteractiveContent),
-  path: ConfigurationPaths.contentTitle,
-  message: ConfigurationMessages.InteractiveTitleRequired,
-};
+const ContentRequirements = {
+  Information: {
+    validate: configurationSchemaCompiler.compile(StepSchemas.InformationContent),
+    path: identity<string>,
+    message: ConfigurationMessages.InformationContentRequired,
+  },
+  Interactive: {
+    validate: configurationSchemaCompiler.compile(StepSchemas.InteractiveContent),
+    path: ConfigurationPaths.contentTitle,
+    message: ConfigurationMessages.InteractiveTitleRequired,
+  },
+} as const;
 
 export const StepContentValidation = {
   validate(stepType: StepType, content: StepContent, path: string): Optional<ConfigurationIssue> {
     const requirement = match(stepType)
-      .with(StepType.Information, () => informationContentRequirement)
+      .with(StepType.Information, () => ContentRequirements.Information)
       .with(StepType.Result, () => undefined)
       .with(
         P.union(StepType.Number, StepType.SingleSelect, StepType.MultiSelect),
-        () => interactiveContentRequirement,
+        () => ContentRequirements.Interactive,
       )
       .exhaustive();
 

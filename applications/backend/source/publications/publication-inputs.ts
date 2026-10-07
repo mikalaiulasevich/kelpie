@@ -14,14 +14,14 @@ const compiler = new Ajv({
   ownProperties: true,
 });
 
-const validators = {
+const PublicationValidators = {
   publish: compiler.compile<PublishRequest>(PublicationSchemas.PublishRequest),
   rollback: compiler.compile<RollbackRequest>(PublicationSchemas.RollbackRequest),
-};
+} as const;
 
 export const PublicationInputs = {
   publish(value: unknown): PublishRequest {
-    if (!validators.publish(value)) {
+    if (!PublicationValidators.publish(value)) {
       throw new BadRequestException(PublicationMessages.InvalidRequest);
     }
 
@@ -29,7 +29,7 @@ export const PublicationInputs = {
   },
 
   rollback(value: unknown): RollbackRequest {
-    if (!validators.rollback(value)) {
+    if (!PublicationValidators.rollback(value)) {
       throw new BadRequestException(PublicationMessages.InvalidRequest);
     }
 

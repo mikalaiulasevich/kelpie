@@ -21,26 +21,15 @@ describe('configuration document bounds', () => {
   });
 
   it('accepts JSON primitives and plain containers, including null prototypes', () => {
-    expect(
-      ConfigurationDocumentBounds.check([
-        null,
-        false,
-        true,
-        0,
-        '',
-        { answer: 1 },
-        Object.create(null),
-      ]),
-    ).toBeUndefined();
+    expect(ConfigurationDocumentBounds.check(DocumentFixtures.jsonValues())).toBeUndefined();
   });
 
   it('rejects both cycles and shared references', () => {
-    const shared = { answer: 1 };
     const cycle = DocumentFixtures.circular();
     expect(ConfigurationDocumentBounds.check(cycle)).toBe(
       ConfigurationMessages.AcyclicDocumentRequired,
     );
-    expect(ConfigurationDocumentBounds.check([shared, shared])).toBe(
+    expect(ConfigurationDocumentBounds.check(DocumentFixtures.sharedReferences())).toBe(
       ConfigurationMessages.AcyclicDocumentRequired,
     );
   });
@@ -82,9 +71,7 @@ describe('configuration document bounds', () => {
   });
 
   it('bounds object property counts before visiting children', () => {
-    const oversized = Object.fromEntries(
-      Array.from({ length: ConfigurationLimits.maximumNodes + 1 }, (_, index) => [index, null]),
-    );
+    const oversized = DocumentFixtures.properties(ConfigurationLimits.maximumNodes + 1);
     expect(ConfigurationDocumentBounds.check(oversized)).toBe(
       ConfigurationMessages.DocumentPropertyLimit,
     );

@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { isNull, isString } from 'es-toolkit/predicate';
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import type { Administrator } from '../../generated/prisma/client.js';
+import type { Administrator, Prisma } from '../../generated/prisma/client.js';
 import { DatabaseService } from '../database/database.service.js';
 import { ApplicationEnvironmentService } from '../environment/application-environment.js';
 import { ApplicationMode } from '../environment/environment-policy.js';
@@ -32,6 +32,30 @@ const AdministrationTokens = {
     }
 
     return token;
+  },
+} as const;
+
+const AdministrationRecords = {
+  identity(administrator: AdministratorIdentity): AdministratorIdentity {
+    return { identifier: administrator.identifier, username: administrator.username };
+  },
+
+  async provision(
+    transaction: Prisma.TransactionClient,
+    username: string,
+    passwordHash: string,
+  ): Promise<Administrator> {
+    const current = await transaction.administrator.findFirst();
+    const data = { username, passwordHash };
+
+    if (isNull(current)) {
+      return transaction.administrator.create({ data });
+    }
+
+    return transaction.administrator.update({
+      where: { identifier: current.identifier },
+      data,
+    });
   },
 } as const;
 
@@ -74,10 +98,7 @@ export class AdministrationService {
       throw new UnauthorizedException(AdministrationMessages.AuthenticationRequired);
     }
 
-    return {
-      identifier: session.administrator.identifier,
-      username: session.administrator.username,
-    };
+    return AdministrationRecords.identity(session.administrator);
   }
 
   async provision(username: string, password: string): Promise<AdministratorIdentity> {
@@ -88,19 +109,13 @@ export class AdministrationService {
     const passwordHash = await this.passwords.hash(password);
 
     return this.database.client.$transaction(async (transaction) => {
-      const current = await transaction.administrator.findFirst();
-      const administrator = isNull(current)
-        ? await transaction.administrator.create({ data: { username, passwordHash } })
-        : await transaction.administrator.update({
-            where: { identifier: current.identifier },
-            data: { username, passwordHash },
-          });
+      const administrator = await AdministrationRecords.provision(transaction, username, passwordHash);
       await transaction.administratorSession.updateMany({
         where: { administratorIdentifier: administrator.identifier, revokedAt: null },
         data: { revokedAt: new Date() },
       });
 
-      return { identifier: administrator.identifier, username: administrator.username };
+      return AdministrationRecords.identity(administrator);
     });
   }
 
@@ -117,7 +132,7 @@ export class AdministrationService {
     const administrator = await this.verifyCredentials(body);
     await this.createSession(administrator, reply);
 
-    return { identifier: administrator.identifier, username: administrator.username };
+    return AdministrationRecords.identity(administrator);
   }
 
   async signOut(request: FastifyRequest, reply: FastifyReply): Promise<void> {

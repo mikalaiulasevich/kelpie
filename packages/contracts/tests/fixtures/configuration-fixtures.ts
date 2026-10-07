@@ -19,6 +19,7 @@ export const ConfigurationFixtures = {
       ),
     );
   },
+
   valid(version = 1): FunnelConfiguration {
     const result = FunnelConfigurations.validate(ConfigurationFixtures.original(version));
     if (!result.valid) {
@@ -27,6 +28,7 @@ export const ConfigurationFixtures = {
 
     return result.configuration;
   },
+
   informationStep(configuration: FunnelConfiguration): InformationStep {
     const step = configuration.steps['intro'];
     if (step?.type !== StepType.Information) {
@@ -35,6 +37,7 @@ export const ConfigurationFixtures = {
 
     return step;
   },
+
   withIntroductionContent(content: StepOverride['content']): FunnelConfiguration {
     const configuration = ConfigurationFixtures.valid();
     const introduction = ConfigurationFixtures.informationStep(configuration);
@@ -47,6 +50,7 @@ export const ConfigurationFixtures = {
       },
     };
   },
+
   withVariantIntroductionContent(content: StepOverride['content']): FunnelConfiguration {
     const configuration = ConfigurationFixtures.valid();
 
@@ -61,6 +65,7 @@ export const ConfigurationFixtures = {
       },
     };
   },
+
   numberStep(configuration: FunnelConfiguration): NumberStep {
     const step = configuration.steps['team_size'];
     if (step?.type !== StepType.Number) {

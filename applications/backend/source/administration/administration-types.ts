@@ -1,25 +1,30 @@
 import { Type, type Static } from 'typebox';
 import { AdministrationPasswordPolicy, AdministrationPolicy } from './administration-policy.js';
 
+const AdministrationFields = {
+  Username: Type.String({ pattern: AdministrationPolicy.UsernamePattern }),
+
+  password(minimumLength: number) {
+    return Type.String({
+      minLength: minimumLength,
+      maxLength: AdministrationPolicy.MaximumPasswordCharacters,
+    });
+  },
+} as const;
+
 export const AdministrationSchemas = {
   EncodedPassword: Type.String({ pattern: AdministrationPasswordPolicy.EncodedPattern }),
   Credentials: Type.Object(
     {
-      username: Type.String({ pattern: AdministrationPolicy.UsernamePattern }),
-      password: Type.String({
-        minLength: 1,
-        maxLength: AdministrationPolicy.MaximumPasswordCharacters,
-      }),
+      username: AdministrationFields.Username,
+      password: AdministrationFields.password(1),
     },
     { additionalProperties: false },
   ),
   Provisioning: Type.Object(
     {
-      username: Type.String({ pattern: AdministrationPolicy.UsernamePattern }),
-      password: Type.String({
-        minLength: AdministrationPolicy.MinimumProvisionPasswordCharacters,
-        maxLength: AdministrationPolicy.MaximumPasswordCharacters,
-      }),
+      username: AdministrationFields.Username,
+      password: AdministrationFields.password(AdministrationPolicy.MinimumProvisionPasswordCharacters),
     },
     { additionalProperties: false },
   ),

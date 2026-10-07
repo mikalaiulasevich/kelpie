@@ -2,7 +2,7 @@ import { isNull } from 'es-toolkit/predicate';
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
 import { AnswerValidation } from '@kelpie/funnel-runtime';
-import { StepRules, StepType, type FunnelStep } from '@kelpie/contracts';
+import { StepRules, StepType, type FunnelConfiguration, type FunnelStep } from '@kelpie/contracts';
 import { Prisma, type SessionOperation } from '../../generated/prisma/client.js';
 import { DatabaseErrors } from '../database/database-errors.js';
 import { DatabaseService } from '../database/database.service.js';
@@ -157,7 +157,8 @@ export class SessionCommandsService {
     fingerprint: string,
   ): Promise<SessionState> {
     SessionCommandChecks.revision(record, command);
-    const initial = SessionCommandRouting.evaluate(record);
+    const configuration = SessionProjection.configuration(record);
+    const initial = SessionCommandRouting.evaluate(record, configuration);
     const current = SessionCommandRouting.current(record, initial, command);
     SessionCommandChecks.step(current, command);
     const revision = record.revision + 1;
@@ -167,11 +168,12 @@ export class SessionCommandsService {
       credentialHash,
       command,
       revision,
+      configuration,
     );
     await this.advance(transaction, record, transition, revision);
     const changed = await SessionRecords.requireOwned(transaction, credentialHash);
 
-    return this.persist(transaction, changed, transition, fingerprint);
+    return this.persist(transaction, changed, transition, fingerprint, configuration);
   }
 
   private async prepareTransition(
@@ -180,10 +182,10 @@ export class SessionCommandsService {
     credentialHash: string,
     command: SessionCommand,
     revision: number,
+    configuration: FunnelConfiguration,
   ): Promise<SessionTransitionEvent> {
-    await this.storeAnswer(transaction, record, command, revision);
-    const answered = await SessionRecords.requireOwned(transaction, credentialHash);
-    const evaluation = SessionCommandRouting.evaluate(answered);
+    const answered = await this.storeAnswer(transaction, record, credentialHash, command, revision);
+    const evaluation = SessionCommandRouting.evaluate(answered, configuration);
     const invalidated = SessionCommandRouting.invalidatedAnswers(answered, evaluation);
     if (invalidated.length > 0) {
       await transaction.sessionAnswer.updateMany({
@@ -219,8 +221,9 @@ export class SessionCommandsService {
     changed: OwnedSession,
     transition: SessionTransitionEvent,
     fingerprint: string,
+    configuration: FunnelConfiguration,
   ): Promise<SessionState> {
-    const response = SessionProjection.read(changed);
+    const response = SessionProjection.read(changed, configuration);
     await transaction.sessionOperation.create({
       data: {
         sessionIdentifier: changed.identifier,
@@ -247,11 +250,12 @@ export class SessionCommandsService {
   private async storeAnswer(
     transaction: Prisma.TransactionClient,
     record: OwnedSession,
+    credentialHash: string,
     command: SessionCommand,
     revision: number,
-  ): Promise<void> {
+  ): Promise<OwnedSession> {
     if (command.kind !== SessionCommandKind.Answer) {
-      return;
+      return record;
     }
 
     const value = isNull(command.answer) ? Prisma.JsonNull : command.answer;
@@ -270,5 +274,7 @@ export class SessionCommandsService {
       },
       update: { value, confirmationRevision: revision },
     });
+
+    return SessionRecords.requireOwned(transaction, credentialHash);
   }
 }

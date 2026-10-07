@@ -29,6 +29,7 @@ export const StepValidation = {
       );
     }
   },
+
   selection(
     context: ConfigurationValidationContext,
     stepIdentifier: string,
@@ -59,6 +60,7 @@ export const StepValidation = {
       );
     }
   },
+
   interactive(
     context: ConfigurationValidationContext,
     stepIdentifier: string,

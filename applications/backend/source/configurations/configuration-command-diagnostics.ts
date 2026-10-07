@@ -10,6 +10,8 @@ import type {
 } from './configuration-command-types.js';
 import { ConfigurationImportError } from './configuration-import-error.js';
 
+const allowedMessages = Object.values(ConfigurationCommandMessages);
+
 const CommandFailureDetails = {
   describe(error: unknown): ConfigurationCommandFailureDetails {
     const [, details] = attempt(() => {
@@ -31,7 +33,7 @@ const CommandFailureDetails = {
 
       const errorMessage = error.message;
 
-      return Object.values(ConfigurationCommandMessages).find((known) => known === errorMessage);
+      return allowedMessages.find((known) => known === errorMessage);
     });
 
     return message ?? ConfigurationCommandMessages.ImportFailed;

@@ -41,17 +41,23 @@ const ErrorReportingSite = {
   },
 } as const;
 
+const allowedMessages = Object.values(EnvironmentMessages);
+
 const ErrorDetails = {
   code(error: Error): Optional<string> {
     if (!('code' in error)) {
       return undefined;
     }
 
-    return DiagnosticPolicy.ErrorCodes.find((candidate) => candidate === error.code);
+    const code: unknown = error.code;
+
+    return DiagnosticPolicy.ErrorCodes.find((candidate) => candidate === code);
   },
 
   safeMessage(error: Error): Optional<string> {
-    return Object.values(EnvironmentMessages).find((message) => message === error.message);
+    const message = error.message;
+
+    return allowedMessages.find((candidate) => candidate === message);
   },
 } as const;
 

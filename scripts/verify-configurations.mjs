@@ -6,33 +6,50 @@ import { isPlainObject } from 'es-toolkit/predicate';
 import { ConfigurationIntegrityMessages } from './script-messages.mjs';
 import { ConfigurationFiles } from './script-policy.mjs';
 
-const configurationsDirectory = new URL(ConfigurationFiles.Directory, import.meta.url);
-/** @type {unknown} */
-const manifest = JSON.parse(
-  await readFile(
-    new URL(ConfigurationFiles.ManifestName, configurationsDirectory),
-    ConfigurationFiles.TextEncoding,
-  ),
-);
+const ConfigurationIntegrity = {
+  async manifest() {
+    const directory = new URL(ConfigurationFiles.Directory, import.meta.url);
+    /** @type {unknown} */
+    const manifest = JSON.parse(
+      await readFile(
+        new URL(ConfigurationFiles.ManifestName, directory),
+        ConfigurationFiles.TextEncoding,
+      ),
+    );
+    assert.ok(isPlainObject(manifest), ConfigurationIntegrityMessages.InvalidManifest);
+    const entries = Object.entries(manifest);
+    const expectedNames = new Set(ConfigurationFiles.Versions.map(ConfigurationFiles.fileName));
+    assert.equal(entries.length, expectedNames.size, ConfigurationIntegrityMessages.MissingEntries);
 
-const expectedNames = new Set(ConfigurationFiles.Versions.map(ConfigurationFiles.fileName));
-assert.ok(isPlainObject(manifest), ConfigurationIntegrityMessages.InvalidManifest);
-const entries = Object.entries(manifest);
-assert.equal(entries.length, expectedNames.size, ConfigurationIntegrityMessages.MissingEntries);
+    for (const [fileName] of entries) {
+      if (!expectedNames.has(fileName)) {
+        throw new Error(ConfigurationIntegrityMessages.unexpectedEntry(fileName));
+      }
+    }
 
-for (const [fileName, expectedChecksum] of entries) {
-  if (!expectedNames.has(fileName)) {
-    throw new Error(ConfigurationIntegrityMessages.unexpectedEntry(fileName));
-  }
+    return { directory, entries };
+  },
 
-  const contents = await readFile(new URL(fileName, configurationsDirectory));
-  const actualChecksum = createHash(ConfigurationFiles.ChecksumAlgorithm)
-    .update(contents)
-    .digest(ConfigurationFiles.ChecksumEncoding);
-  if (actualChecksum !== expectedChecksum) {
-    throw new Error(ConfigurationIntegrityMessages.changedContents(fileName));
-  }
+  /** @param {URL} directory @param {string} fileName @param {unknown} expectedChecksum */
+  async verifyFile(directory, fileName, expectedChecksum) {
+    const contents = await readFile(new URL(fileName, directory));
+    const actualChecksum = createHash(ConfigurationFiles.ChecksumAlgorithm)
+      .update(contents)
+      .digest(ConfigurationFiles.ChecksumEncoding);
+    if (actualChecksum !== expectedChecksum) {
+      throw new Error(ConfigurationIntegrityMessages.changedContents(fileName));
+    }
 
-  JSON.parse(contents.toString(ConfigurationFiles.TextEncoding));
-  console.info(ConfigurationIntegrityMessages.verifiedContents(fileName));
-}
+    JSON.parse(contents.toString(ConfigurationFiles.TextEncoding));
+    console.info(ConfigurationIntegrityMessages.verifiedContents(fileName));
+  },
+
+  async verify() {
+    const { directory, entries } = await ConfigurationIntegrity.manifest();
+    for (const [fileName, expectedChecksum] of entries) {
+      await ConfigurationIntegrity.verifyFile(directory, fileName, expectedChecksum);
+    }
+  },
+};
+
+await ConfigurationIntegrity.verify();

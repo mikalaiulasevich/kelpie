@@ -24,12 +24,15 @@ export const ConfigurationPaths = {
 
     return {
       sequence: `${path}/stepSequence`,
+
       stepOverride(stepIdentifier: string): string {
         return `${path}/stepOverrides/${stepIdentifier}`;
       },
+
       stepOverrideContent(stepIdentifier: string): string {
         return `${path}/stepOverrides/${stepIdentifier}/content`;
       },
+
       resultOverride(resultIdentifier: string): string {
         return `${path}/resultOverrides/${resultIdentifier}`;
       },

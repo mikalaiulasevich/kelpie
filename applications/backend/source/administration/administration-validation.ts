@@ -1,7 +1,7 @@
 import { Ajv } from 'ajv';
 import { AdministrationSchemas, type AdministratorCredentials } from './administration-types.js';
 
-const validator = new Ajv({ strict: true });
+const validator = new Ajv({ strict: true, ownProperties: true });
 
 export const AdministrationValidation = {
   credentials: validator.compile<AdministratorCredentials>(AdministrationSchemas.Credentials),

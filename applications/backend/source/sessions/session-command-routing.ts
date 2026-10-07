@@ -1,7 +1,7 @@
 import { isNull } from 'es-toolkit/predicate';
 import { HttpStatus } from '@nestjs/common';
 import { AnswerValidation, FunnelEvaluation, RouteResolution } from '@kelpie/funnel-runtime';
-import { DictionaryAccess, StepRules, StepType, type FunnelStep } from '@kelpie/contracts';
+import { DictionaryAccess, StepRules, StepType, type FunnelConfiguration, type FunnelStep } from '@kelpie/contracts';
 import type { EvaluatedFunnel } from '@kelpie/funnel-runtime';
 import { PublicRequestError } from '../transport/public-request-error.js';
 import { SessionTransitionKind } from '../events/session-event-policy.js';
@@ -68,9 +68,7 @@ const SessionNavigation = {
 } as const;
 
 export const SessionCommandRouting = {
-  evaluate(record: OwnedSession): EvaluatedFunnel {
-    const configuration = SessionProjection.configuration(record);
-
+  evaluate(record: OwnedSession, configuration: FunnelConfiguration): EvaluatedFunnel {
     return FunnelEvaluation.evaluate(
       configuration,
       SessionProjection.variant(record.variant),
