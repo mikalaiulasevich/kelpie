@@ -18,6 +18,7 @@ export interface AuthoritativeSessionEvent {
   readonly properties: Prisma.InputJsonObject;
 }
 
-export type SessionEventOwner = Pick<Session,
+export type SessionEventOwner = Pick<
+  Session,
   'identifier' | 'versionIdentifier' | 'experimentIdentifier' | 'variant' | 'acquisitionParameters'
 >;

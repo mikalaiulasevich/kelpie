@@ -1,4 +1,15 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Post, Query, Req, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  Post,
+  Query,
+  Req,
+  Res,
+} from '@nestjs/common';
 import { RouteConfig } from '@nestjs/platform-fastify';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { SessionService } from './session.service.js';
@@ -15,13 +26,21 @@ export class SessionController {
 
   @Get(SessionHttpPolicy.CurrentRoute)
   @RouteConfig({ rateLimit: SessionHttpPolicy.ReadRateLimit })
-  current(@Req() request: FastifyRequest, @Res({ passthrough: true }) reply: FastifyReply): Promise<CurrentSessionResponse> {
+  current(
+    @Req() request: FastifyRequest,
+    @Res({ passthrough: true }) reply: FastifyReply,
+  ): Promise<CurrentSessionResponse> {
     return this.sessions.current(request, reply);
   }
 
   @Post()
   @RouteConfig({ rateLimit: SessionHttpPolicy.CreateRateLimit })
-  create(@Req() request: FastifyRequest, @Res({ passthrough: true }) reply: FastifyReply, @Body() body: unknown, @Query() query: unknown): Promise<SessionState> {
+  create(
+    @Req() request: FastifyRequest,
+    @Res({ passthrough: true }) reply: FastifyReply,
+    @Body() body: unknown,
+    @Query() query: unknown,
+  ): Promise<SessionState> {
     return this.sessions.create(request, reply, body, query);
   }
 

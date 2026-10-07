@@ -1,4 +1,6 @@
 export const SessionPolicy = {
+  CreationKind: 'create',
+  MaximumQueryParameters: 16,
   CookieName: 'kelpie_session',
   CookiePath: '/api',
   SameSite: 'strict',

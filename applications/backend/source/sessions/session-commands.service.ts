@@ -4,6 +4,7 @@ import type { FastifyRequest } from 'fastify';
 import { AnswerValidation } from '@kelpie/funnel-runtime';
 import { StepRules, StepType, type FunnelStep } from '@kelpie/contracts';
 import { Prisma, type SessionOperation } from '../../generated/prisma/client.js';
+import { DatabaseErrors } from '../database/database-errors.js';
 import { DatabaseService } from '../database/database.service.js';
 import { PublicRequestError } from '../transport/public-request-error.js';
 import type { SessionTransitionEvent } from '../events/session-event-types.js';
@@ -116,10 +117,7 @@ export class SessionCommandsService {
         return this.apply(transaction, record, credentialHash, command, fingerprint);
       });
     } catch (error) {
-      if (
-        !(error instanceof Prisma.PrismaClientKnownRequestError) ||
-        error.code !== SessionCommandPolicy.UniqueConstraintCode
-      ) {
+      if (!DatabaseErrors.isUniqueConstraint(error)) {
         throw error;
       }
 

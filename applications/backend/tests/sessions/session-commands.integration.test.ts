@@ -89,4 +89,57 @@ describe('atomic session commands with real SQLite', () => {
     expect((await browser.post('/current/continue', command)).status).toBe(401);
     expect(await backend.database.sessionTransition.count()).toBe(1);
   });
+  it('maps confirmed answers by input name when it differs from the step identifier', async () => {
+    await SessionCommandFixtures.publishOptionalNumeric(backend);
+    const state = await browser.continue(await browser.create());
+    const answered = await browser.answer(state, 10);
+    expect(answered.answers).toEqual([
+      { stepIdentifier: 'team_size', value: 10, confirmationRevision: 2 },
+    ]);
+    expect(answered.progress.completed).toBe(1);
+    expect((await (await browser.current()).json()).state.progress.completed).toBe(1);
+  });
+
+  it('retains an explicitly submitted optional null without activating a raw answer', async () => {
+    await SessionCommandFixtures.publishOptionalNumeric(backend);
+    const state = await browser.continue(await browser.create());
+    const command = { ...SessionFlowFixture.command(state), answer: null };
+    const answered = await SessionFlowFixture.state(
+      await browser.post('/current/answers', command),
+    );
+    expect(answered.answers).toEqual([
+      { stepIdentifier: 'team_size', value: null, confirmationRevision: 2 },
+    ]);
+    expect(answered.progress.completed).toBe(0);
+    expect(await SessionFlowFixture.state(await browser.post('/current/answers', command))).toEqual(
+      answered,
+    );
+    expect(await backend.database.sessionAnswer.findFirstOrThrow()).toMatchObject({
+      value: null,
+      confirmationRevision: 2,
+    });
+  });
+
+  it('leaves state and analytics untouched on invalid answers or stale revisions', async () => {
+    const state = await browser.continue(await browser.create());
+    const command = SessionFlowFixture.command(state);
+    const invalid = await browser.post('/current/answers', { ...command, answer: -1 });
+    expect(invalid.status).toBe(422);
+    expect(await invalid.json()).toMatchObject({ code: 'invalid_answer' });
+    const stale = await browser.post('/current/answers', {
+      ...command,
+      expectedSessionRevision: 0,
+      answer: 10,
+    });
+    expect(stale.status).toBe(409);
+    expect(await stale.json()).toMatchObject({ code: 'stale_revision' });
+    expect(await backend.database.sessionAnswer.count()).toBe(0);
+    expect(await backend.database.sessionTransition.count()).toBe(1);
+    expect(await backend.database.event.count()).toBe(1);
+    expect(
+      await backend.database.session.findUniqueOrThrow({
+        where: { identifier: state.sessionIdentifier },
+      }),
+    ).toMatchObject({ revision: 1, currentStepIdentifier: 'team_size' });
+  });
 });

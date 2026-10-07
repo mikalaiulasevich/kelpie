@@ -1,6 +1,7 @@
 import { Type, type Static } from 'typebox';
 import { ExperimentVariant, type FunnelConfiguration, type FunnelResult } from '@kelpie/contracts';
 import type { Prisma } from '../../generated/prisma/client.js';
+import { ManagementSchemas } from '../management/management-types.js';
 import { SessionPolicy } from './session-policy.js';
 
 const answerValue = Type.Union([
@@ -14,7 +15,7 @@ export const SessionSchemas = {
   Create: Type.Object(
     {
       operationIdentifier: Type.String({ pattern: SessionPolicy.OperationPattern }),
-      funnelIdentifier: Type.String({ pattern: '^[a-zA-Z][a-zA-Z0-9_-]*$', maxLength: 100 }),
+      funnelIdentifier: ManagementSchemas.Identifier,
       clientTimestamp: Type.String({ pattern: SessionPolicy.TimestampPattern }),
     },
     { additionalProperties: false },
@@ -22,7 +23,7 @@ export const SessionSchemas = {
   Query: Type.Record(
     Type.String(),
     Type.String({ maxLength: SessionPolicy.MaximumAcquisitionCharacters }),
-    { maxProperties: 16 },
+    { maxProperties: SessionPolicy.MaximumQueryParameters },
   ),
   State: Type.Object({
     sessionIdentifier: Type.String(),

@@ -42,7 +42,7 @@ const SessionCreation = {
     return createHash(SessionPolicy.HashAlgorithm)
       .update(
         JSON.stringify([
-          'create',
+          SessionPolicy.CreationKind,
           body.funnelIdentifier,
           body.clientTimestamp,
           sortBy(Object.entries(relevantQuery), [([key]) => key]),

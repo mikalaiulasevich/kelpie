@@ -7,7 +7,6 @@ export const SessionCommandPolicy = {
   MaximumAnswerLength: 4000,
   MaximumSelections: 100,
   AnswerPath: '/answer',
-  UniqueConstraintCode: 'P2002',
 } as const;
 
 export const SessionCommandErrorCode = {
