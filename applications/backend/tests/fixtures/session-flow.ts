@@ -3,7 +3,6 @@ import { randomUUID } from 'node:crypto';
 import { Ajv } from 'ajv';
 import { vi } from 'vitest';
 import type { Static } from 'typebox';
-import type { FastifyInstance } from 'fastify';
 import { ApplicationCommand } from '../../source/application/application-command.js';
 import { ApplicationFactory } from '../../source/application/create-application.js';
 import { ApplicationEnvironmentService } from '../../source/environment/application-environment.js';
@@ -57,7 +56,7 @@ export const SessionFlowFixture = {
     return ApplicationCommand.run(
       application,
       async () => {
-        const server = application.getHttpAdapter().getInstance<FastifyInstance>();
+        const server = application.getHttpAdapter().getInstance();
         const response = await server.inject({
           method: 'GET',
           url: '/api/sessions/current',
