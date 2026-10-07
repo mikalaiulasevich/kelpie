@@ -1,0 +1,36 @@
+{
+  "entries": {
+    "skills/ui-ux-pro-max": {
+      "agents": [
+        "vscode"
+      ],
+      "cliVersion": "0.4.0",
+      "commitSha": "dcc40ff5133ef78276117db0cc34e7b83cc8aeba",
+      "contentDigest": "sha256:9af251808f0da995081279553df697388d812ef38fb7c884ee287620c929ae88",
+      "installedAt": "2026-10-07T16:05:43.244Z",
+      "items": [
+        {
+          "agent": "*",
+          "kind": "skill",
+          "link": "canonical",
+          "path": ".agents/skills/ui-ux-pro-max"
+        },
+        {
+          "agent": "vscode",
+          "kind": "skill",
+          "link": "symlink",
+          "path": ".github/skills/ui-ux-pro-max"
+        }
+      ],
+      "recipeHash": "sha256:5bb2c22f42f1c19c64a66de41a8a4a8429221911b4cdc6d0b2e722bb42ec589a",
+      "risk": "medium",
+      "scope": "project",
+      "section": "skills",
+      "slug": "ui-ux-pro-max",
+      "status": "review",
+      "updatedAt": "2026-10-07T16:05:43.244Z",
+      "vars": []
+    }
+  },
+  "lockfileVersion": 1
+}
