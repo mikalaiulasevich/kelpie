@@ -135,7 +135,7 @@ export function Workspace({ identity, signOut, onUnauthorized }: WorkspaceProper
   };
 
   return (
-    <SidebarProvider style={{ '--sidebar-width': '17rem' } as CSSProperties}>
+    <SidebarProvider style={{ '--sidebar-width': '15rem' } as CSSProperties}>
       <WorkspaceSidebar
         page={page}
         funnelIdentifier={funnelIdentifier}

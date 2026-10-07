@@ -74,12 +74,12 @@ function AnalyticsRatioValue({
 
 function AnalyticsVariantSummary({ variant }: { readonly variant: AnalyticsVariant }) {
   return (
-    <Card className="gap-5 overflow-hidden py-0">
-      <CardHeader className="flex flex-row items-center justify-between gap-3 border-b bg-muted/20 py-4">
+    <Card className="analytics-metric gap-4 overflow-hidden py-0" data-variant={variant.variant}>
+      <CardHeader className="flex flex-row items-center justify-between gap-3 pt-5">
         <div className="flex items-center gap-3">
           <span
             className={ClassNames.combine(
-              'flex size-10 items-center justify-center rounded-xl text-lg font-semibold',
+              'flex size-9 items-center justify-center rounded-lg text-sm font-semibold',
               variant.variant === 'A' ? 'bg-primary/12 text-primary' : 'bg-info/12 text-info',
             )}
           >
@@ -92,10 +92,7 @@ function AnalyticsVariantSummary({ variant }: { readonly variant: AnalyticsVaria
             </CardDescription>
           </div>
         </div>
-        <Badge variant="outline">
-          <GitBranch />
-          Experiment
-        </Badge>
+        <Badge variant="outline">Experiment</Badge>
       </CardHeader>
       <CardContent className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-5">
         <div className="flex flex-col gap-2">
@@ -106,13 +103,20 @@ function AnalyticsVariantSummary({ variant }: { readonly variant: AnalyticsVaria
           <p
             data-applicable={!isNull(variant.ctaConversion.value)}
             data-positive={variant.ctaConversion.numerator > 0}
-            className="text-[2.75rem] leading-tight font-semibold tracking-tight tabular-nums data-[applicable=false]:text-lg data-[positive=true]:text-success"
+            className="text-[3rem] leading-none font-semibold tracking-tight tabular-nums data-[applicable=false]:text-lg"
           >
             {AnalyticsFormat.ratio(variant.ctaConversion)}
           </p>
           <span className="text-xs text-muted-foreground tabular-nums">
             {AnalyticsFormat.fraction(variant.ctaConversion)}
           </span>
+          {!isNull(variant.ctaConversion.value) && (
+            <Progress
+              className="analytics-metric-progress mt-2 h-1"
+              value={variant.ctaConversion.value * 100}
+              aria-label={`Variant ${variant.variant} CTA conversion`}
+            />
+          )}
         </div>
         <div className="flex flex-col items-end gap-2 border-l pl-5">
           <span className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -125,7 +129,7 @@ function AnalyticsVariantSummary({ variant }: { readonly variant: AnalyticsVaria
           <span className="text-xs text-muted-foreground">sessions</span>
         </div>
       </CardContent>
-      <CardFooter className="grid grid-cols-2 items-start gap-5 border-t bg-muted/15 py-4 [.border-t]:pt-4">
+      <CardFooter className="grid grid-cols-2 items-start gap-5 border-t py-4 [.border-t]:pt-4">
         <div className="flex flex-col gap-2">
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <CircleCheck
@@ -344,7 +348,7 @@ export function AnalyticsVersionPanel({
 
   return (
     <section
-      className="@container/analytics-version flex min-w-0 flex-col gap-5"
+      className="@container/analytics-version flex min-w-0 flex-col gap-6"
       aria-label={`Version ${version.funnelVersion} analytics`}
     >
       <div className="grid gap-4 @min-[38rem]/analytics-version:grid-cols-2">
@@ -353,7 +357,7 @@ export function AnalyticsVersionPanel({
         ))}
       </div>
       <div className="grid min-w-0 gap-5 @min-[60rem]/analytics-version:grid-cols-[minmax(0,1fr)_17rem]">
-        <Card className="min-w-0 gap-4 py-5">
+        <Card className="analytics-chart min-w-0 gap-6 py-6">
           <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
             <div className="flex flex-col gap-2">
               <CardTitle>Conversion performance</CardTitle>
@@ -390,7 +394,7 @@ export function AnalyticsVersionPanel({
             )}
           </CardContent>
         </Card>
-        <Card className="gap-4">
+        <Card className="analytics-context gap-4">
           <CardHeader>
             <div className="flex items-center gap-2">
               <FlaskConical className="size-4 text-primary" />
@@ -399,9 +403,9 @@ export function AnalyticsVersionPanel({
             <CardDescription className="break-all">{version.experimentIdentifier}</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-5">
-            <div className="flex items-end justify-between gap-2">
+            <div className="flex flex-col gap-2">
               <span className="text-sm text-muted-foreground">Started sessions</span>
-              <span className="text-2xl font-semibold tabular-nums">
+              <span className="text-4xl font-semibold tracking-tight tabular-nums">
                 {AnalyticsFormat.count(startedSessions)}
               </span>
             </div>
@@ -432,7 +436,7 @@ export function AnalyticsVersionPanel({
           </CardContent>
         </Card>
       </div>
-      <Tabs defaultValue={version.variants[0]?.variant ?? ''} className="min-w-0 gap-4">
+      <Tabs defaultValue={version.variants[0]?.variant ?? ''} className="min-w-0 gap-4 pt-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-col gap-1">
             <h3 className="text-base font-semibold">Journey breakdown</h3>

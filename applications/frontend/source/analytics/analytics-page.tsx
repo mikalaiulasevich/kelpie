@@ -50,7 +50,7 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
   const refresh = () => setRefreshSequence((sequence) => sequence + 1);
 
   return (
-    <div className="flex min-w-0 flex-col gap-4">
+    <div className="flex min-w-0 flex-col gap-6">
       <div className="flex flex-col gap-1">
         <h1 className="page-title">Analytics</h1>
         <p className="text-sm text-muted-foreground">
@@ -58,7 +58,7 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
         </p>
       </div>
       <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
-        <div className="flex flex-col gap-2">
+        <div className="analytics-toolbar flex flex-col gap-2">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="secondary">
