@@ -3,6 +3,10 @@ import { randomUUID } from 'node:crypto';
 import { Ajv } from 'ajv';
 import { vi } from 'vitest';
 import type { Static } from 'typebox';
+import type { FastifyInstance } from 'fastify';
+import { ApplicationCommand } from '../../source/application/application-command.js';
+import { ApplicationFactory } from '../../source/application/create-application.js';
+import { ApplicationEnvironmentService } from '../../source/environment/application-environment.js';
 import { SessionSchemas } from '../../source/sessions/session-types.js';
 import type { BackendApplicationFixture } from './backend-application.js';
 import { PublicationFixtures } from './publication-fixtures.js';
@@ -10,6 +14,11 @@ import { PublicationFixtures } from './publication-fixtures.js';
 export type SessionFlowState = Static<typeof SessionSchemas.State>;
 
 const stateValidator = new Ajv({ strict: true }).compile<SessionFlowState>(SessionSchemas.State);
+
+const SessionFlowMessages = {
+  DatabaseNotReady: 'The persisted session database is not ready.',
+  CleanupFailed: 'The restarted session application failed and cleanup also failed.',
+} as const;
 
 export const SessionFlowFixture = {
   Headers: {
@@ -39,6 +48,26 @@ export const SessionFlowFixture = {
     );
 
     return publication;
+  },
+
+  async readFromFreshApplication(backend: BackendApplicationFixture, cookie: string) {
+    const environment = backend.getService(ApplicationEnvironmentService).values;
+    const application = await ApplicationFactory.create(environment);
+
+    return ApplicationCommand.run(
+      application,
+      async () => {
+        const server = application.getHttpAdapter().getInstance<FastifyInstance>();
+        const response = await server.inject({
+          method: 'GET',
+          url: '/api/sessions/current',
+          headers: { cookie },
+        });
+
+        return { status: response.statusCode, body: response.json<unknown>() };
+      },
+      SessionFlowMessages,
+    );
   },
 
   creation() {

@@ -102,6 +102,16 @@ describe('session HTTP acceptance', () => {
     expect(await backend.database.session.count()).toBe(1);
   });
 
+  it('restores signed ownership in a fresh application using the persisted signing key', async () => {
+    const state = await browser.create('B');
+    const restarted = await SessionFlowFixture.readFromFreshApplication(backend, browser.cookie);
+
+    expect(restarted).toEqual({ status: 200, body: { state, expired: false } });
+    expect(await backend.database.applicationSecret.count()).toBe(1);
+    expect(await backend.database.session.count()).toBe(1);
+    expect(await backend.database.event.count()).toBe(1);
+  });
+
   it('replays a lost creation response and retains its version and assignment through publish and rollback', async () => {
     await browser.current();
     const creation = SessionFlowFixture.creation();

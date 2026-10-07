@@ -97,7 +97,9 @@ describe('atomic session commands with real SQLite', () => {
       { stepIdentifier: 'team_size', value: 10, confirmationRevision: 2 },
     ]);
     expect(answered.progress.completed).toBe(1);
-    expect((await (await browser.current()).json()).state.progress.completed).toBe(1);
+    expect(await (await browser.current()).json()).toMatchObject({
+      state: { progress: { completed: 1 } },
+    });
   });
 
   it('retains an explicitly submitted optional null without activating a raw answer', async () => {
