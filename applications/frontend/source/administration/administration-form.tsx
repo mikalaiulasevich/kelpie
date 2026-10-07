@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { isError } from 'es-toolkit/predicate';
-import { ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, LoaderCircle, LockKeyhole, UserRound } from 'lucide-react';
 import { Button } from '../components/button';
 import { Field, FieldError, FieldGroup, FieldLabel } from '../components/field';
 import {
@@ -100,6 +100,9 @@ export function AdministrationForm({ signIn }: AdministrationFormProperties): UI
           <Field data-invalid={!!errors.username} data-disabled={pending}>
             <FieldLabel htmlFor="username">{AdministrationContent.UsernameLabel}</FieldLabel>
             <InputGroup className="h-12">
+              <InputGroupAddon className="form-input-icon" aria-hidden="true">
+                <UserRound strokeWidth={1.5} />
+              </InputGroupAddon>
               <InputGroupInput
                 ref={usernameReference}
                 id="username"
@@ -125,6 +128,9 @@ export function AdministrationForm({ signIn }: AdministrationFormProperties): UI
           <Field data-invalid={!!errors.password} data-disabled={pending}>
             <FieldLabel htmlFor="password">{AdministrationContent.PasswordLabel}</FieldLabel>
             <InputGroup className="h-12">
+              <InputGroupAddon className="form-input-icon" aria-hidden="true">
+                <LockKeyhole strokeWidth={1.5} />
+              </InputGroupAddon>
               <InputGroupInput
                 ref={passwordReference}
                 id="password"
@@ -175,15 +181,23 @@ export function AdministrationForm({ signIn }: AdministrationFormProperties): UI
             )}
           </Field>
           {message && (
-            <Alert variant="destructive">
+            <Alert variant="destructive" className="form-feedback">
               <AlertTitle>{AdministrationContent.SignInFailed}</AlertTitle>
               <AlertDescription>{message}</AlertDescription>
             </Alert>
           )}
           <Field>
             <Button type="submit" size="lg" className="h-12 w-full" disabled={pending}>
-              {pending ? AdministrationContent.SigningIn : AdministrationContent.SignIn}
-              <ArrowRight data-icon="inline-end" />
+              <span aria-live="polite" aria-atomic="true">
+                {pending ? AdministrationContent.SigningIn : AdministrationContent.SignIn}
+              </span>
+              <span className="button-icon" aria-hidden="true">
+                {pending ? (
+                  <LoaderCircle className="form-pending-icon" strokeWidth={1.5} />
+                ) : (
+                  <ArrowRight data-icon="inline-end" />
+                )}
+              </span>
             </Button>
           </Field>
         </FieldGroup>

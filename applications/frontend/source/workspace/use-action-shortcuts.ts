@@ -1,0 +1,29 @@
+import { useEffect } from 'react';
+import { ActionShortcuts, type ActionShortcutBinding } from './action-shortcuts';
+import { WorkspaceShortcuts } from './workspace-shortcuts';
+
+export function useActionShortcuts(bindings: readonly ActionShortcutBinding[]): void {
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent): void => {
+      const binding = ActionShortcuts.resolve(
+        event,
+        {
+          editing: WorkspaceShortcuts.isEditing(event.target),
+          overlayOpen: WorkspaceShortcuts.hasOpenOverlay(),
+        },
+        bindings,
+      );
+
+      if (!binding) {
+        return;
+      }
+
+      event.preventDefault();
+      binding.activate();
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [bindings]);
+}

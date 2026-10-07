@@ -4,10 +4,11 @@ import { ManagementClient, ManagementError } from '../management/management-clie
 import { ManagementMessages } from '../management/management-messages';
 import { useManagementRead } from '../management/use-management-read';
 import { Button } from '../components/button';
-import { Alert, AlertDescription, AlertTitle } from '../components/alert';
+import { LoadErrorState } from '../components/load-error-state';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../components/collapsible';
-import { Skeleton } from '../components/skeleton';
+import { SkeletonSummary, SkeletonRows } from '../components/skeleton';
 import { Badge } from '../components/badge';
+import { Card } from '../components/card';
 import { WorkspaceNavigation, WorkspacePage } from '../workspace/workspace-navigation';
 import { ConfigurationInspection } from './configuration-inspection';
 
@@ -61,29 +62,25 @@ export function ConfigurationVersionPage({
           aria-label="Loading configuration version"
           className="flex flex-col gap-5"
         >
-          <Skeleton className="h-28 rounded-xl" />
-          <Skeleton className="h-44 rounded-xl" />
-          <Skeleton className="h-96 rounded-xl" />
+          <SkeletonSummary />
+          <SkeletonRows />
         </div>
       )}
       {resource.status === 'error' && (
-        <Alert variant="destructive">
-          <AlertTitle>Configuration could not be loaded</AlertTitle>
-          <AlertDescription>
-            {resource.message}
-            <Button
-              variant="outline"
-              className="mt-3 w-fit"
-              onClick={() => setRefresh((value) => value + 1)}
-            >
-              Try again
-            </Button>
-          </AlertDescription>
-        </Alert>
+        <LoadErrorState
+          title="Configuration could not be loaded"
+          message={resource.message}
+          onRetry={() => setRefresh((value) => value + 1)}
+          retryLabel="Try again"
+        />
       )}
       {resource.status === 'ready' && (
         <>
-          <section aria-label="Version overview" className="min-w-0 rounded-xl border bg-card">
+          <Card
+            role="region"
+            aria-label="Version overview"
+            className="configuration-overview min-w-0 gap-0 overflow-hidden py-0"
+          >
             <div className="flex flex-wrap items-start justify-between gap-5 p-5 sm:p-6">
               <div className="flex min-w-0 flex-1 items-start gap-4">
                 <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-info/20 bg-info/10 text-info">
@@ -147,7 +144,7 @@ export function ConfigurationVersionPage({
                 </CollapsibleContent>
               </Collapsible>
             </div>
-          </section>
+          </Card>
           <ConfigurationInspection configuration={resource.data.document} />
         </>
       )}

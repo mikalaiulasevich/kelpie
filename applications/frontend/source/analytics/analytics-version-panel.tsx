@@ -1,7 +1,9 @@
+import { AnalyticsMarketingOverview } from './analytics-marketing-overview';
+import { AnalyticsStepOverview } from './analytics-step-overview';
 import { DeferredView } from '../application/deferred-view';
 import { lazy } from 'react';
 import { isNull } from 'es-toolkit/predicate';
-import { Skeleton } from '../components/skeleton';
+import { SkeletonChart } from '../components/skeleton';
 import {
   GitBranch,
   MousePointer2,
@@ -349,93 +351,94 @@ export function AnalyticsVersionPanel({
       className="@container/analytics-version flex min-w-0 flex-col gap-5"
       aria-label={`Version ${version.funnelVersion} analytics`}
     >
-      <div className="grid gap-4 @min-[38rem]/analytics-version:grid-cols-2">
-        {version.variants.map((variant) => (
-          <AnalyticsVariantSummary key={variant.variant} variant={variant} />
-        ))}
-      </div>
-      <div className="grid min-w-0 gap-5 @min-[60rem]/analytics-version:grid-cols-[minmax(0,1fr)_17rem]">
-        <Card className="analytics-chart min-w-0 gap-4 py-5">
-          <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
-            <div className="flex flex-col gap-2">
-              <CardTitle>Conversion by variant</CardTitle>
-              <CardDescription>
-                Result views and recommendation opens per started session.
+      <AnalyticsMarketingOverview version={version} />
+      <div className="analytics-bento grid min-w-0 gap-5 @min-[60rem]/analytics-version:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+        <div className="grid min-w-0 gap-5 @min-[38rem]/analytics-version:grid-cols-2 @min-[60rem]/analytics-version:grid-cols-1">
+          {version.variants.map((variant) => (
+            <AnalyticsVariantSummary key={variant.variant} variant={variant} />
+          ))}
+        </div>
+        <div className="grid min-w-0 gap-5">
+          <Card className="analytics-chart min-w-0 gap-4 py-5">
+            <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
+              <div className="flex flex-col gap-2">
+                <CardTitle>Conversion by variant</CardTitle>
+                <CardDescription>
+                  Result views and recommendation opens per started session.
+                </CardDescription>
+              </div>
+              <Badge variant="outline">Version {version.funnelVersion}</Badge>
+            </CardHeader>
+            <CardContent>
+              {hasObservations ? (
+                <DeferredView loading={<SkeletonChart embedded />}>
+                  <AnalyticsComparisonChart variants={version.variants} />
+                </DeferredView>
+              ) : (
+                <Empty className="min-h-56">
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <GitBranch />
+                    </EmptyMedia>
+                    <EmptyTitle>No sessions yet</EmptyTitle>
+                    <EmptyDescription>
+                      No sessions match these filters. Try another filter or check back after the
+                      funnel receives traffic.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                  {onOpenFilters && (
+                    <Button variant="outline" onClick={onOpenFilters}>
+                      Adjust filters
+                    </Button>
+                  )}
+                </Empty>
+              )}
+            </CardContent>
+          </Card>
+          <Card className="analytics-context gap-4">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <FlaskConical className="size-4 text-primary" />
+                <CardTitle>Session split</CardTitle>
+              </div>
+              <CardDescription className="break-words">
+                {version.experimentIdentifier}
               </CardDescription>
-            </div>
-            <Badge variant="outline">Version {version.funnelVersion}</Badge>
-          </CardHeader>
-          <CardContent>
-            {hasObservations ? (
-              <DeferredView
-                loading={<Skeleton aria-label="Loading comparison chart" className="h-56 w-full" />}
-              >
-                <AnalyticsComparisonChart variants={version.variants} />
-              </DeferredView>
-            ) : (
-              <Empty className="min-h-56">
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <GitBranch />
-                  </EmptyMedia>
-                  <EmptyTitle>No sessions yet</EmptyTitle>
-                  <EmptyDescription>
-                    No sessions match these filters. Try another filter or check back after the
-                    funnel receives traffic.
-                  </EmptyDescription>
-                </EmptyHeader>
-                {onOpenFilters && (
-                  <Button variant="outline" onClick={onOpenFilters}>
-                    Adjust filters
-                  </Button>
-                )}
-              </Empty>
-            )}
-          </CardContent>
-        </Card>
-        <Card className="analytics-context gap-4">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <FlaskConical className="size-4 text-primary" />
-              <CardTitle>Session split</CardTitle>
-            </div>
-            <CardDescription className="break-words">
-              {version.experimentIdentifier}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-5">
-            <div className="flex flex-col gap-2">
-              <span className="text-sm text-muted-foreground">Started sessions</span>
-              <span className="text-4xl font-semibold tracking-tight tabular-nums">
-                {AnalyticsFormat.count(startedSessions)}
-              </span>
-            </div>
-            <div className="flex flex-col gap-3">
-              {version.variants.map((variant) => (
-                <div key={variant.variant} className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span>Variant {variant.variant}</span>
-                    <span className="text-muted-foreground tabular-nums">
-                      {AnalyticsFormat.count(variant.started)} sessions
-                    </span>
+            </CardHeader>
+            <CardContent className="grid gap-5 @min-[38rem]/analytics-version:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <span className="text-sm text-muted-foreground">Started sessions</span>
+                <span className="text-4xl font-semibold tracking-tight tabular-nums">
+                  {AnalyticsFormat.count(startedSessions)}
+                </span>
+              </div>
+              <div className="flex flex-col gap-3">
+                {version.variants.map((variant) => (
+                  <div key={variant.variant} className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span>Variant {variant.variant}</span>
+                      <span className="text-muted-foreground tabular-nums">
+                        {AnalyticsFormat.count(variant.started)} sessions
+                      </span>
+                    </div>
+                    <Progress
+                      className="h-1.5"
+                      value={startedSessions > 0 ? (variant.started / startedSessions) * 100 : 0}
+                      aria-label={`Variant ${variant.variant} share of started sessions`}
+                    />
                   </div>
-                  <Progress
-                    className="h-1.5"
-                    value={startedSessions > 0 ? (variant.started / startedSessions) * 100 : 0}
-                    aria-label={`Variant ${variant.variant} share of started sessions`}
-                  />
-                </div>
-              ))}
-            </div>
-            <div className="flex gap-2 border-t pt-4 text-xs leading-relaxed text-muted-foreground">
-              <Info className="mt-0.5 size-3.5 shrink-0" />
-              <p>
-                Both chart rates use started sessions. CTA click-through uses only sessions that
-                viewed a result.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+                ))}
+              </div>
+              <div className="flex gap-2 border-t pt-4 text-xs leading-relaxed text-muted-foreground @min-[38rem]/analytics-version:col-span-2">
+                <Info className="mt-0.5 size-3.5 shrink-0" />
+                <p>
+                  Both chart rates use started sessions. CTA click-through uses only sessions that
+                  viewed a result.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
       <Tabs defaultValue={version.variants[0]?.variant ?? ''} className="min-w-0 gap-4 pt-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -470,6 +473,7 @@ export function AnalyticsVersionPanel({
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="steps" className="flex min-w-0 flex-col gap-4">
+                <AnalyticsStepOverview variant={variant} />
                 <AnalyticsSteps variant={variant} />
                 <Alert>
                   <AlertDescription>

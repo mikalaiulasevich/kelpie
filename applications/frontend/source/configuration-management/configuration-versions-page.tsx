@@ -1,3 +1,6 @@
+import { Kbd, KbdGroup } from '../components/kbd';
+import { ActionShortcutCatalog } from '../workspace/action-shortcuts';
+import { useActionShortcuts } from '../workspace/use-action-shortcuts';
 import { ManagementPolicy } from '../management/management-policy';
 import { isNull } from 'es-toolkit/predicate';
 import { useCallback, useState } from 'react';
@@ -40,9 +43,9 @@ import {
 } from '../components/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/table';
 import { Separator } from '../components/separator';
-import { Skeleton } from '../components/skeleton';
+import { SkeletonSummary, SkeletonRows } from '../components/skeleton';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '../components/empty';
-import { Alert, AlertDescription, AlertTitle } from '../components/alert';
+import { LoadErrorState } from '../components/load-error-state';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -103,6 +106,14 @@ export function ConfigurationVersionsPage({
     onUnauthorized,
   );
   const reload = () => setRefresh((value) => value + 1);
+  useActionShortcuts([
+    { shortcut: ActionShortcutCatalog.Import, enabled: true, activate: onImport },
+    {
+      shortcut: ActionShortcutCatalog.Refresh,
+      enabled: resource.status !== 'loading',
+      activate: reload,
+    },
+  ]);
   const publish = (
     version: ConfigurationVersionMetadata,
     expectedRevision: number,
@@ -125,31 +136,38 @@ export function ConfigurationVersionsPage({
   return (
     <div className="workspace-page flex flex-col gap-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex flex-col gap-2">
+        <div className="screen-heading flex flex-col gap-3">
           <h1 className="page-title">{ConfigurationContent.Heading}</h1>
           <p className="page-description">{ConfigurationContent.Description}</p>
         </div>
-        <Button onClick={onImport}>
-          <Upload data-icon="inline-start" />
+        <Button
+          onClick={onImport}
+          className="primary-cta"
+          aria-keyshortcuts={ActionShortcutCatalog.Import.aria}
+        >
           {ConfigurationContent.Import}
+          <KbdGroup aria-hidden="true" className="ml-1 hidden sm:inline-flex">
+            <Kbd>Alt</Kbd>
+            <Kbd>{ActionShortcutCatalog.Import.key}</Kbd>
+          </KbdGroup>
+          <span className="cta-icon" aria-hidden="true">
+            <Upload />
+          </span>
         </Button>
       </div>
       {resource.status === 'loading' && (
         <div role="status" aria-label="Loading configurations" className="flex flex-col gap-4">
-          <Skeleton className="h-12 w-full max-w-lg rounded-lg" />
-          <Skeleton className="h-80 rounded-xl" />
+          <SkeletonSummary />
+          <SkeletonRows />
         </div>
       )}
       {resource.status === 'error' && (
-        <Alert variant="destructive">
-          <AlertTitle>{ConfigurationContent.LoadFailure}</AlertTitle>
-          <AlertDescription>
-            {resource.message}
-            <Button variant="outline" className="mt-3 w-fit" onClick={reload}>
-              {ConfigurationContent.Retry}
-            </Button>
-          </AlertDescription>
-        </Alert>
+        <LoadErrorState
+          title="Configurations could not be loaded"
+          message={resource.message}
+          onRetry={reload}
+          retryLabel="Try again"
+        />
       )}
       {resource.status === 'ready' &&
         (() => {
@@ -215,9 +233,17 @@ export function ConfigurationVersionsPage({
                             </DropdownMenuGroup>
                           </DropdownMenuContent>
                         </DropdownMenu>
-                        <Button variant="outline" onClick={reload}>
+                        <Button
+                          variant="outline"
+                          onClick={reload}
+                          aria-keyshortcuts={ActionShortcutCatalog.Refresh.aria}
+                        >
                           <RefreshCw data-icon="inline-start" />
                           {ConfigurationContent.Refresh}
+                          <KbdGroup aria-hidden="true" className="ml-1 hidden sm:inline-flex">
+                            <Kbd>Alt</Kbd>
+                            <Kbd>R</Kbd>
+                          </KbdGroup>
                         </Button>
                         <Button
                           variant="outline"

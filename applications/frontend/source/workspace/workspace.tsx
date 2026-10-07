@@ -1,9 +1,7 @@
 import { DeferredView } from '../application/deferred-view';
-import { lazy, useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
+import { lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { isError } from 'es-toolkit/predicate';
 import { match } from 'ts-pattern';
-import { SidebarInset, SidebarProvider, SidebarTrigger } from '../components/sidebar';
-import { Separator } from '../components/separator';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -44,6 +42,7 @@ interface WorkspaceProperties {
 export function Workspace({ identity, signOut, onUnauthorized }: WorkspaceProperties): UIElement {
   const { page, funnelIdentifier, versionIdentifier } = useWorkspaceNavigation();
   const [revision, setRevision] = useState(0);
+  const [importSequence, setImportSequence] = useState(0);
   const [importOpen, setImportOpen] = useState(false);
   const [intent, setIntent] = useState<Optional<PublicationIntent>>(() =>
     PublicationIntents.read(identity.identifier),
@@ -101,6 +100,8 @@ export function Workspace({ identity, signOut, onUnauthorized }: WorkspaceProper
   );
   const onImported = useCallback((identifier: string) => {
     setRevision((value) => value + 1);
+    // Imports appear at the start of the library, outside a previously selected page or filter.
+    setImportSequence((value) => value + 1);
     WorkspaceNavigation.navigate(WorkspacePage.Versions, identifier);
   }, []);
   const onChanged = useCallback(
@@ -135,7 +136,7 @@ export function Workspace({ identity, signOut, onUnauthorized }: WorkspaceProper
   };
 
   return (
-    <SidebarProvider style={{ '--sidebar-width': '15rem' } as CSSProperties}>
+    <div className="workspace-shell">
       <WorkspaceSidebar
         page={page}
         funnelIdentifier={funnelIdentifier}
@@ -145,11 +146,9 @@ export function Workspace({ identity, signOut, onUnauthorized }: WorkspaceProper
           void logout();
         }}
       />
-      <SidebarInset className="min-w-0">
+      <div className="workspace-page">
         <header className="workspace-header flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <SidebarTrigger />
-            <Separator orientation="vertical" className="h-5" />
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
@@ -160,23 +159,28 @@ export function Workspace({ identity, signOut, onUnauthorized }: WorkspaceProper
           </div>
           <FunnelSelector key={funnelIdentifier} funnelIdentifier={funnelIdentifier} page={page} />
         </header>
-        <main ref={pageContainer} tabIndex={-1} className="min-w-0 flex-1 p-5 sm:p-6 lg:p-8">
+        <main ref={pageContainer} tabIndex={-1} className="workspace-content-area min-w-0 flex-1">
           {message && (
             <Alert variant="destructive" className="mb-6">
               <AlertDescription>{message}</AlertDescription>
             </Alert>
           )}
-          <WorkspacePageContent
-            page={page}
-            funnelIdentifier={funnelIdentifier}
-            versionIdentifier={versionIdentifier}
-            revision={revision}
-            onUnauthorized={onUnauthorized}
-            onImport={openImport}
-            onIntent={openIntent}
-          />
+          <div
+            className="workspace-route"
+            key={`${page}:${funnelIdentifier}:${versionIdentifier ?? ''}:${importSequence}`}
+          >
+            <WorkspacePageContent
+              page={page}
+              funnelIdentifier={funnelIdentifier}
+              versionIdentifier={versionIdentifier}
+              revision={revision}
+              onUnauthorized={onUnauthorized}
+              onImport={openImport}
+              onIntent={openIntent}
+            />
+          </div>
         </main>
-      </SidebarInset>
+      </div>
       <DeferredView loading={null}>
         {importOpen && (
           <ConfigurationImportDialog
@@ -198,6 +202,6 @@ export function Workspace({ identity, signOut, onUnauthorized }: WorkspaceProper
           />
         )}
       </DeferredView>
-    </SidebarProvider>
+    </div>
   );
 }

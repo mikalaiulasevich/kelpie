@@ -3,8 +3,10 @@ export const AdministrationContent = {
   WorkspaceLabel: 'Administration',
   SignInTitle: 'Welcome back',
   SignInDescription: 'Sign in to your Kelpie workspace.',
-  PanelTitle: 'Your funnel workspace.',
-  PanelDescription: 'Configurations, experiments, and analytics in one place.',
+  PanelTitle: 'Every step.\nA clearer picture.',
+  PanelDescription:
+    'See where people continue, where they leave, and what changes between versions.',
+  Eyebrow: 'FLOW ANALYTICS',
   UsernameLabel: 'Username',
   UsernamePlaceholder: 'Your administrator username',
   PasswordLabel: 'Password',

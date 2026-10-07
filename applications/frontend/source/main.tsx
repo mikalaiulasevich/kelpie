@@ -3,6 +3,9 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Application } from './application/application';
 import './styling/application.css';
+import './styling/configuration-inspection.css';
+import './styling/interactions.css';
+import './styling/workspace-sidebar.css';
 import { ApplicationPolicy } from './application/application-policy';
 import { ApplicationMessages } from './application/application-messages';
 

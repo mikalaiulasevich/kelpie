@@ -31,26 +31,31 @@ export function ConfigurationStepDetails({
   const content = ConfigurationInspectionFormat.stepContent(configuration, variant, step);
 
   return (
-    <Card className="min-w-0 gap-0 overflow-hidden py-0">
+    <Card
+      data-step-type={step.type}
+      className="inspection-detail min-w-0 gap-0 overflow-hidden py-0"
+    >
       <CardHeader className="gap-4 px-5 pt-5 sm:px-7 sm:pt-7">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className="border-primary/30 bg-primary/10">
+          <Badge variant="outline" className="inspection-position">
             Step {position}
           </Badge>
-          <span className="text-xs font-medium text-muted-foreground">
+          <span className="inspection-type text-xs font-medium">
             {ConfigurationInspectionFormat.contentLabel(step.type.replaceAll(/[_-]/g, ' '))}
           </span>
           {Object.hasOwn(configuration.experiment.variants[variant].stepOverrides, step.id) && (
             <Badge variant="info">Content override</Badge>
           )}
         </div>
-        <CardDescription className="break-all font-mono text-xs">{step.id}</CardDescription>
+        <CardDescription className="inspection-identifier break-all font-mono text-xs">
+          {step.id}
+        </CardDescription>
         {!isUndefined(content.eyebrow) && (
           <p className="max-w-prose whitespace-pre-wrap break-words text-sm font-medium text-info">
             {content.eyebrow}
           </p>
         )}
-        <CardTitle>
+        <CardTitle className="inspection-question">
           <h3 className="max-w-[36ch] whitespace-pre-wrap break-words text-xl font-semibold leading-snug tracking-tight sm:text-2xl">
             {content.title ?? content.loadingTitle ?? step.id}
           </h3>
@@ -91,29 +96,32 @@ export function ConfigurationStepDetails({
         {match(step)
           .with({ type: P.union(StepType.SingleSelect, StepType.MultiSelect) }, (selectionStep) => (
             <section className="flex min-w-0 flex-col gap-2">
-              <div className="flex items-baseline gap-2">
+              <div className="inspection-section-label flex items-baseline gap-2">
                 <h4 className="text-sm font-semibold">Answer options</h4>
                 <span className="text-xs text-muted-foreground">
                   {selectionStep.input.options.length}
                 </span>
               </div>
-              <ul className="min-w-0 divide-y rounded-lg border px-3">
+              <ul className="inspection-options">
                 {selectionStep.input.options.map((option) => (
-                  <li
-                    key={option.value}
-                    className="grid min-w-0 grid-cols-[1rem_minmax(0,1fr)] items-start gap-x-3 gap-y-1 py-2.5 text-sm sm:grid-cols-[1rem_minmax(0,1fr)_minmax(0,0.6fr)]"
-                  >
+                  <li key={option.value} className="inspection-option">
                     {selectionStep.type === StepType.SingleSelect ? (
-                      <CircleDot aria-hidden="true" className="mt-0.5 size-4 text-info/70" />
+                      <CircleDot
+                        aria-hidden="true"
+                        className="inspection-option-icon size-5"
+                        strokeWidth={1.5}
+                      />
                     ) : (
-                      <ListChecks aria-hidden="true" className="mt-0.5 size-4 text-info/70" />
+                      <ListChecks
+                        aria-hidden="true"
+                        className="inspection-option-icon size-5"
+                        strokeWidth={1.5}
+                      />
                     )}
                     <span className="whitespace-pre-wrap break-words leading-5">
                       {option.label}
                     </span>
-                    <code className="col-start-2 break-all text-xs leading-5 text-muted-foreground sm:col-start-3 sm:text-right">
-                      {option.value}
-                    </code>
+                    <code className="inspection-option-value">{option.value}</code>
                   </li>
                 ))}
               </ul>
@@ -125,19 +133,23 @@ export function ConfigurationStepDetails({
           )
           .exhaustive()}
       </CardContent>
-      <div className="flex min-w-0 flex-col gap-4 border-t bg-muted/20 px-5 py-5 sm:px-7">
-        <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+      <div className="inspection-behavior flex min-w-0 flex-col gap-4 px-5 py-5 sm:px-7">
+        <h4 className="inspection-section-label flex items-center gap-2 text-xs font-semibold uppercase tracking-wider">
           <SlidersHorizontal aria-hidden="true" className="size-3.5" /> Behavior
         </h4>
         {'input' in step && (
           <div className="flex min-w-0 flex-col gap-3">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary">
+              <Badge variant="secondary" className="inspection-rule">
                 {step.validation.required ? 'Required' : 'Optional'}
               </Badge>
-              {step.type === StepType.SingleSelect && <Badge variant="outline">Choose one</Badge>}
+              {step.type === StepType.SingleSelect && (
+                <Badge variant="outline" className="inspection-rule">
+                  Choose one
+                </Badge>
+              )}
               {step.type === StepType.MultiSelect && (
-                <Badge variant="outline">
+                <Badge variant="outline" className="inspection-rule">
                   Selections: {StepRules.selectionLimits(step).minimum} –{' '}
                   {StepRules.selectionLimits(step).maximum}
                 </Badge>
@@ -156,18 +168,18 @@ export function ConfigurationStepDetails({
               </div>
             )}
             <p className="text-xs text-muted-foreground">
-              Answer field: <code className="break-all text-foreground">{step.input.name}</code>
+              Answer field: <code className="inspection-field break-all">{step.input.name}</code>
             </p>
           </div>
         )}
         {step.type === StepType.Result && (
           <p className="text-xs text-muted-foreground">
-            Result source: <code className="break-all text-foreground">{step.resultSource}</code>
+            Result source: <code className="inspection-field break-all">{step.resultSource}</code>
           </p>
         )}
         <div className="min-w-0">
           {isUndefined(step.visibleWhen) ? (
-            <p className="flex items-center gap-2 text-sm">
+            <p className="inspection-visibility flex items-center gap-2 text-sm">
               <Eye aria-hidden="true" className="size-4 text-success" />
               Always visible
             </p>

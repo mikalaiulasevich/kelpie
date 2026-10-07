@@ -1,9 +1,7 @@
 {
   "entries": {
     "skills/ui-ux-pro-max": {
-      "agents": [
-        "vscode"
-      ],
+      "agents": ["vscode"],
       "cliVersion": "0.4.0",
       "commitSha": "dcc40ff5133ef78276117db0cc34e7b83cc8aeba",
       "contentDigest": "sha256:9af251808f0da995081279553df697388d812ef38fb7c884ee287620c929ae88",

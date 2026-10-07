@@ -1,21 +1,19 @@
-import { useSidebar } from '../navigation/use-sidebar';
-// Composition adapted from the official shadcn/ui sidebar-07 block.
-import { BarChart3, Command, Files, History, LogOut } from 'lucide-react';
+import { Kbd } from '../components/kbd';
+import { useState } from 'react';
+import { ChartNoAxesCombined, History, Layers3, LogOut, PanelLeft } from 'lucide-react';
+import { Button } from '../components/button';
+import { KelpieMark } from '../components/kelpie-mark';
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarRail,
-} from '../components/sidebar';
-import { Avatar, AvatarFallback } from '../components/avatar';
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+  SheetTrigger,
+} from '../components/sheet';
 import { WorkspaceNavigation, WorkspacePage } from './workspace-navigation';
 import { WorkspaceContent } from './workspace-content';
+import { WorkspaceShortcutCatalog } from './workspace-shortcuts';
+import { WorkspaceShortcutHelp } from './workspace-shortcut-help';
 import type { AdministratorIdentity } from '../administration/administration-types';
 
 interface WorkspaceSidebarProperties {
@@ -26,11 +24,112 @@ interface WorkspaceSidebarProperties {
   pending: boolean;
 }
 
-const navigationItems = [
-  { page: WorkspacePage.Analytics, label: WorkspaceContent.Analytics, icon: BarChart3 },
-  { page: WorkspacePage.Versions, label: WorkspaceContent.Versions, icon: Files },
-  { page: WorkspacePage.History, label: WorkspaceContent.History, icon: History },
-] as const;
+const navigationPresentation = {
+  [WorkspacePage.Analytics]: { icon: ChartNoAxesCombined, description: 'Journeys & conversion' },
+  [WorkspacePage.Versions]: { icon: Layers3, description: 'Versions & experiments' },
+  [WorkspacePage.History]: { icon: History, description: 'Publications & rollbacks' },
+} as const;
+
+function SidebarBrand({
+  funnelIdentifier,
+  onNavigate,
+}: {
+  funnelIdentifier: string;
+  onNavigate?: () => void;
+}): UIElement {
+  return (
+    <a
+      className="workspace-sidebar-brand brand"
+      href={WorkspaceNavigation.href(WorkspacePage.Analytics, funnelIdentifier)}
+      onClick={onNavigate}
+      aria-label="Kelpie analytics"
+    >
+      <KelpieMark />
+      <span>
+        kelpie<span className="workspace-sidebar-product">Flow analytics</span>
+      </span>
+    </a>
+  );
+}
+
+function SidebarLinks({
+  page,
+  funnelIdentifier,
+  onNavigate,
+}: Pick<WorkspaceSidebarProperties, 'page' | 'funnelIdentifier'> & {
+  onNavigate?: () => void;
+}): UIElement {
+  const activePage = page === WorkspacePage.Version ? WorkspacePage.Versions : page;
+
+  return (
+    <>
+      <div className="workspace-sidebar-context">
+        <span className="workspace-sidebar-section-label">Current funnel</span>
+        <div>
+          <Layers3 aria-hidden="true" />
+          <span>{funnelIdentifier}</span>
+        </div>
+      </div>
+      <nav className="workspace-sidebar-links" aria-label="Workspace navigation">
+        <span className="workspace-sidebar-section-label">Workspace</span>
+        {WorkspaceShortcutCatalog.Navigation.map((item) => {
+          const presentation = navigationPresentation[item.page];
+          const Icon = presentation.icon;
+
+          return (
+            <a
+              key={item.page}
+              href={WorkspaceNavigation.href(item.page, funnelIdentifier)}
+              aria-current={activePage === item.page ? 'page' : undefined}
+              aria-keyshortcuts={`Alt+${item.key}`}
+              onClick={onNavigate}
+            >
+              <span className="workspace-sidebar-icon">
+                <Icon strokeWidth={1.5} aria-hidden="true" />
+              </span>
+              <span className="workspace-sidebar-label">
+                <strong>{item.label}</strong>
+                <small className="sr-only">{presentation.description}</small>
+              </span>
+              <Kbd aria-hidden="true" title={`Alt + ${item.key}`}>
+                ⌥{item.key}
+              </Kbd>
+            </a>
+          );
+        })}
+      </nav>
+    </>
+  );
+}
+
+function SidebarAccount({
+  identity,
+  pending,
+  signOut,
+}: Pick<WorkspaceSidebarProperties, 'identity' | 'pending' | 'signOut'>): UIElement {
+  return (
+    <div className="workspace-sidebar-account">
+      <div className="workspace-sidebar-person">
+        <span className="workspace-sidebar-avatar" aria-hidden="true">
+          {identity.username.slice(0, 2).toUpperCase()}
+        </span>
+        <span>
+          <strong title={identity.username}>{identity.username}</strong>
+          <small>{WorkspaceContent.Administrator}</small>
+        </span>
+      </div>
+      <Button
+        className="workspace-sidebar-signout"
+        variant="ghost"
+        disabled={pending}
+        onClick={signOut}
+      >
+        <LogOut aria-hidden="true" />
+        {pending ? WorkspaceContent.SigningOut : WorkspaceContent.SignOut}
+      </Button>
+    </div>
+  );
+}
 
 export function WorkspaceSidebar({
   page,
@@ -39,99 +138,58 @@ export function WorkspaceSidebar({
   signOut,
   pending,
 }: WorkspaceSidebarProperties): UIElement {
-  const { setOpenMobile } = useSidebar();
+  const [open, setOpen] = useState(false);
 
   return (
-    <Sidebar collapsible="icon" variant="sidebar">
-      <SidebarHeader className="h-16 justify-center border-b px-4 py-2 group-data-[collapsible=icon]:p-2">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <a
-                href={WorkspaceNavigation.href(WorkspacePage.Analytics, funnelIdentifier)}
-                onClick={() => setOpenMobile(false)}
-              >
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground group-data-[collapsible=icon]:size-8">
-                  <Command />
-                </span>
-                <span className="grid gap-0.5">
-                  <span className="text-lg font-semibold tracking-tight">
-                    {WorkspaceContent.Name}
-                  </span>
-                </span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
-      <SidebarContent>
-        <SidebarGroup className="px-5 pt-4 pb-1 group-data-[collapsible=icon]:hidden">
-          <SidebarGroupLabel className="h-auto px-0 text-xs font-normal text-muted-foreground">
-            {WorkspaceContent.CurrentFunnel}
-          </SidebarGroupLabel>
-          <p className="mt-1.5 text-sm leading-snug font-medium wrap-anywhere">
-            {funnelIdentifier}
-          </p>
-        </SidebarGroup>
-        <SidebarGroup className="px-3 py-1 group-data-[collapsible=icon]:p-2">
-          <SidebarMenu>
-            {navigationItems.map((item) => (
-              <SidebarMenuItem key={item.page}>
-                <SidebarMenuButton
-                  className="h-10 group-data-[collapsible=icon]:justify-center"
-                  asChild
-                  isActive={
-                    page === item.page ||
-                    (page === WorkspacePage.Version && item.page === WorkspacePage.Versions)
-                  }
-                  tooltip={item.label}
-                >
-                  <a
-                    aria-label={item.label}
-                    href={WorkspaceNavigation.href(item.page, funnelIdentifier)}
-                    aria-current={page === item.page ? 'page' : undefined}
-                    onClick={() => setOpenMobile(false)}
-                  >
-                    <item.icon />
-                    <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarGroup>
-      </SidebarContent>
-      <SidebarFooter className="p-3 group-data-[collapsible=icon]:p-2">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <div className="flex items-center gap-3 p-2 group-data-[collapsible=icon]:p-0">
-              <Avatar className="size-8">
-                <AvatarFallback>{identity.username.slice(0, 2).toUpperCase()}</AvatarFallback>
-              </Avatar>
-              <div className="grid min-w-0 gap-0.5 group-data-[collapsible=icon]:hidden">
-                <span className="truncate text-sm font-medium">{identity.username}</span>
-                <span className="text-xs text-muted-foreground">
-                  {WorkspaceContent.Administrator}
-                </span>
+    <aside className="workspace-sidebar-frame" aria-label="Kelpie workspace">
+      <div className="workspace-sidebar-panel">
+        <SidebarBrand funnelIdentifier={funnelIdentifier} />
+        <div className="workspace-sidebar-desktop-content">
+          <SidebarLinks page={page} funnelIdentifier={funnelIdentifier} />
+        </div>
+        <footer className="workspace-sidebar-footer">
+          <WorkspaceShortcutHelp funnelIdentifier={funnelIdentifier} />
+          <div className="workspace-sidebar-desktop-account">
+            <SidebarAccount identity={identity} pending={pending} signOut={signOut} />
+          </div>
+        </footer>
+        <Sheet open={open} onOpenChange={setOpen}>
+          <SheetTrigger asChild>
+            <Button
+              className="workspace-sidebar-mobile-trigger"
+              variant="ghost"
+              size="icon"
+              aria-label="Open navigation"
+            >
+              <PanelLeft aria-hidden="true" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="workspace-sidebar-sheet">
+            <SheetTitle className="sr-only">Workspace navigation</SheetTitle>
+            <SheetDescription className="sr-only">
+              Choose a section for your current funnel.
+            </SheetDescription>
+            <div className="workspace-sidebar-panel">
+              <SidebarBrand funnelIdentifier={funnelIdentifier} onNavigate={() => setOpen(false)} />
+              <SidebarLinks
+                page={page}
+                funnelIdentifier={funnelIdentifier}
+                onNavigate={() => setOpen(false)}
+              />
+              <div className="workspace-sidebar-sheet-account">
+                <SidebarAccount
+                  identity={identity}
+                  pending={pending}
+                  signOut={() => {
+                    setOpen(false);
+                    signOut();
+                  }}
+                />
               </div>
             </div>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              aria-label={pending ? WorkspaceContent.SigningOut : WorkspaceContent.SignOut}
-              onClick={signOut}
-              disabled={pending}
-              tooltip={WorkspaceContent.SignOut}
-            >
-              <LogOut />
-              <span className="group-data-[collapsible=icon]:hidden">
-                {pending ? WorkspaceContent.SigningOut : WorkspaceContent.SignOut}
-              </span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
-      <SidebarRail />
-    </Sidebar>
+          </SheetContent>
+        </Sheet>
+      </div>
+    </aside>
   );
 }

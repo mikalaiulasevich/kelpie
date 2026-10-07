@@ -10,9 +10,11 @@ describe('analytics presentation', () => {
 
     const markup = renderToStaticMarkup(createElement(AnalyticsVersionPanel, { version }));
 
-    expect(markup.match(/Not applicable/g)).toHaveLength(3);
-    expect(markup.match(/0 \/ 0 sessions/g)).toHaveLength(3);
+    expect(markup.match(/Not applicable/g)).toHaveLength(4);
+    expect(markup.match(/0 \/ 0 sessions/g)).toHaveLength(4);
     expect(markup).toContain('No sessions yet');
+    expect(markup).toContain('Your funnel will appear here');
+    expect(markup).toContain('Not available');
     expect(markup).not.toContain('>0%</');
     expect(markup).not.toContain('Loading comparison chart');
   });

@@ -68,7 +68,7 @@ export function ConfigurationStepsPanel({ configuration, variant }: VariantPanel
       <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[16rem_minmax(0,1fr)] xl:grid-cols-[18rem_minmax(0,1fr)]">
         <nav
           aria-label="Configuration steps"
-          className="hidden min-w-0 rounded-xl border bg-card py-4 lg:block"
+          className="inspection-step-navigation hidden min-w-0 rounded-4xl border bg-card py-5 lg:block"
         >
           <div className="mb-3 flex items-center justify-between px-4">
             <h2 className="text-sm font-semibold">Steps</h2>
@@ -83,8 +83,9 @@ export function ConfigurationStepsPanel({ configuration, variant }: VariantPanel
               return (
                 <Button
                   key={stepIdentifier}
+                  data-step-type={listedStep?.type}
                   variant={step.id === stepIdentifier ? 'secondary' : 'ghost'}
-                  className="h-auto min-h-11 w-full justify-start gap-3 whitespace-normal px-3 py-2.5"
+                  className="inspection-step-link h-auto min-h-11 w-full justify-start gap-3 whitespace-normal px-3 py-2.5"
                   aria-pressed={step.id === stepIdentifier}
                   onClick={() => setSelectedIdentifier(stepIdentifier)}
                 >
@@ -96,6 +97,9 @@ export function ConfigurationStepsPanel({ configuration, variant }: VariantPanel
                     title={stepIdentifier}
                   >
                     {stepIdentifier}
+                    <span className="inspection-step-kind">
+                      {listedStep?.type.replaceAll('-', ' ')}
+                    </span>
                   </span>
                   {listedStep?.visibleWhen && <Badge variant="outline">If</Badge>}
                 </Button>
@@ -249,7 +253,7 @@ export function ConfigurationResultsPanel({ configuration, variant }: VariantPan
 
 export function ConfigurationEventsPanel({ configuration }: ConfigurationPanelProperties) {
   return (
-    <div className="flex min-w-0 flex-col gap-4">
+    <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]">
       <Card className="min-w-0">
         <CardHeader>
           <CardTitle>Privacy</CardTitle>
@@ -281,7 +285,7 @@ export function ConfigurationEventsPanel({ configuration }: ConfigurationPanelPr
           </div>
         </CardContent>
       </Card>
-      <Card className="min-w-0">
+      <Card className="min-w-0 lg:col-span-2">
         <CardHeader>
           <CardTitle>Allowed events</CardTitle>
           <CardDescription>

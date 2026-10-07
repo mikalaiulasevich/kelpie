@@ -126,3 +126,27 @@ Refined the existing dark administration theme with amber actions, semantic gree
 | Deployment           | Bun backend and Node.js/npm fallback verified locally; hosting with persistent storage and public acceptance remain pending.                                                                                                                                       |
 
 [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md) owns the detailed acceptance sequence. Update this timeline for completed product milestones; keep command output and repeated polish reports out of it.
+
+## 2026-10-07 — Kelpie dark brand across administration
+
+Applied the supplied landing-page typography and dark reference to authentication, analytics, configuration management, version detail, history and shared dialogs. Added floating responsive navigation, nested warm surfaces, asymmetric analytics composition and reduced-motion-aware entries. Preserved existing API/authentication contracts and configuration data. Removed illustrative fake JSON from version highlights. Frontend checks passed 139 tests, typecheck, build, scoped lint and formatting; browser evidence and remaining boundaries are recorded in the engineering review.
+
+## 2026-10-07 — Workspace interaction details
+
+Added discoverable guarded keyboard shortcuts, light navigation icons, route/tab/disclosure transitions, decorative journey/experiment/version illustrations and the existing amber-glass texture. Sign-in and import forms now expose clearer focus, pending, reading and file-selection feedback. All 154 frontend tests, typecheck, production build, ESLint and formatting passed. Browser validation covered authentication validation and artwork; authenticated interaction limits and the then-deferred import-read race are recorded in the engineering review.
+
+## 2026-10-07 — New workspace sidebar
+
+Replaced floating navigation with a newly composed warm dark sidebar, funnel context, descriptive links, keyboard hints and account footer. Small screens use a left drawer with focus restoration and selection dismissal. An isolated browser fixture verifies navigation and responsive behavior without live data or authentication changes. All 155 frontend tests and TypeScript passed.
+
+## 2026-10-07 — Stable analytics tab scrolling
+
+Fixed document scroll clamping when Steps/Paths or A/B panels become shorter. Tabs retain the minimum necessary height before interaction and release that reservation on resize. A reproducible browser fixture covers a long-to-short panel transition on desktop and mobile; 155 frontend tests and the TypeScript/production build passed.
+
+## 2026-10-07 — Marketing analytics and button shortcuts
+
+Added proportional A/B milestone ribbons, pooled KPIs, observed conversion differences and step-reach graphics using existing authoritative analytics. Added guarded action shortcuts and Kbd hints directly in Filters, Refresh and Import buttons. Synthetic browser fixtures verified desktop/mobile charts, zero-traffic behavior and keyboard actions; numerical and shortcut regressions bring the frontend suite to 174 tests.
+
+## 2026-10-07 — Backend and administration integration acceptance
+
+Verified the real administration against an isolated Bun/SQLite backend, including import validation, pagination recovery after import, publication, rollback and analytical milestones from HTTP-created sessions. Fixed stale file-read loading and import pagination/filter recovery. The complete Node/Bun gate passed; exact counts, browser checks and untested boundaries are maintained in the engineering review.

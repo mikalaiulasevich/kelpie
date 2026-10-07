@@ -1,13 +1,17 @@
+import { Kbd, KbdGroup } from '../components/kbd';
+import { ActionShortcutCatalog } from '../workspace/action-shortcuts';
+import { useActionShortcuts } from '../workspace/use-action-shortcuts';
+import { JourneyIllustration } from '../flow-visuals/flow-illustrations';
 import { useMemo, useState } from 'react';
-import { BarChart3, ChevronDown, RefreshCw, SlidersHorizontal } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '../components/alert';
+import { ChevronDown, RefreshCw, SlidersHorizontal } from 'lucide-react';
+import { LoadErrorState } from '../components/load-error-state';
 import { Badge } from '../components/badge';
 import { Button } from '../components/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../components/collapsible';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '../components/empty';
 import { Sheet, SheetTrigger } from '../components/sheet';
 import { AnalyticsVersionPicker } from './analytics-version-picker';
-import { Skeleton } from '../components/skeleton';
+import { SkeletonSummary, SkeletonChart } from '../components/skeleton';
 import type { AnalyticsQuery } from '../management/management-types';
 import { AnalyticsFormat } from './analytics-format';
 import { AnalyticsVersionPanel } from './analytics-version-panel';
@@ -49,13 +53,15 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
 
   const refresh = () => setRefreshSequence((sequence) => sequence + 1);
 
+  useActionShortcuts([
+    { shortcut: ActionShortcutCatalog.Filters, enabled: true, activate: openFilters },
+    { shortcut: ActionShortcutCatalog.Refresh, enabled: !isLoading, activate: refresh },
+  ]);
+
   return (
-    <div className="flex min-w-0 flex-col gap-4">
-      <div className="flex flex-col gap-1">
+    <div className="workspace-page flex min-w-0 flex-col gap-8">
+      <div className="screen-heading flex flex-col gap-3">
         <h1 className="page-title">Analytics</h1>
-        <p className="text-sm text-muted-foreground">
-          See where sessions end and how variants compare.
-        </p>
       </div>
       <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
         <div className="analytics-toolbar flex flex-col gap-2">
@@ -75,14 +81,27 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
             </div>
             <div className="flex gap-2">
               <SheetTrigger asChild>
-                <Button variant="outline">
+                <Button variant="outline" aria-keyshortcuts={ActionShortcutCatalog.Filters.aria}>
                   <SlidersHorizontal data-icon="inline-start" />
                   Filters
+                  <KbdGroup aria-hidden="true" className="ml-1 hidden sm:inline-flex">
+                    <Kbd>Alt</Kbd>
+                    <Kbd>F</Kbd>
+                  </KbdGroup>
                 </Button>
               </SheetTrigger>
-              <Button variant="outline" disabled={isLoading} onClick={refresh}>
+              <Button
+                variant="outline"
+                disabled={isLoading}
+                onClick={refresh}
+                aria-keyshortcuts={ActionShortcutCatalog.Refresh.aria}
+              >
                 <RefreshCw data-icon="inline-start" />
                 Refresh
+                <KbdGroup aria-hidden="true" className="ml-1 hidden sm:inline-flex">
+                  <Kbd>Alt</Kbd>
+                  <Kbd>R</Kbd>
+                </KbdGroup>
               </Button>
             </div>
           </div>
@@ -125,31 +144,25 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
           <span className="sr-only" role="status">
             Loading analytics
           </span>
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-            <Skeleton className="h-56 rounded-xl" />
-            <Skeleton className="h-56 rounded-xl" />
-          </div>
-          <Skeleton className="h-96 rounded-xl" />
+          <SkeletonSummary />
+          <SkeletonChart />
         </div>
       )}
       {analytics.status === 'failed' && (
-        <Alert variant="destructive">
-          <AlertTitle>Analytics unavailable</AlertTitle>
-          <AlertDescription>
-            <p>{analytics.message}</p>
-            <Button variant="outline" onClick={refresh}>
-              Try again
-            </Button>
-          </AlertDescription>
-        </Alert>
+        <LoadErrorState
+          title="Analytics could not be loaded"
+          message={analytics.message}
+          onRetry={refresh}
+          retryLabel="Try again"
+        />
       )}
       {analytics.status === 'ready' && (
         <>
           {analytics.response.versions.length === 0 ? (
             <Empty className="border">
               <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <BarChart3 />
+                <EmptyMedia>
+                  <JourneyIllustration />
                 </EmptyMedia>
                 <EmptyTitle>No matching versions</EmptyTitle>
                 <EmptyDescription>

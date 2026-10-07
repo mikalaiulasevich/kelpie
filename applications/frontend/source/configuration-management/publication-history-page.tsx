@@ -1,3 +1,6 @@
+import { Kbd, KbdGroup } from '../components/kbd';
+import { ActionShortcutCatalog } from '../workspace/action-shortcuts';
+import { useActionShortcuts } from '../workspace/use-action-shortcuts';
 import { ManagementPolicy } from '../management/management-policy';
 import { isNull } from 'es-toolkit/predicate';
 import { useCallback, useState } from 'react';
@@ -14,9 +17,9 @@ import {
   CardTitle,
 } from '../components/card';
 import { Separator } from '../components/separator';
-import { Skeleton } from '../components/skeleton';
+import { SkeletonRows } from '../components/skeleton';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '../components/empty';
-import { Alert, AlertDescription, AlertTitle } from '../components/alert';
+import { LoadErrorState } from '../components/load-error-state';
 import { ConfigurationContent } from './configuration-content';
 import { ConfigurationManagementPolicy } from './configuration-policy';
 import { PublicationHistoryFeed } from './publication-history-feed';
@@ -53,35 +56,47 @@ export function PublicationHistoryPage({
   );
   const reload = () => setRefresh((value) => value + 1);
 
+  useActionShortcuts([
+    {
+      shortcut: ActionShortcutCatalog.Refresh,
+      enabled: resource.status !== 'loading',
+      activate: reload,
+    },
+  ]);
+
   return (
     <div className="workspace-page flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex flex-col gap-2">
+        <div className="screen-heading flex flex-col gap-3">
           <h1 className="page-title">{ConfigurationContent.HistoryHeading}</h1>
           <p className="page-description">{ConfigurationContent.HistoryDescription}</p>
         </div>
-        <Button variant="outline" onClick={reload}>
+        <Button
+          variant="outline"
+          onClick={reload}
+          disabled={resource.status === 'loading'}
+          aria-keyshortcuts={ActionShortcutCatalog.Refresh.aria}
+        >
           <RefreshCw data-icon="inline-start" />
           {ConfigurationContent.Refresh}
+          <KbdGroup aria-hidden="true" className="ml-1 hidden sm:inline-flex">
+            <Kbd>Alt</Kbd>
+            <Kbd>R</Kbd>
+          </KbdGroup>
         </Button>
       </div>
-      {resource.status === 'loading' && (
-        <Skeleton className="h-96 rounded-xl" aria-label="Loading activation history" />
-      )}
+      {resource.status === 'loading' && <SkeletonRows label="Loading activation history" />}
       {resource.status === 'error' && (
-        <Alert variant="destructive">
-          <AlertTitle>{ConfigurationContent.LoadFailure}</AlertTitle>
-          <AlertDescription>
-            {resource.message}
-            <Button variant="outline" className="mt-3 w-fit" onClick={reload}>
-              {ConfigurationContent.Retry}
-            </Button>
-          </AlertDescription>
-        </Alert>
+        <LoadErrorState
+          title="Activation history could not be loaded"
+          message={resource.message}
+          onRetry={reload}
+          retryLabel="Try again"
+        />
       )}
       {resource.status === 'ready' && (
-        <Card className="w-full max-w-5xl gap-0 border-0 bg-transparent py-0 shadow-none">
-          <CardHeader className="flex flex-wrap items-center justify-between gap-4 px-0 pb-5">
+        <Card className="publication-log w-full gap-0 overflow-hidden">
+          <CardHeader className="flex flex-wrap items-center justify-between gap-4 pb-5">
             <div className="flex flex-col gap-1.5">
               <CardTitle>Activity</CardTitle>
               <CardDescription>
@@ -108,7 +123,7 @@ export function PublicationHistoryPage({
             </Button>
           </CardHeader>
           <Separator />
-          <CardContent className="px-0">
+          <CardContent>
             {resource.data.items.length === 0 ? (
               <Empty>
                 <EmptyHeader>
@@ -129,7 +144,7 @@ export function PublicationHistoryPage({
             )}
           </CardContent>
           <Separator />
-          <CardFooter className="flex flex-wrap items-center justify-between gap-4 px-0 pt-4">
+          <CardFooter className="flex flex-wrap items-center justify-between gap-4 pt-4">
             <p className="text-xs text-muted-foreground">
               Showing {offset + (resource.data.items.length > 0 ? 1 : 0)}–
               {offset + resource.data.items.length}

@@ -5,7 +5,8 @@ export const ManagementMessages = {
   InvalidResponse: 'The administration service returned an invalid response.',
   SessionExpired: 'Your session expired. Sign in again.',
   Forbidden: 'This action is not permitted.',
-  NotFound: 'The requested funnel or configuration was not found.',
+  NotFound:
+    'We couldn’t find this funnel or configuration. Check the link or choose another funnel from the sidebar.',
   Conflict:
     'The configuration changed or this operation conflicts with an earlier request. Reload the current state.',
   InvalidInput: 'The configuration or request failed validation.',

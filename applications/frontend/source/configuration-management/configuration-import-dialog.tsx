@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Check, FileJson, Upload } from 'lucide-react';
+import { Check, FileJson, LoaderCircle, Upload } from 'lucide-react';
 import { ManagementClient, ManagementError } from '../management/management-client';
 import type { ConfigurationImportResult } from '../management/management-types';
 import { Button } from '../components/button';
@@ -15,7 +15,7 @@ import {
 } from '../components/dialog';
 import { Alert, AlertDescription, AlertTitle } from '../components/alert';
 import { ConfigurationContent } from './configuration-content';
-import { ConfigurationManagementPolicy } from './configuration-policy';
+import { ConfigurationFileSelection } from './configuration-file-selection';
 import { ConfigurationFormat } from './configuration-format';
 
 interface ConfigurationImportDialogProperties {
@@ -44,7 +44,22 @@ export function ConfigurationImportDialog({
   const [reading, setReading] = useState(false);
   const [result, setResult] = useState<Optional<ConfigurationImportResult>>();
   const fileInputReference = useRef<HTMLInputElement>(null);
-  const selectionSequence = useRef(0);
+  const [fileSelection] = useState(
+    () =>
+      new ConfigurationFileSelection({
+        reset: () => {
+          setSelected(undefined);
+          setMessage('');
+          setIssues([]);
+          setResult(undefined);
+        },
+        setReading,
+        setMessage,
+        accept: (document, file) => {
+          setSelected({ document, filename: file.name, bytes: file.size });
+        },
+      }),
+  );
   const requestPending = useRef(false);
   const cancellation = useRef(new AbortController());
 
@@ -54,45 +69,9 @@ export function ConfigurationImportDialog({
 
     return () => {
       controller.abort();
-      selectionSequence.current += 1;
+      fileSelection.cancel();
     };
-  }, []);
-
-  const select = async (file: Optional<File>) => {
-    const sequence = ++selectionSequence.current;
-    setSelected(undefined);
-    setMessage('');
-    setIssues([]);
-    setResult(undefined);
-
-    if (!file) {
-      return;
-    }
-
-    if (file.size > ConfigurationManagementPolicy.MaximumJsonBytes) {
-      setMessage(ConfigurationContent.FileTooLarge);
-
-      return;
-    }
-
-    setReading(true);
-
-    try {
-      const document: unknown = JSON.parse(await file.text());
-
-      if (sequence === selectionSequence.current) {
-        setSelected({ document, filename: file.name, bytes: file.size });
-      }
-    } catch {
-      if (sequence === selectionSequence.current) {
-        setMessage(ConfigurationContent.InvalidJson);
-      }
-    } finally {
-      if (sequence === selectionSequence.current) {
-        setReading(false);
-      }
-    }
-  };
+  }, [fileSelection]);
 
   const submit = async () => {
     if (!selected || requestPending.current) {
@@ -171,14 +150,18 @@ export function ConfigurationImportDialog({
           </DialogTitle>
           <DialogDescription>{ConfigurationContent.ImportDescription}</DialogDescription>
         </DialogHeader>
-        <FieldGroup>
+        <FieldGroup aria-busy={pending || reading}>
           <Field
             data-disabled={pending}
             className="rounded-xl border border-dashed bg-muted/30 p-6 sm:p-8"
           >
             <div className="flex flex-col items-center gap-4 text-center">
               <span className="flex size-12 items-center justify-center rounded-xl border bg-background text-muted-foreground">
-                <Upload className="size-5" />
+                {reading ? (
+                  <LoaderCircle className="form-pending-icon size-5" aria-hidden="true" />
+                ) : (
+                  <Upload className="size-5" strokeWidth={1.5} aria-hidden="true" />
+                )}
               </span>
               <div className="flex flex-col items-center gap-2">
                 <FieldLabel htmlFor="configuration-file" className="text-base font-medium">
@@ -194,7 +177,7 @@ export function ConfigurationImportDialog({
                 disabled={pending}
                 onClick={() => fileInputReference.current?.click()}
               >
-                {ConfigurationContent.ChooseFile}
+                {selected ? ConfigurationContent.ReplaceFile : ConfigurationContent.ChooseFile}
               </Button>
             </div>
             <Input
@@ -206,27 +189,34 @@ export function ConfigurationImportDialog({
               tabIndex={-1}
               disabled={pending}
               onChange={(event) => {
-                void select(event.target.files?.[0]);
+                void fileSelection.select(event.target.files?.[0]);
               }}
               className="sr-only"
             />
           </Field>
         </FieldGroup>
+        <p className="text-sm text-muted-foreground empty:hidden" role="status" aria-atomic="true">
+          {reading && ConfigurationContent.ReadingFile}
+          {pending && ConfigurationContent.ImportPending}
+        </p>
         {selected && (
-          <div className="flex items-center gap-4 rounded-xl border bg-card p-5">
+          <div className="form-feedback flex items-center gap-4 rounded-xl border bg-card p-5">
             <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-              <FileJson className="size-5" />
+              <FileJson className="size-5" strokeWidth={1.5} aria-hidden="true" />
             </span>
             <div className="flex min-w-0 flex-col gap-1">
-              <p className="truncate text-sm font-medium">{selected.filename}</p>
+              <p className="break-all text-sm font-medium">{selected.filename}</p>
               <p className="text-xs text-muted-foreground">
                 {Math.ceil(selected.bytes / 1024)} KiB · JSON
               </p>
+              {!pending && !result && !message && issues.length === 0 && (
+                <p className="text-xs text-muted-foreground">{ConfigurationContent.FileReady}</p>
+              )}
             </div>
           </div>
         )}
         {message && (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="form-feedback">
             <AlertTitle>{ConfigurationContent.ImportFailure}</AlertTitle>
             <AlertDescription>
               {message}
@@ -244,8 +234,8 @@ export function ConfigurationImportDialog({
           </Alert>
         )}
         {result && (
-          <Alert>
-            <Check />
+          <Alert className="form-feedback">
+            <Check aria-hidden="true" />
             <AlertTitle>
               {result.outcome === 'created'
                 ? ConfigurationContent.ImportComplete
@@ -268,7 +258,11 @@ export function ConfigurationImportDialog({
               }}
               disabled={!selected || pending || reading}
             >
-              <Upload data-icon="inline-start" />
+              {pending ? (
+                <LoaderCircle className="form-pending-icon" aria-hidden="true" />
+              ) : (
+                <Upload data-icon="inline-start" strokeWidth={1.5} aria-hidden="true" />
+              )}
               {pending ? ConfigurationContent.ImportPending : ConfigurationContent.ImportAction}
             </Button>
           )}

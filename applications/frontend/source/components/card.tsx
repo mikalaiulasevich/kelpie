@@ -1,16 +1,18 @@
 import * as React from 'react';
 import { ClassNames } from '../styling/combine-class-names';
 
-function Card({ className, ...properties }: React.ComponentProps<'div'>) {
+function Card({ className, children, ...properties }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="card"
       className={ClassNames.combine(
-        'flex flex-col gap-6 rounded-xl border bg-card py-6 text-card-foreground',
+        'surface-shell flex flex-col gap-6 rounded-xl border bg-card py-6 text-card-foreground',
         className,
       )}
       {...properties}
-    />
+    >
+      <div className="surface-core">{children}</div>
+    </div>
   );
 }
 

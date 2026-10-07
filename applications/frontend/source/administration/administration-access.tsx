@@ -7,7 +7,7 @@ import { AdministrationForm } from './administration-form';
 import { useAdministrationSession } from './use-administration-session';
 import { AdministrationContent } from './administration-content';
 import { lazy } from 'react';
-import { Skeleton } from '../components/skeleton';
+import { SkeletonSummary, SkeletonRows } from '../components/skeleton';
 import { AdministrationAuthLayout } from './administration-auth-layout';
 import { AdministrationSessionStatus } from './administration-session';
 
@@ -41,8 +41,8 @@ export function AdministrationAccess(): UIElement {
             aria-label="Opening workspace"
             className="flex min-h-svh flex-col gap-6 p-8"
           >
-            <Skeleton className="h-16" />
-            <Skeleton className="h-96" />
+            <SkeletonSummary />
+            <SkeletonRows />
           </div>
         }
       >

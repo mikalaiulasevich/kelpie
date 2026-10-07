@@ -13,6 +13,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProperties>(
     return (
       <Component
         className={ClassNames.combine(ButtonStyles.variants({ variant, size, className }))}
+        data-slot="button"
+        data-variant={variant ?? 'default'}
         ref={reference}
         {...properties}
       />

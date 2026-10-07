@@ -22,6 +22,38 @@ export const AnalyticsPageFixture = {
     };
   },
 
+  tabComparisonVersion(): AnalyticsVersion {
+    const version = this.emptyVersion();
+    const variant = version.variants[0];
+
+    if (!variant) {
+      return version;
+    }
+
+    return {
+      ...version,
+      variants: [
+        {
+          ...variant,
+          steps: [
+            ...Array.from({ length: 12 }, (_, index) => ({
+              stepIdentifier: `information-${index + 1}`,
+              type: 'info' as const,
+              conditional: false,
+              reached: 0,
+              completed: 0,
+              completion: { numerator: 0, denominator: 0, value: null },
+              noncompletion: { open: 0, expired: 0 },
+              expiredDropout: { numerator: 0, denominator: 0, value: null },
+            })),
+            ...variant.steps,
+          ],
+        },
+        { ...variant, variant: 'B' },
+      ],
+    };
+  },
+
   observedVersion(): AnalyticsVersion {
     return {
       ...this.emptyVersion(),

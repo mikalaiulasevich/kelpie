@@ -1,7 +1,7 @@
 import { DeferredView } from '../application/deferred-view';
 import { lazy } from 'react';
 import { match } from 'ts-pattern';
-import { Skeleton } from '../components/skeleton';
+import { SkeletonRows } from '../components/skeleton';
 import { WorkspacePage } from './workspace-navigation';
 import type { PublicationIntent } from '../configuration-management/publication-intents';
 
@@ -49,10 +49,7 @@ export function WorkspacePageContent({
   onIntent,
 }: WorkspacePageContentProperties): UIElement {
   return (
-    <DeferredView
-      key={page}
-      loading={<Skeleton className="h-96 rounded-xl" aria-label="Opening workspace page" />}
-    >
+    <DeferredView key={page} loading={<SkeletonRows label="Opening workspace page" />}>
       {match(page)
         .with(WorkspacePage.Analytics, () => (
           <AnalyticsPage
