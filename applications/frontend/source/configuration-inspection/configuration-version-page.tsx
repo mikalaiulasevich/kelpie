@@ -90,8 +90,12 @@ export function ConfigurationVersionPage({
                   <FileJson2 className="size-5" aria-hidden="true" />
                 </div>
                 <div className="flex min-w-0 flex-col gap-1.5">
-                  <h1 className="page-title">Version <span className="font-mono">{resource.data.version.version}</span></h1>
-                  <p className="max-w-2xl break-words text-sm leading-relaxed text-muted-foreground">{resource.data.document.title}</p>
+                  <h1 className="page-title">
+                    Version <span className="font-mono">{resource.data.version.version}</span>
+                  </h1>
+                  <p className="max-w-2xl break-words text-sm leading-relaxed text-muted-foreground">
+                    {resource.data.document.title}
+                  </p>
                 </div>
               </div>
               <Badge variant="outline">Read-only</Badge>
@@ -102,10 +106,17 @@ export function ConfigurationVersionPage({
                   { label: 'Funnel', value: resource.data.version.funnelIdentifier, icon: Layers3 },
                   { label: 'Locale', value: resource.data.document.locale, icon: Globe2 },
                   { label: 'Schema', value: resource.data.version.schemaVersion, icon: FileJson2 },
-                  { label: 'Document status', value: resource.data.document.status, icon: FileJson2 },
+                  {
+                    label: 'Document status',
+                    value: resource.data.document.status,
+                    icon: FileJson2,
+                  },
                 ].map((item) => (
                   <div key={item.label} className="flex min-w-0 flex-col gap-1">
-                    <dt className="flex items-center gap-1.5 text-xs text-muted-foreground"><item.icon className="size-3.5" aria-hidden="true" />{item.label}</dt>
+                    <dt className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <item.icon className="size-3.5" aria-hidden="true" />
+                      {item.label}
+                    </dt>
                     <dd className="break-words font-medium">{item.value}</dd>
                   </div>
                 ))}
@@ -130,7 +141,9 @@ export function ConfigurationVersionPage({
                       <dd className="mt-1 break-all font-mono">{resource.data.version.checksum}</dd>
                     </div>
                   </dl>
-                  <p className="mt-3 text-xs text-muted-foreground">Document status does not indicate which version is live.</p>
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    Document status does not indicate which version is live.
+                  </p>
                 </CollapsibleContent>
               </Collapsible>
             </div>

@@ -54,7 +54,7 @@ export function PublicationHistoryPage({
   const reload = () => setRefresh((value) => value + 1);
 
   return (
-    <div className="workspace-page flex flex-col gap-8">
+    <div className="workspace-page flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-col gap-2">
           <h1 className="page-title">{ConfigurationContent.HistoryHeading}</h1>
@@ -80,10 +80,10 @@ export function PublicationHistoryPage({
         </Alert>
       )}
       {resource.status === 'ready' && (
-        <Card className="gap-0 overflow-hidden">
-          <CardHeader className="flex flex-wrap items-center justify-between gap-4 pb-6">
+        <Card className="w-full max-w-5xl gap-0 border-0 bg-transparent py-0 shadow-none">
+          <CardHeader className="flex flex-wrap items-center justify-between gap-4 px-0 pb-5">
             <div className="flex flex-col gap-1.5">
-              <CardTitle>Activations</CardTitle>
+              <CardTitle>Activity</CardTitle>
               <CardDescription>
                 {funnelIdentifier} · Current revision {resource.data.funnel.revision}
               </CardDescription>
@@ -129,7 +129,7 @@ export function PublicationHistoryPage({
             )}
           </CardContent>
           <Separator />
-          <CardFooter className="flex flex-wrap items-center justify-between gap-4 pt-5">
+          <CardFooter className="flex flex-wrap items-center justify-between gap-4 px-0 pt-4">
             <p className="text-xs text-muted-foreground">
               Showing {offset + (resource.data.items.length > 0 ? 1 : 0)}–
               {offset + resource.data.items.length}

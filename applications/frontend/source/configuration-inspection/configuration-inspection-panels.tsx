@@ -66,10 +66,15 @@ export function ConfigurationStepsPanel({ configuration, variant }: VariantPanel
         </Select>
       </div>
       <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[16rem_minmax(0,1fr)] xl:grid-cols-[18rem_minmax(0,1fr)]">
-        <nav aria-label="Configuration steps" className="hidden min-w-0 rounded-xl border bg-card py-4 lg:block">
+        <nav
+          aria-label="Configuration steps"
+          className="hidden min-w-0 rounded-xl border bg-card py-4 lg:block"
+        >
           <div className="mb-3 flex items-center justify-between px-4">
             <h2 className="text-sm font-semibold">Steps</h2>
-            <span className="text-xs tabular-nums text-muted-foreground">{variantConfiguration.stepSequence.length} · Variant {variant}</span>
+            <span className="text-xs tabular-nums text-muted-foreground">
+              {variantConfiguration.stepSequence.length} · Variant {variant}
+            </span>
           </div>
           <div className="flex flex-col gap-1 px-2">
             {variantConfiguration.stepSequence.map((stepIdentifier, index) => {
@@ -83,8 +88,13 @@ export function ConfigurationStepsPanel({ configuration, variant }: VariantPanel
                   aria-pressed={step.id === stepIdentifier}
                   onClick={() => setSelectedIdentifier(stepIdentifier)}
                 >
-                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full border text-xs tabular-nums text-muted-foreground">{index + 1}</span>
-                  <span className="min-w-0 flex-1 break-words text-left text-[13px]" title={stepIdentifier}>
+                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full border text-xs tabular-nums text-muted-foreground">
+                    {index + 1}
+                  </span>
+                  <span
+                    className="min-w-0 flex-1 break-words text-left text-[13px]"
+                    title={stepIdentifier}
+                  >
                     {stepIdentifier}
                   </span>
                   {listedStep?.visibleWhen && <Badge variant="outline">If</Badge>}

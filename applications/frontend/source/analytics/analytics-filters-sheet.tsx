@@ -26,21 +26,24 @@ export function AnalyticsFiltersSheet({
   onCancel,
   appliedFilters,
 }: AnalyticsFiltersSheetProperties) {
-  const [draftFilters, setDraftFilters] = useState<AnalyticsFilters>(
-    AnalyticsFilterSelection.Initial,
-  );
+  const [draftFilters, setDraftFilters] = useState<AnalyticsFilters>(appliedFilters);
   const applyFilters = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     onApply(AnalyticsFilterSelection.applyDraft(appliedFilters, draftFilters));
   };
 
   return (
-    <SheetContent side="right" className="w-full gap-0 sm:max-w-md" aria-describedby={undefined}>
+    <SheetContent
+      side="right"
+      className="w-full gap-0 sm:top-4 sm:right-4 sm:bottom-auto sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:max-w-md sm:rounded-xl sm:border"
+      aria-describedby={undefined}
+      onOpenAutoFocus={() => setDraftFilters({ ...appliedFilters })}
+    >
       <SheetHeader className="border-b px-6 py-5 pr-12">
         <SheetTitle>Analytics filters</SheetTitle>
       </SheetHeader>
-      <form className="flex min-h-0 flex-1 flex-col" onSubmit={applyFilters}>
-        <div className="min-h-0 flex-1 overflow-y-auto p-6">
+      <form className="flex min-h-0 flex-1 flex-col sm:flex-auto" onSubmit={applyFilters}>
+        <div className="min-h-0 flex-1 overflow-y-auto p-6 sm:flex-auto">
           <FieldGroup className="gap-8">
             <FieldGroup className="gap-4">
               <Field>

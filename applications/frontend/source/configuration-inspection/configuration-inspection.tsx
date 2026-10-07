@@ -1,5 +1,8 @@
 import { ConfigurationJson } from './configuration-json';
 import { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
+import { Button } from '../components/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../components/collapsible';
 import { ExperimentVariant, type FunnelConfiguration } from '@kelpie/contracts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/tabs';
@@ -28,12 +31,21 @@ export function ConfigurationInspection({ configuration }: ConfigurationInspecti
   return (
     <div className="flex min-w-0 flex-col gap-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="flex min-w-0 flex-col gap-2 sm:flex-1">
-          <p className="break-words text-sm text-muted-foreground">{configuration.description}</p>
-          {configuration.releaseNote && (
-            <p className="break-words text-sm">{configuration.releaseNote}</p>
-          )}
-        </div>
+        <Collapsible className="min-w-0 sm:flex-1">
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" size="sm" className="-ml-2">
+              About this version <ChevronDown data-icon="inline-end" />
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="flex max-w-3xl flex-col gap-2 pt-2">
+            <p className="break-words text-sm leading-relaxed text-muted-foreground">
+              {configuration.description}
+            </p>
+            {configuration.releaseNote && (
+              <p className="break-words text-sm leading-relaxed">{configuration.releaseNote}</p>
+            )}
+          </CollapsibleContent>
+        </Collapsible>
         <div className="flex shrink-0 items-center gap-3">
           <label htmlFor="inspection-variant" className="text-sm text-muted-foreground">
             Preview

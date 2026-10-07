@@ -68,7 +68,7 @@ export function PublicationHistoryFeed({
   const days = groupBy(items, (item) => PublicationHistoryFormat.day(item.createdAt));
 
   return (
-    <div className="flex flex-col gap-8 px-4 py-6 sm:px-6">
+    <div className="flex flex-col gap-8 py-6">
       {Object.entries(days).map(([day, publications]) => (
         <section key={day} aria-label={day} className="flex flex-col gap-5">
           <h2 className="text-xs font-medium tracking-wide text-muted-foreground">{day}</h2>
