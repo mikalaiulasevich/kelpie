@@ -203,4 +203,62 @@ describe('Quiz session browser persistence', () => {
         .map((event) => event.name),
     ).toEqual(['step_viewed', 'result_viewed']);
   });
+
+  it('shares overlapping delivery work when an unchanged state restarts its effect', async () => {
+    const state = SessionFixtures.state();
+    const view = vi.spyOn(QuizObservations, 'view');
+    SessionFixtures.acknowledgeEvents(state);
+    const delivery = new QuizObservationDelivery(state);
+
+    await Promise.all([delivery.flush(), delivery.flush()]);
+
+    expect(view).toHaveBeenCalledTimes(1);
+    expect(QuizObservations.read(state)).toEqual([]);
+  });
+
+  it('can retry shared delivery after storage rejects the current view', async () => {
+    const storage = SessionFixtures.storage();
+    const state = SessionFixtures.state();
+    const delivery = new QuizObservationDelivery(state);
+    storage.setItem.mockImplementationOnce(() => {
+      throw new DOMException('Quota exceeded', 'QuotaExceededError');
+    });
+
+    await expect(delivery.flush()).rejects.toThrow('Quota exceeded');
+    expect(QuizObservations.read(state)).toEqual([]);
+    SessionFixtures.acknowledgeEvents(state);
+    await delivery.flush();
+    expect(QuizObservations.read(state)).toEqual([]);
+  });
+
+  it('queues the CTA and expansion together or preserves the queue for a complete retry', async () => {
+    const state = SessionFixtures.expandedResultState();
+    await SessionFixtures.queuedViews(state, 199);
+    const queued = QuizObservations.read(state);
+
+    await expect(QuizObservations.resultAction(state)).rejects.toThrow('waiting to sync');
+    expect(QuizObservations.read(state)).toEqual(queued);
+    SessionFixtures.acknowledgeEvents(state);
+    await QuizObservations.flush(state);
+    await QuizObservations.resultAction(state);
+
+    expect(
+      QuizObservations.read(state)
+        .slice(-2)
+        .map((event) => ({ name: event.name, properties: event.properties })),
+    ).toEqual([
+      {
+        name: 'cta_clicked',
+        properties: { result_id: 'result-one', action: 'expand_recommendation' },
+      },
+      {
+        name: 'recommendation_expanded',
+        properties: {
+          result_id: 'result-one',
+          action: 'expand_recommendation',
+          source: 'primary_cta',
+        },
+      },
+    ]);
+  });
 });

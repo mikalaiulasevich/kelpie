@@ -205,12 +205,12 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
           <div className="flex max-w-3xl flex-col gap-2 text-sm text-muted-foreground">
             <p>
               {t(
-                'CTA conversion measures recommendation opens out of all started sessions. Result completion measures result views out of started sessions. CTA click-through measures recommendation opens out of result viewers.',
+                'CTA conversion is the share of started sessions with a recorded CTA click. Result completion is the share that viewed a result. CTA click-through is the share of result viewers who also clicked a CTA.',
               )}
             </p>
             <p>
               {t(
-                'Compare A and B within the same version and experiment. Variant B tests whether question order and result wording lead to more recommendation opens. Comparisons across versions show differences, not evidence of an experiment’s effect.',
+                'Compare variants within the same version and experiment. The configuration defines what differs between them. Differences across versions do not establish an experiment’s effect.',
               )}
             </p>
             <p>

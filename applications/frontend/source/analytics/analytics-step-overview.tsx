@@ -165,13 +165,13 @@ export function AnalyticsStepOverview({
                         {AnalyticsFormat.count(step.reached)}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        {isNull(reach) ? t('—') : `${(reach * 100).toFixed(1)}%`}
+                        {isNull(reach) ? t('—') : AnalyticsFormat.percentage(reach)}
                       </span>
                     </div>
                     {!isNull(reach) && (
                       <Progress
                         value={Math.min(100, reach * 100)}
-                        aria-label={`${step.stepIdentifier}: share of started sessions reached`}
+                        aria-label={t('{step}: share of started sessions reached', { step: step.stepIdentifier })}
                         className="mt-2 h-1"
                       />
                     )}

@@ -1,10 +1,13 @@
+import { useLocalization } from '../localization/use-localization';
 import * as React from 'react';
 import { ClassNames } from '../styling/combine-class-names';
 import { ChevronRight, MoreHorizontal } from 'lucide-react';
 import { Slot } from 'radix-ui';
 
 function Breadcrumb({ ...properties }: React.ComponentProps<'nav'>) {
-  return <nav aria-label="breadcrumb" data-slot="breadcrumb" {...properties} />;
+  const { t } = useLocalization();
+
+  return <nav aria-label={t('breadcrumb')} data-slot="breadcrumb" {...properties} />;
 }
 
 function BreadcrumbList({ className, ...properties }: React.ComponentProps<'ol'>) {
@@ -76,6 +79,8 @@ function BreadcrumbSeparator({ children, className, ...properties }: React.Compo
 }
 
 function BreadcrumbEllipsis({ className, ...properties }: React.ComponentProps<'span'>) {
+  const { t } = useLocalization();
+
   return (
     <span
       data-slot="breadcrumb-ellipsis"
@@ -85,7 +90,7 @@ function BreadcrumbEllipsis({ className, ...properties }: React.ComponentProps<'
       {...properties}
     >
       <MoreHorizontal className="size-4" />
-      <span className="sr-only">More</span>
+      <span className="sr-only">{t('More')}</span>
     </span>
   );
 }

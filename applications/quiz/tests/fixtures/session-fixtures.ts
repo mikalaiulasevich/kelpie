@@ -1,5 +1,6 @@
 import { vi } from 'vitest';
 import configurationDocument from '../../../../configurations/funnel-v1.json';
+import expansionConfigurationDocument from '../../../../configurations/funnel-v3.json';
 import { QuizSessionApi } from '../../source/session/quiz-session-api';
 import { QuizObservations } from '../../source/session/quiz-observations';
 import type { QuizSessionState } from '../../source/session/quiz-session-types';
@@ -32,6 +33,14 @@ export const SessionFixtures = {
         cta: { label: 'Read more', action: 'expand_recommendation' },
       },
     };
+  },
+
+  expandedResultState(): QuizSessionState {
+    return QuizSessionApi.parse({
+      ...SessionFixtures.resultState(),
+      configuration: expansionConfigurationDocument,
+      funnelVersion: 3,
+    });
   },
 
   async queuedViews(state: QuizSessionState, count: number): Promise<void> {

@@ -122,10 +122,9 @@ export function ConfigurationStepDetails({
                     <p className="mb-1 text-xs leading-relaxed text-muted-foreground">
                       {selectionStep.type === StepType.SingleSelect
                         ? t('Participants can choose one answer.')
-                        : t(
-                            'Participants can choose {minimum}–{maximum} answers.',
-                            { ...StepRules.selectionLimits(selectionStep) },
-                          )}{' '}
+                        : t('Participants can choose {minimum}–{maximum} answers.', {
+                            ...StepRules.selectionLimits(selectionStep),
+                          })}{' '}
                       {t('Read-only preview of the configured options.')}
                     </p>
                     <ul className="inspection-options">

@@ -5,11 +5,11 @@ import { KelpieMark } from '../components/kelpie-mark';
 import { AdministrationContent } from './administration-content';
 
 export function AdministrationAuthLayout({ children }: { children: ReactNode }): UIElement {
-  const { t } = useLocalization();
+  const { t, locale } = useLocalization();
 
   useEffect(() => {
-    document.title = AdministrationContent.PageTitle;
-  }, []);
+    document.title = t(AdministrationContent.PageTitle);
+  }, [t, locale]);
 
   return (
     <main className="auth-layout">

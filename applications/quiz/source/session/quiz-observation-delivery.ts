@@ -4,6 +4,8 @@ import type { QuizSessionState } from './quiz-session-types';
 export class QuizObservationDelivery {
   private viewQueued = false;
 
+  private activeFlush: Optional<Promise<void>>;
+
   constructor(private readonly state: QuizSessionState) {}
 
   matches(state: QuizSessionState): boolean {
@@ -13,7 +15,15 @@ export class QuizObservationDelivery {
     );
   }
 
-  async flush(): Promise<void> {
+  flush(): Promise<void> {
+    this.activeFlush ??= this.deliver().finally(() => {
+      this.activeFlush = undefined;
+    });
+
+    return this.activeFlush;
+  }
+
+  private async deliver(): Promise<void> {
     try {
       // Drain older events before adding a view so a full queue can recover.
       await QuizObservations.flush(this.state);

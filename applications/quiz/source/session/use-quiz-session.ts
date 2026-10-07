@@ -250,16 +250,7 @@ export function useQuizSession() {
     }
 
     try {
-      const properties = { result_id: state.result.id, action: state.result.cta.action };
-      await QuizObservations.add(state, 'cta_clicked', properties);
-
-      if (state.result.cta.action === 'expand_recommendation') {
-        await QuizObservations.add(state, 'recommendation_expanded', {
-          ...properties,
-          source: 'primary_cta',
-        });
-      }
-
+      await QuizObservations.resultAction(state);
       await QuizObservations.flush(state);
     } catch (failure) {
       setDeliveryError(

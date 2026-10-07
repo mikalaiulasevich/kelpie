@@ -1,3 +1,4 @@
+import { AnalyticsFormat } from './analytics-format';
 import { useLocalization } from '../localization/use-localization';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { isNull } from 'es-toolkit/predicate';
@@ -8,10 +9,6 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from '../components/chart';
-const comparisonChart = {
-  results: { label: 'Result completion', color: 'var(--chart-2)' },
-  recommendations: { label: 'CTA conversion', color: 'var(--chart-1)' },
-} satisfies ChartConfig;
 
 export function AnalyticsComparisonChart({
   variants,
@@ -19,9 +16,14 @@ export function AnalyticsComparisonChart({
   readonly variants: readonly AnalyticsVariant[];
 }) {
   const { t } = useLocalization();
+const comparisonChart = {
+  results: { label: t('Result completion'), color: 'var(--chart-2)' },
+  recommendations: { label: t('CTA conversion'), color: 'var(--chart-1)' },
+} satisfies ChartConfig;
+
 
   const comparisonData = variants.map((variant) => ({
-    variant: `Variant ${variant.variant}`,
+    variant: t('Variant {variant}', { variant: variant.variant }),
     results: isNull(variant.resultCompletion.value) ? null : variant.resultCompletion.value * 100,
     recommendations: isNull(variant.ctaConversion.value) ? null : variant.ctaConversion.value * 100,
   }));
@@ -58,10 +60,10 @@ export function AnalyticsComparisonChart({
                 formatter={(value, name) => (
                   <div className="flex w-full items-center justify-between gap-4">
                     <span className="text-muted-foreground">
-                      {name === 'results' ? 'Result completion' : 'CTA conversion'}
+                      {t(name === 'results' ? 'Result completion' : 'CTA conversion')}
                     </span>
                     <span className="font-medium tabular-nums">
-                      {typeof value === 'number' ? `${value.toFixed(1)}%` : value}
+                      {typeof value === 'number' ? AnalyticsFormat.percentage(value / 100) : value}
                     </span>
                   </div>
                 )}

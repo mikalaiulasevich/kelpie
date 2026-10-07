@@ -1,3 +1,4 @@
+import { AdditionalTranslations } from './additional-translations';
 import { ConfigurationTranslations } from './configuration-translations';
 import { InterfaceTranslations } from './interface-translations';
 
@@ -57,7 +58,7 @@ export const Localization = {
   translate(message: string, parameters: Readonly<Record<string, TextOrNumber>> = {}): string {
     const translated =
       selectedLocale === 'ru'
-        ? (InterfaceTranslations[message] ?? ConfigurationTranslations[message] ?? message)
+        ? (InterfaceTranslations[message] ?? ConfigurationTranslations[message] ?? AdditionalTranslations[message] ?? message)
         : message;
 
     return translated.replace(/\{(\w+)\}/g, (placeholder: string, key: string) =>

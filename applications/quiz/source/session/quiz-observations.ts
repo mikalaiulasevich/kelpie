@@ -101,6 +101,24 @@ export const QuizObservations = {
     await QuizObservations.enqueue(state, observations);
   },
 
+  async resultAction(state: QuizSessionState): Promise<void> {
+    if (!state.result) {
+      return;
+    }
+
+    const properties = { result_id: state.result.id, action: state.result.cta.action };
+    const observations: QuizObservationInput[] = [{ name: 'cta_clicked', properties }];
+
+    if (state.result.cta.action === 'expand_recommendation') {
+      observations.push({
+        name: 'recommendation_expanded',
+        properties: { ...properties, source: 'primary_cta' },
+      });
+    }
+
+    await QuizObservations.enqueue(state, observations);
+  },
+
   async flush(state: QuizSessionState): Promise<void> {
     const events = QuizObservations.read(state).slice(0, QuizSessionPolicy.BatchLimit);
 

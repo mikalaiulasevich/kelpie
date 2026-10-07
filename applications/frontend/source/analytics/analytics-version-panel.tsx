@@ -123,7 +123,7 @@ function AnalyticsVariantSummary({ variant }: { readonly variant: AnalyticsVaria
             <Progress
               className="analytics-metric-progress mt-2 h-1"
               value={variant.ctaConversion.value * 100}
-              aria-label={`Variant ${variant.variant} CTA conversion`}
+              aria-label={t('Variant {variant} CTA conversion', { variant: variant.variant })}
             />
           )}
         </div>
@@ -242,7 +242,7 @@ function AnalyticsSteps({ variant }: { readonly variant: AnalyticsVariant }) {
                             <Progress
                               className="h-1 bg-success/15 [&_[data-slot=progress-indicator]]:bg-success"
                               value={step.completion.value * 100}
-                              aria-label={`${step.stepIdentifier} completion`}
+                              aria-label={t('{step} completion', { step: step.stepIdentifier })}
                             />
                           )}
                         </div>
@@ -377,7 +377,7 @@ export function AnalyticsVersionPanel({
   return (
     <section
       className="@container/analytics-version flex min-w-0 flex-col gap-5"
-      aria-label={`Version ${version.funnelVersion} analytics`}
+      aria-label={t('Version {version} analytics', { version: version.funnelVersion })}
     >
       <AnalyticsMarketingOverview version={version} />
       <div className="analytics-bento grid min-w-0 gap-5 @min-[60rem]/analytics-version:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
@@ -392,7 +392,7 @@ export function AnalyticsVersionPanel({
               <div className="flex flex-col gap-2">
                 <CardTitle>{t('Conversion by variant')}</CardTitle>
                 <CardDescription>
-                  {t('Result views and recommendation opens per started session.')}
+                  {t('Result views and recorded CTA clicks per started session.')}
                 </CardDescription>
               </div>
               <Badge variant="outline">
@@ -457,7 +457,7 @@ export function AnalyticsVersionPanel({
                     <Progress
                       className="h-1.5"
                       value={startedSessions > 0 ? (variant.started / startedSessions) * 100 : 0}
-                      aria-label={`Variant ${variant.variant} share of started sessions`}
+                      aria-label={t('Variant {variant} share of started sessions', { variant: variant.variant })}
                     />
                   </div>
                 ))}
@@ -488,7 +488,7 @@ export function AnalyticsVersionPanel({
         </div>
         <TabsList
           className="analytics-variant-tabs"
-          aria-label={`Version ${version.funnelVersion} variants`}
+          aria-label={t('Version {version} variants', { version: version.funnelVersion })}
         >
           {version.variants.map((variant) => (
             <TabsTrigger key={variant.variant} value={variant.variant}>
@@ -506,7 +506,7 @@ export function AnalyticsVersionPanel({
             value={variant.variant}
           >
             <Tabs defaultValue="steps" className="min-w-0 gap-4">
-              <TabsList aria-label={`Variant ${variant.variant} detail views`}>
+              <TabsList aria-label={t('Variant {variant} detail views', { variant: variant.variant })}>
                 <TabsTrigger value="steps">
                   <ListOrdered className="size-4" />
                   {t('Steps')}
