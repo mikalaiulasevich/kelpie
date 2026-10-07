@@ -44,15 +44,15 @@ Run migrations before provisioning credentials. Supply `ADMINISTRATION_USERNAME`
 
 Sign in with JSON `{ "username": "your-name", "password": "your-secret" }` at `POST /api/administration/sign-in`. Every administration mutation, including sign-in, must include the matching `Origin` and `X-Kelpie-Administration: 1` headers. The response sets an HttpOnly, SameSite=Strict cookie scoped to `/api/administration`; production adds Secure. Sessions expire after eight hours. A new sign-in replaces the previous administrator session. Password hashing uses asynchronous scrypt (N=131072, r=8, p=1); only one hash runs at a time, and excess work is rejected rather than queued. Sign-in is limited to five attempts per minute per client IP. Limits are process-local; the backend does not trust forwarded IP headers.
 
-| Endpoint | Behavior |
-| --- | --- |
-| `GET /api/administration/session` | Current administrator; 401 after expiration/revocation |
-| `POST /api/administration/sign-out` | Revoke current session and clear cookie |
-| `POST /api/administration/configurations` | Import the supplied configuration JSON as an immutable draft; 422 for invalid data, 409 for conflicting content |
-| `GET /api/administration/configurations?funnelIdentifier=workstyle-planner` | Version metadata plus active version and current revision |
-| `POST /api/administration/publications` | Activate a validated draft with optimistic concurrency and idempotency |
-| `POST /api/administration/rollbacks` | Activate the preceding version from activation history |
-| `GET /api/administration/publications?funnelIdentifier=workstyle-planner` | Activation history, newest revision first |
+| Endpoint                                                                    | Behavior                                                                                                        |
+| --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `GET /api/administration/session`                                           | Current administrator; 401 after expiration/revocation                                                          |
+| `POST /api/administration/sign-out`                                         | Revoke current session and clear cookie                                                                         |
+| `POST /api/administration/configurations`                                   | Import the supplied configuration JSON as an immutable draft; 422 for invalid data, 409 for conflicting content |
+| `GET /api/administration/configurations?funnelIdentifier=workstyle-planner` | Version metadata plus active version and current revision                                                       |
+| `POST /api/administration/publications`                                     | Activate a validated draft with optimistic concurrency and idempotency                                          |
+| `POST /api/administration/rollbacks`                                        | Activate the preceding version from activation history                                                          |
+| `GET /api/administration/publications?funnelIdentifier=workstyle-planner`   | Activation history, newest revision first                                                                       |
 
 A publication body contains `operationIdentifier` (a fresh UUID per intent), `funnelIdentifier`, `targetVersionIdentifier` (the imported version's UUID), and `expectedRevision` (from the list response). Rollback uses the same fields except `targetVersionIdentifier`. Retry the identical body and identifier after a timeout: it returns the originally persisted result, even if later commands changed the active version. Reusing an identifier for another intent or supplying a stale revision returns 409. A replay does not represent the latest active state; fetch the list again. Publishing the already-active version is rejected. Rollback records another activation, so rolling back again returns to the version active immediately before that rollback.
 

@@ -80,6 +80,23 @@ describe('transactional publications with real SQLite', () => {
     expect(await backend.database.publication.count()).toBe(1);
   });
 
+  it('rejects a concurrent conflicting retry without creating a second publication', async () => {
+    const { administrator, first, third, service } = await PublicationFixtures.prepare(backend);
+    const request = PublicationFixtures.request(first.funnelIdentifier, first.identifier);
+    const outcomes = await Promise.allSettled([
+      service.publish(request, administrator.identifier),
+      service.publish(
+        { ...request, targetVersionIdentifier: third.identifier },
+        administrator.identifier,
+      ),
+    ]);
+    expect(outcomes.filter((outcome) => outcome.status === 'fulfilled')).toHaveLength(1);
+    expect(outcomes.find((outcome) => outcome.status === 'rejected')).toMatchObject({
+      reason: { status: 409, code: 'operation_conflict' },
+    });
+    expect(await backend.database.publication.count()).toBe(1);
+  });
+
   it('allows only one competing activation at the same expected revision', async () => {
     const { administrator, first, third, service } = await PublicationFixtures.prepare(backend);
     const outcomes = await Promise.allSettled([

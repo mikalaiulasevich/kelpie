@@ -123,7 +123,7 @@ Progress counts currently available steps that are not listed in excludeTypes. T
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | Funnel               | Stable funnel identity and active configuration reference                                                                      |
 | FunnelVersion        | Unique funnel/version pair, immutable document, schema version, checksum                                                       |
-| Publication          | Activation and rollback history, administrator, timestamp, monotonic funnel revision, previous and target version                                         |
+| Publication          | Activation and rollback history, administrator, timestamp, monotonic funnel revision, previous and target version              |
 | Session              | Pinned version and experiment, assigned variant and assignment source, UTM, traffic origin, current step, revision, expiration |
 | SessionAnswer        | Retained answer value and nullable confirmation revision; active status derived from runtime                                   |
 | SessionTransition    | Immutable session, operation, resulting revision, kind, source step and destination step; server timestamp                     |

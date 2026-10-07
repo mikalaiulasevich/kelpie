@@ -48,6 +48,13 @@ describe('protected version management HTTP', () => {
     const published = await PublicationHttpFixtures.post(backend, 'publications', cookie, initial);
     expect(published.status).toBe(201);
     const originalResponse: unknown = await published.json();
+    const forbiddenReplay = await backend.request('/api/administration/publications', {
+      method: 'POST',
+      headers: { cookie, 'content-type': 'application/json' },
+      body: JSON.stringify(initial),
+    });
+    expect(forbiddenReplay.status).toBe(403);
+
     expect(
       (
         await PublicationHttpFixtures.post(

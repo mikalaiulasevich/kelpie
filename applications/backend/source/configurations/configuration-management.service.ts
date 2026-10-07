@@ -5,7 +5,7 @@ import { PublicationMessages } from '../publications/publication-messages.js';
 import { PublicRequestError } from '../transport/public-request-error.js';
 import { ConfigurationImportError } from './configuration-import-error.js';
 import { ConfigurationImportService } from './configuration-import.service.js';
-import type { ConfigurationList } from '../publications/publication-types.js';
+import type { ConfigurationList } from './configuration-management-types.js';
 import type { ConfigurationImportResult } from './configuration-import-types.js';
 import { ConfigurationImportErrorCode } from './configuration-import-types.js';
 import { ConfigurationImportPolicy } from './configuration-import-policy.js';
