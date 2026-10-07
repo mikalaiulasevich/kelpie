@@ -55,6 +55,12 @@ Bun 1.3.14 now executes the backend with the official local-file libSQL adapter;
 
 The public quiz is planned as a separate Next.js application at applications/quiz. Existing applications/frontend is the React/Vite administration target, including dashboard. Neither product interface was scaffolded during the runtime migration. IMPLEMENTATION_PLAN owns the updated remaining sequence.
 
+## Administration UI iteration 1 — authorization (October 7, 2026)
+
+Connected the React/Vite administration interface to the existing username/password, current-session and sign-out endpoints. The official shadcn/ui login-02 block supplies the two-column composition; fields, password visibility and error states are adapted to the backend contract. Credentials are not persisted by the client. Password reset remains unsupported because no server endpoint exists.
+
+Browser checks against an isolated real NestJS/SQLite backend verified rejection of an incorrect password, successful sign-in, reload restoration, server-side sign-out and sign-out after expiry. Independent review caught the expired-session sign-out case; client regression coverage now distinguishes authoritative 401 from network/origin/server failures. Full Node.js 24.16.0 verification passed 487 workspace tests plus types, lint, formatting, builds and Prisma validation. Configuration management, dashboard and public deployment remain pending.
+
 ## Verification history
 
 The initial foundation was installed and checked locally on Node.js 24 and 26. A frontend readiness check was inspected in desktop/mobile layouts at that milestone. Subsequent refactors were checked on Node.js 24.16.0; they do not constitute new browser or Node.js 26 verification.
@@ -65,10 +71,10 @@ A historical GitHub Actions attempt failed before jobs started; this cleanup doe
 
 ## Remaining delivery milestones
 
-| Iteration            | Status                                                                                                                                                                     |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| First working funnel | Runtime, administration, session, event ingestion and analytics APIs available. Funnel/admin/dashboard UI, browser event queue and traffic generation remain to implement. |
-| Second iteration     | Pending the first working funnel. Publish v3, verify both variants and retained older sessions, then roll back to v2 while preserving v3 sessions and analytics.           |
-| Deployment           | Bun backend and Node.js/npm fallback verified locally; hosting with persistent storage and public acceptance remain pending.                                               |
+| Iteration            | Status                                                                                                                                                                                                                                  |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| First working funnel | Runtime, administration, session, event ingestion and analytics APIs available. Administrator authorization UI available; funnel/configuration-management/dashboard UI, browser event queue and traffic generation remain to implement. |
+| Second iteration     | Pending the first working funnel. Publish v3, verify both variants and retained older sessions, then roll back to v2 while preserving v3 sessions and analytics.                                                                        |
+| Deployment           | Bun backend and Node.js/npm fallback verified locally; hosting with persistent storage and public acceptance remain pending.                                                                                                            |
 
 [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md) owns the detailed acceptance sequence. Update this timeline for completed product milestones; keep command output and repeated polish reports out of it.

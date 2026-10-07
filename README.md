@@ -1,6 +1,6 @@
 # Funnel Runtime
 
-A TypeScript/NestJS (Fastify) foundation with a planned Next.js quiz and React/Vite administration application for configurable funnels. Implemented: configuration validation, pure funnel evaluation, the initial Prisma/SQLite schema, backend lifecycle and health endpoints, immutable configuration draft imports, administrator authentication, transactional publication/rollback APIs, signed user sessions, revisioned answer/navigation commands, event batch ingestion, session-based analytics APIs and a frontend readiness screen.
+A TypeScript/NestJS (Fastify) foundation with a planned Next.js quiz and React/Vite administration application for configurable funnels. Implemented: configuration validation, pure funnel evaluation, the initial Prisma/SQLite schema, backend lifecycle and health endpoints, immutable configuration draft imports, administrator authentication, transactional publication/rollback APIs, signed user sessions, revisioned answer/navigation commands, event batch ingestion, session-based analytics APIs and the administrator sign-in/session/sign-out interface.
 
 **The product is not complete.** The funnel/administration/dashboard UI, browser delivery queue, synthetic traffic and public deployment remain in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). No public application URL or agreed 48-hour start is recorded.
 
@@ -62,7 +62,15 @@ A publication body contains `operationIdentifier` (a fresh UUID per intent), `fu
 
 Lists accept `limit` (default 25, maximum 100) and `offset` (maximum 10000); responses include `nextOffset`. Each page is a consistent database snapshot, but separate pages may shift while new records are added. Responses contain metadata rather than whole configuration documents. All administrator routes require authentication except sign-in. Responses use `Cache-Control: no-store`; errors include a safe `code`, `message`, `statusCode` and server-owned `requestIdentifier`, with bounded validation `issues` where applicable.
 
-Publication changes the active pointer and appends history in one SQLite transaction. It never modifies pinned sessions, raw answers or events. The revision migration preserves prior history and breaks existing timestamp ties by insertion order. Backend integration tests exercise old-session continuation after publication and rollback; the administration interface and browser acceptance remain pending.
+Publication changes the active pointer and appends history in one SQLite transaction. It never modifies pinned sessions, raw answers or events. The revision migration preserves prior history and breaks existing timestamp ties by insertion order. Backend integration tests exercise old-session continuation after publication and rollback; configuration management pages and public browser acceptance remain pending.
+
+## Administrator interface
+
+Open `http://127.0.0.1:5173` after starting the backend and frontend. The React/Vite workspace uses the official shadcn/ui `login-02` composition with username/password inputs matching the existing backend contract. It checks the current administrator session on opening, signs in with the required mutation header, and signs out through server-side revocation. HttpOnly cookies remain server-managed; credentials and tokens are not persisted by the frontend. There is no default administrator password: use the existing provisioned account.
+
+Request failures, invalid credentials, invalid input, rate limits and rejected origins have safe messages. Mutations are not automatically retried. Expired/revoked sessions return to sign-in on sign-out; network or server failures keep the current view so the operation can be retried. Password reset is not exposed because the backend has no reset endpoint.
+
+Browser verification used the actual NestJS backend and an isolated SQLite database: incorrect password, successful sign-in, session restoration after reload, server revocation on sign-out and sign-out after forced expiry passed. `npm run verify` on Node.js 24.16.0 passed 487 tests (312 backend, 34 frontend, 65 contracts, 76 runtime), types, lint, formatting, builds and Prisma validation. The frontend tests cover HTTP transport; hook transitions were verified in the browser. This iteration contains authorization only; configuration management and analytics pages remain pending.
 
 ## User-session API
 
