@@ -2,44 +2,35 @@ import { Type } from 'typebox';
 
 import { ConfigurationFormat } from './configuration-format.js';
 import { ConfigurationSchemaPolicy } from './configuration-policy.js';
-import { conditionSchema } from '../conditions/condition-schema.js';
+import { ConditionSchemas } from '../conditions/condition-schema.js';
 import { ConfigurationStatus, ExperimentVariant, StepType } from '../shared/domain-values.js';
-import {
-  funnelResultSchema,
-  resultOverrideSchema,
-  resultRuleSchema,
-} from '../results/result-schema.js';
-import {
-  SchemaPrimitives,
-  identifierListSchema,
-  identifierSchema,
-  textSchema,
-} from '../shared/schema-primitives.js';
-import { funnelStepSchema, stepContentSchema } from '../steps/step-schema.js';
+import { ResultSchemas } from '../results/result-schema.js';
+import { SchemaPrimitives } from '../shared/schema-primitives.js';
+import { StepSchemas } from '../steps/step-schema.js';
 
-export const stepOverrideSchema = Type.Object(
-  { content: stepContentSchema },
+const stepOverrideSchema = Type.Object(
+  { content: StepSchemas.StepContent },
   {
     additionalProperties: false,
   },
 );
 
-export const variantConfigurationSchema = Type.Object(
+const variantConfigurationSchema = Type.Object(
   {
     weight: Type.Number(ConfigurationSchemaPolicy.VariantWeight),
-    stepSequence: Type.Array(identifierSchema, ConfigurationSchemaPolicy.StepSequence),
+    stepSequence: Type.Array(SchemaPrimitives.Identifier, ConfigurationSchemaPolicy.StepSequence),
     stepOverrides: SchemaPrimitives.dictionary(stepOverrideSchema),
-    resultOverrides: SchemaPrimitives.dictionary(resultOverrideSchema),
+    resultOverrides: SchemaPrimitives.dictionary(ResultSchemas.ResultOverride),
   },
   { additionalProperties: false },
 );
 
-export const experimentConfigurationSchema = Type.Object(
+const experimentConfigurationSchema = Type.Object(
   {
-    id: identifierSchema,
+    id: SchemaPrimitives.Identifier,
     assignment: Type.Literal(ConfigurationFormat.ExperimentAssignment),
     sticky: Type.Literal(true),
-    overrideQueryParam: identifierSchema,
+    overrideQueryParam: SchemaPrimitives.Identifier,
     variants: Type.Object(
       {
         [ExperimentVariant.A]: variantConfigurationSchema,
@@ -51,7 +42,7 @@ export const experimentConfigurationSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const sessionConfigurationSchema = Type.Object(
+const sessionConfigurationSchema = Type.Object(
   {
     ttlHours: Type.Number(ConfigurationSchemaPolicy.SessionLifetimeHours),
     persistAnswers: Type.Literal(true),
@@ -61,7 +52,7 @@ export const sessionConfigurationSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const progressConfigurationSchema = Type.Object(
+const progressConfigurationSchema = Type.Object(
   {
     countVisibleOnly: Type.Literal(true),
     excludeTypes: Type.Array(Type.Enum(StepType), ConfigurationSchemaPolicy.ExcludedStepTypes),
@@ -69,16 +60,16 @@ export const progressConfigurationSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const eventDeclarationSchema = Type.Object(
+const eventDeclarationSchema = Type.Object(
   {
-    name: identifierSchema,
-    trigger: textSchema,
-    properties: identifierListSchema,
+    name: SchemaPrimitives.Identifier,
+    trigger: SchemaPrimitives.Text,
+    properties: SchemaPrimitives.IdentifierList,
   },
   { additionalProperties: false },
 );
 
-export const eventPrivacyConfigurationSchema = Type.Object(
+const eventPrivacyConfigurationSchema = Type.Object(
   {
     storeRawAnswers: Type.Literal(false),
     allowAnswerKinds: Type.Literal(true),
@@ -86,37 +77,49 @@ export const eventPrivacyConfigurationSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const eventsConfigurationSchema = Type.Object(
+const eventsConfigurationSchema = Type.Object(
   {
-    baseProperties: identifierListSchema,
+    baseProperties: SchemaPrimitives.IdentifierList,
     allowed: Type.Array(eventDeclarationSchema, ConfigurationSchemaPolicy.EventDeclarations),
     privacy: eventPrivacyConfigurationSchema,
   },
   { additionalProperties: false },
 );
 
-export const funnelConfigurationSchema = Type.Object(
+const funnelConfigurationSchema = Type.Object(
   {
     schemaVersion: Type.Literal(ConfigurationFormat.SchemaVersion),
-    funnelId: identifierSchema,
+    funnelId: SchemaPrimitives.Identifier,
     version: Type.Integer(ConfigurationSchemaPolicy.Version),
     status: Type.Enum(ConfigurationStatus),
     locale: Type.String(ConfigurationSchemaPolicy.Locale),
-    title: textSchema,
-    description: textSchema,
-    releaseNote: Type.Optional(textSchema),
+    title: SchemaPrimitives.Text,
+    description: SchemaPrimitives.Text,
+    releaseNote: Type.Optional(SchemaPrimitives.Text),
     session: sessionConfigurationSchema,
     progress: progressConfigurationSchema,
     experiment: experimentConfigurationSchema,
-    steps: SchemaPrimitives.dictionary(funnelStepSchema, 1),
-    resultRules: Type.Array(resultRuleSchema, ConfigurationSchemaPolicy.ResultRules),
-    defaultResultId: identifierSchema,
-    results: SchemaPrimitives.dictionary(funnelResultSchema, 1),
+    steps: SchemaPrimitives.dictionary(StepSchemas.FunnelStep, 1),
+    resultRules: Type.Array(ResultSchemas.ResultRule, ConfigurationSchemaPolicy.ResultRules),
+    defaultResultId: SchemaPrimitives.Identifier,
+    results: SchemaPrimitives.dictionary(ResultSchemas.FunnelResult, 1),
     events: eventsConfigurationSchema,
   },
   {
     $id: ConfigurationFormat.SchemaIdentifier,
     additionalProperties: false,
-    $defs: { [ConfigurationFormat.ConditionDefinition]: conditionSchema },
+    $defs: { [ConfigurationFormat.ConditionDefinition]: ConditionSchemas.Condition },
   },
 );
+
+export const ConfigurationSchemas = {
+  StepOverride: stepOverrideSchema,
+  VariantConfiguration: variantConfigurationSchema,
+  ExperimentConfiguration: experimentConfigurationSchema,
+  SessionConfiguration: sessionConfigurationSchema,
+  ProgressConfiguration: progressConfigurationSchema,
+  EventDeclaration: eventDeclarationSchema,
+  EventPrivacyConfiguration: eventPrivacyConfigurationSchema,
+  EventsConfiguration: eventsConfigurationSchema,
+  FunnelConfiguration: funnelConfigurationSchema,
+} as const;

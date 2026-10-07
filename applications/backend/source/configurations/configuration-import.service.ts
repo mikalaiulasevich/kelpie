@@ -1,6 +1,6 @@
+import { DatabaseErrors } from '../database/database-errors.js';
 import { Inject, Injectable } from '@nestjs/common';
 import { isNull } from 'es-toolkit/predicate';
-import { Prisma } from '../../generated/prisma/client.js';
 import { DatabaseService } from '../database/database.service.js';
 import { ConfigurationImportDocument } from './configuration-import-document.js';
 import { ConfigurationImportError } from './configuration-import-error.js';
@@ -30,10 +30,7 @@ export class ConfigurationImportService {
 
       return { outcome: ConfigurationImportOutcome.Created, version };
     } catch (error) {
-      if (
-        !(error instanceof Prisma.PrismaClientKnownRequestError) ||
-        error.code !== ConfigurationImportPolicy.UniqueConstraintCode
-      ) {
+      if (!DatabaseErrors.isUniqueConstraint(error)) {
         throw error;
       }
 

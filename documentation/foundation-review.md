@@ -158,13 +158,17 @@ File reads are bounded to the shared 256 KiB limit; streams cannot grow unbounde
 
 Thirteen real SQLite import tests cover supplied versions, invalid input, replay, conflicting content, concurrent identical/conflicting imports, caller mutation and transaction rollback after a SQLite trigger abort. Six file-boundary tests verify size limits, growth after stat, parsing and actual descriptor release. A separate CLI smoke used a disposable migrated database: root-command import, stable replay, conflict/usage exit codes and no activation/publication all passed. No private development database was modified. CLI failure rendering now has a typed domain owner, exact message allowlisting and accessor-failure containment (five additional tests). Canonical JSON normalization uses `isPlainObject` to exclude null explicitly; workspace typechecking passes without casts or suppressions.
 
-## Ownership cleanup of the three implemented backend phases
+## Repository ownership and readability review
 
 Configuration imports, administrator access and publication management were reviewed together. Shared management schemas, bounded query parsing, funnel lookup and page construction now have one owner; configuration management no longer depends on publication types, routes or messages. Publication request/response schemas are grouped with derived contracts, separate from compiled input validation. Configuration identity extraction is reused for insertion and metadata verification. Exhaustive error-code maps replace fallback status/message branches.
 
 Password encoding owns decode/dummy material while verification still performs the same bounded derivation for malformed hashes. Credential primitives are captured before asynchronous work; a real HTTP regression mutates the caller-owned request during verification. Both CLI commands share one lifecycle runner that preserves primary and cleanup failures, closes once and emits results only after shutdown. Six lifecycle tests use real Nest/SQLite resources. Additional publication cases reject corrupted checksums and version/schema metadata.
 
-Class-member and independent-export spacing is lint-enforced for these domains, and an intentionally malformed probe was rejected. These changes preserve transport contracts, transaction order and query count; they do not establish a performance gain. Independent review checked the changed domains and lifecycle paths, not every unrelated repository file.
+Class-member and independent-export spacing is lint-enforced across all four workspaces; intentionally malformed probes were rejected in each workspace. These changes preserve transport contracts, transaction order and query count; they do not establish a performance gain. The subsequent repository-wide pass inspected backend infrastructure/tests, both shared packages including benchmark code, frontend, scripts and workspace settings. Independent review checked the changed error boundary and recursive schema wiring; this is review evidence, not proof of defect-free code.
+
+The package review grouped internal condition, step, result and configuration schemas under named owners. Independent serialization comparisons matched the previous root schema exactly, including recursive references and alternative ordering. Runtime algorithms and benchmark measurement code were retained where simplification would widen semantics or add work; no new performance claim or benchmark run follows from this pass.
+
+Backend parser-error classification now reads arbitrary error-code accessors inside a guarded boundary and uses a prepared allowlist lookup; a real HTTP regression verifies safe 500 output and diagnostics after a throwing getter. Shared database-error recognition removes duplicated uniqueness checks; health response types derive from their schema. Frontend health rendering no longer rechecks a state already narrowed by exhaustive matching, and its implementation-status copy reflects available publication APIs. Integrity tooling validates manifest structure/count before reading configuration files; isolated subprocess probes covered malformed manifests, changed contents and cleanup allowlists. The root provisioning command now prepares generated dependencies consistently with configuration import.
 
 ## Administrator access and activation transactions
 
@@ -184,7 +188,7 @@ Tests cover six levels, runtime threshold changes, correlation, sensitive fields
 
 ## Verification evidence
 
-After backend iterations 2 and 3, the full Node.js 24.16.0 check passed `npm run verify`: 379 tests (226 backend, 12 frontend, 65 contracts, 76 runtime), strict types, lint, formatting, clean builds, configuration checksums, test layout and Prisma validation. This section owns verification updates; benchmark assertions are separate from test counts.
+After backend iterations 2 and 3, the full Node.js 24.16.0 check passed `npm run verify`: 380 tests (227 backend, 12 frontend, 65 contracts, 76 runtime), strict types, lint, formatting, clean builds, configuration checksums, test layout and Prisma validation. This section owns verification updates; benchmark assertions are separate from test counts.
 
 A subsequent isolated `npm run benchmark:runtime` run completed all 79 scenarios with correctness assertions and source/build identity checks. Its [raw report](benchmarks/2026-10-06T19-43-53.019Z-5f307b82-ef08-42de-a7eb-88403317d91a.json) and CSV tables are retained; one run does not establish a performance improvement. An initial concurrent attempt overlapped clean builds and failed before saving a report; the successful rerun started after verification finished.
 

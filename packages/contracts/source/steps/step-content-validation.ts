@@ -5,19 +5,19 @@ import { match, P } from 'ts-pattern';
 import { ConfigurationPaths } from '../configurations/configuration-paths.js';
 import { ConfigurationMessages } from '../configurations/configuration-messages.js';
 import type { ConfigurationIssue } from '../configurations/configuration-types.js';
-import { informationContentSchema, interactiveContentSchema } from './step-schema.js';
+import { StepSchemas } from './step-schema.js';
 import { configurationSchemaCompiler } from '../configurations/validation/configuration-schema-compiler.js';
 import { StepType } from '../shared/domain-values.js';
 import type { StepContent } from './step-types.js';
 
 const informationContentRequirement = {
-  validate: configurationSchemaCompiler.compile(informationContentSchema),
+  validate: configurationSchemaCompiler.compile(StepSchemas.InformationContent),
   path: identity<string>,
   message: ConfigurationMessages.InformationContentRequired,
 };
 
 const interactiveContentRequirement = {
-  validate: configurationSchemaCompiler.compile(interactiveContentSchema),
+  validate: configurationSchemaCompiler.compile(StepSchemas.InteractiveContent),
   path: ConfigurationPaths.contentTitle,
   message: ConfigurationMessages.InteractiveTitleRequired,
 };

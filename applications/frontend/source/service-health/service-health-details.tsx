@@ -1,5 +1,4 @@
-import { Else, If, Then } from 'react-if';
-import { match, P } from 'ts-pattern';
+import { match } from 'ts-pattern';
 import { ApplicationPolicy } from '../application/application-policy';
 import { ServiceHealthContent } from './service-health-content';
 import { ServiceHealthStatus, type ServiceHealth } from './service-health';
@@ -10,14 +9,10 @@ interface ServiceHealthDetailsProperties {
 
 export function ServiceHealthDetails({ health }: ServiceHealthDetailsProperties): UINode {
   return match(health)
+    .with({ status: ServiceHealthStatus.Checking }, () => ServiceHealthContent.CheckingDescription)
     .with(
-      { status: P.union(ServiceHealthStatus.Checking, ServiceHealthStatus.Unavailable) },
-      ({ status }) => (
-        <If condition={status === ServiceHealthStatus.Checking}>
-          <Then>{ServiceHealthContent.CheckingDescription}</Then>
-          <Else>{ServiceHealthContent.UnavailableDescription}</Else>
-        </If>
-      ),
+      { status: ServiceHealthStatus.Unavailable },
+      () => ServiceHealthContent.UnavailableDescription,
     )
     .with({ status: ServiceHealthStatus.Ready }, ({ checkedAt }) => (
       <>

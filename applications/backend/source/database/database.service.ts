@@ -12,7 +12,9 @@ import { SQLitePolicy } from './sqlite-policy.js';
 @Injectable()
 export class DatabaseService implements OnModuleInit, OnApplicationShutdown {
   readonly client: PrismaClient;
+
   private readonly databaseUrl: string;
+
   private expectedMigrations: ReadonlyList<string> = [];
 
   constructor(@Inject(ApplicationEnvironmentService) environment: ApplicationEnvironmentService) {

@@ -4,6 +4,7 @@ export const BuildMessages = /** @type {const} */ ({
 });
 
 export const ConfigurationIntegrityMessages = /** @type {const} */ ({
+  InvalidManifest: 'The configuration checksum manifest must be a JSON object.',
   /** @param {string} fileName */
   verifiedContents(fileName) {
     return `${fileName}: original checksum verified`;

@@ -2,43 +2,53 @@ import { Type } from 'typebox';
 
 import { ConfigurationFormat } from '../configurations/configuration-format.js';
 import { ConfigurationSchemaPolicy } from '../configurations/configuration-policy.js';
-import { conditionReferenceSchema } from '../conditions/condition-schema.js';
-import { identifierSchema, textSchema } from '../shared/schema-primitives.js';
+import { ConditionSchemas } from '../conditions/condition-schema.js';
+import { SchemaPrimitives } from '../shared/schema-primitives.js';
 
-export const primaryActionSchema = Type.Object(
+const primaryActionSchema = Type.Object(
   {
-    label: textSchema,
+    label: SchemaPrimitives.Text,
     action: Type.Literal(ConfigurationFormat.PrimaryAction),
   },
   { additionalProperties: false },
 );
 
-const recommendationsSchema = Type.Array(textSchema, ConfigurationSchemaPolicy.Recommendations);
+const recommendationsSchema = Type.Array(
+  SchemaPrimitives.Text,
+  ConfigurationSchemaPolicy.Recommendations,
+);
 const resultContentProperties = {
-  title: textSchema,
-  summary: textSchema,
+  title: SchemaPrimitives.Text,
+  summary: SchemaPrimitives.Text,
   recommendations: recommendationsSchema,
   cta: primaryActionSchema,
 };
 
-export const resultOverrideSchema = Type.Partial(
+const resultOverrideSchema = Type.Partial(
   Type.Object(resultContentProperties, {
     additionalProperties: false,
   }),
 );
 
-export const funnelResultSchema = Type.Object(
+const funnelResultSchema = Type.Object(
   {
-    id: identifierSchema,
+    id: SchemaPrimitives.Identifier,
     ...resultContentProperties,
   },
   { additionalProperties: false },
 );
 
-export const resultRuleSchema = Type.Object(
+const resultRuleSchema = Type.Object(
   {
-    resultId: identifierSchema,
-    when: conditionReferenceSchema,
+    resultId: SchemaPrimitives.Identifier,
+    when: ConditionSchemas.ConditionReference,
   },
   { additionalProperties: false },
 );
+
+export const ResultSchemas = {
+  PrimaryAction: primaryActionSchema,
+  ResultOverride: resultOverrideSchema,
+  FunnelResult: funnelResultSchema,
+  ResultRule: resultRuleSchema,
+} as const;

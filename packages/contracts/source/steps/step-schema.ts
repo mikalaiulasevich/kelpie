@@ -2,93 +2,88 @@ import { Type } from 'typebox';
 
 import { ConfigurationFormat } from '../configurations/configuration-format.js';
 import { ConfigurationSchemaPolicy } from '../configurations/configuration-policy.js';
-import { conditionReferenceSchema } from '../conditions/condition-schema.js';
+import { ConditionSchemas } from '../conditions/condition-schema.js';
 import { StepType } from '../shared/domain-values.js';
-import {
-  SchemaPrimitives,
-  identifierSchema,
-  nonBlankTextSchema,
-  textSchema,
-} from '../shared/schema-primitives.js';
+import { SchemaPrimitives } from '../shared/schema-primitives.js';
 
-export const stepContentSchema = Type.Partial(
+const stepContentSchema = Type.Partial(
   Type.Object(
     {
-      title: textSchema,
-      helperText: textSchema,
-      eyebrow: textSchema,
-      body: textSchema,
-      primaryActionLabel: textSchema,
-      loadingTitle: textSchema,
-      errorTitle: textSchema,
-      retryLabel: textSchema,
+      title: SchemaPrimitives.Text,
+      helperText: SchemaPrimitives.Text,
+      eyebrow: SchemaPrimitives.Text,
+      body: SchemaPrimitives.Text,
+      primaryActionLabel: SchemaPrimitives.Text,
+      loadingTitle: SchemaPrimitives.Text,
+      errorTitle: SchemaPrimitives.Text,
+      retryLabel: SchemaPrimitives.Text,
     },
     { additionalProperties: false },
   ),
 );
 
-export const informationContentSchema = Type.Object(
+const informationContentSchema = Type.Object(
   {
     ...stepContentSchema.properties,
-    title: nonBlankTextSchema,
-    body: nonBlankTextSchema,
-    primaryActionLabel: nonBlankTextSchema,
+    title: SchemaPrimitives.NonBlankText,
+    body: SchemaPrimitives.NonBlankText,
+    primaryActionLabel: SchemaPrimitives.NonBlankText,
   },
   { additionalProperties: false },
 );
 
-export const interactiveContentSchema = Type.Object(
+const interactiveContentSchema = Type.Object(
   {
     ...stepContentSchema.properties,
-    title: nonBlankTextSchema,
+    title: SchemaPrimitives.NonBlankText,
   },
   { additionalProperties: false },
 );
 
-export const answerValidationSchema = Type.Object(
+const answerValidationSchema = Type.Object(
   {
     required: Type.Boolean(),
     minSelections: Type.Optional(Type.Integer(ConfigurationSchemaPolicy.MinimumSelections)),
     maxSelections: Type.Optional(Type.Integer(ConfigurationSchemaPolicy.MaximumSelections)),
-    messages: SchemaPrimitives.dictionary(textSchema),
+    messages: SchemaPrimitives.dictionary(SchemaPrimitives.Text),
   },
   { additionalProperties: false },
 );
 
 const commonStepProperties = {
-  id: identifierSchema,
+  id: SchemaPrimitives.Identifier,
   content: stepContentSchema,
-  visibleWhen: Type.Optional(conditionReferenceSchema),
+  visibleWhen: Type.Optional(ConditionSchemas.ConditionReference),
 };
 
-export const numberInputSchema = Type.Object(
+const numberInputSchema = Type.Object(
   {
-    name: identifierSchema,
+    name: SchemaPrimitives.Identifier,
     min: Type.Number(),
     max: Type.Number(),
     step: Type.Number({ exclusiveMinimum: 0 }),
-    unit: Type.Optional(textSchema),
+    unit: Type.Optional(SchemaPrimitives.Text),
   },
   { additionalProperties: false },
 );
 
-export const selectionOptionSchema = Type.Object(
+const selectionOptionSchema = Type.Object(
   {
-    value: identifierSchema,
-    label: textSchema,
+    value: SchemaPrimitives.Identifier,
+    label: SchemaPrimitives.Text,
   },
   { additionalProperties: false },
 );
 
-export const selectionInputSchema = Type.Object(
+const selectionInputSchema = Type.Object(
   {
-    name: identifierSchema,
+    name: SchemaPrimitives.Identifier,
     options: Type.Array(selectionOptionSchema, ConfigurationSchemaPolicy.SelectionOptions),
   },
   { additionalProperties: false },
 );
 
-export const informationStepSchema = Type.Object(
+const informationStepSchema = Type.Object(
   {
     ...commonStepProperties,
     type: Type.Literal(StepType.Information),
@@ -97,7 +92,7 @@ export const informationStepSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const resultStepSchema = Type.Object(
+const resultStepSchema = Type.Object(
   {
     ...commonStepProperties,
     type: Type.Literal(StepType.Result),
@@ -106,7 +101,7 @@ export const resultStepSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const numberStepSchema = Type.Object(
+const numberStepSchema = Type.Object(
   {
     ...commonStepProperties,
     type: Type.Literal(StepType.Number),
@@ -124,7 +119,7 @@ const commonSelectionProperties = {
   validation: answerValidationSchema,
 };
 
-export const singleSelectionStepSchema = Type.Object(
+const singleSelectionStepSchema = Type.Object(
   {
     ...commonSelectionProperties,
     type: Type.Literal(StepType.SingleSelect),
@@ -132,7 +127,7 @@ export const singleSelectionStepSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const multipleSelectionStepSchema = Type.Object(
+const multipleSelectionStepSchema = Type.Object(
   {
     ...commonSelectionProperties,
     type: Type.Literal(StepType.MultiSelect),
@@ -140,10 +135,26 @@ export const multipleSelectionStepSchema = Type.Object(
   { additionalProperties: false },
 );
 
-export const funnelStepSchema = Type.Union([
+const funnelStepSchema = Type.Union([
   informationStepSchema,
   resultStepSchema,
   numberStepSchema,
   singleSelectionStepSchema,
   multipleSelectionStepSchema,
 ]);
+
+export const StepSchemas = {
+  StepContent: stepContentSchema,
+  InformationContent: informationContentSchema,
+  InteractiveContent: interactiveContentSchema,
+  AnswerValidation: answerValidationSchema,
+  NumberInput: numberInputSchema,
+  SelectionOption: selectionOptionSchema,
+  SelectionInput: selectionInputSchema,
+  InformationStep: informationStepSchema,
+  ResultStep: resultStepSchema,
+  NumberStep: numberStepSchema,
+  SingleSelectionStep: singleSelectionStepSchema,
+  MultipleSelectionStep: multipleSelectionStepSchema,
+  FunnelStep: funnelStepSchema,
+} as const;

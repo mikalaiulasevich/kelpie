@@ -13,7 +13,9 @@ import type { FunnelStep } from '../steps/step-types.js';
 /** Answer availability and result counts belong to one variant traversal. */
 class VariantSequenceValidation {
   private readonly earlierAnswers = new Set<string>();
+
   private resultCount = 0;
+
   private readonly paths: ReturnType<typeof ConfigurationPaths.variant>;
 
   constructor(

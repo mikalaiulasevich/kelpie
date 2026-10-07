@@ -1,3 +1,4 @@
+import { DatabaseErrors } from '../database/database-errors.js';
 import {
   HttpStatus,
   Inject,
@@ -6,7 +7,7 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { createHash } from 'node:crypto';
-import { Prisma, type Publication } from '../../generated/prisma/client.js';
+import type { Prisma, Publication } from '../../generated/prisma/client.js';
 import { DatabaseService } from '../database/database.service.js';
 import { ConfigurationImportDocument } from '../configurations/configuration-import-document.js';
 import { PublicRequestError } from '../transport/public-request-error.js';
@@ -154,10 +155,7 @@ export class PublicationService {
         return this.activate(transaction, intent, fingerprint);
       });
     } catch (error) {
-      if (
-        !(error instanceof Prisma.PrismaClientKnownRequestError) ||
-        error.code !== PublicationPolicy.UniqueConstraintCode
-      ) {
+      if (!DatabaseErrors.isUniqueConstraint(error)) {
         throw error;
       }
 

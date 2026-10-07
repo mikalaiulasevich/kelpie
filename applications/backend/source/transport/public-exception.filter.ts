@@ -1,4 +1,5 @@
-import { isError } from 'es-toolkit/predicate';
+import { isError, isString } from 'es-toolkit/predicate';
+import { attempt } from 'es-toolkit/util';
 import {
   type ArgumentsHost,
   Catch,
@@ -16,6 +17,8 @@ import { DiagnosticEvents } from '../diagnostics/diagnostic-policy.js';
 import { ErrorDiagnostics } from '../diagnostics/error-diagnostics.js';
 import { TransportPolicy, PublicStatusCodes, PublicErrorCode } from './transport-policy.js';
 import { TransportMessages } from './transport-messages.js';
+
+const inputErrorStatuses = new Map<string, number>(Object.entries(TransportPolicy.InputErrorCodes));
 
 @Catch()
 export class PublicExceptionFilter implements ExceptionFilter {
@@ -58,13 +61,15 @@ export class PublicExceptionFilter implements ExceptionFilter {
   private resolveInputStatus(exception: unknown): Optional<number> {
     // Fastify parser errors are identified by their known codes. Never trust
     // arbitrary status properties from exceptions at the public boundary.
-    if (!isError(exception) || !('code' in exception)) {
-      return undefined;
-    }
+    const [, code] = attempt(() => {
+      if (!isError(exception) || !('code' in exception)) {
+        return undefined;
+      }
 
-    return Object.entries(TransportPolicy.InputErrorCodes).find(
-      ([code]) => code === exception.code,
-    )?.[1];
+      return exception.code;
+    });
+
+    return isString(code) ? inputErrorStatuses.get(code) : undefined;
   }
 
   private resolvePublicMessage(status: number): string {

@@ -7,3 +7,5 @@ export interface MigrationSummary {
 export interface SQLiteForeignKeySetting {
   readonly foreign_keys: bigint;
 }
+
+export const DatabaseErrorCode = { UniqueConstraint: 'P2002' } as const;

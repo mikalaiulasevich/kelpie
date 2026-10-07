@@ -38,7 +38,7 @@ After building and migrating, `npm run start --workspace=@kelpie/backend` starts
 
 ## Administrator API
 
-Run migrations before provisioning credentials. Supply `ADMINISTRATION_USERNAME` and `ADMINISTRATION_PASSWORD` through your local secret environment, then run `npm run administration:provision`. There is no default password. Provisioning again rotates the single administrator's credentials and revokes existing sessions. Do not put passwords in command arguments, source files or committed environment files.
+Run migrations before provisioning credentials. Supply `ADMINISTRATION_USERNAME` and `ADMINISTRATION_PASSWORD` through your local secret environment, then run `npm run administration:provision`. The root command builds shared packages and generates Prisma Client before executing provisioning. There is no default password. Provisioning again rotates the single administrator's credentials and revokes existing sessions. Do not put passwords in command arguments, source files or committed environment files.
 
 `ADMINISTRATION_ORIGIN` is the exact browser origin without a trailing slash (development default `http://127.0.0.1:5173`). Production requires an explicit HTTPS origin. Vite proxies the API during development; production should serve the frontend and API on the same origin. Cross-origin CORS and unrelated-domain GitHub Pages cookies are not implemented.
 

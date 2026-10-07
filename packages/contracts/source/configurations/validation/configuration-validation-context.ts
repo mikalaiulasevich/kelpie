@@ -6,7 +6,9 @@ import type { InteractiveStep, SelectionStep } from '../../steps/step-types.js';
 /** One validation owns its indexes and ordered, bounded diagnostics. */
 export class ConfigurationValidationContext {
   readonly issues: ConfigurationIssue[] = [];
+
   readonly answerSteps = new Map<string, InteractiveStep>();
+
   readonly selectionValues: ValueMapper<SelectionStep, ReadonlySet<TextOrNumber>> = memoize(
     (step: SelectionStep): ReadonlySet<TextOrNumber> =>
       new Set(step.input.options.map((option) => option.value)),

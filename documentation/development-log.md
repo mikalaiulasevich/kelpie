@@ -27,11 +27,13 @@ Real SQLite and HTTP tests cover authorization before replay, simultaneous comma
 
 A follow-up ownership pass consolidated shared management contracts and CLI lifecycle, grouped publication schemas, simplified password decoding and replaced import error branches with exhaustive maps. Review caught and corrected a credential snapshot regression; dedicated mutation and lifecycle tests now guard those boundaries. No additional product iteration is claimed for this refactor.
 
+The repository-wide follow-up grouped shared schema owners without changing the serialized schema, contained throwing error-code accessors, reused database error classification and aligned health types. It also corrected stale frontend status text, simplified state rendering, hardened configuration-manifest validation and made root administrator provisioning prepare generated dependencies. Formatting checks now cover all workspace source modules. Runtime algorithms and raw benchmark evidence were retained.
+
 ## Verification history
 
 The initial foundation was installed and checked locally on Node.js 24 and 26. A frontend readiness check was inspected in desktop/mobile layouts at that milestone. Subsequent refactors were checked on Node.js 24.16.0; they do not constitute new browser or Node.js 26 verification.
 
-The subsequent plan-conformance pass corrected optional-answer progress, scoped operation identifiers to their session, isolated diagnostics from supplied error stacks and aligned development shutdown budgets. That pass was followed by the Fastify migration; the current verification after backend iterations 2 and 3 covers 379 tests and the full verification command. The previous toolkit review’s three 79-case benchmark runs and the current verification summary are recorded in [the engineering review](foundation-review.md). Raw reports and CSV history remain in [benchmarks](benchmarks/).
+The subsequent plan-conformance pass corrected optional-answer progress, scoped operation identifiers to their session, isolated diagnostics from supplied error stacks and aligned development shutdown budgets. That pass was followed by the Fastify migration; the current verification after backend iterations 2 and 3 covers 380 tests and the full verification command. The previous toolkit review’s three 79-case benchmark runs and the current verification summary are recorded in [the engineering review](foundation-review.md). Raw reports and CSV history remain in [benchmarks](benchmarks/).
 
 A historical GitHub Actions attempt failed before jobs started; this cleanup does not establish current remote CI status. No public deployment has been verified.
 

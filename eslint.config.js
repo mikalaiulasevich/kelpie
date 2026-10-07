@@ -185,9 +185,7 @@ export default typescript.config(
     rules: { 'no-console': ['error', {}] },
   },
   {
-    files: [
-      'applications/backend/source/{administration,configurations,publications,management}/**/*.ts',
-    ],
+    files: ['applications/*/source/**/*.{ts,tsx}', 'packages/*/source/**/*.ts'],
     rules: {
       'lines-between-class-members': ['error', 'always'],
       'padding-line-between-statements': [

@@ -59,5 +59,7 @@ export type {
 export { DictionaryAccess } from './shared/dictionary.js';
 
 export { FunnelConfigurations } from './configurations/funnel-configurations.js';
+
 export { StepRules } from './steps/step-rules.js';
+
 export { ConfigurationDocumentBounds } from './configurations/validation/configuration-document-bounds.js';

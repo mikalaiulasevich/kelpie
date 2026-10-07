@@ -13,11 +13,11 @@ describe('Application environment validation', () => {
     );
   });
 
-  it.each(EnvironmentCases.invalidPorts)('rejects invalid port %s', (port) => {
+  it.each(EnvironmentCases.InvalidPorts)('rejects invalid port %s', (port) => {
     expect(() => ApplicationEnvironmentReader.read({ PORT: port })).toThrow('PORT');
   });
 
-  it.each(EnvironmentCases.unsupportedDatabaseUrls)(
+  it.each(EnvironmentCases.UnsupportedDatabaseUrls)(
     'rejects unsupported database URL %s',
     (databaseUrl) => {
       expect(() => ApplicationEnvironmentReader.read({ DATABASE_URL: databaseUrl })).toThrow(
@@ -45,7 +45,7 @@ describe('Application environment boundary compatibility', () => {
     },
   );
 
-  it.each(EnvironmentCases.acceptedModes)('accepts mode %s', (mode) => {
+  it.each(EnvironmentCases.AcceptedModes)('accepts mode %s', (mode) => {
     expect(
       ApplicationEnvironmentReader.read({
         NODE_ENV: mode,
@@ -54,29 +54,29 @@ describe('Application environment boundary compatibility', () => {
     ).toBe(mode);
   });
 
-  it.each(EnvironmentCases.acceptedPorts)('preserves valid port %j', (port) => {
+  it.each(EnvironmentCases.AcceptedPorts)('preserves valid port %j', (port) => {
     expect(ApplicationEnvironmentReader.read({ PORT: port }).port).toBe(Number(port));
   });
 
-  it.each(EnvironmentCases.malformedPorts)('rejects malformed port %j', (port) => {
+  it.each(EnvironmentCases.MalformedPorts)('rejects malformed port %j', (port) => {
     expect(() => ApplicationEnvironmentReader.read({ PORT: port })).toThrow('PORT');
   });
 
-  it.each(EnvironmentCases.acceptedHosts)('preserves accepted host %j', (host) => {
+  it.each(EnvironmentCases.AcceptedHosts)('preserves accepted host %j', (host) => {
     expect(ApplicationEnvironmentReader.read({ HOST: host }).host).toBe(host);
   });
 
-  it.each(EnvironmentCases.unsupportedHosts)('rejects unsupported host %j', (host) => {
+  it.each(EnvironmentCases.UnsupportedHosts)('rejects unsupported host %j', (host) => {
     expect(() => ApplicationEnvironmentReader.read({ HOST: host })).toThrow('HOST');
   });
 
-  it.each(EnvironmentCases.unsafeDatabaseUrls)('rejects unsafe database URL %j', (databaseUrl) => {
+  it.each(EnvironmentCases.UnsafeDatabaseUrls)('rejects unsafe database URL %j', (databaseUrl) => {
     expect(() => ApplicationEnvironmentReader.read({ DATABASE_URL: databaseUrl })).toThrow(
       'DATABASE_URL',
     );
   });
 
-  it.each(EnvironmentCases.absoluteDatabaseUrls)(
+  it.each(EnvironmentCases.AbsoluteDatabaseUrls)(
     'preserves supported absolute database URL %j',
     (databaseUrl) => {
       expect(ApplicationEnvironmentReader.read({ DATABASE_URL: databaseUrl }).databaseUrl).toBe(

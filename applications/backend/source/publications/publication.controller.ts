@@ -1,5 +1,4 @@
-import type { PublicationResponse } from './publication-types.js';
-import type { PublicationHistory } from './publication-types.js';
+import type { PublicationResponse, PublicationHistory } from './publication-types.js';
 import { Body, Controller, Get, Inject, Post, Query, Req, UseGuards } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
 import { AdministrationGuard } from '../administration/administration.guard.js';

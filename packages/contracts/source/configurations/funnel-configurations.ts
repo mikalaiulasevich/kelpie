@@ -6,10 +6,11 @@ import type { ConfigurationValidationResult, FunnelConfiguration } from './confi
 import { ConfigurationDocumentBounds } from './validation/configuration-document-bounds.js';
 import { ConfigurationLimits } from './configuration-policy.js';
 import { ConfigurationSemantics } from './validation/configuration-semantic-validation.js';
-import { funnelConfigurationSchema } from './configuration-schema.js';
+import { ConfigurationSchemas } from './configuration-schema.js';
 
-const structuralValidator =
-  configurationSchemaCompiler.compile<FunnelConfiguration>(funnelConfigurationSchema);
+const structuralValidator = configurationSchemaCompiler.compile<FunnelConfiguration>(
+  ConfigurationSchemas.FunnelConfiguration,
+);
 
 export const FunnelConfigurations = {
   limits: ConfigurationLimits,

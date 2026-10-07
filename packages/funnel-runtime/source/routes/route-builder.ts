@@ -13,10 +13,15 @@ import type { AcceptedStepAnswer, EvaluatedRoute } from './route-types.js';
 /** A new builder owns each traversal; answers never leak between resolutions. */
 export class RouteBuilder {
   private readonly steps: FunnelStep[] = [];
+
   private readonly activeAnswers: Dictionary<string, StepAnswer> = {};
+
   private readonly selectedVariant: VariantConfiguration;
+
   private isComplete = true;
+
   private questionCount = 0;
+
   private completedQuestionCount = 0;
 
   private constructor(

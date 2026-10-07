@@ -83,6 +83,24 @@ describe('Request diagnostics and privacy', () => {
     expect(JSON.stringify(records)).not.toContain('PRIVATE_UNRECOGNIZED_CODE');
   });
 
+  it('contains throwing parser-code accessors and returns a correlated private failure', async () => {
+    await backend.close();
+    RequestFailureFixture.unreadableCode();
+    backend = await BackendApplicationFixture.create();
+    records.length = 0;
+
+    const response = await backend.request('/api/health/live');
+
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({
+      statusCode: 500,
+      code: 'internal_error',
+      requestIdentifier: response.headers.get('x-request-id'),
+      message: 'An internal error occurred.',
+    });
+    expect(JSON.stringify(records)).not.toContain('private');
+  });
+
   it('records a safe database failure reason and recovers without restarting', async () => {
     const failure = Object.assign(new Error('private-database-path and private-answer'), {
       code: 'SQLITE_BUSY',

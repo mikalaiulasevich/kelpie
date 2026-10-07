@@ -31,8 +31,11 @@ export const RequestContext = new AsyncLocalStorage<RequestDiagnosticContext>();
 
 export class DiagnosticSink {
   private readonly logger: Logger;
+
   private blocked = false;
+
   private droppedRecords = 0;
+
   private failed = false;
 
   constructor(

@@ -5,7 +5,6 @@ import type { Prisma } from '../../generated/prisma/client.js';
 export const ConfigurationImportPolicy = {
   HashAlgorithm: 'sha256',
   HashEncoding: 'hex',
-  UniqueConstraintCode: 'P2002',
   RootPath: '/',
   ManagementRoute: 'administration/configurations',
   IdentityFields: ['funnelIdentifier', 'version', 'schemaVersion', 'checksum'],

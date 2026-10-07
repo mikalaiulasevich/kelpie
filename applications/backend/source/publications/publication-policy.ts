@@ -5,7 +5,6 @@ export type PublicationAction = ValueOf<typeof PublicationAction>;
 export const PublicationPolicy = {
   HashAlgorithm: 'sha256',
   HashEncoding: 'hex',
-  UniqueConstraintCode: 'P2002',
   MaximumRevision: 2147483646,
   UuidPattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
   Routes: {

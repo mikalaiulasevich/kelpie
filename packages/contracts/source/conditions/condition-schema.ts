@@ -3,44 +3,44 @@ import { Type } from 'typebox';
 import { ConfigurationFormat } from '../configurations/configuration-format.js';
 import { ConfigurationSchemaPolicy } from '../configurations/configuration-policy.js';
 import { ConditionOperator } from '../shared/domain-values.js';
-import { identifierSchema } from '../shared/schema-primitives.js';
+import { SchemaPrimitives } from '../shared/schema-primitives.js';
 
 const conditionValueSchema = Type.Union([
   Type.String(ConfigurationSchemaPolicy.ConditionText),
   Type.Number(),
 ]);
-export const conditionReferenceSchema = Type.Ref(ConfigurationFormat.ConditionReference);
+const conditionReferenceSchema = Type.Ref(ConfigurationFormat.ConditionReference);
 
-export const equalConditionSchema = Type.Object(
+const equalConditionSchema = Type.Object(
   {
-    answer: identifierSchema,
+    answer: SchemaPrimitives.Identifier,
     operator: Type.Literal(ConditionOperator.Equal),
     value: conditionValueSchema,
   },
   { additionalProperties: false },
 );
 
-export const includedConditionSchema = Type.Object(
+const includedConditionSchema = Type.Object(
   {
-    answer: identifierSchema,
+    answer: SchemaPrimitives.Identifier,
     operator: Type.Literal(ConditionOperator.In),
     value: Type.Array(conditionValueSchema, ConfigurationSchemaPolicy.ConditionValues),
   },
   { additionalProperties: false },
 );
 
-export const containsConditionSchema = Type.Object(
+const containsConditionSchema = Type.Object(
   {
-    answer: identifierSchema,
+    answer: SchemaPrimitives.Identifier,
     operator: Type.Literal(ConditionOperator.Contains),
-    value: identifierSchema,
+    value: SchemaPrimitives.Identifier,
   },
   { additionalProperties: false },
 );
 
-export const minimumConditionSchema = Type.Object(
+const minimumConditionSchema = Type.Object(
   {
-    answer: identifierSchema,
+    answer: SchemaPrimitives.Identifier,
     operator: Type.Literal(ConditionOperator.GreaterThanOrEqual),
     value: Type.Number(),
   },
@@ -52,7 +52,7 @@ const conditionListSchema = Type.Array(
   ConfigurationSchemaPolicy.ConditionChildren,
 );
 
-export const conditionSchema = Type.Union([
+const conditionSchema = Type.Union([
   Type.Object({ all: conditionListSchema }, { additionalProperties: false }),
   Type.Object({ any: conditionListSchema }, { additionalProperties: false }),
   equalConditionSchema,
@@ -60,3 +60,12 @@ export const conditionSchema = Type.Union([
   containsConditionSchema,
   minimumConditionSchema,
 ]);
+
+export const ConditionSchemas = {
+  ConditionReference: conditionReferenceSchema,
+  EqualCondition: equalConditionSchema,
+  IncludedCondition: includedConditionSchema,
+  ContainsCondition: containsConditionSchema,
+  MinimumCondition: minimumConditionSchema,
+  Condition: conditionSchema,
+} as const;

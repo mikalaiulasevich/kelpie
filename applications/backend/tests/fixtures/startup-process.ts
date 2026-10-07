@@ -96,6 +96,7 @@ export class StartupProcessFixture {
         throw new Error(StartupProcessMessages.PrematureExit);
       }
 
+      // Connection refusal is expected while the child initializes; the loop owns the deadline.
       const response = await fetch(
         `${StartupProcessPolicy.HttpScheme}//${StartupProcessPolicy.Host}:${port}${StartupProcessPolicy.LivenessPath}`,
         {

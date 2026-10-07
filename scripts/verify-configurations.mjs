@@ -1,10 +1,13 @@
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
+import assert from 'node:assert/strict';
+import { isPlainObject } from 'es-toolkit/predicate';
 
 import { ConfigurationIntegrityMessages } from './script-messages.mjs';
 import { ConfigurationFiles } from './script-policy.mjs';
 
 const configurationsDirectory = new URL(ConfigurationFiles.Directory, import.meta.url);
+/** @type {unknown} */
 const manifest = JSON.parse(
   await readFile(
     new URL(ConfigurationFiles.ManifestName, configurationsDirectory),
@@ -13,8 +16,11 @@ const manifest = JSON.parse(
 );
 
 const expectedNames = new Set(ConfigurationFiles.Versions.map(ConfigurationFiles.fileName));
+assert.ok(isPlainObject(manifest), ConfigurationIntegrityMessages.InvalidManifest);
+const entries = Object.entries(manifest);
+assert.equal(entries.length, expectedNames.size, ConfigurationIntegrityMessages.MissingEntries);
 
-for (const [fileName, expectedChecksum] of Object.entries(manifest)) {
+for (const [fileName, expectedChecksum] of entries) {
   if (!expectedNames.has(fileName)) {
     throw new Error(ConfigurationIntegrityMessages.unexpectedEntry(fileName));
   }
@@ -29,8 +35,4 @@ for (const [fileName, expectedChecksum] of Object.entries(manifest)) {
 
   JSON.parse(contents.toString(ConfigurationFiles.TextEncoding));
   console.info(ConfigurationIntegrityMessages.verifiedContents(fileName));
-}
-
-if (Object.keys(manifest).length !== expectedNames.size) {
-  throw new Error(ConfigurationIntegrityMessages.MissingEntries);
 }
