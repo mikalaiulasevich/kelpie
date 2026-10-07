@@ -107,6 +107,12 @@ A historical GitHub Actions attempt failed before jobs started; this cleanup doe
 
 Adapted the supplied shadcnexamples references using the existing shadcn components: split authentication with a generated blue glass cover, larger cards and table spacing, four desktop A/B metrics, horizontal conversion comparison, collapsible filters and grouped configuration/import surfaces. Backend contracts, library dependencies and authentication behavior remain unchanged. Local browser checks covered the isolated API fixture, real upload validation, mobile layouts and collapsed navigation. Frontend verification passed 125 tests and production compilation; design-qa.md records visual comparisons and limitations. No deployment or remote CI result is implied.
 
+## 2026-10-07 — Populated administration workspace
+
+Expanded the configuration library with version highlights, scoped search/status filtering/numeric sorting and activation context. Analytics now combines variant summaries, chart/context and an immediately available journey table; controlled version selection survives refresh and compatible filter changes. Added semantic statuses and reduced-motion-aware interaction feedback. Browser QA covered desktop plus 390/768 CSS-pixel layouts, search reset, sorting, row actions, filters, variant/path tables and the import dialog. All 128 frontend tests, production compilation, lint and formatting passed.
+
+At the user's request, seeded the local database with six derived demo configurations and 192 synthetic sessions through existing application boundaries. A backup preceded mutation, administrator credentials stayed unchanged, and a rerun added zero records. This local visual seed is not the planned production-facing traffic generator or deployment acceptance.
+
 ## Remaining delivery milestones
 
 | Iteration            | Status                                                                                                                                                                                                                                                             |

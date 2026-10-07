@@ -1,38 +1,53 @@
-# Administration reference QA — 2026-10-07
+# Administration detail and data QA — 2026-10-07
 
-Result: passed for an adaptation of the supplied references to the existing Kelpie product. This is not a pixel-identical clone or a new feature set.
+## Findings and comparison history
 
-## Sources and captures
+Final review found no remaining actionable P0/P1/P2 issues within the requested existing-product scope.
 
-Reviewed the user-provided shadcnexamples authentication, website analytics, file manager, tasks and product form pages, plus official shadcn sidebar, card, chart and login-02 documentation. Public previews informed composition; paid source code was not copied.
+- P2, analytics navigation: initial version tabs reset after Refresh. Lifted selection above loading state; verified v3 stays selected after Refresh and Apply when present in the response.
+- P2, analytics layout: grid CardHeader ignored flex-row, wrapping badges and increasing vertical space. Used explicit flex, corrected footer border padding and reduced chart height. Recaptured chart and table together.
+- P2, capture state: full-page screenshot temporarily captured a Recharts resize before it settled. Replaced the analytics artifact with a stable viewport screenshot and compared again. This was a capture-state issue, not fabricated graph data.
+- Detail pass: replaced manual progress markup with existing shadcn Progress, added semantic badges and meaningful empty-state filter actions, resolved activity UUIDs to loaded version numbers, preserved fallback identifiers for off-page records.
 
-Source screenshots remain in the user-supplied TemporaryItems folders NSIRD_screencaptureui_0SPcFp, _431QFY, _2XqUz2, _xR0dWD, _YFZlgq and _kmFiID. Authentication source: 2864 × 1822; dashboard source: 2860 × 1548. Browser/demo chrome was excluded from comparison crops.
+## Visual truth and evidence
 
-Implementation captures are under /Users/organicsoft/Documents/Codex/2026-10-07/x20-https-ui-shadcn-com-blocks/outputs:
+Primary sources: user screenshots #2 File Manager and #3 Dashboard. Exact source files:
 
-- admin-reference-sign-in.jpg
-- admin-reference-analytics.jpg
-- admin-reference-configurations.jpg
-- admin-reference-import.jpg
-- admin-reference-inspector.jpg
-- admin-reference-mobile-sign-in.jpg
+- /var/folders/q9/b3ppnwjx5pn492g98pv36x8c0000gn/T/TemporaryItems/NSIRD_screencaptureui_431QFY/Снимок экрана — 2026-10-07 в 18.14.26.png
+- /var/folders/q9/b3ppnwjx5pn492g98pv36x8c0000gn/T/TemporaryItems/NSIRD_screencaptureui_2XqUz2/Снимок экрана — 2026-10-07 в 18.14.52.png
 
-Full-frame and focused comparison boards were inspected side by side in the same image review: work/auth-reference-comparison.jpg, work/dashboard-reference-comparison.jpg, work/auth-reference-focused.jpg and work/dashboard-reference-focused.jpg. Images were normalized to common comparison slots, preserving aspect ratio. The final dashboard capture uses a 1440 × 1000 browser viewport override; the browser's existing zoom/device scale produces a larger raster. Temporary overrides were reset afterwards. Responsive checks also covered CSS widths 390 and 768 with no document overflow.
+Public preview URLs: https://shadcnexamples.com/file-manager-admin-dashboard and https://shadcnexamples.com/website-analytics-admin-dashboard. Official shadcn blocks and component documentation informed implementation; no paid source was copied.
 
-## Fidelity surfaces
+Implementation captures under the task outputs directory:
 
-- Typography: retained Geist; increased page/form headings to 30px, card titles to 16px and supporting text to 14–15px. Metric values dominate their cards, with operands and secondary metrics beneath.
-- Layout: split authentication cover/form, charcoal 272px sidebar and black content, four desktop KPI cards above a large chart, roomy bordered management tables, and grouped inspection/import surfaces. Container queries reduce KPI columns as available content width shrinks.
-- Color: neutral dark shadcn surfaces and subdued borders, with the existing blue accent. Two tonal blue chart series belong to that same accent family.
-- Imagery: generated a dedicated fluted-glass WebP cover, 1086 × 1448, approximately 145KiB. Its blue palette deliberately adapts the source's warm cover to the requested single accent. This is an image asset, not CSS decoration.
-- Copy: retained English, concrete Kelpie operations and API semantics. Existing username/password authentication replaces the reference's registration/OAuth form. No fake trend claims, users, files, revenue or unsupported navigation were introduced.
+- admin-rich-configurations.png: populated six-version library, 1778 × 1430 raster.
+- admin-rich-analytics.png: synthetic v3, Variant A journey, 1778 × 1604 raster.
+- admin-rich-mobile.png: mobile analytics evidence.
 
-The backend exposes A/B conversion totals rather than a visitor time series, so the chart compares real ratios with horizontal bars. Zero denominators remain not applicable. Synthetic cohort labeling remains visible in the QA screenshot.
+Task directory: /Users/organicsoft/Documents/Codex/2026-10-07/x20-https-ui-shadcn-com-blocks.
 
-## Iterations and verification
+Source sizes: File Manager 2784 × 1788; Dashboard 3030 × 1750. Desktop capture overrides were 1440 × 1000 and 1440 × 1300; browser zoom reported 1600 CSS pixels wide for the latter and output raster scale was approximately 1.11. Mobile/tablet DOM checks reported 390/768 CSS pixels with equal document scroll widths. Temporary overrides were reset.
 
-Removed duplicated analytics heading, consolidated filter controls and retained unapplied drafts when filters close. Replaced the vertical comparison chart with a more legible horizontal comparison. Adjusted the four-column threshold to 58rem of available content so ordinary desktop widths retain the intended card rhythm. Fixed clipped branding and labels when the sidebar collapses. Replaced the exposed native upload input with a keyboard-accessible file chooser button while preserving real validation and upload behavior.
+Compared source and implementation together in work/rich-library-comparison.jpg and work/rich-dashboard-comparison.jpg, with aspect-preserving normalization to equal comparison slots. Focused table/control comparisons are work/rich-library-focused.jpg and work/rich-dashboard-focused.jpg. These establish structural adaptation, not pixel-identical replication: reference #3 starts below its page heading and uses a different metric domain.
 
-Browser verification used an isolated Nest/SQLite backend at 5300 and Vite at 5175: authenticated sign-in/sign-out, populated and empty cohorts, filters and retained drafts, Summary/Steps/Paths, configuration table/inspection, real file selection and duplicate-import response. No browser warning/error logs appeared in the final test session. Main localhost 5173 was restored. Temporary services were shut down; the user's main frontend/backend remain running.
+## Required fidelity surfaces
 
-Frontend: 125 tests, TypeScript/production build, scoped ESLint and formatting checks. These local checks do not establish remote CI, deployment or user visual acceptance.
+- Typography: Geist, clear title/body/metadata hierarchy, tabular values, persistent field labels, readable secondary operands. Long identifiers wrap or truncate with preserved full values where relevant.
+- Layout: charcoal navigation, black working canvas, differentiated highlight cards, working table toolbar, right context panels, graph above detailed journey tables. Small layouts stack content; wide metric tables retain their own horizontal scroll rather than overflowing the page.
+- Color: neutral surfaces with blue action/data accents and green live/terminal semantics. Hover, focus, disabled and selected states use shared tokens; semantic badge variants are reused.
+- Imagery: retained existing generated authentication asset; object/status visuals use Lucide icons. No fake files, portraits, storage meter or decorative assets were required for the configuration domain.
+- Copy/content: actual version, schema, revision and publication metadata. No unsupported authors, modification dates, storage capacities or revenue. Chart shows existing A/B ratio API rather than invented time-series data. Synthetic labels and ratio operands remain explicit.
+
+## Interaction and data verification
+
+Browser: real local backend on 3000 and frontend on 5173; sign-in, configuration search/no-results/reset, numeric sort, live-only filter, disabled publication for active version, populated synthetic analytics, version selection through Refresh/Apply, Variant A/B and Steps/Paths, mobile sidebar navigation and import modal. Empty production cohorts remain distinguishable from missing configurations. Final browser warning/error log query returned none.
+
+Seed: demo-workstyle-studio, 6 derived versions, active v3, 192 synthetic sessions (64 each on v1–v3), 4 campaigns, 120 result views, 72 CTA clicks, 1309 step views and 997 validated answers. Main server stayed running. work/visual-seed-first-run.json and work/visual-seed-result.json record first run and zero-addition rerun; work/seed-visual-data.mjs is repeatable. Backup: work/before-visual-seed-1791388288428.sqlite. Original supplied configuration files and administrator record were preserved. This is a local visual fixture, not the full planned traffic-generator deliverable.
+
+Checks: 128 frontend tests passed; frontend typecheck/production build, frontend ESLint, Prettier and git diff whitespace checks passed. An independent static review identified the tab-selection issue, which was fixed and browser-verified. No package/library changes. Backend implementation was unchanged; the full backend suite and deployment were not rerun for this UI task.
+
+## Follow-up polish
+
+No blocking visual findings remain in reviewed states. User visual acceptance and production deployment are separate from this local QA pass.
+
+final result: passed
