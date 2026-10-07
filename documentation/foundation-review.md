@@ -210,7 +210,7 @@ Root integrity verification now validates the complete filename allowlist before
 
 ## Verification evidence
 
-After backend iterations 4 and 5, the full Node.js 24.16.0 check passed `npm run verify`: 404 tests (251 backend, 12 frontend, 65 contracts, 76 runtime), strict types, lint, formatting, clean builds, configuration checksums, test layout and Prisma validation. This section owns verification updates; benchmark assertions are separate from test counts.
+After the cross-module maintenance pass, the full Node.js 24.16.0 check passed `npm run verify`: 412 tests (259 backend, 12 frontend, 65 contracts, 76 runtime), strict types, lint, formatting, clean builds, configuration checksums, test layout and Prisma validation. The October 7, 2026 npm audit reported zero known vulnerabilities in the installed dependency graph; this is advisory evidence, not proof of application security. This section owns verification updates; benchmark assertions are separate from test counts.
 
 A subsequent isolated `npm run benchmark:runtime` run completed all 79 scenarios with correctness assertions and source/build identity checks. Its [raw report](benchmarks/2026-10-06T19-43-53.019Z-5f307b82-ef08-42de-a7eb-88403317d91a.json) and CSV tables are retained; one run does not establish a performance improvement. An initial concurrent attempt overlapped clean builds and failed before saving a report; the successful rerun started after verification finished.
 
