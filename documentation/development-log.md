@@ -49,6 +49,12 @@ A subsequent maintenance pass simplified analytics orchestration, typed event di
 
 Backend composition was subsequently split into feature Nest modules with explicit provider ownership and imports/exports. Environment configuration is registered once per application; database and feature services retain singleton ownership. Two integration regressions cover module resolution, database disposal and isolation of simultaneous applications. This changes composition, not the delivery scope of the backend APIs.
 
+## Bun backend and application split
+
+Bun 1.3.14 now executes the backend with the official local-file libSQL adapter; Node.js 24.16.0 retains better-sqlite3. Both use the same Prisma schema/migrations and ISO timestamp storage. Node/npm remain build/migration tools. The combined verification passed 465 workspace tests on Node and the same 312 backend tests on Bun. Clean frozen Bun installation retained the native Node fallback; compiled import/replay and cookie-owned HTTP session state survived Node → Bun → Node on one disposable SQLite database. A Bun CI job is configured but has not been verified remotely.
+
+The public quiz is planned as a separate Next.js application at applications/quiz. Existing applications/frontend is the React/Vite administration target, including dashboard. Neither product interface was scaffolded during the runtime migration. IMPLEMENTATION_PLAN owns the updated remaining sequence.
+
 ## Verification history
 
 The initial foundation was installed and checked locally on Node.js 24 and 26. A frontend readiness check was inspected in desktop/mobile layouts at that milestone. Subsequent refactors were checked on Node.js 24.16.0; they do not constitute new browser or Node.js 26 verification.
@@ -63,6 +69,6 @@ A historical GitHub Actions attempt failed before jobs started; this cleanup doe
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | First working funnel | Runtime, administration, session, event ingestion and analytics APIs available. Funnel/admin/dashboard UI, browser event queue and traffic generation remain to implement. |
 | Second iteration     | Pending the first working funnel. Publish v3, verify both variants and retained older sessions, then roll back to v2 while preserving v3 sessions and analytics.           |
-| Bun and deployment   | Bun backend migration, Node.js/npm fallback verification, hosting with persistent storage and public acceptance remain pending.                                            |
+| Deployment           | Bun backend and Node.js/npm fallback verified locally; hosting with persistent storage and public acceptance remain pending.                                               |
 
 [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md) owns the detailed acceptance sequence. Update this timeline for completed product milestones; keep command output and repeated polish reports out of it.
