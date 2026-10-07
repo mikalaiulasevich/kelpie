@@ -10,6 +10,8 @@ import {
   Route,
   FlaskConical,
   Info,
+  CircleCheck,
+  ArrowUpRight,
 } from 'lucide-react';
 import { Alert, AlertDescription } from '../components/alert';
 import { Progress } from '../components/progress';
@@ -40,6 +42,7 @@ import type {
   AnalyticsVersion,
 } from '../management/management-types';
 import { AnalyticsFormat } from './analytics-format';
+import { ClassNames } from '../styling/combine-class-names';
 
 const AnalyticsComparisonChart = lazy(() =>
   import('./analytics-comparison-chart').then((module) => ({
@@ -47,10 +50,21 @@ const AnalyticsComparisonChart = lazy(() =>
   })),
 );
 
-function AnalyticsRatioValue({ ratio }: { readonly ratio: AnalyticsRatio }) {
+function AnalyticsRatioValue({
+  ratio,
+  tone = 'neutral',
+}: {
+  readonly ratio: AnalyticsRatio;
+  readonly tone?: 'neutral' | 'positive' | 'negative';
+}) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="font-medium tabular-nums">{AnalyticsFormat.ratio(ratio)}</span>
+      <span
+        data-tone={ratio.numerator > 0 ? tone : 'neutral'}
+        className="font-semibold tabular-nums data-[tone=positive]:text-success data-[tone=negative]:text-destructive"
+      >
+        {AnalyticsFormat.ratio(ratio)}
+      </span>
       <span className="text-xs text-muted-foreground tabular-nums">
         {AnalyticsFormat.fraction(ratio)}
       </span>
@@ -60,42 +74,39 @@ function AnalyticsRatioValue({ ratio }: { readonly ratio: AnalyticsRatio }) {
 
 function AnalyticsVariantSummary({ variant }: { readonly variant: AnalyticsVariant }) {
   return (
-    <Card className="gap-3 py-4">
-      <CardHeader className="flex flex-row items-center justify-between">
+    <Card className="gap-5 overflow-hidden py-0">
+      <CardHeader className="flex flex-row items-center justify-between gap-3 border-b bg-muted/20 py-4">
         <div className="flex items-center gap-3">
-          <span className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary font-semibold">
+          <span
+            className={ClassNames.combine(
+              'flex size-10 items-center justify-center rounded-xl text-lg font-semibold',
+              variant.variant === 'A' ? 'bg-primary/12 text-primary' : 'bg-info/12 text-info',
+            )}
+          >
             {variant.variant}
           </span>
           <div className="flex flex-col gap-1">
             <CardTitle>Variant {variant.variant}</CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs">
               {variant.steps.length} steps · {variant.edges.length} paths
             </CardDescription>
           </div>
         </div>
         <Badge variant="outline">
-          <GitBranch data-icon="inline-start" />
+          <GitBranch />
           Experiment
         </Badge>
       </CardHeader>
-      <CardContent className="grid grid-cols-2 gap-5">
+      <CardContent className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-5">
         <div className="flex flex-col gap-2">
-          <span className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Users className="size-3.5" />
-            Started sessions
-          </span>
-          <p className="text-2xl font-semibold tracking-tight tabular-nums">
-            {AnalyticsFormat.count(variant.started)}
-          </p>
-        </div>
-        <div className="flex flex-col gap-2">
-          <span className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
             <MousePointer2 className="size-3.5" />
             CTA conversion · primary
           </span>
           <p
             data-applicable={!isNull(variant.ctaConversion.value)}
-            className="text-2xl font-semibold tracking-tight tabular-nums data-[applicable=false]:text-lg"
+            data-positive={variant.ctaConversion.numerator > 0}
+            className="text-[2.75rem] leading-tight font-semibold tracking-tight tabular-nums data-[applicable=false]:text-lg data-[positive=true]:text-success"
           >
             {AnalyticsFormat.ratio(variant.ctaConversion)}
           </p>
@@ -103,15 +114,36 @@ function AnalyticsVariantSummary({ variant }: { readonly variant: AnalyticsVaria
             {AnalyticsFormat.fraction(variant.ctaConversion)}
           </span>
         </div>
+        <div className="flex flex-col items-end gap-2 border-l pl-5">
+          <span className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Users className="size-3.5" />
+            Started
+          </span>
+          <p className="text-2xl font-semibold tracking-tight tabular-nums">
+            {AnalyticsFormat.count(variant.started)}
+          </p>
+          <span className="text-xs text-muted-foreground">sessions</span>
+        </div>
       </CardContent>
-      <CardFooter className="grid grid-cols-2 gap-5 border-t [.border-t]:pt-3">
+      <CardFooter className="grid grid-cols-2 items-start gap-5 border-t bg-muted/15 py-4 [.border-t]:pt-4">
         <div className="flex flex-col gap-2">
-          <span className="text-xs text-muted-foreground">Result completion</span>
-          <AnalyticsRatioValue ratio={variant.resultCompletion} />
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <CircleCheck
+              className={ClassNames.combine(
+                'size-3.5',
+                variant.resultCompletion.numerator > 0 && 'text-success',
+              )}
+            />
+            Result completion
+          </span>
+          <AnalyticsRatioValue ratio={variant.resultCompletion} tone="positive" />
         </div>
         <div className="flex flex-col gap-2">
-          <span className="text-xs text-muted-foreground">CTA click-through</span>
-          <AnalyticsRatioValue ratio={variant.ctaClickThrough} />
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <ArrowUpRight className="size-3.5 text-primary" />
+            CTA click-through
+          </span>
+          <AnalyticsRatioValue ratio={variant.ctaClickThrough} tone="positive" />
         </div>
       </CardFooter>
     </Card>
@@ -181,24 +213,30 @@ function AnalyticsSteps({ variant }: { readonly variant: AnalyticsVariant }) {
                     </TableCell>
                     <TableCell>
                       <div className="flex min-w-24 flex-col gap-2">
-                        <AnalyticsRatioValue ratio={step.completion} />
+                        <AnalyticsRatioValue ratio={step.completion} tone="positive" />
                         {!isNull(step.completion.value) && (
                           <Progress
-                            className="h-1"
+                            className="h-1 bg-success/15 [&_[data-slot=progress-indicator]]:bg-success"
                             value={step.completion.value * 100}
                             aria-label={`${step.stepIdentifier} completion`}
                           />
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="tabular-nums">
+                    <TableCell
+                      data-nonzero={step.noncompletion.open > 0}
+                      className="tabular-nums data-[nonzero=true]:text-warning"
+                    >
                       {AnalyticsFormat.count(step.noncompletion.open)}
                     </TableCell>
-                    <TableCell className="tabular-nums">
+                    <TableCell
+                      data-nonzero={step.noncompletion.expired > 0}
+                      className="font-medium tabular-nums data-[nonzero=true]:text-destructive"
+                    >
                       {AnalyticsFormat.count(step.noncompletion.expired)}
                     </TableCell>
                     <TableCell>
-                      <AnalyticsRatioValue ratio={step.expiredDropout} />
+                      <AnalyticsRatioValue ratio={step.expiredDropout} tone="negative" />
                     </TableCell>
                   </>
                 )}
@@ -273,10 +311,16 @@ function AnalyticsPaths({ variant }: { readonly variant: AnalyticsVariant }) {
                 <TableCell>
                   <AnalyticsRatioValue ratio={edge.transitionToView} />
                 </TableCell>
-                <TableCell className="tabular-nums">
+                <TableCell
+                  data-nonzero={edge.destinationNonreach.open > 0}
+                  className="tabular-nums data-[nonzero=true]:text-warning"
+                >
                   {AnalyticsFormat.count(edge.destinationNonreach.open)}
                 </TableCell>
-                <TableCell className="tabular-nums">
+                <TableCell
+                  data-nonzero={edge.destinationNonreach.expired > 0}
+                  className="font-medium tabular-nums data-[nonzero=true]:text-destructive"
+                >
                   {AnalyticsFormat.count(edge.destinationNonreach.expired)}
                 </TableCell>
               </TableRow>

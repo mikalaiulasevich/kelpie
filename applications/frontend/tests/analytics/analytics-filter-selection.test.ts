@@ -54,3 +54,42 @@ describe('analytics cohort selection', () => {
     expect(AnalyticsFilterSelection.trafficLabel(filters)).toBe('All traffic');
   });
 });
+
+describe('analytics filter drafts', () => {
+  it('keeps the independently chosen version when applying an older sheet draft', () => {
+    const applied = {
+      ...AnalyticsFilterSelection.Initial,
+      versionIdentifier: 'chosen-version',
+      versionLabel: 'Version 18',
+    };
+    const draft = {
+      ...AnalyticsFilterSelection.Initial,
+      trafficOrigin: 'synthetic' as const,
+      campaignMode: 'exact' as const,
+      campaign: 'visual-preview',
+      includeForced: true,
+    };
+    const result = AnalyticsFilterSelection.applyDraft(applied, draft);
+    expect(result).toEqual({
+      ...draft,
+      versionIdentifier: 'chosen-version',
+      versionLabel: 'Version 18',
+    });
+    expect(applied.trafficOrigin).toBe('production');
+    expect(draft.versionIdentifier).toBe(AnalyticsFilterSelection.Initial.versionIdentifier);
+  });
+
+  it('resets cohort filters without resetting the selected version', () => {
+    const applied = {
+      ...AnalyticsFilterSelection.Initial,
+      versionIdentifier: 'chosen-version',
+      versionLabel: 'Version 18',
+      trafficOrigin: 'synthetic' as const,
+      includeForced: true,
+    };
+    const result = AnalyticsFilterSelection.applyDraft(applied, AnalyticsFilterSelection.Initial);
+    expect(result.trafficOrigin).toBe('production');
+    expect(result.includeForced).toBe(false);
+    expect(result.versionIdentifier).toBe('chosen-version');
+  });
+});

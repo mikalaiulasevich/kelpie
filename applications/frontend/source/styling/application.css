@@ -55,6 +55,7 @@
   background: var(--background);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+  font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
   color-scheme: dark;
   --background: oklch(0.145 0 0);
@@ -63,8 +64,8 @@
   --card-foreground: var(--foreground);
   --popover: var(--card);
   --popover-foreground: var(--foreground);
-  --primary: oklch(0.546 0.245 262.881);
-  --primary-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.79 0.135 76);
+  --primary-foreground: oklch(0.19 0.018 76);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: var(--foreground);
   --muted: var(--secondary);
@@ -78,7 +79,7 @@
   --ring: var(--primary);
   --success: oklch(0.765 0.177 163.223);
   --warning: oklch(0.828 0.189 84.429);
-  --info: oklch(0.809 0.105 251.813);
+  --info: oklch(0.77 0.115 305);
   --foreground-subtle: oklch(0.64 0 0);
   --radius: 0.625rem;
   --sidebar: oklch(0.235 0 0);
@@ -90,10 +91,10 @@
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
   --chart-1: var(--primary);
-  --chart-2: oklch(0.809 0.105 251.813);
-  --chart-3: oklch(0.623 0.214 259.815);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
+  --chart-2: var(--success);
+  --chart-3: var(--info);
+  --chart-4: var(--destructive);
+  --chart-5: var(--muted-foreground);
 }
 
 body {
@@ -234,6 +235,8 @@ a:focus-visible {
   text-align: center;
 }
 .workspace-header {
+  background: color-mix(in oklch, var(--background) 88%, transparent);
+  backdrop-filter: blur(16px);
   min-height: 64px;
   border-bottom: 1px solid var(--border);
   padding: 12px 32px;
@@ -300,7 +303,7 @@ a:focus-visible {
   transition-duration: 150ms;
 }
 [data-sidebar='menu-button'][data-active='true'] > svg {
-  color: var(--info);
+  color: var(--primary);
 }
 [data-slot='table-head'] {
   color: var(--muted-foreground);
@@ -311,6 +314,31 @@ a:focus-visible {
 [data-slot='dialog-content'][data-state='open'],
 [data-slot='popover-content'][data-state='open'] {
   animation: surface-enter 150ms ease-out;
+}
+[data-slot='sheet-overlay'][data-state='open'] {
+  animation: surface-enter 180ms ease-out;
+}
+[data-slot='sheet-content'][data-side='right'][data-state='open'] {
+  animation: sheet-enter-right 180ms ease-out;
+}
+[data-slot='sheet-content'][data-side='left'][data-state='open'] {
+  animation: sheet-enter-left 180ms ease-out;
+}
+@keyframes sheet-enter-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes sheet-enter-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
 @keyframes surface-enter {
   from {

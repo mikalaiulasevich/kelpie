@@ -9,7 +9,7 @@ import {
 } from '../components/chart';
 const comparisonChart = {
   results: { label: 'Result completion', color: 'var(--chart-2)' },
-  recommendations: { label: 'CTA conversion', color: 'var(--primary)' },
+  recommendations: { label: 'CTA conversion', color: 'var(--chart-1)' },
 } satisfies ChartConfig;
 
 export function AnalyticsComparisonChart({
@@ -32,7 +32,7 @@ export function AnalyticsComparisonChart({
           data={comparisonData}
           margin={{ left: 0, right: 12, bottom: 8 }}
         >
-          <CartesianGrid horizontal={false} />
+          <CartesianGrid horizontal={false} strokeDasharray="3 5" />
           <XAxis
             type="number"
             tickLine={false}
@@ -69,14 +69,14 @@ export function AnalyticsComparisonChart({
             isAnimationActive={false}
             dataKey="results"
             fill="var(--color-results)"
-            radius={[0, 6, 6, 0]}
+            radius={[0, 4, 4, 0]}
             maxBarSize={32}
           />
           <Bar
             isAnimationActive={false}
             dataKey="recommendations"
             fill="var(--color-recommendations)"
-            radius={[0, 6, 6, 0]}
+            radius={[0, 4, 4, 0]}
             maxBarSize={32}
           />
         </BarChart>
@@ -87,7 +87,7 @@ export function AnalyticsComparisonChart({
           Result completion
         </span>
         <span className="flex items-center gap-2">
-          <span className="size-2 rounded-full bg-primary" />
+          <span className="size-2 rounded-full bg-chart-1" />
           CTA conversion
         </span>
       </div>

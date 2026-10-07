@@ -1,6 +1,18 @@
-# Administration detail and data QA — 2026-10-07
+# Administration visual refinement QA — 2026-10-07
 
-## Findings and comparison history
+## Current iteration: warm palette and scalable controls
+
+Replaced the blue theme with amber actions, emerald completion/success, coral nonzero expired/dropout values and violet variant context. Zero remains neutral; pending remains amber. Metric cards now separate their header, primary conversion, session count and diagnostic footer. The existing glass authentication image was edited through imagegen to amber/champagne (1086 × 1448, 140462 bytes).
+
+Version tabs are replaced by one searchable Popover with bounded 100-item metadata pages. Search is explicitly scoped to the loaded page; this is not a global search endpoint. Selecting a version requests its real analytics. Cohort filters use a right Sheet with scrollable fields, fixed footer, Apply, Cancel and Reset draft. Cancel restores applied values; Escape preserves the unsubmitted draft. Shared overlay blur and 150–200 ms entry motion respect reduced motion.
+
+Browser evidence: real local API, v3 synthetic selection, search for version 3, no-result search, Refresh retention, Apply retention, Cancel retention, focus restoration and mobile Sheet. Width checks returned 390/390 and 1600/1600 viewport/document widths. Desktop cards/graph and mobile metrics were visually inspected. Browser error/warning logs returned no entries. Disabled next-page controls were observed with six versions; multi-page navigation bounds were reviewed statically rather than populated with more than 100 versions.
+
+Current outputs: admin-amber-analytics.png, admin-amber-filters.png, admin-amber-mobile-filters.png, admin-amber-version-picker.png. Compared source and implementation together in work/amber-dashboard-comparison.jpg and work/amber-controls-comparison.jpg. The latter pairs the user's version-tabs crop with the replacement picker. Comparison is structural adaptation to existing A/B metrics, not a clone of an unsupported time-series dashboard.
+
+Detail-pass corrections: removed duplicated session wording, corrected footer spacing, avoided a partial footer tint, consolidated duplicate version selection, moved the updated timestamp beside the picker and clarified the initial Latest version label. Independent static lifecycle review found no P1/P2 issues. Current checks: 130 frontend tests, typecheck/production build, frontend ESLint and Prettier passed. No dependency or backend contract changes. Database fixtures were reused, not reseeded this iteration.
+
+## Previous iteration findings and comparison history
 
 Final review found no remaining actionable P0/P1/P2 issues within the requested existing-product scope.
 
@@ -34,7 +46,7 @@ Compared source and implementation together in work/rich-library-comparison.jpg 
 
 - Typography: Geist, clear title/body/metadata hierarchy, tabular values, persistent field labels, readable secondary operands. Long identifiers wrap or truncate with preserved full values where relevant.
 - Layout: charcoal navigation, black working canvas, differentiated highlight cards, working table toolbar, right context panels, graph above detailed journey tables. Small layouts stack content; wide metric tables retain their own horizontal scroll rather than overflowing the page.
-- Color: neutral surfaces with blue action/data accents and green live/terminal semantics. Hover, focus, disabled and selected states use shared tokens; semantic badge variants are reused.
+- Color: neutral surfaces with amber actions, emerald conversion/success, coral expired/error and violet variant context. Hover, focus, disabled and selected states use shared tokens; semantic badge variants are reused.
 - Imagery: retained existing generated authentication asset; object/status visuals use Lucide icons. No fake files, portraits, storage meter or decorative assets were required for the configuration domain.
 - Copy/content: actual version, schema, revision and publication metadata. No unsupported authors, modification dates, storage capacities or revenue. Chart shows existing A/B ratio API rather than invented time-series data. Synthetic labels and ratio operands remain explicit.
 

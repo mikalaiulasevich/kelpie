@@ -113,6 +113,10 @@ Expanded the configuration library with version highlights, scoped search/status
 
 At the user's request, seeded the local database with six derived demo configurations and 192 synthetic sessions through existing application boundaries. A backup preceded mutation, administrator credentials stayed unchanged, and a rerun added zero records. This local visual seed is not the planned production-facing traffic generator or deployment acceptance.
 
+## 2026-10-07 — Palette and analytics controls
+
+Refined the existing dark administration theme with amber actions, semantic green/coral metrics, stronger card typography and an amber glass authentication image. Replaced version tabs with a paginated searchable picker and moved cohort filters into a responsive shadcn Sheet. The real backend and existing synthetic fixture remain authoritative. Browser checks covered selection/search, Refresh/Apply/Cancel and desktop/mobile composition; 130 frontend tests, compilation, lint and formatting passed. Search is scoped to each metadata page; production deployment remains outside this visual pass.
+
 ## Remaining delivery milestones
 
 | Iteration            | Status                                                                                                                                                                                                                                                             |

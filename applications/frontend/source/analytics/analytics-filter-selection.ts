@@ -28,6 +28,14 @@ export const AnalyticsFilterSelection = {
     includeForced: false,
   } satisfies AnalyticsFilters,
 
+  applyDraft(applied: AnalyticsFilters, draft: AnalyticsFilters): AnalyticsFilters {
+    return {
+      ...draft,
+      versionIdentifier: applied.versionIdentifier,
+      versionLabel: applied.versionLabel,
+    };
+  },
+
   query(funnelIdentifier: string, filters: AnalyticsFilters, offset: number): AnalyticsQuery {
     const campaignFilter = match(filters.campaignMode)
       .with('all', () => ({}))

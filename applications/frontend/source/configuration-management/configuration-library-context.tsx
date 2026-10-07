@@ -23,6 +23,7 @@ import { WorkspaceNavigation, WorkspacePage } from '../workspace/workspace-navig
 import { ConfigurationFormat } from './configuration-format';
 import { ConfigurationContent } from './configuration-content';
 import { ConfigurationLibrary } from './configuration-library';
+import { ClassNames } from '../styling/combine-class-names';
 
 export function ConfigurationStatus({ live }: { live: boolean }): UIElement {
   return (
@@ -54,10 +55,17 @@ export function ConfigurationHighlights({
         {versions.map((version) => (
           <Card
             key={version.identifier}
-            className="gap-5 transition-colors duration-150 hover:border-primary/40"
+            className="gap-5 overflow-hidden transition-colors duration-150 hover:border-primary/40"
           >
             <CardHeader className="flex flex-row items-center justify-between gap-2">
-              <span className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <span
+                className={ClassNames.combine(
+                  'flex size-12 items-center justify-center rounded-xl',
+                  version.identifier === configurations.funnel.activeVersionIdentifier
+                    ? 'bg-success/10 text-success'
+                    : 'bg-primary/10 text-primary',
+                )}
+              >
                 <FileJson className="size-5" />
               </span>
               <ConfigurationStatus
@@ -66,7 +74,7 @@ export function ConfigurationHighlights({
             </CardHeader>
             <CardContent className="flex min-w-0 flex-col gap-1">
               <a
-                className="font-semibold underline-offset-4 hover:underline focus-visible:outline-ring"
+                className="text-xl font-semibold tracking-tight underline-offset-4 hover:underline focus-visible:outline-ring"
                 href={WorkspaceNavigation.href(
                   WorkspacePage.Version,
                   version.funnelIdentifier,
@@ -82,7 +90,7 @@ export function ConfigurationHighlights({
                 {version.funnelIdentifier}
               </p>
             </CardContent>
-            <CardFooter className="justify-between gap-2 border-t pt-4 text-xs text-muted-foreground">
+            <CardFooter className="justify-between gap-2 border-t [.border-t]:pt-4 text-xs text-muted-foreground">
               <span>
                 JSON · {ConfigurationContent.Schema} {version.schemaVersion}
               </span>
@@ -122,11 +130,12 @@ export function ConfigurationLibraryContext({
           <div className="flex items-center justify-between gap-2">
             <CardTitle>{ConfigurationContent.CurrentVersion}</CardTitle>
             <span
-              className={
+              className={ClassNames.combine(
+                'flex size-8 items-center justify-center rounded-lg',
                 configurations.funnel.activeVersionIdentifier
-                  ? 'flex size-8 items-center justify-center rounded-lg bg-success/10 text-success'
-                  : 'flex size-8 items-center justify-center rounded-lg bg-muted text-muted-foreground'
-              }
+                  ? 'bg-success/10 text-success'
+                  : 'bg-muted text-muted-foreground',
+              )}
             >
               {configurations.funnel.activeVersionIdentifier ? (
                 <CircleCheck className="size-4" />
@@ -139,7 +148,7 @@ export function ConfigurationLibraryContext({
         </CardHeader>
         <CardContent className="flex flex-col gap-5">
           <div>
-            <p className="text-4xl font-semibold tracking-tight">
+            <p className="text-5xl font-semibold tracking-tight">
               {ConfigurationFormat.activeVersion(configurations)}
             </p>
             <p className="mt-2 break-all text-xs text-muted-foreground">

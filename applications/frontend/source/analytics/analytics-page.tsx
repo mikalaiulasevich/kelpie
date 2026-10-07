@@ -1,26 +1,18 @@
-import { useMemo, useRef, useState } from 'react';
-import {
-  BarChart3,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  RefreshCw,
-  SlidersHorizontal,
-} from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { BarChart3, ChevronDown, RefreshCw, SlidersHorizontal } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../components/alert';
 import { Badge } from '../components/badge';
 import { Button } from '../components/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../components/collapsible';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '../components/empty';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/tabs';
+import { Sheet, SheetTrigger } from '../components/sheet';
+import { AnalyticsVersionPicker } from './analytics-version-picker';
 import { Skeleton } from '../components/skeleton';
 import type { AnalyticsQuery } from '../management/management-types';
-import { ManagementPolicy } from '../management/management-policy';
 import { AnalyticsFormat } from './analytics-format';
-import { AnalyticsPagePolicy } from './analytics-policy';
 import { AnalyticsVersionPanel } from './analytics-version-panel';
 import { useAnalytics } from './use-analytics';
-import { AnalyticsFiltersCard } from './analytics-filters-card';
+import { AnalyticsFiltersSheet } from './analytics-filters-sheet';
 import { AnalyticsFilterSelection, type AnalyticsFilters } from './analytics-filter-selection';
 
 interface AnalyticsPageProperties {
@@ -32,27 +24,27 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
   const [appliedFilters, setAppliedFilters] = useState<AnalyticsFilters>(
     AnalyticsFilterSelection.Initial,
   );
-  const [offset, setOffset] = useState(0);
-  const [selectedVersionIdentifier, setSelectedVersionIdentifier] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const filtersTrigger = useRef<HTMLButtonElement>(null);
   const [refreshSequence, setRefreshSequence] = useState(0);
   const query = useMemo<AnalyticsQuery>(
-    () => AnalyticsFilterSelection.query(funnelIdentifier, appliedFilters, offset),
-    [funnelIdentifier, appliedFilters, offset],
+    () => AnalyticsFilterSelection.query(funnelIdentifier, appliedFilters, 0),
+    [funnelIdentifier, appliedFilters],
   );
   const analytics = useAnalytics(query, refreshSequence, onUnauthorized);
+  const selectedVersion = analytics.status === 'ready' ? analytics.response.versions[0] : undefined;
+  const pendingVersionLabel =
+    appliedFilters.versionIdentifier === AnalyticsFilterSelection.Initial.versionIdentifier
+      ? 'Latest version'
+      : appliedFilters.versionLabel;
   const isLoading = analytics.status === 'loading';
 
   const applyFilters = (filters: AnalyticsFilters) => {
-    setOffset(0);
     setAppliedFilters(filters);
+    setFiltersOpen(false);
   };
 
   const openFilters = () => {
     setFiltersOpen(true);
-    filtersTrigger.current?.focus();
-    filtersTrigger.current?.scrollIntoView({ block: 'nearest' });
   };
 
   const refresh = () => setRefreshSequence((sequence) => sequence + 1);
@@ -60,19 +52,18 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
   return (
     <div className="flex min-w-0 flex-col gap-4">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
+        <h1 className="page-title">Analytics</h1>
         <p className="text-sm text-muted-foreground">
           Explore acquisition, journey completion, and recommendation conversion.
         </p>
       </div>
-      <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen} className="flex flex-col gap-6">
+      <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="secondary">
                 {AnalyticsFilterSelection.trafficLabel(appliedFilters)}
               </Badge>
-              <Badge variant="outline">{appliedFilters.versionLabel}</Badge>
               <Badge variant="outline">
                 {appliedFilters.includeForced
                   ? 'Forced assignments included'
@@ -83,16 +74,12 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
               </Badge>
             </div>
             <div className="flex gap-2">
-              <CollapsibleTrigger asChild>
-                <Button ref={filtersTrigger} variant="outline" className="group">
+              <SheetTrigger asChild>
+                <Button variant="outline">
                   <SlidersHorizontal data-icon="inline-start" />
                   Filters
-                  <ChevronDown
-                    data-icon="inline-end"
-                    className="group-data-[state=open]:rotate-180"
-                  />
                 </Button>
-              </CollapsibleTrigger>
+              </SheetTrigger>
               <Button variant="outline" disabled={isLoading} onClick={refresh}>
                 <RefreshCw data-icon="inline-start" />
                 Refresh
@@ -106,14 +93,34 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
             </p>
           )}
         </div>
-        <AnalyticsFiltersCard
+        <AnalyticsFiltersSheet
+          onApply={applyFilters}
+          appliedFilters={appliedFilters}
+          onCancel={() => setFiltersOpen(false)}
+        />
+      </Sheet>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <AnalyticsVersionPicker
           funnelIdentifier={funnelIdentifier}
           refreshSequence={refreshSequence}
+          selectedIdentifier={
+            selectedVersion?.versionIdentifier ?? appliedFilters.versionIdentifier
+          }
+          selectedLabel={
+            selectedVersion ? `Version ${selectedVersion.funnelVersion}` : pendingVersionLabel
+          }
           onUnauthorized={onUnauthorized}
-          onApply={applyFilters}
           onRefresh={refresh}
+          onSelect={(versionIdentifier, versionLabel) =>
+            setAppliedFilters((current) => ({ ...current, versionIdentifier, versionLabel }))
+          }
         />
-      </Collapsible>
+        {analytics.status === 'ready' && (
+          <span className="text-xs text-muted-foreground">
+            Updated {AnalyticsFormat.generatedAt(analytics.response.generatedAt)}
+          </span>
+        )}
+      </div>
       {analytics.status === 'loading' && (
         <div aria-label="Loading analytics" aria-busy="true" className="flex flex-col gap-4">
           <span className="sr-only" role="status">
@@ -139,13 +146,6 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
       )}
       {analytics.status === 'ready' && (
         <>
-          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-            <span>
-              {analytics.response.versions.length}{' '}
-              {analytics.response.versions.length === 1 ? 'version' : 'versions'} on this page
-            </span>
-            <span>Updated {AnalyticsFormat.generatedAt(analytics.response.generatedAt)}</span>
-          </div>
           {analytics.response.versions.length === 0 ? (
             <Empty className="border">
               <EmptyHeader>
@@ -164,73 +164,16 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
               </Button>
             </Empty>
           ) : (
-            <Tabs
-              value={
-                analytics.response.versions.some(
-                  (version) => version.versionIdentifier === selectedVersionIdentifier,
-                )
-                  ? selectedVersionIdentifier
-                  : (analytics.response.versions[0]?.versionIdentifier ?? '')
-              }
-              onValueChange={setSelectedVersionIdentifier}
-              className="min-w-0 gap-5"
-            >
-              <TabsList className="h-auto max-w-full flex-wrap" aria-label="Configuration versions">
-                {analytics.response.versions.map((version) => (
-                  <TabsTrigger key={version.versionIdentifier} value={version.versionIdentifier}>
-                    Version {version.funnelVersion}
-                    <span className="ml-1 rounded bg-background/60 px-1.5 text-xs tabular-nums">
-                      {AnalyticsFormat.count(
-                        version.variants.reduce((total, variant) => total + variant.started, 0),
-                      )}
-                    </span>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              {analytics.response.versions.map((version) => (
-                <TabsContent key={version.versionIdentifier} value={version.versionIdentifier}>
-                  <AnalyticsVersionPanel version={version} onOpenFilters={openFilters} />
-                </TabsContent>
-              ))}
-            </Tabs>
-          )}
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <span className="text-xs text-muted-foreground">
-              Version page{' '}
-              {Math.floor(
-                analytics.response.pagination.offset / AnalyticsPagePolicy.VersionsPerPage,
-              ) + 1}
-            </span>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                disabled={offset === 0}
-                onClick={() =>
-                  setOffset((current) => Math.max(0, current - AnalyticsPagePolicy.VersionsPerPage))
-                }
-              >
-                <ChevronLeft data-icon="inline-start" />
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                disabled={
-                  !analytics.response.pagination.hasMore ||
-                  offset + AnalyticsPagePolicy.VersionsPerPage > ManagementPolicy.MaximumOffset
-                }
-                onClick={() =>
-                  setOffset((current) => {
-                    const nextOffset = current + AnalyticsPagePolicy.VersionsPerPage;
-
-                    return nextOffset <= ManagementPolicy.MaximumOffset ? nextOffset : current;
-                  })
-                }
-              >
-                Next
-                <ChevronRight data-icon="inline-end" />
-              </Button>
+            <div className="flex min-w-0 flex-col gap-5">
+              {selectedVersion && (
+                <AnalyticsVersionPanel
+                  key={selectedVersion.versionIdentifier}
+                  version={selectedVersion}
+                  onOpenFilters={openFilters}
+                />
+              )}
             </div>
-          </div>
+          )}
         </>
       )}
       <Collapsible>
