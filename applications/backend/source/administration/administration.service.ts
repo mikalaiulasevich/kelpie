@@ -64,7 +64,11 @@ export class AdministrationService {
     const token = AdministrationTokens.read(request);
     const session = await this.database.client.administratorSession.findUnique({
       where: { accessTokenHash: AdministrationTokens.hash(token) },
-      select: { revokedAt: true, expiresAt: true, administrator: { select: { identifier: true, username: true } } },
+      select: {
+        revokedAt: true,
+        expiresAt: true,
+        administrator: { select: { identifier: true, username: true } },
+      },
     });
 
     if (

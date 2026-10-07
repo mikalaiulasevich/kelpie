@@ -1,32 +1,37 @@
-import 'reflect-metadata';
+import cookie from '@fastify/cookie';
+import helmet from '@fastify/helmet';
+import rateLimit from '@fastify/rate-limit';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
-import cookie from '@fastify/cookie';
-import rateLimit from '@fastify/rate-limit';
-import helmet from '@fastify/helmet';
-import { Server } from 'node:http';
 import { isNull } from 'es-toolkit/predicate';
 import { attemptAsync } from 'es-toolkit/util';
+import { Server } from 'node:http';
+import 'reflect-metadata';
 
 import { Diagnostics } from '../diagnostics/diagnostics.js';
 import { FrameworkLogger } from '../diagnostics/framework-logger.js';
 import { RequestDiagnostics } from '../diagnostics/request-diagnostics.js';
-import { ApplicationMessages } from './application-messages.js';
-import { ApplicationCreationOptions } from './application-policy.js';
-import { ApplicationEnvironmentReader } from '../environment/read-application-environment.js';
 import type { ApplicationEnvironment } from '../environment/environment-schemas.js';
-import { ApplicationModule } from './application.module.js';
+import { ApplicationEnvironmentReader } from '../environment/read-application-environment.js';
+import { PublicExceptionFilter } from '../transport/public-exception.filter.js';
+import { RateLimitResponses } from '../transport/rate-limit-responses.js';
+import { RequestBodyPolicy } from '../transport/request-body-policy.js';
+import { RequestCachePolicy } from '../transport/request-cache-policy.js';
 import { TransportMessages } from '../transport/transport-messages.js';
 import { TransportPolicy } from '../transport/transport-policy.js';
-import { RequestBodyPolicy } from '../transport/request-body-policy.js';
-import { RateLimitResponses } from '../transport/rate-limit-responses.js';
-import { PublicExceptionFilter } from '../transport/public-exception.filter.js';
+import { ApplicationMessages } from './application-messages.js';
+import { ApplicationCreationOptions } from './application-policy.js';
+import { ApplicationModule } from './application.module.js';
 
 const ApplicationSetup = {
   async configure(application: NestFastifyApplication, adapter: FastifyAdapter): Promise<void> {
     const server = adapter.getInstance();
+
     application.setGlobalPrefix(TransportPolicy.ApiPrefix);
+
     server.addHook('onRequest', RequestDiagnostics.onRequest);
+    server.addHook('onRequest', RequestCachePolicy.onRequest);
+
     await application.register(helmet);
     await application.register(cookie);
     await application.register(rateLimit, {
@@ -34,13 +39,16 @@ const ApplicationSetup = {
       cache: TransportPolicy.RateLimitCacheSize,
       errorResponseBuilder: RateLimitResponses.rejected,
     });
+
     server.addHook('onRequest', RequestBodyPolicy.validate);
+
     server.removeAllContentTypeParsers();
     server.addContentTypeParser(
       TransportPolicy.JsonMediaType,
       { parseAs: 'string' },
       RequestBodyPolicy.parser(server),
     );
+
     application.useGlobalFilters(new PublicExceptionFilter());
     application.enableShutdownHooks();
 

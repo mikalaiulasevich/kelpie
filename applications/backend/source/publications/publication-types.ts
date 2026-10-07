@@ -9,4 +9,6 @@ export interface PublicationIntent {
   readonly expectedRevision: number;
   readonly targetVersionIdentifier?: string;
 }
-export type PublicationResponse = Readonly<Omit<Publication, 'requestFingerprint' | 'createdAt'> & { createdAt: string }>;
+export type PublicationResponse = Readonly<
+  Omit<Publication, 'requestFingerprint' | 'createdAt'> & { createdAt: string }
+>;

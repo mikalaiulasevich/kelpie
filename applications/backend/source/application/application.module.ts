@@ -1,3 +1,8 @@
+import { ConfigurationManagementController } from '../configurations/configuration-management.controller.js';
+import { ConfigurationManagementService } from '../configurations/configuration-management.service.js';
+import { PublicationController } from '../publications/publication.controller.js';
+import { PublicationService } from '../publications/publication.service.js';
+import { RollbackController } from '../publications/rollback.controller.js';
 import { AdministrationController } from '../administration/administration.controller.js';
 import { AdministrationGuard } from '../administration/administration.guard.js';
 import { AdministrationService } from '../administration/administration.service.js';
@@ -12,8 +17,10 @@ import { ConfigurationImportService } from '../configurations/configuration-impo
 import { HealthController } from '../health/health.controller.js';
 
 @Module({
-  controllers: [HealthController, AdministrationController],
+  controllers: [HealthController, AdministrationController, ConfigurationManagementController, PublicationController, RollbackController],
   providers: [
+    ConfigurationManagementService,
+    PublicationService,
     AdministrationService,
     AdministrationGuard,
     ApplicationEnvironmentService,

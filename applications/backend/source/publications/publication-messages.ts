@@ -7,5 +7,6 @@ export const PublicationMessages = {
   StaleRevision: 'The active configuration changed. Reload before retrying.',
   AlreadyActive: 'The requested configuration is already active.',
   NoPreviousVersion: 'There is no previous activation to restore.',
-  InvalidStoredConfiguration: 'The stored configuration failed validation or integrity verification.',
+  InvalidStoredConfiguration:
+    'The stored configuration failed validation or integrity verification.',
 } as const;

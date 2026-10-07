@@ -1,6 +1,8 @@
 import { HttpStatus } from '@nestjs/common';
 
 export const TransportPolicy = {
+  CacheControlHeader: 'cache-control',
+  PrivateCacheControl: 'no-store',
   RateLimitCacheSize: 10_000,
   MaximumPublicIssues: 30,
   JsonMediaType: 'application/json',
