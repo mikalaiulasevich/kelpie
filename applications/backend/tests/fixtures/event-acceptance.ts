@@ -4,8 +4,9 @@ import { FunnelEvaluation } from '@kelpie/funnel-runtime';
 import { SessionProjection } from '../../source/sessions/session-projection.js';
 import { SessionSnapshots } from '../../source/sessions/session-snapshots.js';
 import type { BackendApplicationFixture } from './backend-application.js';
+import type {
+  SessionBrowserFixture} from './session-flow.js';
 import {
-  SessionBrowserFixture,
   SessionFlowFixture,
   type SessionFlowState,
 } from './session-flow.js';

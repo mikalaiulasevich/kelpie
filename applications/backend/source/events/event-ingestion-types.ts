@@ -1,11 +1,7 @@
 import { Type, type Static } from 'typebox';
 import { SessionPolicy } from '../sessions/session-policy.js';
-import {
-  EventIngestionPolicy,
-  EventReceiptStatus,
-  EventRejectionCode,
-  ObservationName,
-} from './event-ingestion-policy.js';
+import type { EventReceiptStatus, EventRejectionCode } from './event-ingestion-policy.js';
+import { EventIngestionPolicy, ObservationName } from './event-ingestion-policy.js';
 
 const EventFields = {
   Identifier: Type.String({

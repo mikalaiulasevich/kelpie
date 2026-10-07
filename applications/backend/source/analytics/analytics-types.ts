@@ -2,7 +2,7 @@ import { Type, type Static } from 'typebox';
 import { AnalyticsPolicy, AnalyticsTrafficOrigin } from './analytics-policy.js';
 
 const identifier = Type.String({ minLength: 1, maxLength: 100, pattern: AnalyticsPolicy.IdentifierPattern });
-const count = Type.Integer({ minimum: 0 });
+const count = Type.Integer({ minimum: 0, maximum: Number.MAX_SAFE_INTEGER });
 const ratio = Type.Object({ numerator: count, denominator: count, value: Type.Union([Type.Number({ minimum: 0 }), Type.Null()]) });
 
 export const AnalyticsSchemas = {
@@ -27,3 +27,10 @@ export type AnalyticsRatio = Static<typeof AnalyticsSchemas.Ratio>;
 export type AnalyticsSummaryRow = Static<typeof AnalyticsSchemas.SummaryRow>;
 export type AnalyticsStepRow = Static<typeof AnalyticsSchemas.StepRow>;
 export type AnalyticsEdgeRow = Static<typeof AnalyticsSchemas.EdgeRow>;
+
+export interface AnalyticsAggregates {
+  readonly summaries: readonly AnalyticsSummaryRow[];
+  readonly steps: readonly AnalyticsStepRow[];
+  readonly edges: readonly AnalyticsEdgeRow[];
+}
+

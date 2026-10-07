@@ -1,3 +1,4 @@
+import { isUndefined } from 'es-toolkit/predicate';
 import { Prisma } from '../../generated/prisma/client.js';
 import { AnalyticsTrafficOrigin } from './analytics-policy.js';
 import type { AnalyticsQuery } from './analytics-types.js';
@@ -13,7 +14,7 @@ export const AnalyticsQueries = {
       conditions.push(Prisma.sql`s."trafficOrigin" = ${query.trafficOrigin}`);
     }
 
-    if (query.campaign !== undefined) {
+    if (!isUndefined(query.campaign)) {
       conditions.push(Prisma.sql`s."campaign" = ${query.campaign}`);
     }
 
