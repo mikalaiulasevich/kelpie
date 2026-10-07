@@ -1,3 +1,5 @@
+import { useLocalization } from '../localization/use-localization';
+import { LanguageSettings } from '../localization/language-settings';
 import { Kbd } from '../components/kbd';
 import { useState } from 'react';
 import { ChartNoAxesCombined, History, Layers3, LogOut, PanelLeft } from 'lucide-react';
@@ -37,16 +39,17 @@ function SidebarBrand({
   funnelIdentifier: string;
   onNavigate?: () => void;
 }): UIElement {
+  const { t } = useLocalization();
+
   return (
     <a
       className="workspace-sidebar-brand brand"
       href={WorkspaceNavigation.href(WorkspacePage.Analytics, funnelIdentifier)}
       onClick={onNavigate}
-      aria-label="Kelpie analytics"
+      aria-label={t("Kelpie analytics")}
     >
       <KelpieMark />
-      <span>
-        kelpie<span className="workspace-sidebar-product">Flow analytics</span>
+      <span>{t("kelpie")}<span className="workspace-sidebar-product">{t("Flow analytics")}</span>
       </span>
     </a>
   );
@@ -59,19 +62,21 @@ function SidebarLinks({
 }: Pick<WorkspaceSidebarProperties, 'page' | 'funnelIdentifier'> & {
   onNavigate?: () => void;
 }): UIElement {
+  const { t } = useLocalization();
+
   const activePage = page === WorkspacePage.Version ? WorkspacePage.Versions : page;
 
   return (
     <>
       <div className="workspace-sidebar-context">
-        <span className="workspace-sidebar-section-label">Current funnel</span>
+        <span className="workspace-sidebar-section-label">{t("Current funnel")}</span>
         <div>
           <Layers3 aria-hidden="true" />
           <span>{funnelIdentifier}</span>
         </div>
       </div>
-      <nav className="workspace-sidebar-links" aria-label="Workspace navigation">
-        <span className="workspace-sidebar-section-label">Workspace</span>
+      <nav className="workspace-sidebar-links" aria-label={t("Workspace navigation")}>
+        <span className="workspace-sidebar-section-label">{t("Workspace")}</span>
         {WorkspaceShortcutCatalog.Navigation.map((item) => {
           const presentation = navigationPresentation[item.page];
           const Icon = presentation.icon;
@@ -80,7 +85,7 @@ function SidebarLinks({
             <a
               key={item.page}
               href={WorkspaceNavigation.href(item.page, funnelIdentifier)}
-              aria-current={activePage === item.page ? 'page' : undefined}
+              aria-current={activePage === item.page ? t("page") : undefined}
               aria-keyshortcuts={`Alt+${item.key}`}
               onClick={onNavigate}
             >
@@ -107,6 +112,8 @@ function SidebarAccount({
   pending,
   signOut,
 }: Pick<WorkspaceSidebarProperties, 'identity' | 'pending' | 'signOut'>): UIElement {
+  const { t } = useLocalization();
+
   return (
     <div className="workspace-sidebar-account">
       <div className="workspace-sidebar-person">
@@ -115,7 +122,7 @@ function SidebarAccount({
         </span>
         <span>
           <strong title={identity.username}>{identity.username}</strong>
-          <small>{WorkspaceContent.Administrator}</small>
+          <small>{t(WorkspaceContent.Administrator)}</small>
         </span>
       </div>
       <Button
@@ -125,7 +132,7 @@ function SidebarAccount({
         onClick={signOut}
       >
         <LogOut aria-hidden="true" />
-        {pending ? WorkspaceContent.SigningOut : WorkspaceContent.SignOut}
+        {pending ? t(WorkspaceContent.SigningOut) : t(WorkspaceContent.SignOut)}
       </Button>
     </div>
   );
@@ -138,16 +145,19 @@ export function WorkspaceSidebar({
   signOut,
   pending,
 }: WorkspaceSidebarProperties): UIElement {
+  const { t } = useLocalization();
+
   const [open, setOpen] = useState(false);
 
   return (
-    <aside className="workspace-sidebar-frame" aria-label="Kelpie workspace">
+    <aside className="workspace-sidebar-frame" aria-label={t("Kelpie workspace")}>
       <div className="workspace-sidebar-panel">
         <SidebarBrand funnelIdentifier={funnelIdentifier} />
         <div className="workspace-sidebar-desktop-content">
           <SidebarLinks page={page} funnelIdentifier={funnelIdentifier} />
         </div>
         <footer className="workspace-sidebar-footer">
+          <LanguageSettings />
           <WorkspaceShortcutHelp funnelIdentifier={funnelIdentifier} />
           <div className="workspace-sidebar-desktop-account">
             <SidebarAccount identity={identity} pending={pending} signOut={signOut} />
@@ -159,16 +169,14 @@ export function WorkspaceSidebar({
               className="workspace-sidebar-mobile-trigger"
               variant="ghost"
               size="icon"
-              aria-label="Open navigation"
+              aria-label={t("Open navigation")}
             >
               <PanelLeft aria-hidden="true" />
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="workspace-sidebar-sheet">
-            <SheetTitle className="sr-only">Workspace navigation</SheetTitle>
-            <SheetDescription className="sr-only">
-              Choose a section for your current funnel.
-            </SheetDescription>
+            <SheetTitle className="sr-only">{t("Workspace navigation")}</SheetTitle>
+            <SheetDescription className="sr-only">{t("Choose a section for your current funnel.")}</SheetDescription>
             <div className="workspace-sidebar-panel">
               <SidebarBrand funnelIdentifier={funnelIdentifier} onNavigate={() => setOpen(false)} />
               <SidebarLinks

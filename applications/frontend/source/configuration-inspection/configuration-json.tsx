@@ -1,3 +1,4 @@
+import { useLocalization } from '../localization/use-localization';
 import { useMemo } from 'react';
 import { ConfigurationInspectionFormat } from './configuration-inspection-format';
 
@@ -42,6 +43,7 @@ const JsonHighlighting = {
 } as const;
 
 export function ConfigurationJson({ value }: { readonly value: unknown }) {
+  const { t } = useLocalization();
   const tokens = useMemo(
     () => JsonHighlighting.tokens(ConfigurationInspectionFormat.json(value)),
     [value],
@@ -50,7 +52,7 @@ export function ConfigurationJson({ value }: { readonly value: unknown }) {
   return (
     <pre
       tabIndex={0}
-      aria-label="JSON configuration"
+      aria-label={t("JSON configuration")}
       className="configuration-json max-h-[32rem] min-w-0 overflow-auto rounded-md border p-4 text-xs leading-relaxed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
       <code>

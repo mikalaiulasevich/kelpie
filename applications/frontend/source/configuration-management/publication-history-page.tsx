@@ -1,3 +1,4 @@
+import { useLocalization } from '../localization/use-localization';
 import { Kbd, KbdGroup } from '../components/kbd';
 import { ActionShortcutCatalog } from '../workspace/action-shortcuts';
 import { useActionShortcuts } from '../workspace/use-action-shortcuts';
@@ -38,6 +39,7 @@ export function PublicationHistoryPage({
   onUnauthorized,
   onIntent,
 }: PublicationHistoryPageProperties): UIElement {
+  const { t } = useLocalization();
   const [offsets, setOffsets] = useState<readonly number[]>([0]);
   const [refresh, setRefresh] = useState(0);
   const offset = offsets.at(-1) ?? 0;
@@ -68,8 +70,8 @@ export function PublicationHistoryPage({
     <div className="workspace-page flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="screen-heading flex flex-col gap-3">
-          <h1 className="page-title">{ConfigurationContent.HistoryHeading}</h1>
-          <p className="page-description">{ConfigurationContent.HistoryDescription}</p>
+          <h1 className="page-title">{t(ConfigurationContent.HistoryHeading)}</h1>
+          <p className="page-description">{t(ConfigurationContent.HistoryDescription)}</p>
         </div>
         <Button
           variant="outline"
@@ -78,7 +80,7 @@ export function PublicationHistoryPage({
           aria-keyshortcuts={ActionShortcutCatalog.Refresh.aria}
         >
           <RefreshCw data-icon="inline-start" />
-          {ConfigurationContent.Refresh}
+          {t(ConfigurationContent.Refresh)}
           <KbdGroup aria-hidden="true" className="ml-1 hidden sm:inline-flex">
             <Kbd>Alt</Kbd>
             <Kbd>R</Kbd>
@@ -88,19 +90,19 @@ export function PublicationHistoryPage({
       {resource.status === 'loading' && <SkeletonRows label="Loading activation history" />}
       {resource.status === 'error' && (
         <LoadErrorState
-          title="Activation history could not be loaded"
+          title={t("Activation history could not be loaded")}
           message={resource.message}
           onRetry={reload}
-          retryLabel="Try again"
+          retryLabel={t("Try again")}
         />
       )}
       {resource.status === 'ready' && (
         <Card className="publication-log w-full gap-0 overflow-hidden">
           <CardHeader className="flex flex-wrap items-center justify-between gap-4 pb-5">
             <div className="flex flex-col gap-1.5">
-              <CardTitle>Activity</CardTitle>
+              <CardTitle>{t("Activity")}</CardTitle>
               <CardDescription>
-                {funnelIdentifier} · Current revision {resource.data.funnel.revision}
+                {funnelIdentifier} {t("· Current revision")}{resource.data.funnel.revision}
               </CardDescription>
             </div>
             <Button
@@ -109,7 +111,7 @@ export function PublicationHistoryPage({
               onClick={() =>
                 onIntent({
                   kind: 'rollback',
-                  label: 'Previous activated version',
+                  label: t('Previous activated version'),
                   command: {
                     operationIdentifier: globalThis.crypto.randomUUID(),
                     funnelIdentifier,
@@ -119,7 +121,7 @@ export function PublicationHistoryPage({
               }
             >
               <RotateCcw data-icon="inline-start" />
-              {ConfigurationContent.Rollback}
+              {t(ConfigurationContent.Rollback)}
             </Button>
           </CardHeader>
           <Separator />
@@ -130,9 +132,9 @@ export function PublicationHistoryPage({
                   <EmptyMedia variant="icon">
                     <History />
                   </EmptyMedia>
-                  <EmptyTitle>{ConfigurationContent.HistoryEmptyTitle}</EmptyTitle>
+                  <EmptyTitle>{t(ConfigurationContent.HistoryEmptyTitle)}</EmptyTitle>
                   <EmptyDescription>
-                    {ConfigurationContent.HistoryEmptyDescription}
+                    {t(ConfigurationContent.HistoryEmptyDescription)}
                   </EmptyDescription>
                 </EmptyHeader>
               </Empty>
@@ -146,7 +148,7 @@ export function PublicationHistoryPage({
           <Separator />
           <CardFooter className="flex flex-wrap items-center justify-between gap-4 pt-4">
             <p className="text-xs text-muted-foreground">
-              Showing {offset + (resource.data.items.length > 0 ? 1 : 0)}–
+              {t("Showing")}{offset + (resource.data.items.length > 0 ? 1 : 0)}–
               {offset + resource.data.items.length}
             </p>
             <div className="flex gap-2">
@@ -156,7 +158,7 @@ export function PublicationHistoryPage({
                 onClick={() => setOffsets((previous) => previous.slice(0, -1))}
               >
                 <ArrowLeft data-icon="inline-start" />
-                {ConfigurationContent.Previous}
+                {t(ConfigurationContent.Previous)}
               </Button>
               <Button
                 variant="outline"
@@ -173,7 +175,7 @@ export function PublicationHistoryPage({
                 }}
               >
                 <ArrowRight data-icon="inline-end" />
-                {ConfigurationContent.Next}
+                {t(ConfigurationContent.Next)}
               </Button>
             </div>
           </CardFooter>

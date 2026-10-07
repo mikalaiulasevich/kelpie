@@ -1,3 +1,4 @@
+import { QuizLocaleProvider } from '../source/localization/quiz-locale-provider';
 import type { Metadata } from 'next';
 import './globals.css';
 
@@ -9,7 +10,9 @@ export const metadata: Metadata = {
 export default function QuizLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <QuizLocaleProvider>{children}</QuizLocaleProvider>
+      </body>
     </html>
   );
 }

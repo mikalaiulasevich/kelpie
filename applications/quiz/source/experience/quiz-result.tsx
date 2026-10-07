@@ -1,3 +1,4 @@
+import { useQuizLocale } from '../localization/quiz-locale-provider';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Check, CircleCheck, Printer } from 'lucide-react';
 import type { FunnelResult } from '@kelpie/contracts';
@@ -11,6 +12,8 @@ interface QuizResultProperties {
 }
 
 export function QuizResult({ result, busy, onBack, onAction }: QuizResultProperties) {
+  const { translate } = useQuizLocale();
+
   const [expanded, setExpanded] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
 
@@ -23,11 +26,11 @@ export function QuizResult({ result, busy, onBack, onAction }: QuizResultPropert
       <span className="result-seal">
         <CircleCheck />
       </span>
-      <p className="eyebrow">YOUR TEAM’S NEXT CHAPTER</p>
+      <p className="eyebrow">{translate('YOUR TEAM’S NEXT CHAPTER')}</p>
       <h1 ref={heading} tabIndex={-1}>
-        {result.title}
+        {translate(result.title)}
       </h1>
-      <p className="result-summary">{result.summary}</p>
+      <p className="result-summary">{translate(result.summary)}</p>
       <div className="result-action-area">
         <Button
           disabled={busy}
@@ -38,38 +41,39 @@ export function QuizResult({ result, busy, onBack, onAction }: QuizResultPropert
           aria-expanded={expanded}
           aria-controls="recommendations"
         >
-          {result.cta.label}
+          {translate(result.cta.label)}
           <ArrowRight />
         </Button>
-        <span>Small changes. A practical place to start.</span>
+        <span>{translate('Small changes. A practical place to start.')}</span>
       </div>
       {expanded && (
         <div className="recommendation-sheet" id="recommendations">
           <div className="recommendation-heading">
-            <h2>Your action list</h2>
+            <h2>{translate('Your action list')}</h2>
             <Button appearance="quiet" onClick={() => window.print()}>
               <Printer />
-              Print
+              {translate('Print')}
             </Button>
           </div>
           <ol>
             {result.recommendations.map((text, index) => (
               <li key={index}>
                 <span>{String(index + 1).padStart(2, '0')}</span>
-                <p>{text}</p>
+                <p>{translate(text)}</p>
                 <Check />
               </li>
             ))}
           </ol>
           <p className="result-footnote">
-            A fictional recommendation for this assessment. Use it as a conversation starter with
-            your team.
+            {translate(
+              'A fictional recommendation for this assessment. Use it as a conversation starter with your team.',
+            )}
           </p>
         </div>
       )}
       <Button appearance="quiet" disabled={busy} onClick={() => void onBack()}>
         <ArrowLeft />
-        Review your answers
+        {translate('Review your answers')}
       </Button>
     </section>
   );

@@ -1,3 +1,4 @@
+import { useLocalization } from '../localization/use-localization';
 import { ConfigurationJson } from './configuration-json';
 import { useState } from 'react';
 import {
@@ -33,20 +34,21 @@ interface ConfigurationInspectionProperties {
 }
 
 export function ConfigurationInspection({ configuration }: ConfigurationInspectionProperties) {
+  const { t } = useLocalization();
   const [variant, setVariant] = useState<ExperimentVariant>(ExperimentVariant.A);
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <section
-          aria-label="Version information"
+          aria-label={t("Version information")}
           className="min-w-0 flex-1 rounded-lg bg-muted/40 px-4 py-3"
         >
           <div className="flex flex-col gap-3">
             <div className="flex items-start gap-2.5">
               <Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
               <div className="min-w-0">
-                <h3 className="mb-1 text-xs font-medium text-muted-foreground">Description</h3>
+                <h3 className="mb-1 text-xs font-medium text-muted-foreground">{t("Description")}</h3>
                 <p className="max-w-prose whitespace-pre-wrap break-words text-sm leading-relaxed">
                   {configuration.description}
                 </p>
@@ -56,7 +58,7 @@ export function ConfigurationInspection({ configuration }: ConfigurationInspecti
               <div className="flex items-start gap-2.5">
                 <FilePenLine className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
                 <div className="min-w-0">
-                  <h3 className="mb-1 text-xs font-medium text-muted-foreground">What changed</h3>
+                  <h3 className="mb-1 text-xs font-medium text-muted-foreground">{t("What changed")}</h3>
                   <p className="max-w-prose whitespace-pre-wrap break-words text-sm leading-relaxed">
                     {configuration.releaseNote}
                   </p>
@@ -67,8 +69,7 @@ export function ConfigurationInspection({ configuration }: ConfigurationInspecti
         </section>
         <div className="flex shrink-0 items-center gap-3">
           <label htmlFor="inspection-variant" className="text-sm text-muted-foreground">
-            Preview
-          </label>
+            {t("Preview")}</label>
           <Select
             value={variant}
             onValueChange={(value) => {
@@ -82,8 +83,8 @@ export function ConfigurationInspection({ configuration }: ConfigurationInspecti
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectItem value={ExperimentVariant.A}>Variant A</SelectItem>
-                <SelectItem value={ExperimentVariant.B}>Variant B</SelectItem>
+                <SelectItem value={ExperimentVariant.A}>{t("Variant A")}</SelectItem>
+                <SelectItem value={ExperimentVariant.B}>{t("Variant B")}</SelectItem>
               </SelectGroup>
             </SelectContent>
           </Select>
@@ -94,24 +95,19 @@ export function ConfigurationInspection({ configuration }: ConfigurationInspecti
           <TabsList variant="line" className="w-max">
             <TabsTrigger value="steps">
               <ListOrdered aria-hidden="true" />
-              Steps
-            </TabsTrigger>
+              {t("Steps")}</TabsTrigger>
             <TabsTrigger value="variants">
               <GitBranch aria-hidden="true" />
-              Variants
-            </TabsTrigger>
+              {t("Variants")}</TabsTrigger>
             <TabsTrigger value="results">
               <Flag aria-hidden="true" />
-              Results
-            </TabsTrigger>
+              {t("Results")}</TabsTrigger>
             <TabsTrigger value="events">
               <Activity aria-hidden="true" />
-              Events
-            </TabsTrigger>
+              {t("Events")}</TabsTrigger>
             <TabsTrigger value="settings">
               <SlidersHorizontal aria-hidden="true" />
-              Settings
-            </TabsTrigger>
+              {t("Settings")}</TabsTrigger>
             <TabsTrigger value="json">
               <Braces aria-hidden="true" />
               JSON
@@ -134,8 +130,8 @@ export function ConfigurationInspection({ configuration }: ConfigurationInspecti
           <div className="grid min-w-0 gap-4 md:grid-cols-2">
             <Card className="min-w-0">
               <CardHeader>
-                <CardTitle>Session</CardTitle>
-                <CardDescription>Lifetime, persistence and version pinning.</CardDescription>
+                <CardTitle>{t("Session")}</CardTitle>
+                <CardDescription>{t("Lifetime, persistence and version pinning.")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <ConfigurationJson value={configuration.session} />
@@ -143,8 +139,8 @@ export function ConfigurationInspection({ configuration }: ConfigurationInspecti
             </Card>
             <Card className="min-w-0">
               <CardHeader>
-                <CardTitle>Progress</CardTitle>
-                <CardDescription>Visible steps and excluded step types.</CardDescription>
+                <CardTitle>{t("Progress")}</CardTitle>
+                <CardDescription>{t("Visible steps and excluded step types.")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <ConfigurationJson value={configuration.progress} />
@@ -155,11 +151,9 @@ export function ConfigurationInspection({ configuration }: ConfigurationInspecti
         <TabsContent value="json" className="min-w-0">
           <Card className="min-w-0">
             <CardHeader>
-              <CardTitle>Original configuration</CardTitle>
+              <CardTitle>{t("Original configuration")}</CardTitle>
               <CardDescription>
-                The persisted document, formatted for reading. Variant overrides are not merged into
-                this view.
-              </CardDescription>
+                {t("The persisted document, formatted for reading. Variant overrides are not merged into this view.")}</CardDescription>
             </CardHeader>
             <CardContent>
               <ConfigurationJson value={configuration} />

@@ -1,3 +1,4 @@
+import { useLocalization } from '../localization/use-localization';
 import {
   ArrowUpRight,
   CircleCheck,
@@ -28,10 +29,11 @@ import { ConfigurationLibrary } from './configuration-library';
 import { ClassNames } from '../styling/combine-class-names';
 
 export function ConfigurationStatus({ live }: { live: boolean }): UIElement {
+  const { t } = useLocalization();
   return (
     <Badge variant={live ? 'success' : 'warning'} className={live ? undefined : 'bg-warning/5'}>
       {live ? <CircleCheck aria-hidden="true" /> : <FilePenLine aria-hidden="true" />}
-      {live ? ConfigurationContent.Live : ConfigurationContent.Draft}
+      {live ? t(ConfigurationContent.Live) : t(ConfigurationContent.Draft)}
     </Badge>
   );
 }
@@ -41,16 +43,17 @@ export function ConfigurationHighlights({
 }: {
   configurations: ConfigurationList;
 }): UIElement {
+  const { t } = useLocalization();
   const versions = [...configurations.items]
     .sort((left, right) => right.version - left.version)
     .slice(0, 3);
 
   return (
-    <section className="flex flex-col gap-3" aria-label={ConfigurationContent.Highlights}>
+    <section className="flex flex-col gap-3" aria-label={t(ConfigurationContent.Highlights)}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-base font-semibold">{ConfigurationContent.Highlights}</h2>
+        <h2 className="text-base font-semibold">{t(ConfigurationContent.Highlights)}</h2>
         <span className="text-xs text-muted-foreground">
-          {ConfigurationContent.HighlightsScope}
+          {t(ConfigurationContent.HighlightsScope)}
         </span>
       </div>
       <div className="configuration-highlights grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))]">
@@ -80,25 +83,24 @@ export function ConfigurationHighlights({
                   version.identifier,
                 )}
               >
-                {ConfigurationContent.Version} {version.version}
+                {t(ConfigurationContent.Version)} {version.version}
               </a>
               <CardDescription className="text-xs leading-relaxed">
                 {version.identifier === configurations.funnel.activeVersionIdentifier
-                  ? 'Serving new sessions. Existing sessions keep their assigned version.'
-                  : 'Saved configuration. Inspect its steps and experiment before activation.'}
+                  ? t('Serving new sessions. Existing sessions keep their assigned version.')
+                  : t('Saved configuration. Inspect its steps and experiment before activation.')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <dl className="grid grid-cols-2 gap-3 border-t pt-3 text-xs">
                 <div>
-                  <dt className="mb-1 text-muted-foreground">Schema</dt>
+                  <dt className="mb-1 text-muted-foreground">{t("Schema")}</dt>
                   <dd>{version.schemaVersion}</dd>
                 </div>
                 <div className="min-w-0">
                   <dt className="mb-1 flex items-center gap-1 text-muted-foreground">
                     <Fingerprint className="size-3" aria-hidden="true" />
-                    Fingerprint
-                  </dt>
+                    {t("Fingerprint")}</dt>
                   <dd className="truncate" title={version.checksum}>
                     {version.checksum.slice(0, 12)}
                   </dd>
@@ -106,7 +108,7 @@ export function ConfigurationHighlights({
               </dl>
             </CardContent>
             <CardFooter className="mt-auto justify-between gap-2 px-5 text-xs text-muted-foreground">
-              <span>View configuration</span>
+              <span>{t("View configuration")}</span>
               <Button variant="ghost" size="icon" asChild>
                 <a
                   aria-label={`Inspect version ${version.version}`}
@@ -134,14 +136,15 @@ export function ConfigurationLibraryContext({
   configurations: ConfigurationList;
   history: PublicationHistory;
 }): UIElement {
+  const { t } = useLocalization();
   const latest = history.items[0];
 
   return (
-    <aside className="flex min-w-0 flex-col gap-5" aria-label={ConfigurationContent.FunnelContext}>
+    <aside className="flex min-w-0 flex-col gap-5" aria-label={t(ConfigurationContent.FunnelContext)}>
       <Card className="compact-card relative overflow-hidden">
         <CardHeader>
           <div className="flex items-center justify-between gap-2">
-            <CardTitle>{ConfigurationContent.CurrentVersion}</CardTitle>
+            <CardTitle>{t(ConfigurationContent.CurrentVersion)}</CardTitle>
             <span
               className={ClassNames.combine(
                 'flex size-8 items-center justify-center rounded-[10px]',
@@ -157,7 +160,7 @@ export function ConfigurationLibraryContext({
               )}
             </span>
           </div>
-          <CardDescription>{ConfigurationContent.ActiveVersionDescription}</CardDescription>
+          <CardDescription>{t(ConfigurationContent.ActiveVersionDescription)}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           <div>
@@ -173,20 +176,20 @@ export function ConfigurationLibraryContext({
             <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
               <dt className="flex min-w-0 items-center gap-2 leading-snug text-muted-foreground">
                 <History aria-hidden="true" className="size-4 shrink-0" />
-                {ConfigurationContent.Revision}
+                {t(ConfigurationContent.Revision)}
               </dt>
               <dd className="text-xl font-medium tabular-nums">{configurations.funnel.revision}</dd>
             </div>
             <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t pt-2">
               <dt className="flex min-w-0 items-center gap-2 leading-snug text-muted-foreground">
                 <Layers3 aria-hidden="true" className="size-4 shrink-0" />
-                {ConfigurationContent.ListedVersions}
+                {t(ConfigurationContent.ListedVersions)}
               </dt>
               <dd className="text-xl font-medium tabular-nums">{configurations.items.length}</dd>
             </div>
             {latest && (
               <div className="flex min-w-0 flex-col gap-1.5 border-t pt-2">
-                <dt className="text-muted-foreground">{ConfigurationContent.LastActivation}</dt>
+                <dt className="text-muted-foreground">{t(ConfigurationContent.LastActivation)}</dt>
                 <dd className="break-words text-xs leading-relaxed">
                   {ConfigurationFormat.date(latest.createdAt)}
                 </dd>
@@ -204,7 +207,7 @@ export function ConfigurationLibraryContext({
                   configurations.funnel.activeVersionIdentifier,
                 )}
               >
-                {ConfigurationContent.InspectActive}
+                {t(ConfigurationContent.InspectActive)}
                 <ArrowUpRight data-icon="inline-end" />
               </a>
             </Button>
@@ -213,13 +216,13 @@ export function ConfigurationLibraryContext({
       </Card>
       <Card className="compact-card">
         <CardHeader>
-          <CardTitle>{ConfigurationContent.RecentActivity}</CardTitle>
-          <CardDescription>{ConfigurationContent.ActivationContext}</CardDescription>
+          <CardTitle>{t(ConfigurationContent.RecentActivity)}</CardTitle>
+          <CardDescription>{t(ConfigurationContent.ActivationContext)}</CardDescription>
         </CardHeader>
         <CardContent>
           {history.items.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              {ConfigurationContent.HistoryEmptyDescription}
+              {t(ConfigurationContent.HistoryEmptyDescription)}
             </p>
           ) : (
             <ol className="flex flex-col">
@@ -246,7 +249,7 @@ export function ConfigurationLibraryContext({
                     <p className="text-sm font-medium">
                       {ConfigurationFormat.action(publication.action)}{' '}
                       <span className="font-normal text-muted-foreground">
-                        · r{publication.revision}
+                        {t("· r")}{publication.revision}
                       </span>
                     </p>
                     <p className="text-xs text-muted-foreground">
@@ -275,7 +278,7 @@ export function ConfigurationLibraryContext({
                 configurations.funnel.identifier,
               )}
             >
-              {ConfigurationContent.ViewHistory}
+              {t(ConfigurationContent.ViewHistory)}
               <ArrowUpRight data-icon="inline-end" />
             </a>
           </Button>
@@ -283,7 +286,7 @@ export function ConfigurationLibraryContext({
       </Card>
       <div className="flex items-start gap-3 px-1 text-xs leading-relaxed text-muted-foreground">
         <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
-        <p>{ConfigurationContent.VersionSafety}</p>
+        <p>{t(ConfigurationContent.VersionSafety)}</p>
       </div>
     </aside>
   );

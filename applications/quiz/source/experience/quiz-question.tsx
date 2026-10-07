@@ -1,3 +1,4 @@
+import { useQuizLocale } from '../localization/quiz-locale-provider';
 import { isUndefined } from 'es-toolkit';
 import { useEffect, useRef, useState } from 'react';
 import { StepRules, type FunnelStep, type StepAnswer } from '@kelpie/contracts';
@@ -7,6 +8,7 @@ import { QuizDrafts } from '../session/quiz-session-api';
 import type { QuizSessionState } from '../session/quiz-session-types';
 import { Button } from '../components/button';
 import { QuizInput } from './quiz-input';
+import { QuizLocalization } from '../localization/quiz-localization';
 import { QuizMessages } from './quiz-messages';
 
 interface QuizQuestionProperties {
@@ -41,8 +43,10 @@ export function QuizQuestion({
   onContinue,
   onBack,
 }: QuizQuestionProperties) {
+  const { translate, locale } = useQuizLocale();
+
   const [draft, setDraft] = useState(() => QuestionDraft.read(state, step));
-  const [validation, setValidation] = useState('');
+  const [validation, setValidation] = useState<string[]>([]);
   const heading = useRef<HTMLHeadingElement>(null);
   const interactive = StepRules.isInteractive(step);
   const multiple = step.type === 'multi-select';
@@ -53,7 +57,7 @@ export function QuizQuestion({
   }, []);
 
   const changeAnswer = (value: StepAnswer | null) => {
-    setValidation('');
+    setValidation([]);
     try {
       QuizDrafts.write(state, step.id, value);
       setDraft({ value, warning: '' });
@@ -71,7 +75,7 @@ export function QuizQuestion({
       const outcome = AnswerValidation.validate(step, draft.value);
 
       if (!outcome.valid) {
-        setValidation(outcome.issues.map((issue) => issue.message).join(' '));
+        setValidation(outcome.issues.map((issue) => issue.message));
 
         return;
       }
@@ -127,45 +131,50 @@ export function QuizQuestion({
       <div className="question-eyebrow">
         <span className="eyebrow">
           {interactive
-            ? 'LET’S UNDERSTAND YOUR TEAM'
-            : (step.content.eyebrow ?? 'A BETTER WAY TO WORK')}
+            ? translate('LET’S UNDERSTAND YOUR TEAM')
+            : translate(step.content.eyebrow ?? 'A BETTER WAY TO WORK')}
         </span>
         {multiple && (
           <span className="selection-count">
             <Check />
-            {selectedCount} selected
+            {selectedCount} {translate('selected')}
           </span>
         )}
       </div>
       <h1 ref={heading} tabIndex={-1}>
-        {step.content.title}
+        {translate(step.content.title ?? '')}
       </h1>
       <p id="question-help" className="question-help">
-        {step.content.helperText ??
-          step.content.body ??
-          'Choose the answer that feels closest to your team today.'}
+        {translate(
+          step.content.helperText ??
+            step.content.body ??
+            'Choose the answer that feels closest to your team today.',
+        )}
       </p>
       {interactive && (
         <QuizInput
           step={step}
           value={draft.value}
           disabled={busy}
-          invalid={Boolean(validation)}
+          invalid={validation.length > 0}
           onChange={changeAnswer}
         />
       )}
       {multiple && (
         <p className="selection-help">
-          Choose {StepRules.selectionLimits(step).minimum}–{StepRules.selectionLimits(step).maximum}{' '}
-          options. There are no right or wrong answers.
+          {QuizLocalization.selections(
+            locale,
+            StepRules.selectionLimits(step).minimum,
+            StepRules.selectionLimits(step).maximum,
+          )}
         </p>
       )}
       <div id="question-error" role="alert" className="form-error">
-        {validation}
+        {validation.map((message) => QuizLocalization.validation(locale, message)).join(' ')}
       </div>
       {draft.warning && (
         <p role="status" className="form-warning">
-          {draft.warning}
+          {translate(draft.warning)}
         </p>
       )}
       <div className="question-actions">
@@ -176,19 +185,20 @@ export function QuizQuestion({
           onClick={() => void onBack()}
         >
           <ArrowLeft />
-          Back
+          {translate('Back')}
         </Button>
         <Button type="submit" disabled={busy}>
           {busy ? <LoaderCircle className="spin" /> : null}
-          {busy ? 'Saving…' : (step.content.primaryActionLabel ?? 'Continue')}
+          {busy ? translate('Saving…') : translate(step.content.primaryActionLabel ?? 'Continue')}
           <ArrowRight />
         </Button>
       </div>
       <p className="save-note">
         <ShieldCheck />
-        Answers are confirmed only when you continue.
+        {translate('Answers are confirmed only when you continue.')}
         <span className="keyboard-hint">
-          Press <kbd>Enter ↵</kbd>
+          {translate('Press')}
+          <kbd>Enter ↵</kbd>
         </span>
       </p>
     </form>

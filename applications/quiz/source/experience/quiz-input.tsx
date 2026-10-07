@@ -1,3 +1,4 @@
+import { useQuizLocale } from '../localization/quiz-locale-provider';
 import type { InteractiveStep, StepAnswer } from '@kelpie/contracts';
 import { Check, Minus, Plus } from 'lucide-react';
 import { isNumber } from 'es-toolkit/predicate';
@@ -12,6 +13,8 @@ interface QuizInputProperties {
 }
 
 export function QuizInput({ step, value, disabled, invalid, onChange }: QuizInputProperties) {
+  const { translate } = useQuizLocale();
+
   if (step.type === 'number') {
     const numericValue = isNumber(value) ? value : step.input.min;
 
@@ -21,15 +24,16 @@ export function QuizInput({ step, value, disabled, invalid, onChange }: QuizInpu
         disabled={disabled}
         aria-describedby="question-help question-error"
       >
-        <legend className="sr-only">{step.content.title}</legend>
+        <legend className="sr-only">{translate(step.content.title)}</legend>
         <label htmlFor="number-answer" className="input-label">
-          Your answer {step.input.unit && <span>· {step.input.unit}</span>}
+          {translate('Your answer')}
+          {step.input.unit && <span>· {translate(step.input.unit ?? '')}</span>}
         </label>
         <div className="number-control">
           <Button
             appearance="secondary"
             type="button"
-            aria-label="Decrease answer"
+            aria-label={translate('Decrease answer')}
             disabled={numericValue <= step.input.min}
             onClick={() =>
               onChange(Number(Math.max(step.input.min, numericValue - step.input.step).toFixed(8)))
@@ -54,7 +58,7 @@ export function QuizInput({ step, value, disabled, invalid, onChange }: QuizInpu
           <Button
             appearance="secondary"
             type="button"
-            aria-label="Increase answer"
+            aria-label={translate('Increase answer')}
             disabled={numericValue >= step.input.max}
             onClick={() =>
               onChange(Number(Math.min(step.input.max, numericValue + step.input.step).toFixed(8)))
@@ -65,7 +69,7 @@ export function QuizInput({ step, value, disabled, invalid, onChange }: QuizInpu
         </div>
         <input
           className="number-slider"
-          aria-label="Adjust answer"
+          aria-label={translate('Adjust answer')}
           type="range"
           min={step.input.min}
           max={step.input.max}
@@ -75,10 +79,10 @@ export function QuizInput({ step, value, disabled, invalid, onChange }: QuizInpu
         />
         <div className="range-labels">
           <span>
-            {step.input.min} {step.input.unit}
+            {step.input.min} {translate(step.input.unit ?? '')}
           </span>
           <span>
-            {step.input.max} {step.input.unit}
+            {step.input.max} {translate(step.input.unit ?? '')}
           </span>
         </div>
       </fieldset>
@@ -93,7 +97,7 @@ export function QuizInput({ step, value, disabled, invalid, onChange }: QuizInpu
       disabled={disabled}
       aria-describedby="question-help question-error"
     >
-      <legend className="sr-only">{step.content.title}</legend>
+      <legend className="sr-only">{translate(step.content.title)}</legend>
       {step.input.options.map((option, index) => {
         const checked = multiple
           ? Array.isArray(value) && value.includes(option.value)
@@ -125,7 +129,7 @@ export function QuizInput({ step, value, disabled, invalid, onChange }: QuizInpu
             <span className="choice-indicator" data-multiple={multiple} aria-hidden="true">
               {checked && <Check />}
             </span>
-            <span className="choice-label">{option.label}</span>
+            <span className="choice-label">{translate(option.label)}</span>
             <kbd aria-hidden="true">{index < 9 ? index + 1 : ''}</kbd>
           </label>
         );

@@ -1,3 +1,4 @@
+import { useLocalization } from '../localization/use-localization';
 import type { ExperimentVariant, FunnelStep } from '@kelpie/contracts';
 import {
   ArrowDown,
@@ -31,13 +32,14 @@ export function ConfigurationVariantStep({
   variant,
   otherVariant,
 }: ConfigurationVariantStepProperties): UIElement {
+  const { t } = useLocalization();
   const presentation = match(step?.type)
-    .with('info', () => ({ icon: Info, label: 'Information' }))
-    .with('single-select', () => ({ icon: CircleDot, label: 'Single choice' }))
-    .with('multi-select', () => ({ icon: ListChecks, label: 'Multiple choice' }))
-    .with('number', () => ({ icon: Hash, label: 'Number input' }))
-    .with('result', () => ({ icon: Flag, label: 'Result' }))
-    .with(undefined, () => ({ icon: Info, label: 'Step' }))
+    .with('info', () => ({ icon: Info, label: t('Information') }))
+    .with('single-select', () => ({ icon: CircleDot, label: t('Single choice') }))
+    .with('multi-select', () => ({ icon: ListChecks, label: t('Multiple choice') }))
+    .with('number', () => ({ icon: Hash, label: t('Number input') }))
+    .with('result', () => ({ icon: Flag, label: t('Result') }))
+    .with(undefined, () => ({ icon: Info, label: t('Step') }))
     .exhaustive();
   const StepIcon = presentation.icon;
   const displacement = isUndefined(otherPosition) ? 0 : position - otherPosition;
@@ -49,7 +51,7 @@ export function ConfigurationVariantStep({
     }))
     .when(
       () => displacement === 0,
-      () => ({ icon: Check, label: 'Same position', detail: `Both variants · #${position}` }),
+      () => ({ icon: Check, label: t('Same position'), detail: `Both variants · #${position}` }),
     )
     .otherwise(() => ({
       icon: displacement < 0 ? ArrowUp : ArrowDown,

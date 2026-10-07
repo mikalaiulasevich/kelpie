@@ -1,3 +1,4 @@
+import { useLocalization } from '../localization/use-localization';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { isError } from 'es-toolkit/predicate';
 import { Eye, EyeOff, LoaderCircle } from 'lucide-react';
@@ -18,6 +19,8 @@ interface AdministrationFormProperties {
 }
 
 export function AdministrationForm({ signIn }: AdministrationFormProperties): UIElement {
+  const { t } = useLocalization();
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [visible, setVisible] = useState(false);
@@ -86,18 +89,18 @@ export function AdministrationForm({ signIn }: AdministrationFormProperties): UI
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
-        <h1 className="auth-title">{AdministrationContent.SignInTitle}</h1>
-        <p className="auth-description">{AdministrationContent.SignInDescription}</p>
+        <h1 className="auth-title">{t(AdministrationContent.SignInTitle)}</h1>
+        <p className="auth-description">{t(AdministrationContent.SignInDescription)}</p>
       </div>
       <form
         onSubmit={submit}
         noValidate
-        aria-label={AdministrationContent.SignIn}
+        aria-label={t(AdministrationContent.SignIn)}
         aria-busy={pending}
       >
         <FieldGroup>
           <Field data-invalid={!!errors.username} data-disabled={pending}>
-            <FieldLabel htmlFor="username">{AdministrationContent.UsernameLabel}</FieldLabel>
+            <FieldLabel htmlFor="username">{t(AdministrationContent.UsernameLabel)}</FieldLabel>
             <InputGroup className="h-12">
               <InputGroupInput
                 ref={usernameReference}
@@ -106,7 +109,7 @@ export function AdministrationForm({ signIn }: AdministrationFormProperties): UI
                 autoComplete="username"
                 autoCapitalize="none"
                 spellCheck={false}
-                placeholder={AdministrationContent.UsernamePlaceholder}
+                placeholder={t(AdministrationContent.UsernamePlaceholder)}
                 required
                 disabled={pending}
                 value={username}
@@ -116,21 +119,21 @@ export function AdministrationForm({ signIn }: AdministrationFormProperties): UI
                   setMessage('');
                 }}
                 aria-invalid={!!errors.username}
-                aria-describedby={errors.username ? 'username-error' : undefined}
+                aria-describedby={errors.username ? t("username-error") : undefined}
               />
             </InputGroup>
             {errors.username && <FieldError id="username-error">{errors.username}</FieldError>}
           </Field>
           <Field data-invalid={!!errors.password} data-disabled={pending}>
-            <FieldLabel htmlFor="password">{AdministrationContent.PasswordLabel}</FieldLabel>
+            <FieldLabel htmlFor="password">{t(AdministrationContent.PasswordLabel)}</FieldLabel>
             <InputGroup className="h-12">
               <InputGroupInput
                 ref={passwordReference}
                 id="password"
                 name="password"
-                type={visible ? 'text' : 'password'}
+                type={visible ? t("text") : t("password")}
                 autoComplete="current-password"
-                placeholder={AdministrationContent.PasswordPlaceholder}
+                placeholder={t(AdministrationContent.PasswordPlaceholder)}
                 required
                 disabled={pending}
                 value={password}
@@ -155,8 +158,8 @@ export function AdministrationForm({ signIn }: AdministrationFormProperties): UI
                   className="size-11"
                   aria-label={
                     visible
-                      ? AdministrationContent.HidePassword
-                      : AdministrationContent.ShowPassword
+                      ? t(AdministrationContent.HidePassword)
+                      : t(AdministrationContent.ShowPassword)
                   }
                   aria-pressed={visible}
                   disabled={pending}
@@ -169,20 +172,20 @@ export function AdministrationForm({ signIn }: AdministrationFormProperties): UI
             {errors.password && <FieldError id="password-error">{errors.password}</FieldError>}
             {capsLock && (
               <p id="caps-warning" className="text-sm text-muted-foreground" role="status">
-                {AdministrationContent.CapsLock}
+                {t(AdministrationContent.CapsLock)}
               </p>
             )}
           </Field>
           {message && (
             <Alert variant="destructive" className="form-feedback">
-              <AlertTitle>{AdministrationContent.SignInFailed}</AlertTitle>
+              <AlertTitle>{t(AdministrationContent.SignInFailed)}</AlertTitle>
               <AlertDescription>{message}</AlertDescription>
             </Alert>
           )}
           <Field>
             <Button type="submit" size="lg" className="h-12 w-full" disabled={pending}>
               <span aria-live="polite" aria-atomic="true">
-                {pending ? AdministrationContent.SigningIn : AdministrationContent.SignIn}
+                {pending ? t(AdministrationContent.SigningIn) : t(AdministrationContent.SignIn)}
               </span>
               {pending && <LoaderCircle className="form-pending-icon" aria-hidden="true" />}
             </Button>

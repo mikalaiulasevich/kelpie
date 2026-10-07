@@ -1,3 +1,4 @@
+import { useLocalization } from '../localization/use-localization';
 import { Ellipsis, FileSearch, Rocket } from 'lucide-react';
 import { useRef } from 'react';
 import { Button } from '../components/button';
@@ -26,6 +27,7 @@ export function ConfigurationVersionActions({
   live,
   onPublish,
 }: ConfigurationVersionActionsProperties): UIElement {
+  const { t } = useLocalization();
   const trigger = useRef<HTMLButtonElement>(null);
 
   return (
@@ -35,7 +37,7 @@ export function ConfigurationVersionActions({
           ref={trigger}
           variant="ghost"
           size="icon"
-          aria-label={`${ConfigurationContent.Actions} for version ${version.version}`}
+          aria-label={`${t(ConfigurationContent.Actions)} for version ${version.version}`}
         >
           <Ellipsis aria-hidden="true" />
         </Button>
@@ -52,7 +54,7 @@ export function ConfigurationVersionActions({
               )}
             >
               <FileSearch />
-              {ConfigurationContent.Inspect}
+              {t(ConfigurationContent.Inspect)}
             </a>
           </DropdownMenuItem>
         </DropdownMenuGroup>
@@ -66,7 +68,7 @@ export function ConfigurationVersionActions({
             }}
           >
             <Rocket />
-            {ConfigurationContent.Publish}
+            {t(ConfigurationContent.Publish)}
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

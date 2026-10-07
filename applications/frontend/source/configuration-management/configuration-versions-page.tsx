@@ -1,3 +1,4 @@
+import { useLocalization } from '../localization/use-localization';
 import { Kbd, KbdGroup } from '../components/kbd';
 import { ActionShortcutCatalog } from '../workspace/action-shortcuts';
 import { useActionShortcuts } from '../workspace/use-action-shortcuts';
@@ -78,6 +79,7 @@ export function ConfigurationVersionsPage({
   onImport,
   onIntent,
 }: ConfigurationVersionsPageProperties): UIElement {
+  const { t } = useLocalization();
   const [offsets, setOffsets] = useState<readonly number[]>([0]);
   const [refresh, setRefresh] = useState(0);
   const [search, setSearch] = useState('');
@@ -137,15 +139,15 @@ export function ConfigurationVersionsPage({
     <div className="workspace-page flex flex-col gap-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="screen-heading flex flex-col gap-3">
-          <h1 className="page-title">{ConfigurationContent.Heading}</h1>
-          <p className="page-description">{ConfigurationContent.Description}</p>
+          <h1 className="page-title">{t(ConfigurationContent.Heading)}</h1>
+          <p className="page-description">{t(ConfigurationContent.Description)}</p>
         </div>
         <Button
           onClick={onImport}
           className="primary-cta"
           aria-keyshortcuts={ActionShortcutCatalog.Import.aria}
         >
-          {ConfigurationContent.Import}
+          {t(ConfigurationContent.Import)}
           <KbdGroup aria-hidden="true" className="ml-1 hidden sm:inline-flex">
             <Kbd>Alt</Kbd>
             <Kbd>{ActionShortcutCatalog.Import.key}</Kbd>
@@ -154,17 +156,17 @@ export function ConfigurationVersionsPage({
         </Button>
       </div>
       {resource.status === 'loading' && (
-        <div role="status" aria-label="Loading configurations" className="flex flex-col gap-4">
+        <div role="status" aria-label={t("Loading configurations")} className="flex flex-col gap-4">
           <SkeletonSummary />
           <SkeletonRows />
         </div>
       )}
       {resource.status === 'error' && (
         <LoadErrorState
-          title="Configurations could not be loaded"
+          title={t("Configurations could not be loaded")}
           message={resource.message}
           onRetry={reload}
-          retryLabel="Try again"
+          retryLabel={t("Try again")}
         />
       )}
       {resource.status === 'ready' &&
@@ -192,7 +194,7 @@ export function ConfigurationVersionsPage({
                     <CardHeader className="flex flex-wrap items-center justify-between gap-4 pb-6">
                       <div className="flex flex-col gap-1.5">
                         <CardTitle>
-                          {ConfigurationContent.Library}{' '}
+                          {t(ConfigurationContent.Library)}{' '}
                           <span className="ml-2 text-sm font-normal text-muted-foreground">
                             {configurations.items.length}
                           </span>
@@ -204,13 +206,13 @@ export function ConfigurationVersionsPage({
                           <DropdownMenuTrigger asChild>
                             <Button variant="outline">
                               <Columns3 data-icon="inline-start" />
-                              {ConfigurationContent.Columns}
+                              {t(ConfigurationContent.Columns)}
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-48">
                             <DropdownMenuGroup>
                               <DropdownMenuLabel>
-                                {ConfigurationContent.VisibleColumns}
+                                {t(ConfigurationContent.VisibleColumns)}
                               </DropdownMenuLabel>
                               <DropdownMenuCheckboxItem
                                 className="min-h-11 sm:min-h-8"
@@ -218,7 +220,7 @@ export function ConfigurationVersionsPage({
                                 onCheckedChange={setShowSchema}
                                 onSelect={(event) => event.preventDefault()}
                               >
-                                {ConfigurationContent.Schema}
+                                {t(ConfigurationContent.Schema)}
                               </DropdownMenuCheckboxItem>
                               <DropdownMenuCheckboxItem
                                 className="min-h-11 sm:min-h-8"
@@ -226,7 +228,7 @@ export function ConfigurationVersionsPage({
                                 onCheckedChange={setShowChecksum}
                                 onSelect={(event) => event.preventDefault()}
                               >
-                                {ConfigurationContent.Checksum}
+                                {t(ConfigurationContent.Checksum)}
                               </DropdownMenuCheckboxItem>
                             </DropdownMenuGroup>
                           </DropdownMenuContent>
@@ -237,7 +239,7 @@ export function ConfigurationVersionsPage({
                           aria-keyshortcuts={ActionShortcutCatalog.Refresh.aria}
                         >
                           <RefreshCw data-icon="inline-start" />
-                          {ConfigurationContent.Refresh}
+                          {t(ConfigurationContent.Refresh)}
                           <KbdGroup aria-hidden="true" className="ml-1 hidden sm:inline-flex">
                             <Kbd>Alt</Kbd>
                             <Kbd>R</Kbd>
@@ -249,7 +251,7 @@ export function ConfigurationVersionsPage({
                           onClick={() =>
                             onIntent({
                               kind: 'rollback',
-                              label: 'Previous activated version',
+                              label: t('Previous activated version'),
                               command: {
                                 operationIdentifier: globalThis.crypto.randomUUID(),
                                 funnelIdentifier,
@@ -259,7 +261,7 @@ export function ConfigurationVersionsPage({
                           }
                         >
                           <RotateCcw data-icon="inline-start" />
-                          {ConfigurationContent.Rollback}
+                          {t(ConfigurationContent.Rollback)}
                         </Button>
                       </div>
                     </CardHeader>
@@ -269,24 +271,24 @@ export function ConfigurationVersionsPage({
                           <Search />
                         </InputGroupAddon>
                         <InputGroupInput
-                          aria-label={ConfigurationContent.Search}
-                          placeholder={ConfigurationContent.SearchPlaceholder}
+                          aria-label={t(ConfigurationContent.Search)}
+                          placeholder={t(ConfigurationContent.SearchPlaceholder)}
                           value={search}
                           onChange={(event) => setSearch(event.target.value)}
                         />
                       </InputGroup>
                       <Select value={statusFilter} onValueChange={setStatusFilter}>
                         <SelectTrigger
-                          aria-label={ConfigurationContent.FilterStatus}
+                          aria-label={t(ConfigurationContent.FilterStatus)}
                           className="w-36"
                         >
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectItem value="all">{ConfigurationContent.AllStatuses}</SelectItem>
-                            <SelectItem value="live">{ConfigurationContent.Live}</SelectItem>
-                            <SelectItem value="draft">{ConfigurationContent.Draft}</SelectItem>
+                            <SelectItem value="all">{t(ConfigurationContent.AllStatuses)}</SelectItem>
+                            <SelectItem value="live">{t(ConfigurationContent.Live)}</SelectItem>
+                            <SelectItem value="draft">{t(ConfigurationContent.Draft)}</SelectItem>
                           </SelectGroup>
                         </SelectContent>
                       </Select>
@@ -299,11 +301,11 @@ export function ConfigurationVersionsPage({
                             setStatusFilter('all');
                           }}
                         >
-                          {ConfigurationContent.ClearFilters}
+                          {t(ConfigurationContent.ClearFilters)}
                         </Button>
                       )}
                       <p className="basis-full text-xs text-muted-foreground">
-                        {ConfigurationContent.PageFilterScope}
+                        {t(ConfigurationContent.PageFilterScope)}
                       </p>
                     </div>
                     <Separator />
@@ -314,12 +316,12 @@ export function ConfigurationVersionsPage({
                             <EmptyMedia variant="icon">
                               <FileJson />
                             </EmptyMedia>
-                            <EmptyTitle>{ConfigurationContent.EmptyTitle}</EmptyTitle>
+                            <EmptyTitle>{t(ConfigurationContent.EmptyTitle)}</EmptyTitle>
                             <EmptyDescription>
-                              {ConfigurationContent.EmptyDescription}
+                              {t(ConfigurationContent.EmptyDescription)}
                             </EmptyDescription>
                           </EmptyHeader>
-                          <Button onClick={onImport}>{ConfigurationContent.Import}</Button>
+                          <Button onClick={onImport}>{t(ConfigurationContent.Import)}</Button>
                         </Empty>
                       )}
                       {configurations.items.length > 0 && visibleVersions.length === 0 && (
@@ -328,9 +330,9 @@ export function ConfigurationVersionsPage({
                             <EmptyMedia variant="icon">
                               <Search />
                             </EmptyMedia>
-                            <EmptyTitle>{ConfigurationContent.NoMatches}</EmptyTitle>
+                            <EmptyTitle>{t(ConfigurationContent.NoMatches)}</EmptyTitle>
                             <EmptyDescription>
-                              {ConfigurationContent.NoMatchesDescription}
+                              {t(ConfigurationContent.NoMatchesDescription)}
                             </EmptyDescription>
                           </EmptyHeader>
                           <Button
@@ -340,7 +342,7 @@ export function ConfigurationVersionsPage({
                               setStatusFilter('all');
                             }}
                           >
-                            {ConfigurationContent.ClearFilters}
+                            {t(ConfigurationContent.ClearFilters)}
                           </Button>
                         </Empty>
                       )}
@@ -353,20 +355,20 @@ export function ConfigurationVersionsPage({
                                   variant="ghost"
                                   size="sm"
                                   className="-ml-3"
-                                  aria-label={ConfigurationContent.SortVersions}
+                                  aria-label={t(ConfigurationContent.SortVersions)}
                                   onClick={() => setDescending((value) => !value)}
                                 >
-                                  {ConfigurationContent.Version}
+                                  {t(ConfigurationContent.Version)}
                                   <ArrowDownUp data-icon="inline-end" />
                                 </Button>
                               </TableHead>
-                              <TableHead>{ConfigurationContent.Status}</TableHead>
-                              {showSchema && <TableHead>{ConfigurationContent.Schema}</TableHead>}
+                              <TableHead>{t(ConfigurationContent.Status)}</TableHead>
+                              {showSchema && <TableHead>{t(ConfigurationContent.Schema)}</TableHead>}
                               {showChecksum && (
-                                <TableHead>{ConfigurationContent.Checksum}</TableHead>
+                                <TableHead>{t(ConfigurationContent.Checksum)}</TableHead>
                               )}
                               <TableHead className="text-right">
-                                {ConfigurationContent.Actions}
+                                {t(ConfigurationContent.Actions)}
                               </TableHead>
                             </TableRow>
                           </TableHeader>
@@ -451,8 +453,7 @@ export function ConfigurationVersionsPage({
                     <Separator />
                     <CardFooter className="flex flex-wrap items-center justify-between gap-4 pt-5">
                       <p className="text-xs text-muted-foreground" aria-live="polite">
-                        {visibleVersions.length} of {configurations.items.length} on this page ·
-                        Showing {offset + (configurations.items.length > 0 ? 1 : 0)}–
+                        {visibleVersions.length} {t("of")}{configurations.items.length} {t("on this page · Showing")}{offset + (configurations.items.length > 0 ? 1 : 0)}–
                         {offset + configurations.items.length}
                       </p>
                       <div className="flex gap-2">
@@ -462,7 +463,7 @@ export function ConfigurationVersionsPage({
                           onClick={() => setOffsets((previous) => previous.slice(0, -1))}
                         >
                           <ArrowLeft data-icon="inline-start" />
-                          {ConfigurationContent.Previous}
+                          {t(ConfigurationContent.Previous)}
                         </Button>
                         <Button
                           variant="outline"
@@ -482,7 +483,7 @@ export function ConfigurationVersionsPage({
                           }}
                         >
                           <ArrowRight data-icon="inline-end" />
-                          {ConfigurationContent.Next}
+                          {t(ConfigurationContent.Next)}
                         </Button>
                       </div>
                     </CardFooter>

@@ -1,4 +1,5 @@
 'use client';
+import { useQuizLocale } from '../localization/quiz-locale-provider';
 
 import {
   ArrowRight,
@@ -18,9 +19,13 @@ import { QuizSessionApi } from '../session/quiz-session-api';
 import { QuizQuestion } from './quiz-question';
 import { QuizResult } from './quiz-result';
 import { WorkstyleIllustration } from './workstyle-illustration';
+import { QuizSettings } from '../localization/quiz-settings';
+import { QuizLocalization } from '../localization/quiz-localization';
 import { QuizMessages } from './quiz-messages';
 
 export function QuizExperience() {
+  const { translate, locale } = useQuizLocale();
+
   const session = useQuizSession();
   const [showAbout, setShowAbout] = useState(false);
   const state = session.state;
@@ -41,36 +46,39 @@ export function QuizExperience() {
   return (
     <div className="quiz-app">
       <a className="skip-link" href="#quiz-main">
-        Skip to assessment
+        {translate('Skip to assessment')}
       </a>
       <header className="quiz-header">
-        <a className="quiz-brand" href="/" aria-label="Kelpie workstyle home">
+        <a className="quiz-brand" href="/" aria-label={translate('Kelpie workstyle home')}>
           <KelpieMark />
           <span>kelpie</span>
         </a>
         <span className="header-divider" />
-        <span className="header-context">Workstyle check</span>
+        <span className="header-context">{translate('Workstyle check')}</span>
         <Button
           appearance="quiet"
           onClick={() => setShowAbout(!showAbout)}
           aria-expanded={showAbout}
           aria-controls="quiz-about"
         >
-          How it works
+          {translate('How it works')}
           <GitBranch />
         </Button>
+        <QuizSettings />
       </header>
       {showAbout && (
         <section id="quiz-about" className="about-assessment">
-          <strong>A little reflection. A clearer direction.</strong>
+          <p>{translate('This assessment uses demonstration content, not professional advice.')}</p>
+          <strong>{translate('A little reflection. A clearer direction.')}</strong>
           <p>
-            Answer a few questions about your team. Your answers shape the route and the final
-            recommendation. You can go back to make changes; a new answer is confirmed only with
-            Continue.
+            {translate(
+              'Answer a few questions about your team. Your answers shape the route and the final recommendation. You can go back to make changes; a new answer is confirmed only with Continue.',
+            )}
           </p>
           <p>
-            Your unfinished inputs are kept in this browser. The session is tied to the same
-            configuration and variant throughout.
+            {translate(
+              'Your unfinished inputs are kept in this browser. The session is tied to the same configuration and variant throughout.',
+            )}
           </p>
         </section>
       )}
@@ -78,7 +86,7 @@ export function QuizExperience() {
         {session.loading && (
           <div className="quiz-loading" role="status">
             <KelpieMark />
-            <p>Getting everything ready…</p>
+            <p>{translate('Getting everything ready…')}</p>
             <div className="loading-line" />
           </div>
         )}
@@ -87,8 +95,8 @@ export function QuizExperience() {
             {session.error && (
               <div className="quiz-alert" role="alert">
                 <div>
-                  <strong>Let’s get you back on track.</strong>
-                  <p>{session.error}</p>
+                  <strong>{translate('Let’s get you back on track.')}</strong>
+                  <p>{translate(session.error)}</p>
                 </div>
                 <Button
                   appearance="secondary"
@@ -96,32 +104,42 @@ export function QuizExperience() {
                   onClick={() => void session.retry()}
                 >
                   <RefreshCw />
-                  Try again
+                  {translate('Try again')}
                 </Button>
               </div>
             )}
             {session.expired && (
               <p className="expiry-note">
-                Your previous session has expired. Start again for a fresh recommendation.
+                {translate(
+                  'Your previous session has expired. Start again for a fresh recommendation.',
+                )}
               </p>
             )}
             {welcome && (
               <div className="welcome-layout">
                 <div className="welcome-copy">
                   <span className="eyebrow">
-                    {step?.content.eyebrow ?? 'GOOD WORK STARTS WITH YOUR PEOPLE'}
+                    {step?.content.eyebrow
+                      ? translate(step.content.eyebrow)
+                      : translate('GOOD WORK STARTS WITH YOUR PEOPLE')}
                   </span>
                   <h1>
-                    {step?.content.title ?? (
+                    {step?.content.title ? (
+                      translate(step.content.title)
+                    ) : (
                       <>
-                        Your team.
-                        <br />A better way <em>to work.</em>
+                        {translate('Your team.')}
+                        <br />
+                        {translate('A better way')} <em>{translate('to work.')}</em>
                       </>
                     )}
                   </h1>
                   <p>
-                    {step?.content.body ??
-                      'Find a work model that fits the way your team actually works. A few thoughtful questions. One practical direction.'}
+                    {step?.content.body
+                      ? translate(step.content.body)
+                      : translate(
+                          'Find a work model that fits the way your team actually works. A few thoughtful questions. One practical direction.',
+                        )}
                   </p>
                   <Button
                     disabled={session.busy || Boolean(session.error)}
@@ -140,15 +158,15 @@ export function QuizExperience() {
                     }}
                   >
                     {session.busy
-                      ? 'Getting ready…'
-                      : (step?.content.primaryActionLabel ?? 'Find your workstyle')}
+                      ? translate('Getting ready…')
+                      : translate(step?.content.primaryActionLabel ?? 'Find your workstyle')}
                     <ArrowRight />
                   </Button>
                   <div className="welcome-reassurance">
                     <LockKeyhole />
-                    <span>No account needed</span>
+                    <span>{translate('No account needed')}</span>
                     <span className="reassurance-dot" />
-                    <span>Go at your own pace</span>
+                    <span>{translate('Go at your own pace')}</span>
                   </div>
                 </div>
                 <WorkstyleIllustration />
@@ -156,20 +174,20 @@ export function QuizExperience() {
                   <div>
                     <span>01</span>
                     <Users />
-                    <strong>Your team</strong>
-                    <p>Tell us how you work today.</p>
+                    <strong>{translate('Your team')}</strong>
+                    <p>{translate('Tell us how you work today.')}</p>
                   </div>
                   <div>
                     <span>02</span>
                     <ListChecks />
-                    <strong>Your priorities</strong>
-                    <p>Reflect on what matters most.</p>
+                    <strong>{translate('Your priorities')}</strong>
+                    <p>{translate('Reflect on what matters most.')}</p>
                   </div>
                   <div>
                     <span>03</span>
                     <Sparkles />
-                    <strong>Your direction</strong>
-                    <p>Leave with a practical next step.</p>
+                    <strong>{translate('Your direction')}</strong>
+                    <p>{translate('Leave with a practical next step.')}</p>
                   </div>
                 </div>
               </div>
@@ -184,15 +202,24 @@ export function QuizExperience() {
                   <div>
                     <span>
                       {step.type === 'result'
-                        ? 'Your recommendation is ready'
-                        : `${state.progress.completed} of ${state.progress.total} questions complete`}
+                        ? translate('Your recommendation is ready')
+                        : QuizLocalization.progress(
+                            locale,
+                            state.progress.completed,
+                            state.progress.total,
+                          )}
                     </span>
-                    <span>{Math.round(progress)}%</span>
+                    <span>
+                      {new Intl.NumberFormat(locale, {
+                        style: 'percent',
+                        maximumFractionDigits: 0,
+                      }).format(progress / 100)}
+                    </span>
                   </div>
                   <div
                     className="progress-track"
                     role="progressbar"
-                    aria-label="Questions complete"
+                    aria-label={translate('Questions complete')}
                     aria-valuenow={state.progress.completed}
                     aria-valuemax={state.progress.total}
                   >
@@ -210,32 +237,34 @@ export function QuizExperience() {
                 )}
                 {step.type === 'result' && !state.result && (
                   <div className="quiz-alert">
-                    <p>{QuizMessages.ResultPending}</p>
-                    <Button onClick={() => void session.back()}>Back</Button>
+                    <p>{translate(QuizMessages.ResultPending)}</p>
+                    <Button onClick={() => void session.back()}>{translate('Back')}</Button>
                   </div>
                 )}
                 {step.type !== 'result' && (
                   <div className="question-layout">
                     <aside className="question-context">
-                      <span className="eyebrow">THE WORKSTYLE CHECK</span>
+                      <span className="eyebrow">{translate('THE WORKSTYLE CHECK')}</span>
                       <h2>
-                        A little context.
+                        {translate('A little context.')}
                         <br />
-                        <em>A clearer picture.</em>
+                        <em>{translate('A clearer picture.')}</em>
                       </h2>
                       <p>
-                        Think about your team as it is today, rather than how you’d like it to be.
+                        {translate(
+                          'Think about your team as it is today, rather than how you’d like it to be.',
+                        )}
                       </p>
                       <div className="context-note">
                         <Check />
-                        <span>You can review your answers before you’re done.</span>
+                        <span>{translate('You can review your answers before you’re done.')}</span>
                       </div>
                       <div className="context-brand">
                         <KelpieMark />
                         <span>
-                          Made for the way
+                          {translate('Made for the way')}
                           <br />
-                          you work.
+                          {translate('you work.')}
                         </span>
                       </div>
                     </aside>
@@ -254,15 +283,15 @@ export function QuizExperience() {
             )}
             {!welcome && (!state || !step) && (
               <div className="quiz-alert">
-                <p>{QuizMessages.MissingStep}</p>
-                <Button onClick={() => void session.retry()}>Refresh session</Button>
+                <p>{translate(QuizMessages.MissingStep)}</p>
+                <Button onClick={() => void session.retry()}>{translate('Refresh session')}</Button>
               </div>
             )}
             {session.deliveryError && (
               <div className="delivery-note" role="status">
-                {session.deliveryError}
+                {translate(session.deliveryError)}
                 <Button appearance="quiet" onClick={() => void session.retry()}>
-                  Retry delivery
+                  {translate('Retry delivery')}
                 </Button>
               </div>
             )}
@@ -270,9 +299,10 @@ export function QuizExperience() {
         )}
       </main>
       <footer className="quiz-footer">
-        <span>Thoughtful questions. Practical direction.</span>
+        <span>{translate('Thoughtful questions. Practical direction.')}</span>
         <span>
-          Kelpie <span aria-hidden="true">·</span> Workstyle assessment
+          Kelpie <span aria-hidden="true">·</span>
+          {translate('Workstyle assessment')}
         </span>
       </footer>
     </div>

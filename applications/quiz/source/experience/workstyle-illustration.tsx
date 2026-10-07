@@ -1,10 +1,13 @@
+import { useQuizLocale } from '../localization/quiz-locale-provider';
 import { ArrowUpRight, Check, CircleDot, GitBranch, Users } from 'lucide-react';
 
 export function WorkstyleIllustration() {
+  const { translate } = useQuizLocale();
+
   return (
     <div
       className="workstyle-illustration"
-      aria-label="From your team’s answers to a practical workstyle recommendation"
+      aria-label={translate('From your team’s answers to a practical workstyle recommendation')}
       role="img"
     >
       <div className="illustration-orbit orbit-one" />
@@ -14,48 +17,48 @@ export function WorkstyleIllustration() {
           <Users />
         </span>
         <span>
-          Built around
+          {translate('Built around')}
           <br />
-          <strong>your people.</strong>
+          <strong>{translate('your people.')}</strong>
         </span>
       </div>
       <div className="illustration-paper">
         <div className="paper-top">
-          <span className="mini-eyebrow">A LITTLE CLARITY</span>
+          <span className="mini-eyebrow">{translate('A LITTLE CLARITY')}</span>
           <ArrowUpRight />
         </div>
         <h2>
-          Your team.
+          {translate('Your team.')}
           <br />
-          Your way of working.
+          {translate('Your way of working.')}
         </h2>
         <div className="paper-line">
           <CircleDot />
-          <span>How you work together</span>
+          <span>{translate('How you work together')}</span>
           <Check />
         </div>
         <div className="paper-line">
           <CircleDot />
-          <span>What needs to change</span>
+          <span>{translate('What needs to change')}</span>
           <Check />
         </div>
         <div className="paper-line">
           <CircleDot />
-          <span>Where to start</span>
+          <span>{translate('Where to start')}</span>
           <Check />
         </div>
         <div className="paper-result">
           <GitBranch />
           <div>
-            <small>THE NEXT STEP</small>
-            <strong>A plan that fits.</strong>
+            <small>{translate('THE NEXT STEP')}</small>
+            <strong>{translate('A plan that fits.')}</strong>
           </div>
         </div>
       </div>
       <span className="illustration-stamp">
-        LESS GUESSWORK
+        {translate('LESS GUESSWORK')}
         <br />
-        <span>more direction</span>
+        <span>{translate('more direction')}</span>
       </span>
     </div>
   );

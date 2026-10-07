@@ -1,3 +1,4 @@
+import { Localization } from './localization/localization';
 import { isNull } from 'es-toolkit/predicate';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -14,6 +15,8 @@ const rootElement = document.getElementById(ApplicationPolicy.RootElementIdentif
 if (isNull(rootElement)) {
   throw new Error(ApplicationMessages.RootMissing);
 }
+
+Localization.initialize();
 
 createRoot(rootElement).render(
   <StrictMode>

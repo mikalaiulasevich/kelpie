@@ -1,3 +1,4 @@
+import { useLocalization } from '../localization/use-localization';
 import { AnalyticsStepPresentation } from './analytics-step-presentation';
 import { AnalyticsMarketingOverview } from './analytics-marketing-overview';
 import { AnalyticsStepOverview } from './analytics-step-overview';
@@ -60,10 +61,12 @@ function AnalyticsRatioValue({
   readonly ratio: AnalyticsRatio;
   readonly tone?: 'neutral' | 'positive' | 'negative';
 }) {
+  const { t } = useLocalization();
+
   return (
     <div className="flex flex-col gap-1">
       <span
-        data-tone={ratio.numerator > 0 ? tone : 'neutral'}
+        data-tone={ratio.numerator > 0 ? tone : t("neutral")}
         className="font-semibold tabular-nums data-[tone=positive]:text-success data-[tone=negative]:text-destructive"
       >
         {AnalyticsFormat.ratio(ratio)}
@@ -76,6 +79,8 @@ function AnalyticsRatioValue({
 }
 
 function AnalyticsVariantSummary({ variant }: { readonly variant: AnalyticsVariant }) {
+  const { t } = useLocalization();
+
   return (
     <Card className="analytics-metric gap-4 overflow-hidden py-0" data-variant={variant.variant}>
       <CardHeader className="flex flex-row items-center gap-3 pt-4">
@@ -89,19 +94,16 @@ function AnalyticsVariantSummary({ variant }: { readonly variant: AnalyticsVaria
             {variant.variant}
           </span>
           <div className="flex flex-col gap-1">
-            <CardTitle>Variant {variant.variant}</CardTitle>
+            <CardTitle>{t("Variant")}{variant.variant}</CardTitle>
             <CardDescription className="text-xs">
-              {variant.steps.length} steps · {variant.edges.length} paths
-            </CardDescription>
+              {variant.steps.length}{t("steps ·")}{variant.edges.length}{t("paths")}</CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-5">
         <div className="flex flex-col gap-2">
           <span className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-            <MousePointer2 className="size-3.5" />
-            CTA conversion · primary
-          </span>
+            <MousePointer2 className="size-3.5" />{t("CTA conversion · primary")}</span>
           <p
             data-applicable={!isNull(variant.ctaConversion.value)}
             data-positive={variant.ctaConversion.numerator > 0}
@@ -122,13 +124,11 @@ function AnalyticsVariantSummary({ variant }: { readonly variant: AnalyticsVaria
         </div>
         <div className="flex flex-col items-end gap-2 border-l pl-5">
           <span className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Users className="size-3.5" />
-            Started
-          </span>
+            <Users className="size-3.5" />{t("Started")}</span>
           <p className="text-2xl font-semibold tracking-tight tabular-nums">
             {AnalyticsFormat.count(variant.started)}
           </p>
-          <span className="text-xs text-muted-foreground">sessions</span>
+          <span className="text-xs text-muted-foreground">{t("sessions")}</span>
         </div>
       </CardContent>
       <CardFooter className="grid grid-cols-2 items-start gap-4 border-t py-3 [.border-t]:pt-3">
@@ -139,16 +139,12 @@ function AnalyticsVariantSummary({ variant }: { readonly variant: AnalyticsVaria
                 'size-3.5',
                 variant.resultCompletion.numerator > 0 && 'text-success',
               )}
-            />
-            Result completion
-          </span>
+            />{t("Result completion")}</span>
           <AnalyticsRatioValue ratio={variant.resultCompletion} tone="positive" />
         </div>
         <div className="flex flex-col gap-2">
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <ArrowUpRight className="size-3.5 text-primary" />
-            CTA click-through
-          </span>
+            <ArrowUpRight className="size-3.5 text-primary" />{t("CTA click-through")}</span>
           <AnalyticsRatioValue ratio={variant.ctaClickThrough} tone="positive" />
         </div>
       </CardFooter>
@@ -157,29 +153,26 @@ function AnalyticsVariantSummary({ variant }: { readonly variant: AnalyticsVaria
 }
 
 function AnalyticsSteps({ variant }: { readonly variant: AnalyticsVariant }) {
+  const { t } = useLocalization();
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Variant {variant.variant} · steps</CardTitle>
-        <CardDescription>
-          See how many sessions reached each step and continued to the next one.
-        </CardDescription>
+        <CardTitle>{t("Variant")}{variant.variant}{t("· steps")}</CardTitle>
+        <CardDescription>{t("See how many sessions reached each step and continued to the next one.")}</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
-          <TableCaption>
-            Open sessions can still continue. Expired dropout is the share of expired viewers who
-            did not complete the step. Results are the final step, so only views are counted.
-          </TableCaption>
+          <TableCaption>{t("Open sessions can still continue. Expired dropout is the share of expired viewers who did not complete the step. Results are the final step, so only views are counted.")}</TableCaption>
           <TableHeader>
             <TableRow>
-              <TableHead>Step</TableHead>
-              <TableHead>Reached</TableHead>
-              <TableHead>Completed</TableHead>
-              <TableHead>Completion</TableHead>
-              <TableHead>Open</TableHead>
-              <TableHead>Expired</TableHead>
-              <TableHead>Expired dropout</TableHead>
+              <TableHead>{t("Step")}</TableHead>
+              <TableHead>{t("Reached")}</TableHead>
+              <TableHead>{t("Completed")}</TableHead>
+              <TableHead>{t("Completion")}</TableHead>
+              <TableHead>{t("Open")}</TableHead>
+              <TableHead>{t("Expired")}</TableHead>
+              <TableHead>{t("Expired dropout")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -203,9 +196,7 @@ function AnalyticsSteps({ variant }: { readonly variant: AnalyticsVariant }) {
                           </span>
                           {step.conditional && (
                             <span className="inline-flex items-center gap-1.5">
-                              <GitBranch className="size-3.5" aria-hidden="true" />
-                              Conditional
-                            </span>
+                              <GitBranch className="size-3.5" aria-hidden="true" />{t("Conditional")}</span>
                           )}
                         </div>
                       </div>
@@ -216,7 +207,7 @@ function AnalyticsSteps({ variant }: { readonly variant: AnalyticsVariant }) {
                   </TableCell>
                   {step.type === 'result' ? (
                     <TableCell colSpan={5}>
-                      <Badge variant="success">Terminal · reach only</Badge>
+                      <Badge variant="success">{t("Terminal · reach only")}</Badge>
                     </TableCell>
                   ) : (
                     <>
@@ -263,31 +254,26 @@ function AnalyticsSteps({ variant }: { readonly variant: AnalyticsVariant }) {
 }
 
 function AnalyticsPaths({ variant }: { readonly variant: AnalyticsVariant }) {
+  const { t } = useLocalization();
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Variant {variant.variant} · paths</CardTitle>
-        <CardDescription>
-          Follow sessions between steps. Sessions sent to another branch aren’t counted as missing
-          the destination.
-        </CardDescription>
+        <CardTitle>{t("Variant")}{variant.variant}{t("· paths")}</CardTitle>
+        <CardDescription>{t("Follow sessions between steps. Sessions sent to another branch aren’t counted as missing the destination.")}</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
-          <TableCaption>
-            Observed conversion: source viewers reaching this destination. Branch share: transitions
-            on this edge / source forward transitions. Transition-to-view: destination viewers /
-            edge transitions. Branch shares may exceed 100% in total after revisits.
-          </TableCaption>
+          <TableCaption>{t("Observed conversion: source viewers reaching this destination. Branch share: transitions on this edge / source forward transitions. Transition-to-view: destination viewers / edge transitions. Branch shares may exceed 100% in total after revisits.")}</TableCaption>
           <TableHeader>
             <TableRow>
-              <TableHead>Path</TableHead>
-              <TableHead>Transitions</TableHead>
-              <TableHead>Observed conversion</TableHead>
-              <TableHead>Branch share</TableHead>
-              <TableHead>Transition-to-view</TableHead>
-              <TableHead>Destination pending</TableHead>
-              <TableHead>Destination expired</TableHead>
+              <TableHead>{t("Path")}</TableHead>
+              <TableHead>{t("Transitions")}</TableHead>
+              <TableHead>{t("Observed conversion")}</TableHead>
+              <TableHead>{t("Branch share")}</TableHead>
+              <TableHead>{t("Transition-to-view")}</TableHead>
+              <TableHead>{t("Destination pending")}</TableHead>
+              <TableHead>{t("Destination expired")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -296,10 +282,8 @@ function AnalyticsPaths({ variant }: { readonly variant: AnalyticsVariant }) {
                 <TableCell colSpan={7} className="h-28 text-center">
                   <div className="flex flex-col items-center gap-2">
                     <Route className="size-5 text-muted-foreground" />
-                    <span className="font-medium">No paths recorded yet</span>
-                    <span className="text-xs text-muted-foreground">
-                      Paths appear after a session moves forward between steps.
-                    </span>
+                    <span className="font-medium">{t("No paths recorded yet")}</span>
+                    <span className="text-xs text-muted-foreground">{t("Paths appear after a session moves forward between steps.")}</span>
                   </div>
                 </TableCell>
               </TableRow>
@@ -352,6 +336,8 @@ export function AnalyticsVersionPanel({
   readonly version: AnalyticsVersion;
   readonly onOpenFilters?: () => void;
 }) {
+  const { t } = useLocalization();
+
   const hasObservations = version.variants.some((variant) => variant.started > 0);
   const startedSessions = version.variants.reduce((total, variant) => total + variant.started, 0);
 
@@ -371,12 +357,10 @@ export function AnalyticsVersionPanel({
           <Card className="analytics-chart min-w-0 gap-4 py-5">
             <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
               <div className="flex flex-col gap-2">
-                <CardTitle>Conversion by variant</CardTitle>
-                <CardDescription>
-                  Result views and recommendation opens per started session.
-                </CardDescription>
+                <CardTitle>{t("Conversion by variant")}</CardTitle>
+                <CardDescription>{t("Result views and recommendation opens per started session.")}</CardDescription>
               </div>
-              <Badge variant="outline">Version {version.funnelVersion}</Badge>
+              <Badge variant="outline">{t("Version")}{version.funnelVersion}</Badge>
             </CardHeader>
             <CardContent>
               {hasObservations ? (
@@ -389,16 +373,11 @@ export function AnalyticsVersionPanel({
                     <EmptyMedia variant="icon">
                       <GitBranch />
                     </EmptyMedia>
-                    <EmptyTitle>No sessions yet</EmptyTitle>
-                    <EmptyDescription>
-                      No sessions match these filters. Try another filter or check back after the
-                      funnel receives traffic.
-                    </EmptyDescription>
+                    <EmptyTitle>{t("No sessions yet")}</EmptyTitle>
+                    <EmptyDescription>{t("No sessions match these filters. Try another filter or check back after the funnel receives traffic.")}</EmptyDescription>
                   </EmptyHeader>
                   {onOpenFilters && (
-                    <Button variant="outline" onClick={onOpenFilters}>
-                      Adjust filters
-                    </Button>
+                    <Button variant="outline" onClick={onOpenFilters}>{t("Adjust filters")}</Button>
                   )}
                 </Empty>
               )}
@@ -408,7 +387,7 @@ export function AnalyticsVersionPanel({
             <CardHeader>
               <div className="flex items-center gap-2">
                 <FlaskConical className="size-4 text-primary" />
-                <CardTitle>Session split</CardTitle>
+                <CardTitle>{t("Session split")}</CardTitle>
               </div>
               <CardDescription className="break-words">
                 {version.experimentIdentifier}
@@ -416,7 +395,7 @@ export function AnalyticsVersionPanel({
             </CardHeader>
             <CardContent className="grid gap-5 @min-[38rem]/analytics-version:grid-cols-2">
               <div className="flex flex-col gap-2">
-                <span className="text-sm text-muted-foreground">Started sessions</span>
+                <span className="text-sm text-muted-foreground">{t("Started sessions")}</span>
                 <span className="text-4xl font-semibold tracking-tight tabular-nums">
                   {AnalyticsFormat.count(startedSessions)}
                 </span>
@@ -425,10 +404,9 @@ export function AnalyticsVersionPanel({
                 {version.variants.map((variant) => (
                   <div key={variant.variant} className="flex flex-col gap-2">
                     <div className="flex items-center justify-between text-xs">
-                      <span>Variant {variant.variant}</span>
+                      <span>{t("Variant")}{variant.variant}</span>
                       <span className="text-muted-foreground tabular-nums">
-                        {AnalyticsFormat.count(variant.started)} sessions
-                      </span>
+                        {AnalyticsFormat.count(variant.started)}{t("sessions")}</span>
                     </div>
                     <Progress
                       className="h-1.5"
@@ -440,10 +418,7 @@ export function AnalyticsVersionPanel({
               </div>
               <div className="flex gap-2 border-t pt-4 text-xs leading-relaxed text-muted-foreground @min-[38rem]/analytics-version:col-span-2">
                 <Info className="mt-0.5 size-3.5 shrink-0" />
-                <p>
-                  Both chart rates use started sessions. CTA click-through uses only sessions that
-                  viewed a result.
-                </p>
+                <p>{t("Both chart rates use started sessions. CTA click-through uses only sessions that viewed a result.")}</p>
               </div>
             </CardContent>
           </Card>
@@ -455,10 +430,8 @@ export function AnalyticsVersionPanel({
       >
         <div className="analytics-detail-heading">
           <div className="flex flex-col gap-1">
-            <h3 className="text-base font-semibold">Step-by-step results</h3>
-            <p className="text-xs text-muted-foreground">
-              Choose a variant to review its steps and paths.
-            </p>
+            <h3 className="text-base font-semibold">{t("Step-by-step results")}</h3>
+            <p className="text-xs text-muted-foreground">{t("Choose a variant to review its steps and paths.")}</p>
           </div>
         </div>
         <TabsList
@@ -466,8 +439,7 @@ export function AnalyticsVersionPanel({
           aria-label={`Version ${version.funnelVersion} variants`}
         >
           {version.variants.map((variant) => (
-            <TabsTrigger key={variant.variant} value={variant.variant}>
-              Variant {variant.variant}
+            <TabsTrigger key={variant.variant} value={variant.variant}>{t("Variant")}{variant.variant}
               <span className="ml-1 rounded bg-background/60 px-1.5 text-xs tabular-nums">
                 {variant.steps.length}
               </span>
@@ -483,22 +455,15 @@ export function AnalyticsVersionPanel({
             <Tabs defaultValue="steps" className="min-w-0 gap-4">
               <TabsList aria-label={`Variant ${variant.variant} detail views`}>
                 <TabsTrigger value="steps">
-                  <ListOrdered className="size-4" />
-                  Steps
-                </TabsTrigger>
+                  <ListOrdered className="size-4" />{t("Steps")}</TabsTrigger>
                 <TabsTrigger value="paths">
-                  <Route className="size-4" />
-                  Paths
-                </TabsTrigger>
+                  <Route className="size-4" />{t("Paths")}</TabsTrigger>
               </TabsList>
               <TabsContent value="steps" className="flex min-w-0 flex-col gap-4">
                 <AnalyticsStepOverview variant={variant} />
                 <AnalyticsSteps variant={variant} />
                 <Alert>
-                  <AlertDescription>
-                    Sessions can go back or switch branches, so counts may rise between steps. Only
-                    events received by the server are included.
-                  </AlertDescription>
+                  <AlertDescription>{t("Sessions can go back or switch branches, so counts may rise between steps. Only events received by the server are included.")}</AlertDescription>
                 </Alert>
               </TabsContent>
               <TabsContent value="paths">

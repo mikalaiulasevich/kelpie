@@ -1,3 +1,4 @@
+import { useLocalization } from '../localization/use-localization';
 import { ConfigurationStatus } from '@kelpie/contracts';
 import { useCallback, useState } from 'react';
 import {
@@ -31,6 +32,7 @@ export function ConfigurationVersionPage({
   funnelIdentifier,
   onUnauthorized,
 }: ConfigurationVersionPageProperties): UIElement {
+  const { t } = useLocalization();
   const [refresh, setRefresh] = useState(0);
   const request = useCallback(
     async (signal: AbortSignal) => {
@@ -56,18 +58,16 @@ export function ConfigurationVersionPage({
         <Button variant="ghost" asChild>
           <a href={WorkspaceNavigation.href(WorkspacePage.Versions, funnelIdentifier)}>
             <ArrowLeft data-icon="inline-start" />
-            Back to configurations
-          </a>
+            {t("Back to configurations")}</a>
         </Button>
         <Button variant="outline" onClick={() => setRefresh((value) => value + 1)}>
           <RefreshCw data-icon="inline-start" />
-          Refresh
-        </Button>
+          {t("Refresh")}</Button>
       </div>
       {resource.status === 'loading' && (
         <div
           role="status"
-          aria-label="Loading configuration version"
+          aria-label={t("Loading configuration version")}
           className="flex flex-col gap-5"
         >
           <SkeletonSummary />
@@ -76,17 +76,17 @@ export function ConfigurationVersionPage({
       )}
       {resource.status === 'error' && (
         <LoadErrorState
-          title="Configuration could not be loaded"
+          title={t("Configuration could not be loaded")}
           message={resource.message}
           onRetry={() => setRefresh((value) => value + 1)}
-          retryLabel="Try again"
+          retryLabel={t("Try again")}
         />
       )}
       {resource.status === 'ready' && (
         <>
           <Card
             role="region"
-            aria-label="Version overview"
+            aria-label={t("Version overview")}
             className="configuration-overview min-w-0 gap-0 overflow-hidden py-0"
           >
             <div className="flex flex-wrap items-start justify-between gap-5 p-5 sm:p-6">
@@ -96,7 +96,7 @@ export function ConfigurationVersionPage({
                 </div>
                 <div className="flex min-w-0 flex-col gap-1.5">
                   <h1 className="page-title">
-                    Version <span className="font-mono">{resource.data.version.version}</span>
+                    {t("Version")}<span className="font-mono">{resource.data.version.version}</span>
                   </h1>
                   <p className="max-w-2xl break-words text-sm leading-relaxed text-muted-foreground">
                     {resource.data.document.title}
@@ -105,8 +105,7 @@ export function ConfigurationVersionPage({
               </div>
               <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                 <LockKeyhole className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
-                Read-only
-              </span>
+                {t("Read-only")}</span>
             </div>
             <div className="flex flex-col gap-3 border-t bg-muted/15 px-5 py-4 sm:px-6">
               <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm lg:grid-cols-[minmax(0,2fr)_1fr_1fr_1fr]">
@@ -143,26 +142,24 @@ export function ConfigurationVersionPage({
               <Collapsible>
                 <CollapsibleTrigger asChild>
                   <Button variant="ghost" size="sm" className="-ml-2">
-                    Technical details
-                    <ChevronDown data-icon="inline-end" />
+                    {t("Technical details")}<ChevronDown data-icon="inline-end" />
                   </Button>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="pt-3">
                   <dl className="grid min-w-0 gap-3 text-xs sm:grid-cols-2">
                     <div className="min-w-0">
-                      <dt className="text-muted-foreground">Version identifier</dt>
+                      <dt className="text-muted-foreground">{t("Version identifier")}</dt>
                       <dd className="mt-1 break-all font-mono">
                         {resource.data.version.identifier}
                       </dd>
                     </div>
                     <div className="min-w-0">
-                      <dt className="text-muted-foreground">Content fingerprint</dt>
+                      <dt className="text-muted-foreground">{t("Content fingerprint")}</dt>
                       <dd className="mt-1 break-all font-mono">{resource.data.version.checksum}</dd>
                     </div>
                   </dl>
                   <p className="mt-3 text-xs text-muted-foreground">
-                    Document status does not indicate which version is live.
-                  </p>
+                    {t("Document status does not indicate which version is live.")}</p>
                 </CollapsibleContent>
               </Collapsible>
             </div>

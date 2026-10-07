@@ -1,3 +1,4 @@
+import { useLocalization } from '../localization/use-localization';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { isNull } from 'es-toolkit/predicate';
 import type { AnalyticsVariant } from '../management/management-types';
@@ -17,6 +18,8 @@ export function AnalyticsComparisonChart({
 }: {
   readonly variants: readonly AnalyticsVariant[];
 }) {
+  const { t } = useLocalization();
+
   const comparisonData = variants.map((variant) => ({
     variant: `Variant ${variant.variant}`,
     results: isNull(variant.resultCompletion.value) ? null : variant.resultCompletion.value * 100,
@@ -55,7 +58,7 @@ export function AnalyticsComparisonChart({
                 formatter={(value, name) => (
                   <div className="flex w-full items-center justify-between gap-4">
                     <span className="text-muted-foreground">
-                      {name === 'results' ? 'Result completion' : 'CTA conversion'}
+                      {name === 'results' ? t("Result completion") : t("CTA conversion")}
                     </span>
                     <span className="font-medium tabular-nums">
                       {typeof value === 'number' ? `${value.toFixed(1)}%` : value}
@@ -83,13 +86,9 @@ export function AnalyticsComparisonChart({
       </ChartContainer>
       <div className="mt-4 flex flex-wrap justify-center gap-5 text-xs text-muted-foreground">
         <span className="flex items-center gap-2">
-          <span className="size-2 rounded-full bg-chart-2" />
-          Result completion
-        </span>
+          <span className="size-2 rounded-full bg-chart-2" />{t("Result completion")}</span>
         <span className="flex items-center gap-2">
-          <span className="size-2 rounded-full bg-chart-1" />
-          CTA conversion
-        </span>
+          <span className="size-2 rounded-full bg-chart-1" />{t("CTA conversion")}</span>
       </div>
     </>
   );

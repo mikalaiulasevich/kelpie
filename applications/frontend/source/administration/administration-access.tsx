@@ -1,3 +1,4 @@
+import { useLocalization } from '../localization/use-localization';
 import { DeferredView } from '../application/deferred-view';
 import { LoaderCircle, RefreshCw } from 'lucide-react';
 import { match } from 'ts-pattern';
@@ -18,6 +19,8 @@ const Workspace = lazy(async () => {
 });
 
 export function AdministrationAccess(): UIElement {
+  const { t } = useLocalization();
+
   const { session, checkSession, signIn, signOut, invalidateSession } = useAdministrationSession();
 
   const content = match(session)
@@ -26,8 +29,8 @@ export function AdministrationAccess(): UIElement {
         <div className="form-emblem">
           <LoaderCircle className="animate-spin" aria-hidden="true" />
         </div>
-        <h1 className="auth-title">{AdministrationContent.CheckingTitle}</h1>
-        <p className="auth-description">{AdministrationContent.CheckingDescription}</p>
+        <h1 className="auth-title">{t(AdministrationContent.CheckingTitle)}</h1>
+        <p className="auth-description">{t(AdministrationContent.CheckingDescription)}</p>
       </div>
     ))
     .with({ status: AdministrationSessionStatus.SignedOut }, () => (
@@ -38,7 +41,7 @@ export function AdministrationAccess(): UIElement {
         loading={
           <div
             role="status"
-            aria-label="Opening workspace"
+            aria-label={t("Opening workspace")}
             className="flex min-h-svh flex-col gap-6 p-8"
           >
             <SkeletonSummary />
@@ -56,7 +59,7 @@ export function AdministrationAccess(): UIElement {
     ))
     .with({ status: AdministrationSessionStatus.Unavailable }, ({ message }) => (
       <div className="flex flex-col gap-6">
-        <h1 className="auth-title">{AdministrationContent.UnavailableTitle}</h1>
+        <h1 className="auth-title">{t(AdministrationContent.UnavailableTitle)}</h1>
         <Alert variant="destructive">
           <AlertDescription>{message}</AlertDescription>
         </Alert>
@@ -68,7 +71,7 @@ export function AdministrationAccess(): UIElement {
           }}
         >
           <RefreshCw data-icon="inline-start" />
-          {AdministrationContent.Retry}
+          {t(AdministrationContent.Retry)}
         </Button>
       </div>
     ))

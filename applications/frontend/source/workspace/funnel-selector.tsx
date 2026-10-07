@@ -1,3 +1,4 @@
+import { useLocalization } from '../localization/use-localization';
 import { useState, type FormEvent } from 'react';
 import { ArrowRight, Layers3 } from 'lucide-react';
 import {
@@ -17,6 +18,8 @@ export function FunnelSelector({
   funnelIdentifier: string;
   page: WorkspacePage;
 }): UIElement {
+  const { t } = useLocalization();
+
   const [draft, setDraft] = useState(funnelIdentifier);
   const [invalid, setInvalid] = useState(false);
   const submit = (event: FormEvent) => {
@@ -38,7 +41,7 @@ export function FunnelSelector({
       <FieldGroup>
         <Field data-invalid={invalid}>
           <FieldLabel htmlFor="workspace-funnel" className="sr-only">
-            {WorkspaceContent.Funnel}
+            {t(WorkspaceContent.Funnel)}
           </FieldLabel>
           <InputGroup className="h-10 sm:h-9">
             <InputGroupAddon>
@@ -54,12 +57,12 @@ export function FunnelSelector({
                 setInvalid(false);
               }}
               aria-invalid={invalid}
-              aria-describedby={invalid ? 'workspace-funnel-error' : undefined}
+              aria-describedby={invalid ? t("workspace-funnel-error") : undefined}
             />
             <InputGroupAddon align="inline-end">
               <InputGroupButton
                 size="icon-sm"
-                aria-label={WorkspaceContent.OpenFunnel}
+                aria-label={t(WorkspaceContent.OpenFunnel)}
                 type="submit"
               >
                 <ArrowRight />
@@ -67,7 +70,7 @@ export function FunnelSelector({
             </InputGroupAddon>
           </InputGroup>
           {invalid && (
-            <FieldError id="workspace-funnel-error">{WorkspaceContent.InvalidFunnel}</FieldError>
+            <FieldError id="workspace-funnel-error">{t(WorkspaceContent.InvalidFunnel)}</FieldError>
           )}
         </Field>
       </FieldGroup>

@@ -1,3 +1,4 @@
+import { useLocalization } from '../localization/use-localization';
 import { DeferredView } from '../application/deferred-view';
 import { lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { isError } from 'es-toolkit/predicate';
@@ -40,6 +41,8 @@ interface WorkspaceProperties {
 }
 
 export function Workspace({ identity, signOut, onUnauthorized }: WorkspaceProperties): UIElement {
+  const { t } = useLocalization();
+
   const { page, funnelIdentifier, versionIdentifier } = useWorkspaceNavigation();
   const [revision, setRevision] = useState(0);
   const [importSequence, setImportSequence] = useState(0);

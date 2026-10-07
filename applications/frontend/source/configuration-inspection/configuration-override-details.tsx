@@ -1,3 +1,4 @@
+import { useLocalization } from '../localization/use-localization';
 import { ChevronDown, FilePenLine, Flag } from 'lucide-react';
 import { ConfigurationJson } from './configuration-json';
 
@@ -10,6 +11,7 @@ export function ConfigurationOverrideDetails({
   kind,
   changes,
 }: ConfigurationOverrideDetailsProperties): UIElement {
+  const { t } = useLocalization();
   const identifiers = Object.keys(changes ?? {});
   const isSteps = kind === 'steps';
   const Icon = isSteps ? FilePenLine : Flag;
@@ -27,7 +29,7 @@ export function ConfigurationOverrideDetails({
         </span>
         <span className="override-disclosure-label">
           <span className="override-disclosure-title">
-            {isSteps ? 'Step content changes' : 'Result changes'}
+            {isSteps ? t('Step content changes') : t('Result changes')}
             <span className="override-disclosure-count">{identifiers.length}</span>
           </span>
           <span className="override-disclosure-description">{description}</span>
@@ -38,7 +40,7 @@ export function ConfigurationOverrideDetails({
         {identifiers.length > 0 ? (
           <>
             <div className="override-disclosure-targets">
-              <span className="text-xs text-muted-foreground">Affected {kind}</span>
+              <span className="text-xs text-muted-foreground">{t("Affected")}{kind}</span>
               <ul>
                 {identifiers.map((identifier) => (
                   <li key={identifier}>{identifier}</li>
@@ -49,9 +51,7 @@ export function ConfigurationOverrideDetails({
           </>
         ) : (
           <p className="text-xs leading-relaxed text-muted-foreground">
-            This variant inherits all {isSteps ? 'step content' : 'result content'} from the
-            original configuration.
-          </p>
+            {t("This variant inherits all")}{isSteps ? t('step content') : t('result content')} {t("from the original configuration.")}</p>
         )}
       </div>
     </details>

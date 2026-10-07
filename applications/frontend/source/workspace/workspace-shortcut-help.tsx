@@ -1,3 +1,4 @@
+import { useLocalization } from '../localization/use-localization';
 import { Kbd, KbdGroup } from '../components/kbd';
 import { ActionShortcutCatalog } from './action-shortcuts';
 import { useCallback, useRef, useState } from 'react';
@@ -20,6 +21,8 @@ interface WorkspaceShortcutHelpProperties {
 export function WorkspaceShortcutHelp({
   funnelIdentifier,
 }: WorkspaceShortcutHelpProperties): UIElement {
+  const { t } = useLocalization();
+
   const [open, setOpen] = useState(false);
   const returnTarget = useRef<HTMLElement | null>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -39,15 +42,15 @@ export function WorkspaceShortcutHelp({
           className="workspace-shortcut-trigger"
           variant="ghost"
           size="icon"
-          aria-label="Keyboard shortcuts"
+          aria-label={t("Keyboard shortcuts")}
           aria-keyshortcuts="Alt+/"
-          title="Keyboard shortcuts · Alt /"
+          title={t("Keyboard shortcuts · Alt /")}
           onClick={() => {
             returnTarget.current = trigger.current;
           }}
         >
           <Keyboard strokeWidth={1.5} aria-hidden="true" />
-          <span className="workspace-shortcut-label">Keyboard shortcuts</span>
+          <span className="workspace-shortcut-label">{t("Keyboard shortcuts")}</span>
           <Kbd className="workspace-shortcut-key" aria-hidden="true">
             ⌥/
           </Kbd>
@@ -65,17 +68,14 @@ export function WorkspaceShortcutHelp({
           }
         }}
       >
-        <DialogTitle>Take the short route.</DialogTitle>
-        <DialogDescription>
-          Move around your workspace without leaving the keyboard. Your selected funnel stays with
-          you.
-        </DialogDescription>
+        <DialogTitle>{t("Take the short route.")}</DialogTitle>
+        <DialogDescription>{t("Move around your workspace without leaving the keyboard. Your selected funnel stays with you.")}</DialogDescription>
         <dl className="workspace-shortcut-list">
           {WorkspaceShortcutCatalog.Navigation.map((item) => (
             <div key={item.page} className="workspace-shortcut-row">
               <dt>{item.label}</dt>
               <dd>
-                <Kbd>Alt</Kbd>
+                <Kbd>{t("Alt")}</Kbd>
                 <Kbd>{item.key}</Kbd>
               </dd>
             </div>
@@ -83,33 +83,31 @@ export function WorkspaceShortcutHelp({
           {Object.entries(ActionShortcutCatalog).map(([label, shortcut]) => (
             <div key={shortcut.code} className="workspace-shortcut-row">
               <dt>
-                {label} <span className="text-xs text-muted-foreground">where available</span>
+                {label} <span className="text-xs text-muted-foreground">{t("where available")}</span>
               </dt>
               <dd>
                 <KbdGroup>
-                  <Kbd>Alt</Kbd>
+                  <Kbd>{t("Alt")}</Kbd>
                   <Kbd>{shortcut.key}</Kbd>
                 </KbdGroup>
               </dd>
             </div>
           ))}
           <div className="workspace-shortcut-row">
-            <dt>Keyboard shortcuts</dt>
+            <dt>{t("Keyboard shortcuts")}</dt>
             <dd>
-              <Kbd>Alt</Kbd>
+              <Kbd>{t("Alt")}</Kbd>
               <Kbd>/</Kbd>
             </dd>
           </div>
           <div className="workspace-shortcut-row">
-            <dt>Close a dialog</dt>
+            <dt>{t("Close a dialog")}</dt>
             <dd>
-              <Kbd>Esc</Kbd>
+              <Kbd>{t("Esc")}</Kbd>
             </dd>
           </div>
         </dl>
-        <p className="text-sm text-muted-foreground">
-          On Mac, use Option (⌥) for Alt. Shortcuts pause while you type or use a dialog or menu.
-        </p>
+        <p className="text-sm text-muted-foreground">{t("On Mac, use Option (⌥) for Alt. Shortcuts pause while you type or use a dialog or menu.")}</p>
       </DialogContent>
     </Dialog>
   );

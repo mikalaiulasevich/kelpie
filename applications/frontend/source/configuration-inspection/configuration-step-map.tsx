@@ -1,3 +1,4 @@
+import { useLocalization } from '../localization/use-localization';
 import {
   StepRules,
   type FunnelConfiguration,
@@ -19,6 +20,7 @@ export function ConfigurationStepMap({
   step,
   position,
 }: ConfigurationStepMapProperties): UIElement {
+  const { t } = useLocalization();
   const sequence = configuration.experiment.variants[variant].stepSequence;
   const previous = sequence[position - 2];
   const next = sequence[position];
@@ -31,16 +33,15 @@ export function ConfigurationStepMap({
   return (
     <div className="step-map">
       {selection && (
-        <section className="step-choice-summary" aria-label="Selection limits">
+        <section className="step-choice-summary" aria-label={t("Selection limits")}>
           <h4>
             <ListChecks className="size-4" aria-hidden="true" />
-            Selection limits
-          </h4>
+            {t("Selection limits")}</h4>
           <p className="step-choice-number">
             {minimum}
             <span>–</span>
             {maximum}
-            <small>of {step.input.options.length} options</small>
+            <small>{t("of")}{step.input.options.length} {t("options")}</small>
           </p>
           <div className="step-choice-scale" aria-hidden="true">
             <span
@@ -55,41 +56,39 @@ export function ConfigurationStepMap({
             />
           </div>
           <p className="step-choice-legend">
-            <span>Minimum {minimum}</span>
-            <span>Maximum {maximum}</span>
+            <span>{t("Minimum")}{minimum}</span>
+            <span>{t("Maximum")}{maximum}</span>
           </p>
           <p className="step-map-help">
-            The range shows how many answers are accepted, not which options are selected.
-          </p>
+            {t("The range shows how many answers are accepted, not which options are selected.")}</p>
         </section>
       )}
-      <section className="step-sequence-summary" aria-label="Configured step sequence">
+      <section className="step-sequence-summary" aria-label={t("Configured step sequence")}>
         <h4>
           <GitBranch className="size-4" aria-hidden="true" />
-          In the flow{' '}
+          {t("In the flow")}{' '}
           <span>
             {position} / {sequence.length}
           </span>
         </h4>
         <ol>
           <li>
-            <span>Previous</span>
-            <strong>{previous ?? 'Start of flow'}</strong>
+            <span>{t("Previous")}</span>
+            <strong>{previous ?? t('Start of flow')}</strong>
           </li>
           <li aria-current="step">
             <ArrowDown className="size-3" aria-hidden="true" />
-            <span>Current</span>
+            <span>{t("Current")}</span>
             <strong>{step.id}</strong>
           </li>
           <li>
             <ArrowDown className="size-3" aria-hidden="true" />
-            <span>Next</span>
-            <strong>{next ?? 'End of flow'}</strong>
+            <span>{t("Next")}</span>
+            <strong>{next ?? t('End of flow')}</strong>
           </li>
         </ol>
         <p className="step-map-help">
-          Variant {variant} configuration order. Visibility rules can skip steps.
-        </p>
+          {t("Variant")}{variant} {t("configuration order. Visibility rules can skip steps.")}</p>
       </section>
     </div>
   );

@@ -1,3 +1,4 @@
+import { useLocalization } from '../localization/use-localization';
 import { groupBy } from 'es-toolkit';
 import { Check, RotateCcw } from 'lucide-react';
 import { Badge } from '../components/badge';
@@ -40,6 +41,7 @@ function PublicationVersionLink({
   funnelIdentifier,
   identifier,
 }: PublicationVersionLinkProperties): UIElement {
+  const { t } = useLocalization();
   const label = ConfigurationFormat.identifier(identifier);
 
   if (
@@ -65,6 +67,7 @@ export function PublicationHistoryFeed({
   funnelIdentifier,
   items,
 }: PublicationHistoryFeedProperties): UIElement {
+  const { t } = useLocalization();
   const days = groupBy(items, (item) => PublicationHistoryFormat.day(item.createdAt));
 
   return (
@@ -102,11 +105,11 @@ export function PublicationHistoryFeed({
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="text-sm font-medium">
                         {item.action === 'rollback'
-                          ? PublicationHistoryContent.RolledBack
-                          : PublicationHistoryContent.Published}
+                          ? t(PublicationHistoryContent.RolledBack)
+                          : t(PublicationHistoryContent.Published)}
                       </h3>
                       <Badge variant="outline">
-                        <span className="sr-only">{ConfigurationContent.Revision} </span>#
+                        <span className="sr-only">{t(ConfigurationContent.Revision)} </span>#
                         {item.revision}
                       </Badge>
                     </div>
@@ -120,7 +123,7 @@ export function PublicationHistoryFeed({
                   </div>
                   <dl className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground">
                     <div className="flex items-baseline gap-2">
-                      <dt>{ConfigurationContent.Target}</dt>
+                      <dt>{t(ConfigurationContent.Target)}</dt>
                       <dd>
                         <PublicationVersionLink
                           funnelIdentifier={funnelIdentifier}
@@ -129,7 +132,7 @@ export function PublicationHistoryFeed({
                       </dd>
                     </div>
                     <div className="flex items-baseline gap-2">
-                      <dt>{ConfigurationContent.PreviousVersion}</dt>
+                      <dt>{t(ConfigurationContent.PreviousVersion)}</dt>
                       <dd>
                         {item.previousVersionIdentifier ? (
                           <PublicationVersionLink

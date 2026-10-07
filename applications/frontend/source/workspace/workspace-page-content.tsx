@@ -1,3 +1,4 @@
+import { useLocalization } from '../localization/use-localization';
 import { DeferredView } from '../application/deferred-view';
 import { lazy } from 'react';
 import { match } from 'ts-pattern';
@@ -48,6 +49,8 @@ export function WorkspacePageContent({
   onImport,
   onIntent,
 }: WorkspacePageContentProperties): UIElement {
+  const { t } = useLocalization();
+
   return (
     <DeferredView key={page} loading={<SkeletonRows label="Opening workspace page" />}>
       {match(page)
