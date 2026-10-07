@@ -1,10 +1,26 @@
 import { readFileSync } from 'node:fs';
+import { randomUUID } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 
 const PublicationMigrationFiles = {
   Initial: '20261006000100_initial_foundation',
   OperationScope: '20261006000200_session_operation_scope',
   Revision: '20261007000100_publication_revision',
+  SessionCommands: '20261007000200_session_commands',
+} as const;
+
+const SessionMigrationStatements = {
+  OtherOwner: `INSERT INTO Session (identifier, accessTokenHash, versionIdentifier, experimentIdentifier,
+    variant, assignmentSource, trafficOrigin, acquisitionParameters, currentStepIdentifier, expiresAt)
+    VALUES ('other-session', 'other-hash', 'work-v1', 'experiment', 'A', 'random', 'synthetic',
+      '{}', 'team_size', '2030-01-01T00:00:00.000Z');
+    INSERT INTO SessionOperation (operationIdentifier, sessionIdentifier, requestFingerprint, response)
+    VALUES ('other-operation', 'other-session', 'other-fingerprint', '{}');`,
+  InsertTransition: `INSERT INTO SessionTransition (identifier, sessionIdentifier, operationIdentifier,
+    revision, kind, fromStepIdentifier, toStepIdentifier)
+    VALUES (?, ?, ?, ?, 'forward', 'team_size', 'result')`,
+  Transitions: `SELECT sessionIdentifier, operationIdentifier, revision FROM SessionTransition
+    ORDER BY sessionIdentifier, revision`,
 } as const;
 
 const PublicationMigrationStatements = {
@@ -79,6 +95,25 @@ export class PublicationMigrationFixture {
 
   migrate(): void {
     this.apply(PublicationMigrationFiles.Revision);
+  }
+
+  migrateSessions(): void {
+    this.migrate();
+    this.apply(PublicationMigrationFiles.SessionCommands);
+  }
+
+  prepareOtherSession(): void {
+    this.database.exec(SessionMigrationStatements.OtherOwner);
+  }
+
+  insertTransition(sessionIdentifier: string, operationIdentifier: string, revision: number): void {
+    this.database
+      .prepare(SessionMigrationStatements.InsertTransition)
+      .run(randomUUID(), sessionIdentifier, operationIdentifier, revision);
+  }
+
+  transitions() {
+    return this.database.prepare(SessionMigrationStatements.Transitions).all();
   }
 
   historicalRows() {
