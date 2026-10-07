@@ -1,8 +1,10 @@
 export const AdministrationContent = {
   Brand: 'Kelpie',
   WorkspaceLabel: 'Administration',
-  SignInTitle: 'Sign in',
-  SignInDescription: 'Use your administrator account.',
+  SignInTitle: 'Welcome back',
+  SignInDescription: 'Sign in to your Kelpie workspace.',
+  PanelTitle: 'Your funnel workspace.',
+  PanelDescription: 'Configurations, experiments, and analytics in one place.',
   UsernameLabel: 'Username',
   UsernamePlaceholder: 'Your administrator username',
   PasswordLabel: 'Password',

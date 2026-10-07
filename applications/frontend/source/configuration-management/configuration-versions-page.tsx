@@ -5,6 +5,9 @@ import {
   ArrowLeft,
   ArrowRight,
   Columns3,
+  Layers3,
+  History as HistoryIcon,
+  CircleCheck,
   FileJson,
   RefreshCw,
   RotateCcw,
@@ -104,7 +107,7 @@ export function ConfigurationVersionsPage({
     );
 
   return (
-    <div className="workspace-page flex flex-col gap-5">
+    <div className="workspace-page flex flex-col gap-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-col gap-2">
           <h1 className="page-title">{ConfigurationContent.Heading}</h1>
@@ -142,24 +145,58 @@ export function ConfigurationVersionsPage({
 
           return (
             <>
-              <dl className="flex flex-wrap items-center gap-x-8 gap-y-3 text-sm">
-                <div className="flex items-center gap-2">
-                  <dt className="text-muted-foreground">{ConfigurationContent.CurrentVersion}</dt>
-                  <dd className="font-medium">
-                    {ConfigurationFormat.activeVersion(configurations)}
-                  </dd>
-                </div>
-                <div className="flex items-center gap-2">
-                  <dt className="text-muted-foreground">{ConfigurationContent.CurrentRevision}</dt>
-                  <dd className="font-mono tabular-nums">{configurations.funnel.revision}</dd>
-                </div>
-                <div className="flex items-center gap-2">
-                  <dt className="text-muted-foreground">{ConfigurationContent.ListedVersions}</dt>
-                  <dd className="tabular-nums">{configurations.items.length}</dd>
-                </div>
-              </dl>
+              <div className="grid gap-4 xl:grid-cols-3">
+                <Card className="gap-5">
+                  <CardHeader className="flex flex-row items-center justify-between gap-3">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      {ConfigurationContent.CurrentVersion}
+                    </CardTitle>
+                    <CircleCheck className="size-5 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-3xl font-semibold tracking-tight">
+                      {ConfigurationFormat.activeVersion(configurations)}
+                    </p>
+                  </CardContent>
+                  <CardFooter className="text-sm text-muted-foreground">
+                    {ConfigurationContent.ActiveVersionDescription}
+                  </CardFooter>
+                </Card>
+                <Card className="gap-5">
+                  <CardHeader className="flex flex-row items-center justify-between gap-3">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      {ConfigurationContent.CurrentRevision}
+                    </CardTitle>
+                    <HistoryIcon className="size-5 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-3xl font-semibold tabular-nums tracking-tight">
+                      {configurations.funnel.revision}
+                    </p>
+                  </CardContent>
+                  <CardFooter className="text-sm text-muted-foreground">
+                    {ConfigurationContent.CurrentRevisionDescription}
+                  </CardFooter>
+                </Card>
+                <Card className="gap-5">
+                  <CardHeader className="flex flex-row items-center justify-between gap-3">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      {ConfigurationContent.ListedVersions}
+                    </CardTitle>
+                    <Layers3 className="size-5 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-3xl font-semibold tabular-nums tracking-tight">
+                      {configurations.items.length}
+                    </p>
+                  </CardContent>
+                  <CardFooter className="text-sm text-muted-foreground">
+                    {ConfigurationContent.ListedVersionsDescription}
+                  </CardFooter>
+                </Card>
+              </div>
               <Card className="gap-0 overflow-hidden">
-                <CardHeader className="flex flex-wrap items-center justify-between gap-3 pb-4">
+                <CardHeader className="flex flex-wrap items-center justify-between gap-4 pb-6">
                   <div className="flex flex-col gap-1.5">
                     <CardTitle>Versions</CardTitle>
                     <CardDescription>{funnelIdentifier}</CardDescription>
@@ -234,7 +271,7 @@ export function ConfigurationVersionsPage({
                       <Button onClick={onImport}>{ConfigurationContent.Import}</Button>
                     </Empty>
                   ) : (
-                    <Table className="[&_td]:py-3 [&_td:first-child]:pl-5 [&_td:last-child]:pr-5 [&_th:first-child]:pl-5 [&_th:last-child]:pr-5">
+                    <Table className="[&_td]:py-4 [&_td:first-child]:pl-6 [&_td:last-child]:pr-6 [&_th:first-child]:pl-6 [&_th:last-child]:pr-6">
                       <TableHeader>
                         <TableRow>
                           <TableHead>{ConfigurationContent.Version}</TableHead>
@@ -254,7 +291,11 @@ export function ConfigurationVersionsPage({
                           return (
                             <TableRow key={version.identifier}>
                               <TableCell>
-                                <Button variant="ghost" size="sm" asChild>
+                                <Button
+                                  variant="link"
+                                  className="h-auto justify-start p-0 font-medium text-foreground"
+                                  asChild
+                                >
                                   <a
                                     href={WorkspaceNavigation.href(
                                       WorkspacePage.Version,
@@ -263,6 +304,9 @@ export function ConfigurationVersionsPage({
                                     )}
                                     aria-label={`Details for version ${version.version}`}
                                   >
+                                    <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                                      <FileJson className="size-5" />
+                                    </span>
                                     {ConfigurationFormat.version(version.version)}
                                   </a>
                                 </Button>
@@ -306,7 +350,7 @@ export function ConfigurationVersionsPage({
                   )}
                 </CardContent>
                 <Separator />
-                <CardFooter className="flex flex-wrap items-center justify-between gap-3 pt-4">
+                <CardFooter className="flex flex-wrap items-center justify-between gap-4 pt-5">
                   <p className="text-xs text-muted-foreground">
                     Showing {offset + (configurations.items.length > 0 ? 1 : 0)}–
                     {offset + configurations.items.length}

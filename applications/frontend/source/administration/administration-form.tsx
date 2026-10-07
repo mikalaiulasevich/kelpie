@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { isError } from 'es-toolkit/predicate';
-import { ArrowRight, Eye, EyeOff, LockKeyhole, UserRound } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { Button } from '../components/button';
 import { Field, FieldError, FieldGroup, FieldLabel } from '../components/field';
 import {
@@ -86,7 +86,7 @@ export function AdministrationForm({ signIn }: AdministrationFormProperties): UI
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-3 text-center">
         <h1 className="auth-title">{AdministrationContent.SignInTitle}</h1>
         <p className="auth-description">{AdministrationContent.SignInDescription}</p>
       </div>
@@ -100,9 +100,6 @@ export function AdministrationForm({ signIn }: AdministrationFormProperties): UI
           <Field data-invalid={!!errors.username} data-disabled={pending}>
             <FieldLabel htmlFor="username">{AdministrationContent.UsernameLabel}</FieldLabel>
             <InputGroup className="h-12">
-              <InputGroupAddon>
-                <UserRound aria-hidden="true" />
-              </InputGroupAddon>
               <InputGroupInput
                 ref={usernameReference}
                 id="username"
@@ -128,9 +125,6 @@ export function AdministrationForm({ signIn }: AdministrationFormProperties): UI
           <Field data-invalid={!!errors.password} data-disabled={pending}>
             <FieldLabel htmlFor="password">{AdministrationContent.PasswordLabel}</FieldLabel>
             <InputGroup className="h-12">
-              <InputGroupAddon>
-                <LockKeyhole aria-hidden="true" />
-              </InputGroupAddon>
               <InputGroupInput
                 ref={passwordReference}
                 id="password"

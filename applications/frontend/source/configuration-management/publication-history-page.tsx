@@ -56,7 +56,7 @@ export function PublicationHistoryPage({
   const reload = () => setRefresh((value) => value + 1);
 
   return (
-    <div className="workspace-page flex flex-col gap-5">
+    <div className="workspace-page flex flex-col gap-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-col gap-2">
           <h1 className="page-title">{ConfigurationContent.HistoryHeading}</h1>
@@ -83,7 +83,7 @@ export function PublicationHistoryPage({
       )}
       {resource.status === 'ready' && (
         <Card className="gap-0 overflow-hidden">
-          <CardHeader className="flex flex-wrap items-center justify-between gap-3 pb-4">
+          <CardHeader className="flex flex-wrap items-center justify-between gap-4 pb-6">
             <div className="flex flex-col gap-1.5">
               <CardTitle>Activations</CardTitle>
               <CardDescription>
@@ -124,7 +124,7 @@ export function PublicationHistoryPage({
                 </EmptyHeader>
               </Empty>
             ) : (
-              <Table className="[&_td]:py-3 [&_td:first-child]:pl-5 [&_td:last-child]:pr-5 [&_th:first-child]:pl-5 [&_th:last-child]:pr-5">
+              <Table className="[&_td]:py-4 [&_td:first-child]:pl-6 [&_td:last-child]:pr-6 [&_th:first-child]:pl-6 [&_th:last-child]:pr-6">
                 <TableHeader>
                   <TableRow>
                     <TableHead>{ConfigurationContent.Revision}</TableHead>
@@ -177,7 +177,7 @@ export function PublicationHistoryPage({
             )}
           </CardContent>
           <Separator />
-          <CardFooter className="flex flex-wrap items-center justify-between gap-3 pt-4">
+          <CardFooter className="flex flex-wrap items-center justify-between gap-4 pt-5">
             <p className="text-xs text-muted-foreground">
               Showing {offset + (resource.data.items.length > 0 ? 1 : 0)}–
               {offset + resource.data.items.length}

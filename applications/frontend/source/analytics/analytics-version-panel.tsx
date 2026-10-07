@@ -1,10 +1,18 @@
 import { DeferredView } from '../application/deferred-view';
 import { lazy } from 'react';
+import { isNull } from 'es-toolkit/predicate';
 import { Skeleton } from '../components/skeleton';
 import { GitBranch } from 'lucide-react';
 import { Alert, AlertDescription } from '../components/alert';
 import { Badge } from '../components/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '../components/card';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '../components/empty';
 import {
   Table,
@@ -42,41 +50,44 @@ function AnalyticsRatioValue({ ratio }: { readonly ratio: AnalyticsRatio }) {
 
 function AnalyticsVariantSummary({ variant }: { readonly variant: AnalyticsVariant }) {
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between gap-3">
-          <CardTitle>Variant {variant.variant}</CardTitle>
-          <Badge variant="outline">{AnalyticsFormat.count(variant.started)} started</Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex flex-col gap-1">
-            <span className="text-sm text-muted-foreground">CTA conversion · primary</span>
-            <span className="text-2xl font-semibold tracking-tight tabular-nums">
-              {AnalyticsFormat.ratio(variant.ctaConversion)}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              {AnalyticsFormat.fraction(variant.ctaConversion)}
-            </span>
-          </div>
-        </div>
-        <dl className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col gap-2">
-            <dt className="text-sm text-muted-foreground">Result completion</dt>
-            <dd>
-              <AnalyticsRatioValue ratio={variant.resultCompletion} />
-            </dd>
-          </div>
-          <div className="flex flex-col gap-2">
-            <dt className="text-sm text-muted-foreground">CTA click-through</dt>
-            <dd>
-              <AnalyticsRatioValue ratio={variant.ctaClickThrough} />
-            </dd>
-          </div>
-        </dl>
-      </CardContent>
-    </Card>
+    <>
+      <Card>
+        <CardHeader>
+          <CardDescription>Variant {variant.variant}</CardDescription>
+          <CardTitle>Started sessions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-4xl font-semibold tracking-tight tabular-nums">
+            {AnalyticsFormat.count(variant.started)}
+          </p>
+        </CardContent>
+        <CardFooter className="mt-auto flex-col items-start gap-2">
+          <span className="text-sm text-muted-foreground">Result completion</span>
+          <AnalyticsRatioValue ratio={variant.resultCompletion} />
+        </CardFooter>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardDescription>Variant {variant.variant}</CardDescription>
+          <CardTitle>CTA conversion · primary</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-2">
+          <p
+            data-applicable={!isNull(variant.ctaConversion.value)}
+            className="text-4xl font-semibold tracking-tight tabular-nums data-[applicable=false]:text-xl"
+          >
+            {AnalyticsFormat.ratio(variant.ctaConversion)}
+          </p>
+          <p className="text-xs text-muted-foreground tabular-nums">
+            {AnalyticsFormat.fraction(variant.ctaConversion)}
+          </p>
+        </CardContent>
+        <CardFooter className="mt-auto flex-col items-start gap-2">
+          <span className="text-sm text-muted-foreground">CTA click-through</span>
+          <AnalyticsRatioValue ratio={variant.ctaClickThrough} />
+        </CardFooter>
+      </Card>
+    </>
   );
 }
 
@@ -231,32 +242,32 @@ export function AnalyticsVersionPanel({ version }: { readonly version: Analytics
 
   return (
     <section
-      className="flex min-w-0 flex-col gap-5"
+      className="@container/analytics-version flex min-w-0 flex-col gap-6"
       aria-label={`Version ${version.funnelVersion} analytics`}
     >
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+      <Tabs defaultValue="summary" className="min-w-0 gap-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-col gap-1">
-            <h2 className="text-lg font-semibold tracking-tight">
-              Version {version.funnelVersion}
-            </h2>
+            <div className="flex items-center gap-3">
+              <h2 className="text-lg font-semibold tracking-tight">
+                Version {version.funnelVersion}
+              </h2>
+              <Badge variant="outline">
+                {version.variants.length} {version.variants.length === 1 ? 'variant' : 'variants'}
+              </Badge>
+            </div>
             <p className="text-xs text-muted-foreground break-all">
               Experiment {version.experimentIdentifier}
             </p>
           </div>
+          <TabsList aria-label={`Version ${version.funnelVersion} detail views`}>
+            <TabsTrigger value="summary">Summary</TabsTrigger>
+            <TabsTrigger value="steps">Steps</TabsTrigger>
+            <TabsTrigger value="paths">Paths</TabsTrigger>
+          </TabsList>
         </div>
-        <Badge variant="outline">
-          {version.variants.length} {version.variants.length === 1 ? 'variant' : 'variants'}
-        </Badge>
-      </div>
-      <Tabs defaultValue="summary" className="min-w-0 gap-5">
-        <TabsList aria-label={`Version ${version.funnelVersion} detail views`}>
-          <TabsTrigger value="summary">Summary</TabsTrigger>
-          <TabsTrigger value="steps">Steps</TabsTrigger>
-          <TabsTrigger value="paths">Paths</TabsTrigger>
-        </TabsList>
-        <TabsContent value="summary" className="flex flex-col gap-5">
-          <div className="grid gap-4 md:grid-cols-2">
+        <TabsContent value="summary" className="flex flex-col gap-6">
+          <div className="grid gap-6 @min-[34rem]/analytics-version:grid-cols-2 @min-[58rem]/analytics-version:grid-cols-4">
             {version.variants.map((variant) => (
               <AnalyticsVariantSummary key={variant.variant} variant={variant} />
             ))}
@@ -272,13 +283,16 @@ export function AnalyticsVersionPanel({ version }: { readonly version: Analytics
               {hasObservations ? (
                 <DeferredView
                   loading={
-                    <Skeleton aria-label="Loading comparison chart" className="h-64 w-full" />
+                    <Skeleton
+                      aria-label="Loading comparison chart"
+                      className="h-80 w-full sm:h-96"
+                    />
                   }
                 >
                   <AnalyticsComparisonChart variants={version.variants} />
                 </DeferredView>
               ) : (
-                <Empty>
+                <Empty className="min-h-80 sm:min-h-96">
                   <EmptyHeader>
                     <EmptyMedia variant="icon">
                       <GitBranch />

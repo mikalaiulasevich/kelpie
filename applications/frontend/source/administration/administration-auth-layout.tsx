@@ -9,19 +9,34 @@ export function AdministrationAuthLayout({ children }: { children: ReactNode }):
 
   return (
     <main className="auth-layout">
-      <header className="auth-header">
-        <a href="/" className="brand" aria-label="Kelpie administration">
-          <span className="brand-icon">
+      <aside className="auth-cover">
+        <img className="auth-cover-image" src="/images/administration-glass.webp" alt="" />
+        <header className="auth-cover-header">
+          <a href="/" className="brand" aria-label="Kelpie administration">
+            <span className="brand-icon">
+              <Command aria-hidden="true" />
+            </span>
+            <span>{AdministrationContent.Brand}</span>
+          </a>
+        </header>
+        <div className="auth-cover-caption">
+          <h2>{AdministrationContent.PanelTitle}</h2>
+          <p>{AdministrationContent.PanelDescription}</p>
+        </div>
+      </aside>
+      <div className="auth-content">
+        <header className="auth-header">
+          <a href="/" className="brand auth-mobile-brand" aria-label="Kelpie administration">
             <Command aria-hidden="true" />
-          </span>
-          <span>{AdministrationContent.Brand}</span>
-        </a>
-        <span className="workspace-label">{AdministrationContent.WorkspaceLabel}</span>
-      </header>
-      <section className="auth-main" aria-label="Administrator access">
-        <div className="form-container">{children}</div>
-      </section>
-      <footer className="auth-footer">© {new Date().getFullYear()} Kelpie</footer>
+            {AdministrationContent.Brand}
+          </a>
+          <span className="workspace-label">{AdministrationContent.WorkspaceLabel}</span>
+        </header>
+        <section className="auth-main" aria-label="Administrator access">
+          <div className="form-container">{children}</div>
+        </section>
+        <footer className="auth-footer">© {new Date().getFullYear()} Kelpie</footer>
+      </div>
     </main>
   );
 }

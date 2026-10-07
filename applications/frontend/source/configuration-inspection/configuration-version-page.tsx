@@ -7,6 +7,7 @@ import { Button } from '../components/button';
 import { Alert, AlertDescription, AlertTitle } from '../components/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../components/collapsible';
 import { Skeleton } from '../components/skeleton';
+import { Card, CardContent, CardDescription, CardHeader } from '../components/card';
 import { WorkspaceNavigation, WorkspacePage } from '../workspace/workspace-navigation';
 import { ConfigurationInspection } from './configuration-inspection';
 
@@ -82,48 +83,52 @@ export function ConfigurationVersionPage({
       )}
       {resource.status === 'ready' && (
         <>
-          <div className="flex min-w-0 flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
+          <Card className="min-w-0">
+            <CardHeader>
               <h1 className="page-title">Version {resource.data.version.version}</h1>
-              <p className="page-description">{resource.data.document.title}</p>
-            </div>
-            <dl className="flex flex-wrap gap-x-8 gap-y-3 text-sm">
-              {[
-                { label: 'Funnel', value: resource.data.version.funnelIdentifier },
-                { label: 'Locale', value: resource.data.document.locale },
-                { label: 'Schema', value: resource.data.version.schemaVersion },
-                { label: 'Source status', value: resource.data.document.status },
-              ].map((item) => (
-                <div key={item.label} className="flex min-w-0 flex-col gap-1">
-                  <dt className="text-xs text-muted-foreground">{item.label}</dt>
-                  <dd className="break-all">{item.value}</dd>
-                </div>
-              ))}
-            </dl>
-            <Collapsible>
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  Identifiers
-                  <ChevronDown data-icon="inline-end" />
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="pt-3">
-                <dl className="grid min-w-0 gap-3 text-xs sm:grid-cols-2">
-                  <div className="min-w-0">
-                    <dt className="text-muted-foreground">Version identifier</dt>
-                    <dd className="mt-1 break-all font-mono">{resource.data.version.identifier}</dd>
+              <CardDescription>{resource.data.document.title}</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-5">
+              <dl className="flex flex-wrap gap-x-8 gap-y-3 text-sm">
+                {[
+                  { label: 'Funnel', value: resource.data.version.funnelIdentifier },
+                  { label: 'Locale', value: resource.data.document.locale },
+                  { label: 'Schema', value: resource.data.version.schemaVersion },
+                  { label: 'Source status', value: resource.data.document.status },
+                ].map((item) => (
+                  <div key={item.label} className="flex min-w-0 flex-col gap-1">
+                    <dt className="text-xs text-muted-foreground">{item.label}</dt>
+                    <dd className="break-all">{item.value}</dd>
                   </div>
-                  <div className="min-w-0">
-                    <dt className="text-muted-foreground">Content fingerprint</dt>
-                    <dd className="mt-1 break-all font-mono">{resource.data.version.checksum}</dd>
-                  </div>
-                </dl>
-              </CollapsibleContent>
-            </Collapsible>
-            <p className="text-xs text-muted-foreground">
-              Read-only document. Source status is separate from live activation.
-            </p>
-          </div>
+                ))}
+              </dl>
+              <Collapsible>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    Identifiers
+                    <ChevronDown data-icon="inline-end" />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-3">
+                  <dl className="grid min-w-0 gap-3 text-xs sm:grid-cols-2">
+                    <div className="min-w-0">
+                      <dt className="text-muted-foreground">Version identifier</dt>
+                      <dd className="mt-1 break-all font-mono">
+                        {resource.data.version.identifier}
+                      </dd>
+                    </div>
+                    <div className="min-w-0">
+                      <dt className="text-muted-foreground">Content fingerprint</dt>
+                      <dd className="mt-1 break-all font-mono">{resource.data.version.checksum}</dd>
+                    </div>
+                  </dl>
+                </CollapsibleContent>
+              </Collapsible>
+              <p className="text-xs text-muted-foreground">
+                Read-only document. Source status is separate from live activation.
+              </p>
+            </CardContent>
+          </Card>
           <ConfigurationInspection configuration={resource.data.document} />
         </>
       )}

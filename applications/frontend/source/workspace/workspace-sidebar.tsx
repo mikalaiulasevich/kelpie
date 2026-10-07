@@ -43,7 +43,7 @@ export function WorkspaceSidebar({
 
   return (
     <Sidebar collapsible="icon" variant="sidebar">
-      <SidebarHeader className="p-3">
+      <SidebarHeader className="h-16 justify-center border-b px-4 py-2 group-data-[collapsible=icon]:p-2">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
@@ -51,12 +51,13 @@ export function WorkspaceSidebar({
                 href={WorkspaceNavigation.href(WorkspacePage.Analytics, funnelIdentifier)}
                 onClick={() => setOpenMobile(false)}
               >
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground group-data-[collapsible=icon]:size-8">
                   <Command />
                 </span>
                 <span className="grid gap-0.5">
-                  <span className="font-semibold tracking-tight">{WorkspaceContent.Name}</span>
-                  <span className="text-xs text-muted-foreground">{WorkspaceContent.Area}</span>
+                  <span className="text-lg font-semibold tracking-tight">
+                    {WorkspaceContent.Name}
+                  </span>
                 </span>
               </a>
             </SidebarMenuButton>
@@ -64,12 +65,14 @@ export function WorkspaceSidebar({
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
+        <SidebarGroup className="px-3 py-5 group-data-[collapsible=icon]:p-2">
           <SidebarGroupLabel>{WorkspaceContent.Scope}</SidebarGroupLabel>
           <SidebarMenu>
             {navigationItems.map((item) => (
               <SidebarMenuItem key={item.page}>
                 <SidebarMenuButton
+                  className="group-data-[collapsible=icon]:justify-center"
+                  size="lg"
                   asChild
                   isActive={
                     page === item.page ||
@@ -78,12 +81,13 @@ export function WorkspaceSidebar({
                   tooltip={item.label}
                 >
                   <a
+                    aria-label={item.label}
                     href={WorkspaceNavigation.href(item.page, funnelIdentifier)}
                     aria-current={page === item.page ? 'page' : undefined}
                     onClick={() => setOpenMobile(false)}
                   >
                     <item.icon />
-                    <span>{item.label}</span>
+                    <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -91,7 +95,7 @@ export function WorkspaceSidebar({
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="p-3">
+      <SidebarFooter className="p-3 group-data-[collapsible=icon]:p-2">
         <SidebarMenu>
           <SidebarMenuItem>
             <div className="flex items-center gap-3 p-2 group-data-[collapsible=icon]:p-0">
@@ -108,12 +112,15 @@ export function WorkspaceSidebar({
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
+              aria-label={pending ? WorkspaceContent.SigningOut : WorkspaceContent.SignOut}
               onClick={signOut}
               disabled={pending}
               tooltip={WorkspaceContent.SignOut}
             >
               <LogOut />
-              <span>{pending ? WorkspaceContent.SigningOut : WorkspaceContent.SignOut}</span>
+              <span className="group-data-[collapsible=icon]:hidden">
+                {pending ? WorkspaceContent.SigningOut : WorkspaceContent.SignOut}
+              </span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

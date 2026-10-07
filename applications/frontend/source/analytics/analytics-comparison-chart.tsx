@@ -25,15 +25,30 @@ export function AnalyticsComparisonChart({
 
   return (
     <>
-      <ChartContainer config={comparisonChart} className="h-64 w-full">
+      <ChartContainer config={comparisonChart} className="h-70 w-full sm:h-80">
         <BarChart
           accessibilityLayer
+          layout="vertical"
           data={comparisonData}
           margin={{ left: 0, right: 12, bottom: 8 }}
         >
-          <CartesianGrid vertical={false} />
-          <XAxis dataKey="variant" tickLine={false} axisLine={false} tickMargin={12} />
-          <YAxis tickLine={false} axisLine={false} domain={[0, 100]} unit="%" />
+          <CartesianGrid horizontal={false} />
+          <XAxis
+            type="number"
+            tickLine={false}
+            axisLine={false}
+            domain={[0, 100]}
+            unit="%"
+            tickMargin={12}
+          />
+          <YAxis
+            type="category"
+            dataKey="variant"
+            tickLine={false}
+            axisLine={false}
+            tickMargin={12}
+            width={84}
+          />
           <ChartTooltip
             content={
               <ChartTooltipContent
@@ -50,8 +65,18 @@ export function AnalyticsComparisonChart({
               />
             }
           />
-          <Bar dataKey="results" fill="var(--color-results)" radius={4} />
-          <Bar dataKey="recommendations" fill="var(--color-recommendations)" radius={4} />
+          <Bar
+            dataKey="results"
+            fill="var(--color-results)"
+            radius={[0, 6, 6, 0]}
+            maxBarSize={32}
+          />
+          <Bar
+            dataKey="recommendations"
+            fill="var(--color-recommendations)"
+            radius={[0, 6, 6, 0]}
+            maxBarSize={32}
+          />
         </BarChart>
       </ChartContainer>
       <div className="mt-4 flex flex-wrap justify-center gap-5 text-xs text-muted-foreground">

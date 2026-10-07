@@ -43,6 +43,7 @@ export function ConfigurationImportDialog({
   const [pending, setPending] = useState(false);
   const [reading, setReading] = useState(false);
   const [result, setResult] = useState<Optional<ConfigurationImportResult>>();
+  const fileInputReference = useRef<HTMLInputElement>(null);
   const selectionSequence = useRef(0);
   const requestPending = useRef(false);
   const cancellation = useRef(new AbortController());
@@ -145,6 +146,7 @@ export function ConfigurationImportDialog({
       }}
     >
       <DialogContent
+        className="max-h-[calc(100dvh-2rem)] gap-6 overflow-y-auto rounded-xl sm:max-w-2xl sm:p-8"
         onCloseAutoFocus={(event) => {
           if (onReturnFocus) {
             event.preventDefault();
@@ -163,29 +165,59 @@ export function ConfigurationImportDialog({
           }
         }}
       >
-        <DialogHeader>
-          <DialogTitle>{ConfigurationContent.ImportTitle}</DialogTitle>
+        <DialogHeader className="gap-3 text-left">
+          <DialogTitle className="text-2xl tracking-tight">
+            {ConfigurationContent.ImportTitle}
+          </DialogTitle>
           <DialogDescription>{ConfigurationContent.ImportDescription}</DialogDescription>
         </DialogHeader>
         <FieldGroup>
-          <Field>
-            <FieldLabel htmlFor="configuration-file">{ConfigurationContent.File}</FieldLabel>
+          <Field
+            data-disabled={pending}
+            className="rounded-xl border border-dashed bg-muted/30 p-6 sm:p-8"
+          >
+            <div className="flex flex-col items-center gap-4 text-center">
+              <span className="flex size-12 items-center justify-center rounded-xl border bg-background text-muted-foreground">
+                <Upload className="size-5" />
+              </span>
+              <div className="flex flex-col items-center gap-2">
+                <FieldLabel htmlFor="configuration-file" className="text-base font-medium">
+                  {ConfigurationContent.File}
+                </FieldLabel>
+                <p id="configuration-file-requirements" className="text-sm text-muted-foreground">
+                  {ConfigurationContent.FileRequirements}
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={pending}
+                onClick={() => fileInputReference.current?.click()}
+              >
+                {ConfigurationContent.ChooseFile}
+              </Button>
+            </div>
             <Input
+              ref={fileInputReference}
               id="configuration-file"
               type="file"
               accept=".json,application/json"
+              aria-describedby="configuration-file-requirements"
+              tabIndex={-1}
               disabled={pending}
               onChange={(event) => {
                 void select(event.target.files?.[0]);
               }}
-              className="h-12"
+              className="sr-only"
             />
           </Field>
         </FieldGroup>
         {selected && (
-          <div className="flex items-center gap-3 rounded-xl border p-4">
-            <FileJson className="size-8 text-primary" />
-            <div className="min-w-0">
+          <div className="flex items-center gap-4 rounded-xl border bg-card p-5">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+              <FileJson className="size-5" />
+            </span>
+            <div className="flex min-w-0 flex-col gap-1">
               <p className="truncate text-sm font-medium">{selected.filename}</p>
               <p className="text-xs text-muted-foreground">
                 {Math.ceil(selected.bytes / 1024)} KiB · JSON
@@ -225,7 +257,7 @@ export function ConfigurationImportDialog({
             </AlertDescription>
           </Alert>
         )}
-        <DialogFooter>
+        <DialogFooter className="gap-3">
           <Button variant="outline" onClick={onClose} disabled={pending}>
             {ConfigurationContent.Close}
           </Button>

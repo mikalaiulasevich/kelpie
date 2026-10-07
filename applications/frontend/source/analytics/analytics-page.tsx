@@ -1,5 +1,12 @@
 import { useMemo, useState } from 'react';
-import { BarChart3, ChevronDown, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import {
+  BarChart3,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  RefreshCw,
+  SlidersHorizontal,
+} from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../components/alert';
 import { Badge } from '../components/badge';
 import { Button } from '../components/button';
@@ -41,77 +48,67 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
   const refresh = () => setRefreshSequence((sequence) => sequence + 1);
 
   return (
-    <div className="flex min-w-0 flex-col gap-5">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1.5">
-          <h1 className="workspace-page-title">Analytics</h1>
-          <p className="text-sm text-muted-foreground">
-            Sessions, conversions, and paths by version.
-          </p>
-        </div>
-        <Button variant="outline" disabled={isLoading} onClick={refresh}>
-          <RefreshCw data-icon="inline-start" />
-          Refresh
-        </Button>
-      </div>
-      <AnalyticsFiltersCard
-        funnelIdentifier={funnelIdentifier}
-        refreshSequence={refreshSequence}
-        onUnauthorized={onUnauthorized}
-        onApply={applyFilters}
-        onRefresh={refresh}
-      />
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge variant="secondary">{AnalyticsFilterSelection.trafficLabel(appliedFilters)}</Badge>
-        <Badge variant="outline">{appliedFilters.versionLabel}</Badge>
-        <Badge variant="outline">
-          {appliedFilters.includeForced
-            ? 'Forced assignments included'
-            : 'Forced assignments excluded'}
-        </Badge>
-        <Badge variant="outline">{AnalyticsFilterSelection.campaignLabel(appliedFilters)}</Badge>
-      </div>
-      {appliedFilters.trafficOrigin !== 'production' && (
-        <p className="text-xs text-muted-foreground">
-          Synthetic sessions are included. These data do not establish experimental effectiveness.
-        </p>
-      )}
-      <Collapsible>
-        <CollapsibleTrigger asChild>
-          <Button variant="ghost" size="sm">
-            Metric definitions
-            <ChevronDown data-icon="inline-end" />
-          </Button>
-        </CollapsibleTrigger>
-        <CollapsibleContent className="pt-3">
-          <div className="flex max-w-3xl flex-col gap-2 text-sm text-muted-foreground">
-            <p>
-              CTA conversion is the primary metric. Result completion and CTA click-through are
-              supporting diagnostics. Compare A/B within the same version and experiment;
-              comparisons across versions are descriptive.
-            </p>
-            <p>
-              Hypothesis: variant B increases the share of started sessions opening recommendations
-              through question order and result framing.
-            </p>
-            <p>
-              Filters apply to every numerator and denominator. Campaigns use acquisition UTM
-              captured when a session starts. Counts deduplicate repeated views and Back. Exclude
-              forced assignments for the main A/B comparison.
-            </p>
+    <div className="flex min-w-0 flex-col gap-4">
+      <h1 className="sr-only">Analytics</h1>
+      <Collapsible className="flex flex-col gap-6">
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="secondary">
+                {AnalyticsFilterSelection.trafficLabel(appliedFilters)}
+              </Badge>
+              <Badge variant="outline">{appliedFilters.versionLabel}</Badge>
+              <Badge variant="outline">
+                {appliedFilters.includeForced
+                  ? 'Forced assignments included'
+                  : 'Forced assignments excluded'}
+              </Badge>
+              <Badge variant="outline">
+                {AnalyticsFilterSelection.campaignLabel(appliedFilters)}
+              </Badge>
+            </div>
+            <div className="flex gap-2">
+              <CollapsibleTrigger asChild>
+                <Button variant="outline" className="group">
+                  <SlidersHorizontal data-icon="inline-start" />
+                  Filters
+                  <ChevronDown
+                    data-icon="inline-end"
+                    className="group-data-[state=open]:rotate-180"
+                  />
+                </Button>
+              </CollapsibleTrigger>
+              <Button variant="outline" disabled={isLoading} onClick={refresh}>
+                <RefreshCw data-icon="inline-start" />
+                Refresh
+              </Button>
+            </div>
           </div>
-        </CollapsibleContent>
+          {appliedFilters.trafficOrigin !== 'production' && (
+            <p className="text-xs text-muted-foreground">
+              Synthetic sessions are included. These data do not establish experimental
+              effectiveness.
+            </p>
+          )}
+        </div>
+        <AnalyticsFiltersCard
+          funnelIdentifier={funnelIdentifier}
+          refreshSequence={refreshSequence}
+          onUnauthorized={onUnauthorized}
+          onApply={applyFilters}
+          onRefresh={refresh}
+        />
       </Collapsible>
       {analytics.status === 'loading' && (
         <div aria-label="Loading analytics" aria-busy="true" className="flex flex-col gap-4">
           <span className="sr-only" role="status">
             Loading analytics
           </span>
-          <div className="grid gap-4 md:grid-cols-2">
-            <Skeleton className="h-48 rounded-xl" />
-            <Skeleton className="h-48 rounded-xl" />
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+            <Skeleton className="h-56 rounded-xl" />
+            <Skeleton className="h-56 rounded-xl" />
           </div>
-          <Skeleton className="h-64 rounded-xl" />
+          <Skeleton className="h-96 rounded-xl" />
         </div>
       )}
       {analytics.status === 'failed' && (
@@ -190,6 +187,32 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
           </div>
         </>
       )}
+      <Collapsible>
+        <CollapsibleTrigger asChild>
+          <Button variant="ghost" size="sm">
+            Metric definitions
+            <ChevronDown data-icon="inline-end" />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pt-3">
+          <div className="flex max-w-3xl flex-col gap-2 text-sm text-muted-foreground">
+            <p>
+              CTA conversion is the primary metric. Result completion and CTA click-through are
+              supporting diagnostics. Compare A/B within the same version and experiment;
+              comparisons across versions are descriptive.
+            </p>
+            <p>
+              Hypothesis: variant B increases the share of started sessions opening recommendations
+              through question order and result framing.
+            </p>
+            <p>
+              Filters apply to every numerator and denominator. Campaigns use acquisition UTM
+              captured when a session starts. Counts deduplicate repeated views and Back. Exclude
+              forced assignments for the main A/B comparison.
+            </p>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 }

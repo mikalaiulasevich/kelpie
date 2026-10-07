@@ -1,5 +1,5 @@
 import { DeferredView } from '../application/deferred-view';
-import { lazy, useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { isError } from 'es-toolkit/predicate';
 import { match } from 'ts-pattern';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '../components/sidebar';
@@ -135,7 +135,7 @@ export function Workspace({ identity, signOut, onUnauthorized }: WorkspaceProper
   };
 
   return (
-    <SidebarProvider>
+    <SidebarProvider style={{ '--sidebar-width': '17rem' } as CSSProperties}>
       <WorkspaceSidebar
         page={page}
         funnelIdentifier={funnelIdentifier}
