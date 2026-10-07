@@ -1,10 +1,6 @@
 import { createHash, randomInt } from 'node:crypto';
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import {
-  ExperimentVariant,
-  FunnelConfigurations,
-  type FunnelConfiguration,
-} from '@kelpie/contracts';
+import { ExperimentVariant, type FunnelConfiguration } from '@kelpie/contracts';
 import { FunnelEvaluation } from '@kelpie/funnel-runtime';
 import { isNull, isUndefined } from 'es-toolkit/predicate';
 import { sortBy } from 'es-toolkit/array';
@@ -41,6 +37,7 @@ const SessionCreation = {
       [configuration.experiment.overrideQueryParam]:
         query[configuration.experiment.overrideQueryParam] ?? null,
     };
+
     return createHash(SessionPolicy.HashAlgorithm)
       .update(
         JSON.stringify([
@@ -58,6 +55,7 @@ const SessionCreation = {
     if (override === ExperimentVariant.A || override === ExperimentVariant.B) {
       return { variant: override, source: SessionPolicy.Assignment.Forced };
     }
+
     if (!isUndefined(override)) {
       throw new PublicRequestError(
         HttpStatus.BAD_REQUEST,
@@ -65,6 +63,7 @@ const SessionCreation = {
         SessionMessages.Invalid,
       );
     }
+
     const variants = configuration.experiment.variants;
     const threshold = variants.A.weight / (variants.A.weight + variants.B.weight);
     const variant =
@@ -88,6 +87,7 @@ const SessionCreation = {
         SessionMessages.Unauthorized,
       );
     }
+
     const previous = await transaction.sessionOperation.findUnique({
       where: {
         sessionIdentifier_operationIdentifier: {
@@ -103,6 +103,7 @@ const SessionCreation = {
         SessionMessages.Bound,
       );
     }
+
     if (previous.requestFingerprint !== fingerprint) {
       throw new PublicRequestError(
         HttpStatus.CONFLICT,
@@ -129,6 +130,7 @@ export class SessionService {
 
       return { state: null, expired: credential.expired };
     }
+
     const session = await this.database.client.session.findUnique({
       where: { accessTokenHash: credential.hash },
       include: SessionPolicy.RecordInclude,
@@ -136,6 +138,7 @@ export class SessionService {
     if (isNull(session)) {
       return { state: null, expired: false };
     }
+
     if (session.expiresAt.getTime() <= Date.now()) {
       await this.ownership.issue(reply);
 
@@ -174,6 +177,7 @@ export class SessionService {
       if (!DatabaseErrors.isUniqueConstraint(error)) {
         throw error;
       }
+
       const winner = await SessionRecords.requireOwned(this.database.client, credentialHash);
 
       return SessionCreation.replay(
@@ -225,10 +229,12 @@ export class SessionService {
         SessionMessages.Unavailable,
       );
     }
+
     const prepared = ConfigurationImportDocument.prepare(funnel.activeVersion.document);
     if (!ConfigurationImportDocument.matchesVersion(funnel.activeVersion, prepared)) {
       throw new Error(SessionMessages.Corrupted);
     }
+
     const configuration = prepared.configuration;
     const fingerprint = SessionCreation.fingerprint(body, query, configuration);
     const assignment = SessionCreation.assignment(configuration, query);
@@ -236,6 +242,7 @@ export class SessionService {
     if (!first) {
       throw new Error(SessionMessages.Corrupted);
     }
+
     const acquisitionParameters = SessionInputs.acquisition(query);
     const session = await transaction.session.create({
       data: {

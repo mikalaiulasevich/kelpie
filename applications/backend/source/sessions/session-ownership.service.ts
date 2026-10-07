@@ -64,6 +64,7 @@ export class SessionOwnershipService {
     if (isNull(match)) {
       return { hash: null, expired: false };
     }
+
     const [, token = '', timestamp = '', signature = ''] = match;
     const payload = `${token}.${timestamp}`;
     const expected = CredentialSignatures.sign(payload, await this.secret());
@@ -71,11 +72,13 @@ export class SessionOwnershipService {
     if (!authentic) {
       return { hash: null, expired: false };
     }
+
     const hash = CredentialSignatures.hash(`${payload}.${signature}`);
     const age = Date.now() - Number(timestamp);
     if (age < 0) {
       return { hash: null, expired: true };
     }
+
     if (age >= SessionPolicy.CookieLifetimeMilliseconds) {
       const bound = await this.database.client.session.findUnique({
         where: { accessTokenHash: hash },

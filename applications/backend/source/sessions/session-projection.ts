@@ -34,9 +34,11 @@ export const SessionProjection = {
     if (isNull(value)) {
       return null;
     }
+
     if (isString(value) || (typeof value === 'number' && Number.isFinite(value))) {
       return value;
     }
+
     if (Array.isArray(value) && value.every(isString)) {
       return value;
     }
@@ -44,7 +46,10 @@ export const SessionProjection = {
     throw new Error(SessionMessages.Corrupted);
   },
 
-  confirmedAnswers(record: SessionAnswerSource, configuration: FunnelConfiguration): SessionAnswers {
+  confirmedAnswers(
+    record: SessionAnswerSource,
+    configuration: FunnelConfiguration,
+  ): SessionAnswers {
     const answers: Record<string, StepAnswer> = {};
     for (const answer of record.answers) {
       const step = configuration.steps[answer.stepIdentifier];
@@ -56,6 +61,7 @@ export const SessionProjection = {
       ) {
         continue;
       }
+
       const value = SessionProjection.answer(answer.value);
       if (!isNull(value)) {
         Object.defineProperty(answers, step.input.name, { value, enumerable: true });

@@ -46,15 +46,24 @@ export const SessionSchemas = {
 } as const;
 
 export type CreateSessionRequest = Readonly<Static<typeof SessionSchemas.Create>>;
+
 export type SessionQuery = Readonly<Static<typeof SessionSchemas.Query>>;
+
 export type SessionState = DeepReadonly<
   Omit<Static<typeof SessionSchemas.State>, 'configuration' | 'result'>
 > &
   Readonly<{ configuration: FunnelConfiguration; result: FunnelResult | null }>;
+
 export type OwnedSession = Prisma.SessionGetPayload<{
   include: typeof SessionPolicy.RecordInclude;
 }>;
+
 export type CurrentSessionResponse = Readonly<{ state: SessionState | null; expired: boolean }>;
+
 export type CredentialVerification = Readonly<{ hash: string | null; expired: boolean }>;
 
-export type SessionAnswerSource = Readonly<{ answers: ReadonlyList<Readonly<{ stepIdentifier: string; value: unknown; confirmationRevision: number | null }>> }>;
+export type SessionAnswerSource = Readonly<{
+  answers: ReadonlyList<
+    Readonly<{ stepIdentifier: string; value: unknown; confirmationRevision: number | null }>
+  >;
+}>;
