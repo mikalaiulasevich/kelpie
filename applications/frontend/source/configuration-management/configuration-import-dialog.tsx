@@ -5,7 +5,14 @@ import type { ConfigurationImportResult } from '../management/management-types';
 import { Button } from '../components/button';
 import { Input } from '../components/input';
 import { Field, FieldGroup, FieldLabel } from '../components/field';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '../components/dialog';
 import { Alert, AlertDescription, AlertTitle } from '../components/alert';
 import { ConfigurationContent } from './configuration-content';
 import { ConfigurationManagementPolicy } from './configuration-policy';
@@ -23,7 +30,11 @@ interface SelectedConfiguration {
   readonly bytes: number;
 }
 
-export function ConfigurationImportDialog({ onClose, onImported, onUnauthorized }: ConfigurationImportDialogProperties): UIElement {
+export function ConfigurationImportDialog({
+  onClose,
+  onImported,
+  onUnauthorized,
+}: ConfigurationImportDialogProperties): UIElement {
   const [selected, setSelected] = useState<Optional<SelectedConfiguration>>();
   const [message, setMessage] = useState('');
   const [issues, setIssues] = useState<readonly { path: string; message: string }[]>([]);
@@ -38,7 +49,10 @@ export function ConfigurationImportDialog({ onClose, onImported, onUnauthorized 
     const controller = new AbortController();
     cancellation.current = controller;
 
-    return () => { controller.abort(); selectionSequence.current += 1; };
+    return () => {
+      controller.abort();
+      selectionSequence.current += 1;
+    };
   }, []);
 
   const select = async (file: Optional<File>) => {
@@ -76,6 +90,7 @@ export function ConfigurationImportDialog({ onClose, onImported, onUnauthorized 
       }
     }
   };
+
   const submit = async () => {
     if (!selected || requestPending.current) {
       return;
@@ -87,7 +102,10 @@ export function ConfigurationImportDialog({ onClose, onImported, onUnauthorized 
     setIssues([]);
 
     try {
-      const imported = await ManagementClient.importConfiguration(selected.document, cancellation.current.signal);
+      const imported = await ManagementClient.importConfiguration(
+        selected.document,
+        cancellation.current.signal,
+      );
 
       if (!cancellation.current.signal.aborted) {
         setResult(imported);
@@ -101,7 +119,9 @@ export function ConfigurationImportDialog({ onClose, onImported, onUnauthorized 
           return;
         }
 
-        setMessage(error instanceof ManagementError ? error.message : ConfigurationContent.ImportFailure);
+        setMessage(
+          error instanceof ManagementError ? error.message : ConfigurationContent.ImportFailure,
+        );
         setIssues(error instanceof ManagementError ? error.issues : []);
       }
     } finally {
@@ -113,11 +133,107 @@ export function ConfigurationImportDialog({ onClose, onImported, onUnauthorized 
     }
   };
 
-  return <Dialog open onOpenChange={open => { if (!open && !pending) { onClose(); } }}><DialogContent onEscapeKeyDown={event => { if (pending) { event.preventDefault(); } }} onInteractOutside={event => { if (pending) { event.preventDefault(); } }}><DialogHeader><DialogTitle>{ConfigurationContent.ImportTitle}</DialogTitle><DialogDescription>{ConfigurationContent.ImportDescription}</DialogDescription></DialogHeader>
-    <FieldGroup><Field><FieldLabel htmlFor="configuration-file">{ConfigurationContent.File}</FieldLabel><Input id="configuration-file" type="file" accept=".json,application/json" disabled={pending} onChange={event => { void select(event.target.files?.[0]); }} className="h-12" /></Field></FieldGroup>
-    {selected && <div className="flex items-center gap-3 rounded-xl border p-4"><FileJson className="size-8 text-primary" /><div className="min-w-0"><p className="truncate text-sm font-medium">{selected.filename}</p><p className="text-xs text-muted-foreground">{Math.ceil(selected.bytes / 1024)} KiB · JSON</p></div></div>}
-    {message && <Alert variant="destructive"><AlertTitle>{ConfigurationContent.ImportFailure}</AlertTitle><AlertDescription>{message}{issues.length > 0 && <ul className="mt-3 flex max-h-48 flex-col gap-2 overflow-auto">{issues.map((issue, index) => <li key={`${issue.path}-${index}`}><code className="break-all text-xs">{issue.path}</code><p>{issue.message}</p></li>)}</ul>}</AlertDescription></Alert>}
-    {result && <Alert><Check /><AlertTitle>{result.outcome === 'created' ? ConfigurationContent.ImportComplete : ConfigurationContent.ImportExisting}</AlertTitle><AlertDescription>{result.version.funnelIdentifier} · {ConfigurationFormat.version(result.version.version)}</AlertDescription></Alert>}
-    <DialogFooter><Button variant="outline" onClick={onClose} disabled={pending}>{ConfigurationContent.Close}</Button>{!result && <Button onClick={() => { void submit(); }} disabled={!selected || pending || reading}><Upload data-icon="inline-start" />{pending ? ConfigurationContent.ImportPending : ConfigurationContent.ImportAction}</Button>}</DialogFooter>
-  </DialogContent></Dialog>;
+  return (
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open && !pending) {
+          onClose();
+        }
+      }}
+    >
+      <DialogContent
+        showCloseButton={!pending}
+        onEscapeKeyDown={(event) => {
+          if (pending) {
+            event.preventDefault();
+          }
+        }}
+        onInteractOutside={(event) => {
+          if (pending) {
+            event.preventDefault();
+          }
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>{ConfigurationContent.ImportTitle}</DialogTitle>
+          <DialogDescription>{ConfigurationContent.ImportDescription}</DialogDescription>
+        </DialogHeader>
+        <FieldGroup>
+          <Field>
+            <FieldLabel htmlFor="configuration-file">{ConfigurationContent.File}</FieldLabel>
+            <Input
+              id="configuration-file"
+              type="file"
+              accept=".json,application/json"
+              disabled={pending}
+              onChange={(event) => {
+                void select(event.target.files?.[0]);
+              }}
+              className="h-12"
+            />
+          </Field>
+        </FieldGroup>
+        {selected && (
+          <div className="flex items-center gap-3 rounded-xl border p-4">
+            <FileJson className="size-8 text-primary" />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium">{selected.filename}</p>
+              <p className="text-xs text-muted-foreground">
+                {Math.ceil(selected.bytes / 1024)} KiB · JSON
+              </p>
+            </div>
+          </div>
+        )}
+        {message && (
+          <Alert variant="destructive">
+            <AlertTitle>{ConfigurationContent.ImportFailure}</AlertTitle>
+            <AlertDescription>
+              {message}
+              {issues.length > 0 && (
+                <ul className="mt-3 flex max-h-48 flex-col gap-2 overflow-auto">
+                  {issues.map((issue, index) => (
+                    <li key={`${issue.path}-${index}`}>
+                      <code className="break-all text-xs">{issue.path}</code>
+                      <p>{issue.message}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
+        {result && (
+          <Alert>
+            <Check />
+            <AlertTitle>
+              {result.outcome === 'created'
+                ? ConfigurationContent.ImportComplete
+                : ConfigurationContent.ImportExisting}
+            </AlertTitle>
+            <AlertDescription>
+              {result.version.funnelIdentifier} ·{' '}
+              {ConfigurationFormat.version(result.version.version)}
+            </AlertDescription>
+          </Alert>
+        )}
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={pending}>
+            {ConfigurationContent.Close}
+          </Button>
+          {!result && (
+            <Button
+              onClick={() => {
+                void submit();
+              }}
+              disabled={!selected || pending || reading}
+            >
+              <Upload data-icon="inline-start" />
+              {pending ? ConfigurationContent.ImportPending : ConfigurationContent.ImportAction}
+            </Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 }

@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { FunnelConfigurations } from '@kelpie/contracts';
 import { vi } from 'vitest';
 import { ServiceReadinessFixture } from './service-readiness-fixtures';
 
@@ -42,6 +44,25 @@ export const ManagementClientFixture = {
       version: 3,
       schemaVersion: '1',
       checksum: 'safe-checksum',
+    };
+  },
+
+  configurationDocument() {
+    const document: unknown = JSON.parse(
+      readFileSync(new URL('../../../../configurations/funnel-v3.json', import.meta.url), 'utf8'),
+    );
+    const result = FunnelConfigurations.validate(document);
+    assert.ok(result.valid);
+
+    return {
+      version: {
+        identifier: '22345678-1234-1234-1234-123456789012',
+        funnelIdentifier: 'workstyle-planner',
+        version: 3,
+        schemaVersion: '1.0',
+        checksum: 'safe-checksum',
+      },
+      document: result.configuration,
     };
   },
 

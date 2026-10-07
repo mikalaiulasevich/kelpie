@@ -11,6 +11,111 @@ afterEach(() => {
 });
 
 describe('management backend client', () => {
+  it('reads the supplied v3 document by identifier using a same-origin GET', async () => {
+    const body = ManagementClientFixture.configurationDocument();
+    const fetch = ManagementClientFixture.response(body);
+
+    await expect(
+      ManagementClient.configurationDocument(body.version.identifier, new AbortController().signal),
+    ).resolves.toEqual(body);
+    const request = fetch.mock.calls[0]?.[0];
+    assert.ok(request instanceof Request);
+    expect(request.url).toBe(
+      'http://localhost/api/administration/configurations/22345678-1234-1234-1234-123456789012',
+    );
+    expect(request.method).toBe('GET');
+    expect(request.credentials).toBe('same-origin');
+    expect(request.cache).toBe('no-store');
+    expect(request.headers.has('x-kelpie-administration')).toBe(false);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(ManagementClientCases.ConfigurationIdentityMismatches)(
+    'rejects document metadata with mismatched $field',
+    async ({ field, value }) => {
+      const body = ManagementClientFixture.configurationDocument();
+      ManagementClientFixture.response({
+        ...body,
+        version: { ...body.version, [field]: value },
+      });
+
+      await expect(
+        ManagementClient.configurationDocument(
+          body.version.identifier,
+          new AbortController().signal,
+        ),
+      ).rejects.toMatchObject({ status: 200, code: 'invalid_response', uncertain: false });
+    },
+  );
+
+  it('rejects structurally invalid configuration documents', async () => {
+    const body = ManagementClientFixture.configurationDocument();
+    ManagementClientFixture.response({ ...body, document: {} });
+
+    await expect(
+      ManagementClient.configurationDocument(body.version.identifier, new AbortController().signal),
+    ).rejects.toMatchObject({ status: 200, code: 'invalid_response', uncertain: false });
+  });
+
+  it('rejects a structurally valid document referencing an unknown sequence step', async () => {
+    const body = ManagementClientFixture.configurationDocument();
+    ManagementClientFixture.response({
+      ...body,
+      document: {
+        ...body.document,
+        experiment: {
+          ...body.document.experiment,
+          variants: {
+            ...body.document.experiment.variants,
+            A: {
+              ...body.document.experiment.variants.A,
+              stepSequence: [...body.document.experiment.variants.A.stepSequence, 'missing-step'],
+            },
+          },
+        },
+      },
+    });
+
+    await expect(
+      ManagementClient.configurationDocument(body.version.identifier, new AbortController().signal),
+    ).rejects.toMatchObject({ status: 200, code: 'invalid_response', uncertain: false });
+  });
+
+  it.each(ManagementClientCases.ConfigurationReadFailures)(
+    'preserves $status from document reads without mutation uncertainty or retries',
+    async ({ status, code }) => {
+      const body = ManagementClientFixture.configurationDocument();
+      const fetch = ManagementClientFixture.response({ code, message: 'private detail' }, status);
+
+      await expect(
+        ManagementClient.configurationDocument(
+          body.version.identifier,
+          new AbortController().signal,
+        ),
+      ).rejects.toMatchObject({ status, uncertain: false });
+      expect(fetch).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it('cancels a configuration document read and clears its deadline', async () => {
+    vi.useFakeTimers();
+    const fetch = ManagementClientFixture.stalledResponse();
+    const cancellation = new AbortController();
+    const cancellationReason = new DOMException('Document read cancelled', 'AbortError');
+    const pending = expect(
+      ManagementClient.configurationDocument(
+        '22345678-1234-1234-1234-123456789012',
+        cancellation.signal,
+      ),
+    ).rejects.toBe(cancellationReason);
+
+    await vi.advanceTimersByTimeAsync(0);
+    cancellation.abort(cancellationReason);
+    await pending;
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
   it('requests cookie-authorized configuration pagination and validates metadata', async () => {
     const fetch = ManagementClientFixture.response(ManagementClientFixture.configurations());
 
@@ -241,6 +346,25 @@ describe('management backend client', () => {
     await vi.advanceTimersByTimeAsync(15_000);
     await expectation;
     expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('preserves a disconnected error-body failure without unhandled cancellation rejections', async () => {
+    const failure = new TypeError('Response stream disconnected');
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.error(failure);
+      },
+    });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof globalThis.fetch>().mockResolvedValue(new Response(body, { status: 503 })),
+    );
+
+    await expect(
+      ManagementClient.publish(ManagementClientFixture.command(), new AbortController().signal),
+    ).rejects.toMatchObject({ status: 0, code: 'network', uncertain: true, cause: failure });
+    // Vitest fails this test run if either cleanup cancellation leaks an unhandled rejection.
+    await Promise.resolve();
   });
 
   it('bounds stalled body reading and preserves mutation uncertainty', async () => {

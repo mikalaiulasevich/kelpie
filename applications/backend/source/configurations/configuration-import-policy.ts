@@ -7,6 +7,9 @@ export const ConfigurationImportPolicy = {
   HashEncoding: 'hex',
   RootPath: '/',
   ManagementRoute: 'administration/configurations',
+  VersionRoute: ':versionIdentifier',
+  VersionIdentifierPattern:
+    '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
   IdentityFields: ['funnelIdentifier', 'version', 'schemaVersion', 'checksum'],
   VersionSelection: {
     identifier: true,

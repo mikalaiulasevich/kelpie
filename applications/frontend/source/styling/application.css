@@ -10,7 +10,14 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
   --color-card: var(--card);
-  --color-card-foreground: var(--foreground);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
@@ -45,31 +52,45 @@
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  --background: #fff;
-  --primary: #1f4439;
-  --primary-foreground: #fff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #172033;
-  --accent: #f1f5f9;
-  --accent-foreground: #172033;
-  --destructive: #b91c1c;
-  --destructive-foreground: #fff;
-  --input: #cbd5e1;
-  --ring: #46866c;
-  --foreground: #20352d;
-  --muted: #f3f5f4;
-  --muted-foreground: #63716a;
-  --border: #e4e8e5;
-  --card: #fff;
+  color-scheme: dark;
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: var(--foreground);
+  --popover: var(--card);
+  --popover-foreground: var(--foreground);
+  --primary: oklch(0.546 0.245 262.881);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: var(--foreground);
+  --muted: var(--secondary);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: var(--secondary);
+  --accent-foreground: var(--foreground);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.145 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: var(--primary);
   --radius: 0.625rem;
-  --sidebar: hsl(0 0% 98%);
-  --sidebar-foreground: hsl(240 5.3% 26.1%);
-  --sidebar-primary: hsl(240 5.9% 10%);
-  --sidebar-primary-foreground: hsl(0 0% 98%);
-  --sidebar-accent: hsl(240 4.8% 95.9%);
-  --sidebar-accent-foreground: hsl(240 5.9% 10%);
-  --sidebar-border: hsl(220 13% 91%);
-  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+  --sidebar: var(--card);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+  --chart-1: var(--primary);
+  --chart-2: oklch(0.809 0.105 251.813);
+  --chart-3: oklch(0.623 0.214 259.815);
+  --chart-4: oklch(0.488 0.243 264.376);
+  --chart-5: oklch(0.424 0.199 265.638);
+  --brand-surface: var(--card);
+  --brand-text: var(--foreground);
+  --brand-muted: var(--muted-foreground);
+  --brand-highlight: var(--chart-2);
+  --brand-line: var(--border);
 }
 
 body {
@@ -83,7 +104,8 @@ button:disabled {
   cursor: default;
 }
 ::selection {
-  background: #dbeafe;
+  background: var(--primary);
+  color: var(--primary-foreground);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -94,13 +116,6 @@ button:disabled {
   }
 }
 
-:root {
-  --brand-surface: #102e27;
-  --brand-text: #f1f5ee;
-  --brand-muted: #aebfb5;
-  --brand-highlight: #d5e8b3;
-  --brand-line: #c6d9b91c;
-}
 body {
   margin: 0;
 }
@@ -174,7 +189,7 @@ a:focus-visible {
   border: 1px solid var(--border);
   border-radius: 14px;
   margin-bottom: 10px;
-  box-shadow: 0 3px 8px #102e2706;
+  box-shadow: 0 3px 8px #0000000a;
 }
 .form-emblem svg {
   width: 21px;
@@ -230,7 +245,11 @@ a:focus-visible {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at 60% 33%, #809f6230, transparent 55%);
+  background: radial-gradient(
+    ellipse at 60% 33%,
+    color-mix(in oklch, var(--primary) 12%, transparent),
+    transparent 55%
+  );
   pointer-events: none;
 }
 .panel-top,
@@ -295,11 +314,11 @@ a:focus-visible {
   height: 120px;
   display: grid;
   place-items: center;
-  border: 1px solid #d5e8b34a;
+  border: 1px solid var(--brand-line);
   border-radius: 30px;
-  background: linear-gradient(145deg, #758d6059, #163e3266);
+  background: linear-gradient(145deg, var(--secondary), var(--card));
   box-shadow:
-    inset 0 1px 0 #d5e8b332,
+    inset 0 1px 0 var(--brand-line),
     0 22px 50px #0003;
 }
 .orbit-core svg {
@@ -331,7 +350,7 @@ a:focus-visible {
   background: var(--brand-highlight);
   border: 2px solid var(--brand-surface);
   border-radius: 50%;
-  box-shadow: 0 0 0 5px #d5e8b30a;
+  box-shadow: 0 0 0 5px color-mix(in oklch, var(--primary) 10%, transparent);
 }
 .point-one {
   left: calc(50% + 143px);
@@ -369,8 +388,8 @@ a:focus-visible {
   align-items: center;
   gap: 8px;
   white-space: nowrap;
-  border: 1px solid #d5e8b326;
-  background: #183b31;
+  border: 1px solid var(--brand-line);
+  background: var(--brand-surface);
   padding: 12px 16px;
   border-radius: 10px;
   font-size: 11px;
@@ -464,13 +483,42 @@ a:focus-visible {
   }
 }
 
-.dark {
-  --sidebar: hsl(240 5.9% 10%);
-  --sidebar-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-primary: hsl(224.3 76.3% 48%);
-  --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(240 3.7% 15.9%);
-  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-border: hsl(240 3.7% 15.9%);
-  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+.workspace-header {
+  min-height: 84px;
+  border-bottom: 1px solid var(--border);
+  padding: 18px 28px;
+}
+.workspace-page {
+  max-width: 1440px;
+  margin-inline: auto;
+}
+.page-eyebrow {
+  color: var(--muted-foreground);
+  font-size: 10px;
+  letter-spacing: 1.8px;
+  font-weight: 500;
+}
+.page-title {
+  color: var(--foreground);
+  font-size: clamp(26px, 2.5vw, 36px);
+  font-weight: 550;
+  letter-spacing: -1.3px;
+  line-height: 1.2;
+}
+.page-description {
+  color: var(--muted-foreground);
+  font-size: 14px;
+  line-height: 1.75;
+  max-width: 650px;
+}
+@media (max-width: 767px) {
+  .workspace-header {
+    padding: 16px 20px;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
 }

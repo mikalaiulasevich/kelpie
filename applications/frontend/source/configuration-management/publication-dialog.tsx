@@ -1,12 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
 import { isError } from 'es-toolkit/predicate';
 import { AlertCircle, ArrowUpRight, RotateCcw } from 'lucide-react';
-import { ManagementClient, ManagementError } from '../management/management-client';
+import { ManagementError } from '../management/management-client';
 import { Button } from '../components/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '../components/dialog';
 import { Alert, AlertDescription, AlertTitle } from '../components/alert';
 import { ConfigurationContent } from './configuration-content';
 import { PublicationIntents, type PublicationIntent } from './publication-intents';
+import { PublicationExecution } from './publication-execution';
 
 interface PublicationDialogProperties {
   ownerIdentifier: string;
@@ -16,10 +24,34 @@ interface PublicationDialogProperties {
   onUnauthorized: () => void;
 }
 
-export function PublicationDialog({ ownerIdentifier, intent, onClose, onChanged, onUnauthorized }: PublicationDialogProperties): UIElement {
+const PublicationPresentation = {
+  submitLabel(intent: PublicationIntent, pending: boolean, uncertain: boolean): string {
+    if (pending) {
+      return ConfigurationContent.CommandPending;
+    }
+
+    if (uncertain) {
+      return ConfigurationContent.RetryCommand;
+    }
+
+    return intent.kind === 'publish'
+      ? ConfigurationContent.ConfirmPublish
+      : ConfigurationContent.ConfirmRollback;
+  },
+} as const;
+
+export function PublicationDialog({
+  ownerIdentifier,
+  intent,
+  onClose,
+  onChanged,
+  onUnauthorized,
+}: PublicationDialogProperties): UIElement {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<Optional<ManagementError | Error>>();
-  const [uncertain, setUncertain] = useState(!!PublicationIntents.read(ownerIdentifier));
+  const [uncertain, setUncertain] = useState(() => !!PublicationIntents.read(ownerIdentifier));
+  const [confirmed, setConfirmed] = useState(false);
+  const [recoveryRetained, setRecoveryRetained] = useState(false);
   const cancellation = useRef(new AbortController());
   const requestPending = useRef(false);
 
@@ -36,8 +68,9 @@ export function PublicationDialog({ ownerIdentifier, intent, onClose, onChanged,
       onClose();
     }
   };
+
   const submit = async () => {
-    if (requestPending.current) {
+    if (requestPending.current || confirmed) {
       return;
     }
 
@@ -46,19 +79,18 @@ export function PublicationDialog({ ownerIdentifier, intent, onClose, onChanged,
     setError(undefined);
 
     try {
-      PublicationIntents.save(ownerIdentifier, intent);
       const signal = cancellation.current.signal;
-
-      if (intent.kind === 'publish') {
-        await ManagementClient.publish(intent.command, signal);
-      } else {
-        await ManagementClient.rollback(intent.command, signal);
-      }
+      const cleared = await PublicationExecution.apply(ownerIdentifier, intent, signal);
 
       if (!signal.aborted) {
-        PublicationIntents.clear(ownerIdentifier);
+        setConfirmed(true);
+        setUncertain(false);
+        setRecoveryRetained(!cleared);
         onChanged(intent.command.funnelIdentifier);
-        onClose();
+
+        if (cleared) {
+          onClose();
+        }
       }
     } catch (failure) {
       if (!cancellation.current.signal.aborted) {
@@ -68,11 +100,12 @@ export function PublicationDialog({ ownerIdentifier, intent, onClose, onChanged,
           return;
         }
 
-        const ambiguous = failure instanceof ManagementError && failure.uncertain;
+        // A storage failure on retry cannot settle the preceding unknown server outcome.
+        const ambiguous = failure instanceof ManagementError ? failure.uncertain : uncertain;
         setUncertain(ambiguous);
 
         if (!ambiguous) {
-          PublicationIntents.clear(ownerIdentifier);
+          setRecoveryRetained(!PublicationIntents.clear(ownerIdentifier));
         }
 
         setError(isError(failure) ? failure : new Error(ConfigurationContent.CommandFailure));
@@ -85,16 +118,110 @@ export function PublicationDialog({ ownerIdentifier, intent, onClose, onChanged,
       }
     }
   };
+
   const conflict = error instanceof ManagementError && error.status === 409;
 
-  return <Dialog open onOpenChange={open => { if (!open) { close(); } }}><DialogContent onEscapeKeyDown={event => { if (pending || uncertain) { event.preventDefault(); } }} onInteractOutside={event => { if (pending || uncertain) { event.preventDefault(); } }}>
-    <DialogHeader><DialogTitle>{intent.kind === 'publish' ? ConfigurationContent.PublishTitle : ConfigurationContent.RollbackTitle}</DialogTitle><DialogDescription>{intent.kind === 'publish' ? ConfigurationContent.PublishDescription : ConfigurationContent.RollbackDescription}</DialogDescription></DialogHeader>
-    <dl className="grid gap-4 rounded-xl border bg-muted/30 p-4 text-sm"><div className="flex flex-wrap justify-between gap-2"><dt className="text-muted-foreground">{ConfigurationContent.Funnel}</dt><dd className="font-medium">{intent.command.funnelIdentifier}</dd></div><div className="flex justify-between gap-2"><dt className="text-muted-foreground">{ConfigurationContent.Version}</dt><dd className="font-medium">{intent.label}</dd></div><div className="flex justify-between gap-2"><dt className="text-muted-foreground">{ConfigurationContent.CurrentRevision}</dt><dd>{intent.command.expectedRevision}</dd></div></dl>
-    {error && <Alert variant="destructive"><AlertCircle /><AlertTitle>{ConfigurationContent.CommandFailure}</AlertTitle><AlertDescription>{conflict ? ConfigurationContent.Conflict : error.message}</AlertDescription></Alert>}
-    {uncertain && <Alert><AlertCircle /><AlertDescription>{ConfigurationContent.UnknownOutcome}</AlertDescription></Alert>}
-    <DialogFooter>
-      <Button variant="outline" onClick={close} disabled={pending || uncertain}>{ConfigurationContent.Cancel}</Button>
-      {conflict ? <Button onClick={() => { onChanged(intent.command.funnelIdentifier); close(); }}>{ConfigurationContent.RefreshReview}</Button> : <Button onClick={() => { void submit(); }} disabled={pending}>{intent.kind === 'publish' ? <ArrowUpRight data-icon="inline-start" /> : <RotateCcw data-icon="inline-start" />}{pending ? ConfigurationContent.CommandPending : uncertain ? ConfigurationContent.RetryCommand : intent.kind === 'publish' ? ConfigurationContent.ConfirmPublish : ConfigurationContent.ConfirmRollback}</Button>}
-    </DialogFooter>
-  </DialogContent></Dialog>;
+  return (
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open) {
+          close();
+        }
+      }}
+    >
+      <DialogContent
+        showCloseButton={!pending && !uncertain}
+        onEscapeKeyDown={(event) => {
+          if (pending || uncertain) {
+            event.preventDefault();
+          }
+        }}
+        onInteractOutside={(event) => {
+          if (pending || uncertain) {
+            event.preventDefault();
+          }
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>
+            {intent.kind === 'publish'
+              ? ConfigurationContent.PublishTitle
+              : ConfigurationContent.RollbackTitle}
+          </DialogTitle>
+          <DialogDescription>
+            {intent.kind === 'publish'
+              ? ConfigurationContent.PublishDescription
+              : ConfigurationContent.RollbackDescription}
+          </DialogDescription>
+        </DialogHeader>
+        <dl className="grid gap-4 rounded-xl border bg-muted/30 p-4 text-sm">
+          <div className="flex flex-wrap justify-between gap-2">
+            <dt className="text-muted-foreground">{ConfigurationContent.Funnel}</dt>
+            <dd className="font-medium">{intent.command.funnelIdentifier}</dd>
+          </div>
+          <div className="flex justify-between gap-2">
+            <dt className="text-muted-foreground">{ConfigurationContent.Version}</dt>
+            <dd className="font-medium">{intent.label}</dd>
+          </div>
+          <div className="flex justify-between gap-2">
+            <dt className="text-muted-foreground">{ConfigurationContent.CurrentRevision}</dt>
+            <dd>{intent.command.expectedRevision}</dd>
+          </div>
+        </dl>
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle />
+            <AlertTitle>{ConfigurationContent.CommandFailure}</AlertTitle>
+            <AlertDescription>
+              {conflict ? ConfigurationContent.Conflict : error.message}
+            </AlertDescription>
+          </Alert>
+        )}
+        {uncertain && (
+          <Alert>
+            <AlertCircle />
+            <AlertDescription>{ConfigurationContent.UnknownOutcome}</AlertDescription>
+          </Alert>
+        )}
+        {recoveryRetained && (
+          <Alert>
+            <AlertCircle />
+            {confirmed && <AlertTitle>{ConfigurationContent.CommandConfirmed}</AlertTitle>}
+            <AlertDescription>{ConfigurationContent.RecoveryRetained}</AlertDescription>
+          </Alert>
+        )}
+        <DialogFooter>
+          <Button variant="outline" onClick={close} disabled={pending || uncertain}>
+            {confirmed ? ConfigurationContent.Close : ConfigurationContent.Cancel}
+          </Button>
+          {!confirmed &&
+            (conflict ? (
+              <Button
+                onClick={() => {
+                  onChanged(intent.command.funnelIdentifier);
+                  close();
+                }}
+              >
+                {ConfigurationContent.RefreshReview}
+              </Button>
+            ) : (
+              <Button
+                onClick={() => {
+                  void submit();
+                }}
+                disabled={pending}
+              >
+                {intent.kind === 'publish' ? (
+                  <ArrowUpRight data-icon="inline-start" />
+                ) : (
+                  <RotateCcw data-icon="inline-start" />
+                )}
+                {PublicationPresentation.submitLabel(intent, pending, uncertain)}
+              </Button>
+            ))}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 }

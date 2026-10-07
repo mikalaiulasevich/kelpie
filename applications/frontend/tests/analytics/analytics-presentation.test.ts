@@ -14,6 +14,7 @@ describe('analytics presentation', () => {
     expect(markup.match(/0 \/ 0 sessions/g)).toHaveLength(3);
     expect(markup).toContain('Waiting for session observations');
     expect(markup).not.toContain('>0%</');
+    expect(markup).not.toContain('Loading comparison chart');
   });
 
   it('displays the distinct start and result denominators beside the corresponding rates', () => {
@@ -29,5 +30,6 @@ describe('analytics presentation', () => {
     expect(markup).toContain('CTA conversion · primary');
     expect(markup).not.toContain('Not applicable');
     expect(markup).not.toContain('Waiting for session observations');
+    expect(markup).toContain('Loading comparison chart');
   });
 });

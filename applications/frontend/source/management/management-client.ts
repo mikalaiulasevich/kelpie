@@ -1,3 +1,4 @@
+import type { Static } from 'typebox';
 import { Ajv, type ValidateFunction } from 'ajv';
 import ky, { isTimeoutError } from 'ky';
 import { isUndefined } from 'es-toolkit/predicate';
@@ -9,6 +10,7 @@ import {
   type ManagementQuery,
   type AnalyticsQuery,
   type ConfigurationList,
+  type ConfigurationVersionDocument,
   type ConfigurationImportResult,
   type PublicationHistory,
   type PublicationResponse,
@@ -22,6 +24,9 @@ import {
 const compiler = new Ajv();
 
 const ManagementValidators = {
+  configurationDocument: compiler.compile<Static<typeof ManagementSchemas.ConfigurationDocument>>(
+    ManagementSchemas.ConfigurationDocument,
+  ),
   configurations: compiler.compile<ConfigurationList>(ManagementSchemas.ConfigurationList),
   importResult: compiler.compile<ConfigurationImportResult>(
     ManagementSchemas.ConfigurationImportResult,
@@ -94,6 +99,11 @@ const ManagementResponse = {
     );
   },
 
+  cancelErrorBody(reader: ReadableStreamDefaultReader<Uint8Array>): void {
+    // Cancellation can reject after a disconnect; cleanup must not replace the request failure.
+    void reader.cancel().catch(() => undefined);
+  },
+
   async boundedErrorBody(response: Response, signal: AbortSignal): Promise<unknown> {
     const reader = response.body?.getReader();
 
@@ -102,7 +112,7 @@ const ManagementResponse = {
     }
 
     const cancel = () => {
-      void reader.cancel();
+      ManagementResponse.cancelErrorBody(reader);
     };
 
     signal.addEventListener('abort', cancel, { once: true });
@@ -137,7 +147,7 @@ const ManagementResponse = {
     } finally {
       signal.removeEventListener('abort', cancel);
       // Ky clones hook responses; cancelling a tee branch can await the other branch indefinitely.
-      void reader.cancel();
+      ManagementResponse.cancelErrorBody(reader);
       reader.releaseLock();
     }
   },
@@ -236,6 +246,32 @@ const ManagementResponse = {
 } as const;
 
 export const ManagementClient = {
+  async configurationDocument(
+    versionIdentifier: string,
+    signal: AbortSignal,
+  ): Promise<ConfigurationVersionDocument> {
+    const body = await ManagementResponse.request(
+      `${ManagementPolicy.ConfigurationsEndpoint}/${encodeURIComponent(versionIdentifier)}`,
+      signal,
+      ManagementValidators.configurationDocument,
+    );
+    const { FunnelConfigurations } = await import('@kelpie/contracts');
+    signal.throwIfAborted();
+    const validated = FunnelConfigurations.validate(body.document);
+
+    if (
+      !validated.valid ||
+      body.version.identifier !== versionIdentifier ||
+      validated.configuration.funnelId !== body.version.funnelIdentifier ||
+      validated.configuration.version !== body.version.version ||
+      validated.configuration.schemaVersion !== body.version.schemaVersion
+    ) {
+      throw new ManagementError(ManagementMessages.InvalidResponse, 200, 'invalid_response');
+    }
+
+    return { version: body.version, document: validated.configuration };
+  },
+
   configurations(query: ManagementQuery, signal: AbortSignal): Promise<ConfigurationList> {
     return ManagementResponse.request(
       ManagementPolicy.ConfigurationsEndpoint,

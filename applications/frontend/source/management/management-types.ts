@@ -1,3 +1,4 @@
+import type { FunnelConfiguration } from '@kelpie/contracts';
 import { Type, type Static } from 'typebox';
 import { ManagementPolicy } from './management-policy';
 
@@ -133,6 +134,10 @@ export const ManagementSchemas = {
   Query: Type.Object(queryProperties, { additionalProperties: false }),
   AnalyticsQuery: Type.Object(analyticsQueryProperties, { additionalProperties: false }),
   ConfigurationVersion: ManagementFields.Version,
+  ConfigurationDocument: Type.Object(
+    { version: ManagementFields.Version, document: Type.Unknown() },
+    { additionalProperties: false },
+  ),
   ConfigurationList: Type.Object({
     funnel: ManagementFields.Funnel,
     items: Type.Array(ManagementFields.Version),
@@ -221,3 +226,8 @@ export type AnalyticsResponse = DeepReadonly<Static<typeof ManagementSchemas.Ana
 export type ManagementIssue = Readonly<Static<typeof ManagementSchemas.Issue>>;
 
 export type ManagementErrorBody = Readonly<Static<typeof ManagementSchemas.ErrorBody>>;
+
+export interface ConfigurationVersionDocument {
+  readonly version: ConfigurationVersionMetadata;
+  readonly document: FunnelConfiguration;
+}

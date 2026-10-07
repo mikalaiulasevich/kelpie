@@ -5,8 +5,22 @@ import { ManagementSchemas } from '../management/management-types';
 import { ConfigurationContent } from './configuration-content';
 
 export const PublicationIntentSchema = Type.Union([
-  Type.Object({ kind: Type.Literal('publish'), command: ManagementSchemas.PublishRequest, label: Type.String({ maxLength: 100 }) }, { additionalProperties: false }),
-  Type.Object({ kind: Type.Literal('rollback'), command: ManagementSchemas.RollbackRequest, label: Type.String({ maxLength: 100 }) }, { additionalProperties: false }),
+  Type.Object(
+    {
+      kind: Type.Literal('publish'),
+      command: ManagementSchemas.PublishRequest,
+      label: Type.String({ maxLength: 100 }),
+    },
+    { additionalProperties: false },
+  ),
+  Type.Object(
+    {
+      kind: Type.Literal('rollback'),
+      command: ManagementSchemas.RollbackRequest,
+      label: Type.String({ maxLength: 100 }),
+    },
+    { additionalProperties: false },
+  ),
 ]);
 
 export type PublicationIntent = Readonly<Static<typeof PublicationIntentSchema>>;
@@ -43,7 +57,14 @@ export const PublicationIntents = {
     }
   },
 
-  clear(ownerIdentifier: string): void {
-    globalThis.sessionStorage.removeItem(this.key(ownerIdentifier));
+  clear(ownerIdentifier: string): boolean {
+    try {
+      globalThis.sessionStorage.removeItem(this.key(ownerIdentifier));
+
+      return true;
+    } catch {
+      // A retained command remains safe to replay using its original operation identifier.
+      return false;
+    }
   },
 } as const;

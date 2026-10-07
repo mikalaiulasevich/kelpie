@@ -15,6 +15,6 @@
     "utils": "@/styling/combine-class-names",
     "ui": "@/components",
     "lib": "@/styling",
-    "hooks": "@/service-health"
+    "hooks": "@/navigation"
   }
 }

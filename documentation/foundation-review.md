@@ -241,3 +241,18 @@ After the runtime migration, `npm run verify:bun` passed the full Node.js 24.16.
 The recorded isolated `npm run benchmark:runtime` run completed all 79 scenarios with correctness assertions and source/build identity checks. Its [raw report](benchmarks/2026-10-06T19-43-53.019Z-5f307b82-ef08-42de-a7eb-88403317d91a.json) and CSV tables are retained; one run does not establish a performance improvement. An initial concurrent attempt overlapped clean builds and failed before saving a report; the successful rerun started after verification finished.
 
 The last documented remote workflow [failed at startup](https://github.com/mikalaiulasevich/kelpie/actions/runs/37486945771) before jobs were created. A current remote CI result, public deployment and current browser acceptance are not established by these local results.
+
+## Administration client loading and lifecycle
+
+The authenticated workspace, individual pages and command dialogs are lazy modules. Analytics defers Recharts until an observed cohort needs the comparison chart. Keep these boundaries close to domain owners instead of manually partitioning third-party bundles; the current production build has no chunk above the default 500 kB warning threshold. Each boundary preserves a usable local fallback and offers a full reload on import failure because React.lazy caches rejected imports.
+
+The local production comparison follows the entry module’s complete static JavaScript import closure and sums each file’s bytes and gzip size using the same Node gzip defaults. It includes shared chunks, not just the named entry file:
+
+| Measurement                   |  Before |   After | Reduction |
+| ----------------------------- | ------: | ------: | --------: |
+| Initial JavaScript bytes      | 608,278 | 477,310 |     21.5% |
+| Initial JavaScript gzip bytes | 184,529 | 147,367 |     20.1% |
+
+This establishes less initial JavaScript transfer, not a measured browser CPU, real-user latency or deployed speed guarantee. Charts and configuration validation remain substantial deferred work. Build output and actual browser chart-request observation confirm the loading boundary.
+
+The common read owner suppresses aborted completions and expired-session callbacks, handles synchronous request failures, and identifies completed data by request and key. Publication execution owns durable intent save, server submission and cleanup; failed cleanup cannot turn confirmed publication into a failed mutation or change the operation identifier. Network stream cancellation is nonblocking and contains disconnected-stream rejection while retaining the original request error. Full verification passed 588 tests; browser checks used a separate real backend/SQLite database and a temporary blocked chart URL restored before completion. Storage fault regressions are mocked transport/storage tests; public deployment remains unverified.

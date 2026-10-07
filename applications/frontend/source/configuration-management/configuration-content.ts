@@ -4,7 +4,8 @@ export const ConfigurationContent = {
   Description: 'Import validated drafts and choose what goes live. Every version is immutable.',
   Import: 'Import configuration',
   HistoryHeading: 'Every change, accounted for.',
-  HistoryDescription: 'An ordered record of publications and rollbacks. Existing sessions stay pinned.',
+  HistoryDescription:
+    'An ordered record of publications and rollbacks. Existing sessions stay pinned.',
   HistoryEyebrow: 'ACTIVATION HISTORY',
   Refresh: 'Refresh',
   Retry: 'Try again',
@@ -42,7 +43,8 @@ export const ConfigurationContent = {
   Publication: 'Publication',
   RollbackAction: 'Rollback',
   ImportTitle: 'Import a configuration',
-  ImportDescription: 'Upload a JSON file. The backend validates and stores it as an immutable draft.',
+  ImportDescription:
+    'Upload a JSON file. The backend validates and stores it as an immutable draft.',
   File: 'Configuration JSON',
   ImportAction: 'Validate & import',
   ImportPending: 'Importing…',
@@ -52,18 +54,26 @@ export const ConfigurationContent = {
   ImportRetry: 'Retry import',
   PublishTitle: 'Publish this version?',
   RollbackTitle: 'Restore the previous version?',
-  PublishDescription: 'New sessions will use the selected version. Existing sessions keep their pinned version.',
-  RollbackDescription: 'The previous activation becomes live for new sessions. Existing sessions and analytics stay intact.',
+  PublishDescription:
+    'New sessions will use the selected version. Existing sessions keep their pinned version.',
+  RollbackDescription:
+    'The previous activation becomes live for new sessions. Existing sessions and analytics stay intact.',
   ConfirmPublish: 'Publish version',
   ConfirmRollback: 'Confirm rollback',
   CommandPending: 'Applying change…',
   CommandFailure: 'Change not confirmed',
-  UnknownOutcome: 'The result is unknown. Retry this same operation to confirm it safely; its identifier is preserved.',
-  Conflict: 'This funnel changed since you opened this dialog. Refresh and review the current revision.',
+  UnknownOutcome:
+    'The result is unknown. Retry this same operation to confirm it safely; its identifier is preserved.',
+  Conflict:
+    'This funnel changed since you opened this dialog. Refresh and review the current revision.',
   Cancel: 'Cancel',
   RefreshReview: 'Refresh & review',
   RetryCommand: 'Retry same operation',
-  StorageFailure: 'This browser cannot preserve the operation for a safe retry. No change was sent.',
+  StorageFailure:
+    'This browser cannot preserve the operation for a safe retry. No change was sent.',
+  CommandConfirmed: 'Change confirmed',
+  RecoveryRetained:
+    'The browser recovery record could not be cleared. A retry after reloading will reuse this same operation safely.',
   Changed: 'Active version updated. The current state has been refreshed from the server.',
   ReadFailure: 'Unable to read the selected file.',
   InvalidJson: 'Choose a valid JSON configuration file.',

@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useState } from 'react';
+import { useCallback } from 'react';
 import { ManagementClient, ManagementError } from '../management/management-client';
 import type {
   AnalyticsQuery,
@@ -6,67 +6,54 @@ import type {
   ConfigurationList,
   ManagementQuery,
 } from '../management/management-types';
+import type { ManagementRead } from '../management/management-read';
+import { useManagementRead } from '../management/use-management-read';
 import { AnalyticsMessages } from './analytics-messages';
 
-type AnalyticsLoadResult<Result> =
+type AnalyticsLoadState<Result> =
   | { readonly status: 'ready'; readonly response: Result }
-  | { readonly status: 'failed'; readonly message: string };
+  | { readonly status: 'failed'; readonly message: string }
+  | { readonly status: 'loading' };
 
-type AnalyticsLoadState<Result> = AnalyticsLoadResult<Result> | { readonly status: 'loading' };
+const AnalyticsReadPresentation = {
+  state<Result>(read: ManagementRead<Result>): AnalyticsLoadState<Result> {
+    if (read.status === 'ready') {
+      return { status: 'ready', response: read.data };
+    }
 
-interface CompletedAnalyticsRequest<Query, Result> {
-  readonly query: Query;
-  readonly sequence: number;
-  readonly result: AnalyticsLoadResult<Result>;
-}
+    if (read.status === 'error') {
+      return { status: 'failed', message: read.message };
+    }
+
+    return read;
+  },
+
+  error(error: unknown): string {
+    return error instanceof ManagementError ? error.message : AnalyticsMessages.Unavailable;
+  },
+
+  versionError(): string {
+    return AnalyticsMessages.VersionsUnavailable;
+  },
+} as const;
 
 export function useAnalytics(
   query: AnalyticsQuery,
   sequence: number,
   onUnauthorized: () => void,
 ): AnalyticsLoadState<AnalyticsResponse> {
-  const [completedRequest, setCompletedRequest] =
-    useState<Optional<CompletedAnalyticsRequest<AnalyticsQuery, AnalyticsResponse>>>();
-  const handleUnauthorized = useEffectEvent(onUnauthorized);
+  const request = useCallback(
+    (signal: AbortSignal) => ManagementClient.analytics(query, signal),
+    [query],
+  );
+  const read = useManagementRead(
+    String(sequence),
+    request,
+    onUnauthorized,
+    AnalyticsReadPresentation.error,
+  );
 
-  useEffect(() => {
-    const cancellationController = new AbortController();
-
-    void ManagementClient.analytics(query, cancellationController.signal).then(
-      (response) => {
-        if (!cancellationController.signal.aborted) {
-          setCompletedRequest({ query, sequence, result: { status: 'ready', response } });
-        }
-      },
-      (error: unknown) => {
-        if (cancellationController.signal.aborted) {
-          return;
-        }
-
-        if (error instanceof ManagementError && error.status === 401) {
-          handleUnauthorized();
-
-          return;
-        }
-
-        setCompletedRequest({
-          query,
-          sequence,
-          result: {
-            status: 'failed',
-            message:
-              error instanceof ManagementError ? error.message : AnalyticsMessages.Unavailable,
-          },
-        });
-      },
-    );
-
-    return () => cancellationController.abort();
-  }, [query, sequence]);
-
-  return completedRequest?.query === query && completedRequest.sequence === sequence
-    ? completedRequest.result
-    : { status: 'loading' };
+  return AnalyticsReadPresentation.state(read);
 }
 
 export function useAnalyticsVersionOptions(
@@ -74,42 +61,16 @@ export function useAnalyticsVersionOptions(
   sequence: number,
   onUnauthorized: () => void,
 ): AnalyticsLoadState<ConfigurationList> {
-  const [completedRequest, setCompletedRequest] =
-    useState<Optional<CompletedAnalyticsRequest<ManagementQuery, ConfigurationList>>>();
-  const handleUnauthorized = useEffectEvent(onUnauthorized);
+  const request = useCallback(
+    (signal: AbortSignal) => ManagementClient.configurations(query, signal),
+    [query],
+  );
+  const read = useManagementRead(
+    String(sequence),
+    request,
+    onUnauthorized,
+    AnalyticsReadPresentation.versionError,
+  );
 
-  useEffect(() => {
-    const cancellationController = new AbortController();
-
-    void ManagementClient.configurations(query, cancellationController.signal).then(
-      (response) => {
-        if (!cancellationController.signal.aborted) {
-          setCompletedRequest({ query, sequence, result: { status: 'ready', response } });
-        }
-      },
-      (error: unknown) => {
-        if (cancellationController.signal.aborted) {
-          return;
-        }
-
-        if (error instanceof ManagementError && error.status === 401) {
-          handleUnauthorized();
-
-          return;
-        }
-
-        setCompletedRequest({
-          query,
-          sequence,
-          result: { status: 'failed', message: AnalyticsMessages.VersionsUnavailable },
-        });
-      },
-    );
-
-    return () => cancellationController.abort();
-  }, [query, sequence]);
-
-  return completedRequest?.query === query && completedRequest.sequence === sequence
-    ? completedRequest.result
-    : { status: 'loading' };
+  return AnalyticsReadPresentation.state(read);
 }

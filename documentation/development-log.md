@@ -61,6 +61,28 @@ Connected the React/Vite administration interface to the existing username/passw
 
 Browser checks against an isolated real NestJS/SQLite backend verified rejection of an incorrect password, successful sign-in, reload restoration, server-side sign-out and sign-out after expiry. Independent review caught the expired-session sign-out case; client regression coverage now distinguishes authoritative 401 from network/origin/server failures. Full Node.js 24.16.0 verification passed 487 workspace tests plus types, lint, formatting, builds and Prisma validation. Configuration management, dashboard and public deployment remain pending.
 
+## Administration UI iteration 2 — management and analytics (October 7, 2026)
+
+Adapted the official shadcn/ui sidebar-07 block and dashboard components into the authenticated workspace. Added configuration imports with backend validation, immutable version metadata, revision-checked publication, activation history and rollback. Analytics reads the existing API with version/campaign/origin/forced-assignment filters and displays A/B ratios, steps and observed paths, including zero-denominator and empty states.
+
+Publication intent is stored before sending; uncertain outcomes survive reload and retry with the same operation identifier. Independent review corrected navigation initialization and bounded pagination. Browser checks against a separate real NestJS/SQLite instance exercised invalid and duplicate imports, publication, rollback and timeout/reload/retry without duplicate publication, plus responsive layouts. All fixture observations were marked synthetic; production showed empty cohorts. Node.js 24.16.0 full verification passed 531 tests, types, lint, formatting, builds and Prisma validation. Public quiz, traffic generation and deployment remain open.
+
+## Administration theme refinement (October 7, 2026)
+
+Applied the dark neutral shadcn theme with one blue accent through shared semantic tokens. Authentication artwork, sidebar, charts and overlays use the same palette; native controls follow the dark color scheme. Frontend build and formatting checks passed. Browser inspection used the isolated backend for the workspace and the normal development server for sign-in.
+
+## Administration UI iteration 3 — version inspection (October 7, 2026)
+
+Replaced metadata-only Details with a deep-linked read-only configuration inspector. It shows each variant’s ordered steps and resolved text, explicit conditions, results and CTA actions, experiment declarations, events/privacy, session/progress settings and original JSON. The protected document endpoint validates stored content and checksum/identity; viewing does not change activation or pinned sessions.
+
+Real HTTP tests exercise v1–v3, authorization/revocation, malformed/missing identifiers and corrupted records. Frontend regressions cover document semantics and identity, request cancellation, routing, override merging and escaped rendering. Browser checks against an isolated real backend passed variant selection, step inspection, conditional/numeric details, results/CTA, events, original JSON, reload deep links, absent/wrong-funnel failures and mobile overflow checks. Node.js 24.16.0 full verification passed 565 tests, types, lint, formatting, builds and Prisma validation. The local development backend was restarted with the new protected route; anonymous access returned 401. Public deployment remains unverified.
+
+## Administration UI refactoring (October 7, 2026)
+
+Separated workspace routing, funnel selection and analytics filter editing from page orchestration. Consolidated read cancellation/error/401 handling and deferred workspace, page, dialog and chart modules. Initial production JavaScript including static dependencies decreased from 608,278 to 477,310 bytes; consistent per-file gzip measurement decreased from 184,529 to 147,367 bytes (20.1%). This is a transfer-size comparison, not a measured interaction or network latency result.
+
+Fixed storage cleanup failures after publication and cancellation rejection from errored HTTP streams. Independent review prompted local lazy-module error boundaries. Browser checks with an isolated real backend verified sign-in, filters applying only on Apply, publication, navigation, revoked-session 401, forced chart download failure and reload recovery. Full Node.js 24.16.0 verification passed 588 tests plus types, lint, formatting, builds and Prisma validation. Storage failure coverage uses mocked browser storage/HTTP; deployment remains unverified.
+
 ## Verification history
 
 The initial foundation was installed and checked locally on Node.js 24 and 26. A frontend readiness check was inspected in desktop/mobile layouts at that milestone. Subsequent refactors were checked on Node.js 24.16.0; they do not constitute new browser or Node.js 26 verification.
@@ -71,10 +93,10 @@ A historical GitHub Actions attempt failed before jobs started; this cleanup doe
 
 ## Remaining delivery milestones
 
-| Iteration            | Status                                                                                                                                                                                                                                  |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| First working funnel | Runtime, administration, session, event ingestion and analytics APIs available. Administrator authorization UI available; funnel/configuration-management/dashboard UI, browser event queue and traffic generation remain to implement. |
-| Second iteration     | Pending the first working funnel. Publish v3, verify both variants and retained older sessions, then roll back to v2 while preserving v3 sessions and analytics.                                                                        |
-| Deployment           | Bun backend and Node.js/npm fallback verified locally; hosting with persistent storage and public acceptance remain pending.                                                                                                            |
+| Iteration            | Status                                                                                                                                                                                                                                                             |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| First working funnel | Runtime, administration, session, event ingestion and analytics APIs available. Administrator authorization, configuration management, activation history and analytics UI available; public quiz, browser event queue and traffic generation remain to implement. |
+| Second iteration     | Pending the first working funnel. Publish v3, verify both variants and retained older sessions, then roll back to v2 while preserving v3 sessions and analytics.                                                                                                   |
+| Deployment           | Bun backend and Node.js/npm fallback verified locally; hosting with persistent storage and public acceptance remain pending.                                                                                                                                       |
 
 [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md) owns the detailed acceptance sequence. Update this timeline for completed product milestones; keep command output and repeated polish reports out of it.

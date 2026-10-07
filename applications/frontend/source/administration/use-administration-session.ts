@@ -74,5 +74,10 @@ export function useAdministrationSession() {
     }
   }, []);
 
-  return { session, checkSession, signIn, signOut };
+  const invalidateSession = useCallback(() => {
+    activeRequest.current?.abort();
+    setSession({ status: AdministrationSessionStatus.SignedOut });
+  }, []);
+
+  return { session, checkSession, signIn, signOut, invalidateSession };
 }

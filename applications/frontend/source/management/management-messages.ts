@@ -1,4 +1,5 @@
 export const ManagementMessages = {
+  ReadUnavailable: 'Unable to load workspace data.',
   Unavailable: 'The administration service is unavailable. Try again.',
   TimedOut: 'The request timed out. Check the current state before trying again.',
   InvalidResponse: 'The administration service returned an invalid response.',

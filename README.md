@@ -1,8 +1,8 @@
 # Funnel Runtime
 
-A TypeScript/NestJS (Fastify) foundation with a planned Next.js quiz and React/Vite administration application for configurable funnels. Implemented: configuration validation, pure funnel evaluation, the initial Prisma/SQLite schema, backend lifecycle and health endpoints, immutable configuration draft imports, administrator authentication, transactional publication/rollback APIs, signed user sessions, revisioned answer/navigation commands, event batch ingestion, session-based analytics APIs and the administrator sign-in/session/sign-out interface.
+A TypeScript/NestJS (Fastify) foundation with a planned Next.js quiz and React/Vite administration application for configurable funnels. Implemented: configuration validation, pure funnel evaluation, the initial Prisma/SQLite schema, backend lifecycle and health endpoints, immutable configuration draft imports, administrator authentication, transactional publication/rollback APIs, signed user sessions, revisioned answer/navigation commands, event batch ingestion, session-based analytics APIs and the administrator workspace with authentication, configuration management, activation history and analytics.
 
-**The product is not complete.** The funnel/administration/dashboard UI, browser delivery queue, synthetic traffic and public deployment remain in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). No public application URL or agreed 48-hour start is recorded.
+**The product is not complete.** The public quiz, browser delivery queue, synthetic traffic generator and public deployment remain in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). No public application URL or agreed 48-hour start is recorded.
 
 ## Local development
 
@@ -54,15 +54,16 @@ Sign in with JSON `{ "username": "your-name", "password": "your-secret" }` at `P
 | `POST /api/administration/sign-out`                                         | Revoke current session and clear cookie                                                                         |
 | `POST /api/administration/configurations`                                   | Import the supplied configuration JSON as an immutable draft; 422 for invalid data, 409 for conflicting content |
 | `GET /api/administration/configurations?funnelIdentifier=workstyle-planner` | Version metadata plus active version and current revision                                                       |
+| `GET /api/administration/configurations/:versionIdentifier`                 | Validated persisted document plus version metadata; UUID identifier; read only                                  |
 | `POST /api/administration/publications`                                     | Activate a validated draft with optimistic concurrency and idempotency                                          |
 | `POST /api/administration/rollbacks`                                        | Activate the preceding version from activation history                                                          |
 | `GET /api/administration/publications?funnelIdentifier=workstyle-planner`   | Activation history, newest revision first                                                                       |
 
 A publication body contains `operationIdentifier` (a fresh UUID per intent), `funnelIdentifier`, `targetVersionIdentifier` (the imported version's UUID), and `expectedRevision` (from the list response). Rollback uses the same fields except `targetVersionIdentifier`. Retry the identical body and identifier after a timeout: it returns the originally persisted result, even if later commands changed the active version. Reusing an identifier for another intent or supplying a stale revision returns 409. A replay does not represent the latest active state; fetch the list again. Publishing the already-active version is rejected. Rollback records another activation, so rolling back again returns to the version active immediately before that rollback.
 
-Lists accept `limit` (default 25, maximum 100) and `offset` (maximum 10000); responses include `nextOffset`. Each page is a consistent database snapshot, but separate pages may shift while new records are added. Responses contain metadata rather than whole configuration documents. All administrator routes require authentication except sign-in. Responses use `Cache-Control: no-store`; errors include a safe `code`, `message`, `statusCode` and server-owned `requestIdentifier`, with bounded validation `issues` where applicable.
+Lists accept `limit` (default 25, maximum 100) and `offset` (maximum 10000); responses include `nextOffset`. Each page is a consistent database snapshot, but separate pages may shift while new records are added. List responses contain metadata. The version detail endpoint returns the saved document after canonical validation and stored identity/checksum verification. All administrator routes require authentication except sign-in. Responses use `Cache-Control: no-store`; errors include a safe `code`, `message`, `statusCode` and server-owned `requestIdentifier`, with bounded validation `issues` where applicable.
 
-Publication changes the active pointer and appends history in one SQLite transaction. It never modifies pinned sessions, raw answers or events. The revision migration preserves prior history and breaks existing timestamp ties by insertion order. Backend integration tests exercise old-session continuation after publication and rollback; configuration management pages and public browser acceptance remain pending.
+Publication changes the active pointer and appends history in one SQLite transaction. It never modifies pinned sessions, raw answers or events. The revision migration preserves prior history and breaks existing timestamp ties by insertion order. Backend integration tests exercise old-session continuation after publication and rollback; configuration management pages are implemented; public browser acceptance remains pending.
 
 ## Administrator interface
 
@@ -70,7 +71,9 @@ Open `http://127.0.0.1:5173` after starting the backend and frontend. The React/
 
 Request failures, invalid credentials, invalid input, rate limits and rejected origins have safe messages. Mutations are not automatically retried. Expired/revoked sessions return to sign-in on sign-out; network or server failures keep the current view so the operation can be retried. Password reset is not exposed because the backend has no reset endpoint.
 
-Browser verification used the actual NestJS backend and an isolated SQLite database: incorrect password, successful sign-in, session restoration after reload, server revocation on sign-out and sign-out after forced expiry passed. `npm run verify` on Node.js 24.16.0 passed 487 tests (312 backend, 34 frontend, 65 contracts, 76 runtime), types, lint, formatting, builds and Prisma validation. The frontend tests cover HTTP transport; hook transitions were verified in the browser. This iteration contains authorization only; configuration management and analytics pages remain pending.
+The authenticated workspace adapts the official shadcn/ui `sidebar-07` block and dashboard components. It uses the dark neutral shadcn palette with one blue accent across actions, focus, brand details and chart shades. Analytics provides version, acquisition campaign, traffic-origin and forced-assignment filters, A/B ratios with explicit operands, step metrics and observed paths. Configurations supports JSON import with server validation, version inspection and publication. Details opens a deep-linked read-only inspector for A/B step sequences and content overrides, conditional visibility, results/CTA, events, session/progress settings and original JSON; activation history supports revision-checked rollback. Publication commands preserve their operation identifier before sending and after uncertain responses, including reload, so a manual retry safely confirms the same operation.
+
+Browser verification used the actual NestJS backend and an isolated SQLite database: authentication, empty production cohorts, synthetic analytics, import validation and duplicate import, publication, rollback, and timeout/reload/retry recovery passed. Responsive checks cover desktop, narrow desktop and mobile. Test observations are isolated from the development database. `npm run verify` on Node.js 24.16.0 passed 588 tests (322 backend, 125 frontend, 65 contracts, 76 runtime), types, lint, formatting, builds and Prisma validation. The workspace and pages load on demand, and chart code loads only for observed data. Failed view downloads show a reload recovery action. Read cancellation and error handling are shared across administration pages. Storage cleanup failures preserve a confirmed publication and its original recovery identifier. Public deployment and end-to-end quiz acceptance remain pending.
 
 ## User-session API
 
@@ -124,7 +127,7 @@ The API aggregates in SQLite rather than loading individual event rows into Node
 
 ```text
 applications/backend       NestJS, SQLite lifecycle, health and diagnostics
-applications/frontend      React/Vite administration target; current readiness screen
+applications/frontend      React/Vite administration workspace; authentication, versions and analytics
 applications/quiz          Planned separate Next.js quiz (not scaffolded yet)
 packages/contracts         TypeBox/Ajv schemas and semantic validation
 packages/funnel-runtime    Answers, conditions, variants, routes and results
