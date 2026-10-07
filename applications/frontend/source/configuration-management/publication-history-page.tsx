@@ -5,7 +5,6 @@ import { ArrowLeft, ArrowRight, History, RefreshCw, RotateCcw } from 'lucide-rea
 import { ManagementClient } from '../management/management-client';
 import { useManagementRead } from '../management/use-management-read';
 import { Button } from '../components/button';
-import { Badge } from '../components/badge';
 import {
   Card,
   CardContent,
@@ -14,14 +13,13 @@ import {
   CardHeader,
   CardTitle,
 } from '../components/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/table';
 import { Separator } from '../components/separator';
 import { Skeleton } from '../components/skeleton';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '../components/empty';
 import { Alert, AlertDescription, AlertTitle } from '../components/alert';
 import { ConfigurationContent } from './configuration-content';
 import { ConfigurationManagementPolicy } from './configuration-policy';
-import { ConfigurationFormat } from './configuration-format';
+import { PublicationHistoryFeed } from './publication-history-feed';
 import type { PublicationIntent } from './publication-intents';
 
 interface PublicationHistoryPageProperties {
@@ -124,56 +122,10 @@ export function PublicationHistoryPage({
                 </EmptyHeader>
               </Empty>
             ) : (
-              <Table className="[&_td]:py-4 [&_td:first-child]:pl-6 [&_td:last-child]:pr-6 [&_th:first-child]:pl-6 [&_th:last-child]:pr-6">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{ConfigurationContent.Revision}</TableHead>
-                    <TableHead>{ConfigurationContent.Action}</TableHead>
-                    <TableHead>{ConfigurationContent.Target}</TableHead>
-                    <TableHead>{ConfigurationContent.PreviousVersion}</TableHead>
-                    <TableHead>{ConfigurationContent.Time}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {resource.data.items.map((item) => (
-                    <TableRow key={item.identifier}>
-                      <TableCell>
-                        <span className="font-mono font-medium">#{item.revision}</span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={item.action === 'rollback' ? 'outline' : 'secondary'}>
-                          {ConfigurationFormat.action(item.action)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <code title={item.targetVersionIdentifier} className="text-xs">
-                          {ConfigurationFormat.identifier(item.targetVersionIdentifier)}
-                        </code>
-                      </TableCell>
-                      <TableCell>
-                        {item.previousVersionIdentifier ? (
-                          <code
-                            title={item.previousVersionIdentifier}
-                            className="text-xs text-muted-foreground"
-                          >
-                            {ConfigurationFormat.identifier(item.previousVersionIdentifier)}
-                          </code>
-                        ) : (
-                          '—'
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <time
-                          dateTime={item.createdAt}
-                          className="whitespace-nowrap text-muted-foreground"
-                        >
-                          {ConfigurationFormat.date(item.createdAt)}
-                        </time>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <PublicationHistoryFeed
+                funnelIdentifier={funnelIdentifier}
+                items={resource.data.items}
+              />
             )}
           </CardContent>
           <Separator />

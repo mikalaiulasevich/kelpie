@@ -1,6 +1,6 @@
 import { useSidebar } from '../navigation/use-sidebar';
 // Composition adapted from the official shadcn/ui sidebar-07 block.
-import { BarChart3, Command, Files, History, LogOut, Layers3 } from 'lucide-react';
+import { BarChart3, Command, Files, History, LogOut } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -65,23 +65,20 @@ export function WorkspaceSidebar({
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup className="px-5 pt-6 pb-0 group-data-[collapsible=icon]:hidden">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Layers3 className="size-3.5" aria-hidden="true" />
+        <SidebarGroup className="px-5 pt-4 pb-1 group-data-[collapsible=icon]:hidden">
+          <SidebarGroupLabel className="h-auto px-0 text-xs font-normal text-muted-foreground">
             {WorkspaceContent.CurrentFunnel}
-          </div>
-          <p className="mt-2 truncate text-sm font-medium" title={funnelIdentifier}>
+          </SidebarGroupLabel>
+          <p className="mt-1.5 text-sm leading-snug font-medium wrap-anywhere">
             {funnelIdentifier}
           </p>
         </SidebarGroup>
-        <SidebarGroup className="px-3 py-5 group-data-[collapsible=icon]:p-2">
-          <SidebarGroupLabel>{WorkspaceContent.Scope}</SidebarGroupLabel>
+        <SidebarGroup className="px-3 py-1 group-data-[collapsible=icon]:p-2">
           <SidebarMenu>
             {navigationItems.map((item) => (
               <SidebarMenuItem key={item.page}>
                 <SidebarMenuButton
-                  className="group-data-[collapsible=icon]:justify-center"
-                  size="lg"
+                  className="h-10 group-data-[collapsible=icon]:justify-center"
                   asChild
                   isActive={
                     page === item.page ||

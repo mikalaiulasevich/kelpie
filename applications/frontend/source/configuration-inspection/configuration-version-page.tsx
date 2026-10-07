@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { ArrowLeft, ChevronDown, RefreshCw } from 'lucide-react';
+import { ArrowLeft, ChevronDown, FileJson2, Globe2, Layers3, RefreshCw } from 'lucide-react';
 import { ManagementClient, ManagementError } from '../management/management-client';
 import { ManagementMessages } from '../management/management-messages';
 import { useManagementRead } from '../management/use-management-read';
@@ -7,7 +7,7 @@ import { Button } from '../components/button';
 import { Alert, AlertDescription, AlertTitle } from '../components/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../components/collapsible';
 import { Skeleton } from '../components/skeleton';
-import { Card, CardContent, CardDescription, CardHeader } from '../components/card';
+import { Badge } from '../components/badge';
 import { WorkspaceNavigation, WorkspacePage } from '../workspace/workspace-navigation';
 import { ConfigurationInspection } from './configuration-inspection';
 
@@ -83,29 +83,37 @@ export function ConfigurationVersionPage({
       )}
       {resource.status === 'ready' && (
         <>
-          <Card className="min-w-0">
-            <CardHeader>
-              <h1 className="page-title">Version {resource.data.version.version}</h1>
-              <CardDescription>{resource.data.document.title}</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-5">
-              <dl className="flex flex-wrap gap-x-8 gap-y-3 text-sm">
+          <section aria-label="Version overview" className="min-w-0 rounded-xl border bg-card">
+            <div className="flex flex-wrap items-start justify-between gap-5 p-5 sm:p-6">
+              <div className="flex min-w-0 flex-1 items-start gap-4">
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-info/20 bg-info/10 text-info">
+                  <FileJson2 className="size-5" aria-hidden="true" />
+                </div>
+                <div className="flex min-w-0 flex-col gap-1.5">
+                  <h1 className="page-title">Version <span className="font-mono">{resource.data.version.version}</span></h1>
+                  <p className="max-w-2xl break-words text-sm leading-relaxed text-muted-foreground">{resource.data.document.title}</p>
+                </div>
+              </div>
+              <Badge variant="outline">Read-only</Badge>
+            </div>
+            <div className="flex flex-col gap-3 border-t bg-muted/15 px-5 py-4 sm:px-6">
+              <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm lg:grid-cols-[minmax(0,2fr)_1fr_1fr_1fr]">
                 {[
-                  { label: 'Funnel', value: resource.data.version.funnelIdentifier },
-                  { label: 'Locale', value: resource.data.document.locale },
-                  { label: 'Schema', value: resource.data.version.schemaVersion },
-                  { label: 'Source status', value: resource.data.document.status },
+                  { label: 'Funnel', value: resource.data.version.funnelIdentifier, icon: Layers3 },
+                  { label: 'Locale', value: resource.data.document.locale, icon: Globe2 },
+                  { label: 'Schema', value: resource.data.version.schemaVersion, icon: FileJson2 },
+                  { label: 'Document status', value: resource.data.document.status, icon: FileJson2 },
                 ].map((item) => (
                   <div key={item.label} className="flex min-w-0 flex-col gap-1">
-                    <dt className="text-xs text-muted-foreground">{item.label}</dt>
-                    <dd className="break-all">{item.value}</dd>
+                    <dt className="flex items-center gap-1.5 text-xs text-muted-foreground"><item.icon className="size-3.5" aria-hidden="true" />{item.label}</dt>
+                    <dd className="break-words font-medium">{item.value}</dd>
                   </div>
                 ))}
               </dl>
               <Collapsible>
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    Identifiers
+                  <Button variant="ghost" size="sm" className="-ml-2">
+                    Technical details
                     <ChevronDown data-icon="inline-end" />
                   </Button>
                 </CollapsibleTrigger>
@@ -122,13 +130,11 @@ export function ConfigurationVersionPage({
                       <dd className="mt-1 break-all font-mono">{resource.data.version.checksum}</dd>
                     </div>
                   </dl>
+                  <p className="mt-3 text-xs text-muted-foreground">Document status does not indicate which version is live.</p>
                 </CollapsibleContent>
               </Collapsible>
-              <p className="text-xs text-muted-foreground">
-                Read-only document. Source status is separate from live activation.
-              </p>
-            </CardContent>
-          </Card>
+            </div>
+          </section>
           <ConfigurationInspection configuration={resource.data.document} />
         </>
       )}

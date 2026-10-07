@@ -46,10 +46,6 @@ export function ConfigurationStepsPanel({ configuration, variant }: VariantPanel
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
-      <p className="text-sm text-muted-foreground">
-        {variantConfiguration.stepSequence.length} steps · Variant {variant} · Conditions are shown
-        as saved rules, not evaluated answers.
-      </p>
       <div className="min-w-0 lg:hidden">
         <label htmlFor="inspection-step" className="mb-2 block text-sm font-medium">
           Inspect step
@@ -69,12 +65,13 @@ export function ConfigurationStepsPanel({ configuration, variant }: VariantPanel
           </SelectContent>
         </Select>
       </div>
-      <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[13rem_minmax(0,1fr)]">
-        <Card className="hidden min-w-0 lg:block">
-          <CardHeader>
-            <CardTitle>Steps</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-1">
+      <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[16rem_minmax(0,1fr)] xl:grid-cols-[18rem_minmax(0,1fr)]">
+        <nav aria-label="Configuration steps" className="hidden min-w-0 rounded-xl border bg-card py-4 lg:block">
+          <div className="mb-3 flex items-center justify-between px-4">
+            <h2 className="text-sm font-semibold">Steps</h2>
+            <span className="text-xs tabular-nums text-muted-foreground">{variantConfiguration.stepSequence.length} · Variant {variant}</span>
+          </div>
+          <div className="flex flex-col gap-1 px-2">
             {variantConfiguration.stepSequence.map((stepIdentifier, index) => {
               const listedStep = DictionaryAccess.readOwn(configuration.steps, stepIdentifier);
 
@@ -82,20 +79,20 @@ export function ConfigurationStepsPanel({ configuration, variant }: VariantPanel
                 <Button
                   key={stepIdentifier}
                   variant={step.id === stepIdentifier ? 'secondary' : 'ghost'}
-                  className="h-auto min-h-9 w-full justify-start gap-2 whitespace-normal py-2"
+                  className="h-auto min-h-11 w-full justify-start gap-3 whitespace-normal px-3 py-2.5"
                   aria-pressed={step.id === stepIdentifier}
                   onClick={() => setSelectedIdentifier(stepIdentifier)}
                 >
-                  <span className="w-5 shrink-0 text-muted-foreground">{index + 1}</span>
-                  <span className="min-w-0 flex-1 truncate text-left" title={stepIdentifier}>
+                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full border text-xs tabular-nums text-muted-foreground">{index + 1}</span>
+                  <span className="min-w-0 flex-1 break-words text-left text-[13px]" title={stepIdentifier}>
                     {stepIdentifier}
                   </span>
                   {listedStep?.visibleWhen && <Badge variant="outline">If</Badge>}
                 </Button>
               );
             })}
-          </CardContent>
-        </Card>
+          </div>
+        </nav>
         <ConfigurationStepDetails
           key={step.id}
           configuration={configuration}

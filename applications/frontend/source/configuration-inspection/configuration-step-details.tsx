@@ -6,6 +6,7 @@ import {
   type ExperimentVariant,
 } from '@kelpie/contracts';
 import { isUndefined } from 'es-toolkit/predicate';
+import { ChevronDown, CircleDot, Eye, Hash, ListChecks, SlidersHorizontal } from 'lucide-react';
 import { match, P } from 'ts-pattern';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/card';
 import { Badge } from '../components/badge';
@@ -30,98 +31,171 @@ export function ConfigurationStepDetails({
   const content = ConfigurationInspectionFormat.stepContent(configuration, variant, step);
 
   return (
-    <Card className="min-w-0">
-      <CardHeader>
-        <div className="flex flex-wrap gap-2">
-          <span className="text-xs text-muted-foreground">
-            Step {position} ·{' '}
-            {ConfigurationInspectionFormat.contentLabel(step.type.replaceAll('_', ' '))}
+    <Card className="min-w-0 gap-0 overflow-hidden py-0">
+      <CardHeader className="gap-4 px-5 pt-5 sm:px-7 sm:pt-7">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="outline" className="border-primary/30 bg-primary/10">
+            Step {position}
+          </Badge>
+          <span className="text-xs font-medium text-muted-foreground">
+            {ConfigurationInspectionFormat.contentLabel(step.type.replaceAll(/[_-]/g, ' '))}
           </span>
           {Object.hasOwn(configuration.experiment.variants[variant].stepOverrides, step.id) && (
-            <Badge>Content override</Badge>
+            <Badge variant="info">Content override</Badge>
           )}
         </div>
-        <CardTitle className="break-words">
-          {content.title ?? content.loadingTitle ?? step.id}
+        <CardDescription className="break-all font-mono text-xs">{step.id}</CardDescription>
+        {!isUndefined(content.eyebrow) && (
+          <p className="max-w-prose whitespace-pre-wrap break-words text-sm font-medium text-info">
+            {content.eyebrow}
+          </p>
+        )}
+        <CardTitle>
+          <h3 className="max-w-[36ch] whitespace-pre-wrap break-words text-xl font-semibold leading-snug tracking-tight sm:text-2xl">
+            {content.title ?? content.loadingTitle ?? step.id}
+          </h3>
         </CardTitle>
-        <CardDescription className="break-all">{step.id}</CardDescription>
       </CardHeader>
-      <CardContent className="flex min-w-0 flex-col gap-4">
-        <div className="flex flex-col gap-3">
+      <CardContent className="flex min-w-0 flex-col gap-6 px-5 pb-6 pt-4 sm:px-7">
+        <dl className="flex max-w-prose flex-col gap-4">
           {Object.entries(content)
-            .filter(([field]) => field !== 'title' && field !== 'loadingTitle')
+            .filter(
+              ([field]) =>
+                field !== 'title' &&
+                field !== 'eyebrow' &&
+                (field !== 'loadingTitle' || !isUndefined(content.title)),
+            )
             .map(([field, value]) => (
-              <div key={field}>
-                <p className="text-xs text-muted-foreground">
+              <div key={field} className="min-w-0">
+                <dt
+                  className={
+                    field === 'body' || field === 'helperText'
+                      ? 'sr-only'
+                      : 'mb-1 text-xs font-medium text-muted-foreground'
+                  }
+                >
                   {ConfigurationInspectionFormat.contentLabel(field)}
-                </p>
-                <p className="break-words text-sm">{value}</p>
+                </dt>
+                <dd
+                  className={
+                    field === 'body'
+                      ? 'whitespace-pre-wrap break-words text-base leading-7'
+                      : 'whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground'
+                  }
+                >
+                  {value}
+                </dd>
               </div>
             ))}
-        </div>
+        </dl>
         {match(step)
-          .with({ type: StepType.Number }, (numberStep) => (
-            <div className="flex flex-col gap-2">
-              <h3 className="text-sm font-medium">Number input</h3>
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="outline">
-                  {numberStep.input.min} – {numberStep.input.max} {numberStep.input.unit}
-                </Badge>
-                <Badge variant="outline">Increment: {numberStep.input.step}</Badge>
-                <Badge variant="secondary">
-                  {numberStep.validation.required ? 'Required' : 'Optional'}
-                </Badge>
-              </div>
-              <p className="text-xs text-muted-foreground">Answer field: {numberStep.input.name}</p>
-            </div>
-          ))
           .with({ type: P.union(StepType.SingleSelect, StepType.MultiSelect) }, (selectionStep) => (
-            <div className="flex flex-col gap-3">
-              <h3 className="text-sm font-medium">Answer options</h3>
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="secondary">
-                  {selectionStep.validation.required ? 'Required' : 'Optional'}
-                </Badge>
-                {selectionStep.type === StepType.SingleSelect ? (
-                  <Badge variant="outline">Choose one</Badge>
-                ) : (
-                  <Badge variant="outline">
-                    Selections: {StepRules.selectionLimits(selectionStep).minimum} –{' '}
-                    {StepRules.selectionLimits(selectionStep).maximum}
-                  </Badge>
-                )}
+            <section className="flex min-w-0 flex-col gap-2">
+              <div className="flex items-baseline gap-2">
+                <h4 className="text-sm font-semibold">Answer options</h4>
+                <span className="text-xs text-muted-foreground">
+                  {selectionStep.input.options.length}
+                </span>
               </div>
-              <ul className="flex flex-col gap-2">
+              <ul className="min-w-0 divide-y rounded-lg border px-3">
                 {selectionStep.input.options.map((option) => (
                   <li
                     key={option.value}
-                    className="flex flex-wrap items-baseline justify-between gap-2 border-b py-2.5 text-sm last:border-b-0"
+                    className="grid min-w-0 grid-cols-[1rem_minmax(0,1fr)] items-start gap-x-3 gap-y-1 py-2.5 text-sm sm:grid-cols-[1rem_minmax(0,1fr)_minmax(0,0.6fr)]"
                   >
-                    <span className="break-words">{option.label}</span>
-                    <code className="break-all text-xs text-muted-foreground">{option.value}</code>
+                    {selectionStep.type === StepType.SingleSelect ? (
+                      <CircleDot aria-hidden="true" className="mt-0.5 size-4 text-info/70" />
+                    ) : (
+                      <ListChecks aria-hidden="true" className="mt-0.5 size-4 text-info/70" />
+                    )}
+                    <span className="whitespace-pre-wrap break-words leading-5">
+                      {option.label}
+                    </span>
+                    <code className="col-start-2 break-all text-xs leading-5 text-muted-foreground sm:col-start-3 sm:text-right">
+                      {option.value}
+                    </code>
                   </li>
                 ))}
               </ul>
-              <p className="text-xs text-muted-foreground">
-                Answer field: {selectionStep.input.name}
-              </p>
-            </div>
+            </section>
           ))
-          .with({ type: P.union(StepType.Information, StepType.Result) }, () => null)
+          .with(
+            { type: P.union(StepType.Number, StepType.Information, StepType.Result) },
+            () => null,
+          )
           .exhaustive()}
+      </CardContent>
+      <div className="flex min-w-0 flex-col gap-4 border-t bg-muted/20 px-5 py-5 sm:px-7">
+        <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <SlidersHorizontal aria-hidden="true" className="size-3.5" /> Behavior
+        </h4>
+        {'input' in step && (
+          <div className="flex min-w-0 flex-col gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="secondary">
+                {step.validation.required ? 'Required' : 'Optional'}
+              </Badge>
+              {step.type === StepType.SingleSelect && <Badge variant="outline">Choose one</Badge>}
+              {step.type === StepType.MultiSelect && (
+                <Badge variant="outline">
+                  Selections: {StepRules.selectionLimits(step).minimum} –{' '}
+                  {StepRules.selectionLimits(step).maximum}
+                </Badge>
+              )}
+            </div>
+            {step.type === StepType.Number && (
+              <div className="flex flex-col gap-2">
+                <h5 className="flex items-center gap-2 text-sm font-medium">
+                  <Hash aria-hidden="true" className="size-4 text-info" />
+                  Number input
+                </h5>
+                <p className="whitespace-pre-wrap break-words text-sm tabular-nums">
+                  {step.input.min} – {step.input.max} {step.input.unit}
+                </p>
+                <p className="text-xs text-muted-foreground">Increment: {step.input.step}</p>
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Answer field: <code className="break-all text-foreground">{step.input.name}</code>
+            </p>
+          </div>
+        )}
+        {step.type === StepType.Result && (
+          <p className="text-xs text-muted-foreground">
+            Result source: <code className="break-all text-foreground">{step.resultSource}</code>
+          </p>
+        )}
         <div className="min-w-0">
-          <h3 className="mb-2 text-sm font-medium">Visibility</h3>
           {isUndefined(step.visibleWhen) ? (
-            <p className="text-sm text-muted-foreground">Always visible</p>
+            <p className="flex items-center gap-2 text-sm">
+              <Eye aria-hidden="true" className="size-4 text-success" />
+              Always visible
+            </p>
           ) : (
-            <ConfigurationJson value={step.visibleWhen} />
+            <details className="group min-w-0">
+              <summary className="flex min-h-11 cursor-pointer list-none flex-wrap items-center gap-2 rounded-md py-2 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
+                <Eye aria-hidden="true" className="size-4 text-info" />
+                Visibility rules
+                <Badge variant="info">Conditional</Badge>
+                <ChevronDown aria-hidden="true" className="ml-auto size-4 group-open:rotate-180" />
+              </summary>
+              <div className="min-w-0 pt-2">
+                <ConfigurationJson value={step.visibleWhen} />
+              </div>
+            </details>
           )}
         </div>
         {'input' in step && (
           <Collapsible className="min-w-0">
             <CollapsibleTrigger asChild>
-              <Button variant="outline" size="sm">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-auto w-full justify-start whitespace-normal text-left [&[data-state=open]>svg:last-child]:rotate-180"
+              >
+                <SlidersHorizontal aria-hidden="true" />
                 Advanced input & validation
+                <ChevronDown aria-hidden="true" className="ml-auto" />
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-3 min-w-0">
@@ -129,7 +203,7 @@ export function ConfigurationStepDetails({
             </CollapsibleContent>
           </Collapsible>
         )}
-      </CardContent>
+      </div>
     </Card>
   );
 }
