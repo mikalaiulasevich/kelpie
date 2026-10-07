@@ -46,7 +46,7 @@ export function ConfigurationHighlights({
     .slice(0, 3);
 
   return (
-    <section className="flex flex-col gap-4" aria-label={ConfigurationContent.Highlights}>
+    <section className="flex flex-col gap-3" aria-label={ConfigurationContent.Highlights}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-base font-semibold">{ConfigurationContent.Highlights}</h2>
         <span className="text-xs text-muted-foreground">

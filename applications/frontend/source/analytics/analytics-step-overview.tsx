@@ -3,17 +3,13 @@ import {
   Activity,
   CheckCheck,
   ChevronDown,
-  CircleDot,
   Clock3,
   Eye,
   GitBranch,
-  Flag,
-  Hash,
   Info,
-  ListChecks,
   TimerOff,
 } from 'lucide-react';
-import { match } from 'ts-pattern';
+import { AnalyticsStepPresentation } from './analytics-step-presentation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/card';
 import { Progress } from '../components/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/table';
@@ -121,13 +117,7 @@ export function AnalyticsStepOverview({
             {variant.steps.map((step, index) => {
               const reach = variant.started > 0 ? step.reached / variant.started : null;
               const isResult = step.type === 'result';
-              const presentation = match(step.type)
-                .with('info', () => ({ icon: Info, label: 'Information' }))
-                .with('single-select', () => ({ icon: CircleDot, label: 'Single choice' }))
-                .with('multi-select', () => ({ icon: ListChecks, label: 'Multiple choice' }))
-                .with('number', () => ({ icon: Hash, label: 'Number input' }))
-                .with('result', () => ({ icon: Flag, label: 'Result' }))
-                .exhaustive();
+              const presentation = AnalyticsStepPresentation.describe(step.type);
               const StepIcon = presentation.icon;
 
               return (

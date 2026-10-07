@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { isError } from 'es-toolkit/predicate';
-import { ArrowRight, Eye, EyeOff, LoaderCircle, LockKeyhole, UserRound } from 'lucide-react';
+import { Eye, EyeOff, LoaderCircle } from 'lucide-react';
 import { Button } from '../components/button';
 import { Field, FieldError, FieldGroup, FieldLabel } from '../components/field';
 import {
@@ -10,7 +10,6 @@ import {
   InputGroupInput,
 } from '../components/input-group';
 import { Alert, AlertDescription, AlertTitle } from '../components/alert';
-import { Separator } from '../components/separator';
 import { AdministrationContent, AdministrationFormMessages } from './administration-content';
 import type { AdministratorCredentials } from './administration-types';
 
@@ -86,7 +85,7 @@ export function AdministrationForm({ signIn }: AdministrationFormProperties): UI
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-3 text-center">
+      <div className="flex flex-col gap-2">
         <h1 className="auth-title">{AdministrationContent.SignInTitle}</h1>
         <p className="auth-description">{AdministrationContent.SignInDescription}</p>
       </div>
@@ -100,9 +99,6 @@ export function AdministrationForm({ signIn }: AdministrationFormProperties): UI
           <Field data-invalid={!!errors.username} data-disabled={pending}>
             <FieldLabel htmlFor="username">{AdministrationContent.UsernameLabel}</FieldLabel>
             <InputGroup className="h-12">
-              <InputGroupAddon className="form-input-icon" aria-hidden="true">
-                <UserRound strokeWidth={1.5} />
-              </InputGroupAddon>
               <InputGroupInput
                 ref={usernameReference}
                 id="username"
@@ -128,9 +124,6 @@ export function AdministrationForm({ signIn }: AdministrationFormProperties): UI
           <Field data-invalid={!!errors.password} data-disabled={pending}>
             <FieldLabel htmlFor="password">{AdministrationContent.PasswordLabel}</FieldLabel>
             <InputGroup className="h-12">
-              <InputGroupAddon className="form-input-icon" aria-hidden="true">
-                <LockKeyhole strokeWidth={1.5} />
-              </InputGroupAddon>
               <InputGroupInput
                 ref={passwordReference}
                 id="password"
@@ -191,21 +184,11 @@ export function AdministrationForm({ signIn }: AdministrationFormProperties): UI
               <span aria-live="polite" aria-atomic="true">
                 {pending ? AdministrationContent.SigningIn : AdministrationContent.SignIn}
               </span>
-              <span className="button-icon" aria-hidden="true">
-                {pending ? (
-                  <LoaderCircle className="form-pending-icon" strokeWidth={1.5} />
-                ) : (
-                  <ArrowRight data-icon="inline-end" />
-                )}
-              </span>
+              {pending && <LoaderCircle className="form-pending-icon" aria-hidden="true" />}
             </Button>
           </Field>
         </FieldGroup>
       </form>
-      <div className="flex flex-col gap-5">
-        <Separator />
-        <p className="access-note">{AdministrationContent.AccessHelp}</p>
-      </div>
     </div>
   );
 }

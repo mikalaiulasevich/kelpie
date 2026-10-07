@@ -3,7 +3,7 @@
   position: relative;
   display: flex;
   min-height: 100dvh;
-  padding: 24px 32px 32px 308px;
+  padding: 16px 24px 24px 300px;
 }
 .workspace-sidebar-frame {
   position: fixed;

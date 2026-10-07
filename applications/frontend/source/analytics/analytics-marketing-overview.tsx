@@ -127,7 +127,10 @@ function MetricComparison({
         'A/B comparison needs sessions in both variants.'
       ) : (
         <>
-          B vs A <strong>{AnalyticsMarketingMetrics.difference(difference)}</strong>
+          B vs A{' '}
+          <strong style={{ color: AnalyticsMarketingMetrics.differenceColor(difference) }}>
+            {AnalyticsMarketingMetrics.difference(difference)}
+          </strong>
           <span>Percentage points · significance not tested</span>
         </>
       )}
@@ -320,7 +323,13 @@ export function AnalyticsMarketingOverview({ version }: { readonly version: Anal
             <CardDescription>CTA conversion · B minus A</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-5">
-            <div className="rounded-lg bg-muted/40 px-3 py-3">
+            <div
+              className="analytics-difference-panel rounded-lg px-4 py-4"
+              data-comparable={!isNull(metrics.conversionDifference)}
+              style={{
+                color: AnalyticsMarketingMetrics.differenceColor(metrics.conversionDifference),
+              }}
+            >
               {isNull(metrics.conversionDifference) ? (
                 <>
                   <p className="text-sm font-medium">No comparison yet</p>
@@ -330,7 +339,14 @@ export function AnalyticsMarketingOverview({ version }: { readonly version: Anal
                 </>
               ) : (
                 <>
-                  <p className="text-xl font-medium tracking-tight tabular-nums">
+                  <p
+                    className="text-xl font-medium tracking-tight tabular-nums"
+                    style={{
+                      color: AnalyticsMarketingMetrics.differenceColor(
+                        metrics.conversionDifference,
+                      ),
+                    }}
+                  >
                     {AnalyticsMarketingMetrics.difference(metrics.conversionDifference)}
                   </p>
                   <p className="mt-1 text-xs leading-relaxed text-muted-foreground">

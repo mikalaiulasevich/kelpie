@@ -65,6 +65,14 @@ export const AnalyticsMarketingMetrics = {
     return `M 0 ${90 - start} L 48 ${90 - start} C 154 ${90 - start}, 166 ${90 - middle}, 280 ${90 - middle} L 320 ${90 - middle} C 434 ${90 - middle}, 446 ${90 - end}, 552 ${90 - end} L 600 ${90 - end} L 600 ${90 + end} L 552 ${90 + end} C 446 ${90 + end}, 434 ${90 + middle}, 320 ${90 + middle} L 280 ${90 + middle} C 166 ${90 + middle}, 154 ${90 + start}, 48 ${90 + start} L 0 ${90 + start} Z`;
   },
 
+  differenceColor(value: number | null): string {
+    if (isNull(value) || value === 0) {
+      return 'var(--muted-foreground)';
+    }
+
+    return value < 0 ? 'var(--destructive)' : 'var(--success)';
+  },
+
   difference(value: number | null): string {
     if (isNull(value)) {
       return 'Not available';
@@ -75,6 +83,6 @@ export const AnalyticsMarketingMetrics = {
       signDisplay: 'exceptZero',
     }).format(value);
 
-    return `${formatted} pp`;
+    return `${formatted} PP`;
   },
 } as const;

@@ -3,6 +3,14 @@ import { AnalyticsMarketingMetrics } from '../../source/analytics/analytics-mark
 import { AnalyticsMarketingFixtures } from '../fixtures/analytics-marketing-fixtures';
 
 describe('marketing analytics metrics', () => {
+  it('colors displayed negative differences red, positive green and zero or missing neutral', () => {
+    expect(AnalyticsMarketingMetrics.difference(-9.5)).toBe('-9.5 PP');
+    expect(AnalyticsMarketingMetrics.differenceColor(-9.5)).toBe('var(--destructive)');
+    expect(AnalyticsMarketingMetrics.differenceColor(9.5)).toBe('var(--success)');
+    expect(AnalyticsMarketingMetrics.differenceColor(0)).toBe('var(--muted-foreground)');
+    expect(AnalyticsMarketingMetrics.differenceColor(null)).toBe('var(--muted-foreground)');
+  });
+
   it('weights totals by sessions and expresses B minus A in percentage points', () => {
     const version = AnalyticsMarketingFixtures.version([
       AnalyticsMarketingFixtures.variant('B', 300, 240, 150),
@@ -18,7 +26,7 @@ describe('marketing analytics metrics', () => {
     expect(metrics.conversionRate.value).toBe(0.425);
     expect(metrics.clickThrough.value).toBeCloseTo(0.5666667);
     expect(metrics.conversionDifference).toBe(30);
-    expect(AnalyticsMarketingMetrics.difference(metrics.conversionDifference)).toBe('+30 pp');
+    expect(AnalyticsMarketingMetrics.difference(metrics.conversionDifference)).toBe('+30 PP');
   });
 
   it('uses the authoritative result-click population for click-through', () => {
@@ -74,7 +82,7 @@ describe('marketing analytics metrics', () => {
       AnalyticsMarketingMetrics.difference(
         AnalyticsMarketingMetrics.summarize(version).conversionDifference,
       ),
-    ).toBe('-25 pp');
+    ).toBe('-25 PP');
     expect(AnalyticsMarketingMetrics.ribbon([100, 50, 0], 100, 1)).toContain('L 600 90 L 600 90');
   });
 });

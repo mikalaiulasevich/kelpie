@@ -1,3 +1,4 @@
+import { AnalyticsStepPresentation } from './analytics-step-presentation';
 import { AnalyticsMarketingOverview } from './analytics-marketing-overview';
 import { AnalyticsStepOverview } from './analytics-step-overview';
 import { DeferredView } from '../application/deferred-view';
@@ -81,7 +82,7 @@ function AnalyticsVariantSummary({ variant }: { readonly variant: AnalyticsVaria
         <div className="flex items-center gap-3">
           <span
             className={ClassNames.combine(
-              'flex size-9 items-center justify-center rounded-lg text-sm font-semibold',
+              'flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold',
               variant.variant === 'A' ? 'bg-primary/12 text-primary' : 'bg-info/12 text-info',
             )}
           >
@@ -182,70 +183,78 @@ function AnalyticsSteps({ variant }: { readonly variant: AnalyticsVariant }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {variant.steps.map((step, index) => (
-              <TableRow key={step.stepIdentifier} className="transition-colors duration-150">
-                <TableCell>
-                  <div className="flex items-start gap-3">
-                    <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-xs text-primary tabular-nums">
-                      {index + 1}
-                    </span>
-                    <div className="flex flex-col gap-2">
-                      <span className="font-medium">{step.stepIdentifier}</span>
-                      <div className="flex flex-wrap gap-1.5">
-                        <Badge variant="secondary">{step.type}</Badge>
-                        {step.conditional && (
-                          <Badge variant="outline">
-                            <GitBranch data-icon="inline-start" />
-                            Conditional
-                          </Badge>
-                        )}
+            {variant.steps.map((step, index) => {
+              const presentation = AnalyticsStepPresentation.describe(step.type);
+              const StepIcon = presentation.icon;
+
+              return (
+                <TableRow key={step.stepIdentifier} className="transition-colors duration-150">
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary tabular-nums">
+                        {index + 1}
+                      </span>
+                      <div className="flex min-w-0 flex-col gap-1">
+                        <span className="font-medium leading-snug">{step.stepIdentifier}</span>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                          <span className="inline-flex items-center gap-1.5">
+                            <StepIcon className="size-3.5" aria-hidden="true" />
+                            {presentation.label}
+                          </span>
+                          {step.conditional && (
+                            <span className="inline-flex items-center gap-1.5">
+                              <GitBranch className="size-3.5" aria-hidden="true" />
+                              Conditional
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell className="tabular-nums">
-                  {AnalyticsFormat.count(step.reached)}
-                </TableCell>
-                {step.type === 'result' ? (
-                  <TableCell colSpan={5}>
-                    <Badge variant="success">Terminal · reach only</Badge>
                   </TableCell>
-                ) : (
-                  <>
-                    <TableCell className="tabular-nums">
-                      {AnalyticsFormat.count(step.completed)}
+                  <TableCell className="tabular-nums">
+                    {AnalyticsFormat.count(step.reached)}
+                  </TableCell>
+                  {step.type === 'result' ? (
+                    <TableCell colSpan={5}>
+                      <Badge variant="success">Terminal · reach only</Badge>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex min-w-24 flex-col gap-2">
-                        <AnalyticsRatioValue ratio={step.completion} tone="positive" />
-                        {!isNull(step.completion.value) && (
-                          <Progress
-                            className="h-1 bg-success/15 [&_[data-slot=progress-indicator]]:bg-success"
-                            value={step.completion.value * 100}
-                            aria-label={`${step.stepIdentifier} completion`}
-                          />
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell
-                      data-nonzero={step.noncompletion.open > 0}
-                      className="tabular-nums data-[nonzero=true]:text-warning"
-                    >
-                      {AnalyticsFormat.count(step.noncompletion.open)}
-                    </TableCell>
-                    <TableCell
-                      data-nonzero={step.noncompletion.expired > 0}
-                      className="font-medium tabular-nums data-[nonzero=true]:text-destructive"
-                    >
-                      {AnalyticsFormat.count(step.noncompletion.expired)}
-                    </TableCell>
-                    <TableCell>
-                      <AnalyticsRatioValue ratio={step.expiredDropout} tone="negative" />
-                    </TableCell>
-                  </>
-                )}
-              </TableRow>
-            ))}
+                  ) : (
+                    <>
+                      <TableCell className="tabular-nums">
+                        {AnalyticsFormat.count(step.completed)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex min-w-24 flex-col gap-2">
+                          <AnalyticsRatioValue ratio={step.completion} tone="positive" />
+                          {!isNull(step.completion.value) && (
+                            <Progress
+                              className="h-1 bg-success/15 [&_[data-slot=progress-indicator]]:bg-success"
+                              value={step.completion.value * 100}
+                              aria-label={`${step.stepIdentifier} completion`}
+                            />
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell
+                        data-nonzero={step.noncompletion.open > 0}
+                        className="tabular-nums data-[nonzero=true]:text-warning"
+                      >
+                        {AnalyticsFormat.count(step.noncompletion.open)}
+                      </TableCell>
+                      <TableCell
+                        data-nonzero={step.noncompletion.expired > 0}
+                        className="font-medium tabular-nums data-[nonzero=true]:text-destructive"
+                      >
+                        {AnalyticsFormat.count(step.noncompletion.expired)}
+                      </TableCell>
+                      <TableCell>
+                        <AnalyticsRatioValue ratio={step.expiredDropout} tone="negative" />
+                      </TableCell>
+                    </>
+                  )}
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </CardContent>

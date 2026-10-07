@@ -150,9 +150,7 @@ export function ConfigurationVersionsPage({
             <Kbd>Alt</Kbd>
             <Kbd>{ActionShortcutCatalog.Import.key}</Kbd>
           </KbdGroup>
-          <span className="cta-icon" aria-hidden="true">
-            <Upload />
-          </span>
+          <Upload className="size-4 shrink-0" aria-hidden="true" />
         </Button>
       </div>
       {resource.status === 'loading' && (
