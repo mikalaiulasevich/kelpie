@@ -57,5 +57,10 @@
     "typescript": "6.0.3",
     "typescript-eslint": "8.71.1",
     "vitest": "5.0.3"
-  }
+  },
+  "trustedDependencies": [
+    "@prisma/engines",
+    "better-sqlite3",
+    "prisma"
+  ]
 }
