@@ -12,3 +12,4 @@ documentation/benchmarks/*.json
 
 # Next.js generated output
 .next/
+applications/quiz/next-env.d.ts

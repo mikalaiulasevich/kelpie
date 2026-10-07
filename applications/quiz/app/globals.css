@@ -780,6 +780,10 @@ main {
 .skip-link:focus {
   top: 10px;
 }
+.result-progress {
+  max-width: 790px;
+  margin-inline: auto;
+}
 .result-panel {
   max-width: 790px;
   margin: 25px auto;

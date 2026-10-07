@@ -119,11 +119,11 @@ Refined the existing dark administration theme with amber actions, semantic gree
 
 ## Remaining delivery milestones
 
-| Iteration            | Status                                                                                                                                                                                                                                                             |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| First working funnel | Runtime, administration, session, event ingestion and analytics APIs available. Administrator authorization, configuration management, activation history and analytics UI available; public quiz, browser event queue and traffic generation remain to implement. |
-| Second iteration     | Pending the first working funnel. Publish v3, verify both variants and retained older sessions, then roll back to v2 while preserving v3 sessions and analytics.                                                                                                   |
-| Deployment           | Bun backend and Node.js/npm fallback verified locally; hosting with persistent storage and public acceptance remain pending.                                                                                                                                       |
+| Iteration            | Status                                                                                                                                                                                                                                                                                  |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| First working funnel | Runtime, administration, session, event ingestion and analytics APIs available. Administrator authorization, configuration management, activation history and analytics UI available; separate Next.js quiz and browser event queue now implemented locally; public acceptance remains. |
+| Second iteration     | Pending the first working funnel. Publish v3, verify both variants and retained older sessions, then roll back to v2 while preserving v3 sessions and analytics.                                                                                                                        |
+| Deployment           | Bun backend and Node.js/npm fallback verified locally; hosting with persistent storage and public acceptance remain pending.                                                                                                                                                            |
 
 [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md) owns the detailed acceptance sequence. Update this timeline for completed product milestones; keep command output and repeated polish reports out of it.
 
@@ -150,3 +150,7 @@ Added proportional A/B milestone ribbons, pooled KPIs, observed conversion diffe
 ## 2026-10-07 — Backend and administration integration acceptance
 
 Verified the real administration against an isolated Bun/SQLite backend, including import validation, pagination recovery after import, publication, rollback and analytical milestones from HTTP-created sessions. Fixed stale file-read loading and import pagination/filter recovery. The complete Node/Bun gate passed; exact counts, browser checks and untested boundaries are maintained in the engineering review.
+
+## 2026-10-07 — Separate Next.js quiz
+
+Implemented applications/quiz using the Kelpie reference cream, rust and warm brown palette, original mark and Instrument Sans. Configuration-driven questions support explicit Continue, local drafts, Back, dynamic branches and backend-authoritative recommendations. Durable observations and pending command identifiers preserve retry intent; public API origins now explicitly include the separate quiz while administrator authorization remains scoped to its origin. Browser verification covered mobile welcome, draft refresh, required validation, conditional steps, Back, final result and CTA; persisted events include step/result views and recommendation expansion. Root types, 669 tests, production builds and Prisma validation passed; 86 focused backend tests also passed on Bun. Full verify stopped at pre-existing scratch-script lint errors under test-results; exhaustive browser accessibility, expiry and deployment acceptance remain open.

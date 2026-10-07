@@ -176,7 +176,11 @@ export function QuizExperience() {
             )}
             {!welcome && state && step && (
               <>
-                <div className="quiz-progress">
+                <div
+                  className={
+                    step.type === 'result' ? 'quiz-progress result-progress' : 'quiz-progress'
+                  }
+                >
                   <div>
                     <span>
                       {step.type === 'result'
