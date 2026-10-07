@@ -37,7 +37,9 @@ export const ManagementSchemas = {
 } as const;
 
 export type ManagementQuery = Readonly<Static<typeof ManagementSchemas.ResolvedQuery>>;
+
 export type ManagementQueryInput = Readonly<Static<typeof ManagementSchemas.Query>>;
+
 export type FunnelReference = Readonly<Static<typeof ManagementSchemas.FunnelReference>>;
 
 export interface ManagementPage<Item> {

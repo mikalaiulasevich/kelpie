@@ -8,6 +8,7 @@ export const ConfigurationImportPolicy = {
   UniqueConstraintCode: 'P2002',
   RootPath: '/',
   ManagementRoute: 'administration/configurations',
+  IdentityFields: ['funnelIdentifier', 'version', 'schemaVersion', 'checksum'],
   VersionSelection: {
     identifier: true,
     funnelIdentifier: true,

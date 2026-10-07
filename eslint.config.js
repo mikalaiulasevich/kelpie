@@ -184,4 +184,18 @@ export default typescript.config(
     files: ['applications/backend/source/**/*.ts'],
     rules: { 'no-console': ['error', {}] },
   },
+  {
+    files: [
+      'applications/backend/source/{administration,configurations,publications,management}/**/*.ts',
+    ],
+    rules: {
+      'lines-between-class-members': ['error', 'always'],
+      'padding-line-between-statements': [
+        'error',
+        { blankLine: 'always', prev: '*', next: 'return' },
+        { blankLine: 'always', prev: 'block-like', next: '*' },
+        { blankLine: 'always', prev: 'export', next: 'export' },
+      ],
+    },
+  },
 );

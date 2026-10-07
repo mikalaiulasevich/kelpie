@@ -76,7 +76,7 @@ export class ConfigurationImportService {
   private async createVersion(
     prepared: PreparedConfigurationImport,
   ): Promise<ConfigurationVersionMetadata> {
-    const { configuration, document, checksum } = prepared;
+    const { configuration, document } = prepared;
 
     return this.database.client.$transaction(async (transaction) => {
       await transaction.funnel.upsert({
@@ -87,11 +87,8 @@ export class ConfigurationImportService {
 
       return transaction.funnelVersion.create({
         data: {
-          funnelIdentifier: configuration.funnelId,
-          version: configuration.version,
-          schemaVersion: configuration.schemaVersion,
+          ...ConfigurationImportDocument.identity(prepared),
           document,
-          checksum,
         },
         select: ConfigurationImportPolicy.VersionSelection,
       });

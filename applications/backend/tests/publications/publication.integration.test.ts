@@ -1,3 +1,4 @@
+import { PublicationCases } from '../cases/publication-cases.js';
 import { randomUUID } from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { BackendApplicationFixture } from '../fixtures/backend-application.js';
@@ -132,20 +133,23 @@ describe('transactional publications with real SQLite', () => {
     expect(await backend.database.publication.count()).toBe(0);
   });
 
-  it('rejects corrupted stored configurations before activation', async () => {
-    const { administrator, first, service } = await PublicationFixtures.prepare(backend);
-    await backend.database.funnelVersion.update({
-      where: { identifier: first.identifier },
-      data: { document: {} },
-    });
-    await expect(
-      service.publish(
-        PublicationFixtures.request(first.funnelIdentifier, first.identifier),
-        administrator.identifier,
-      ),
-    ).rejects.toMatchObject({ status: 422 });
-    expect(await backend.database.publication.count()).toBe(0);
-  });
+  it.each(PublicationCases.CorruptedVersions)(
+    'rejects corrupted $name before activation',
+    async ({ data }) => {
+      const { administrator, first, service } = await PublicationFixtures.prepare(backend);
+      await backend.database.funnelVersion.update({
+        where: { identifier: first.identifier },
+        data,
+      });
+      await expect(
+        service.publish(
+          PublicationFixtures.request(first.funnelIdentifier, first.identifier),
+          administrator.identifier,
+        ),
+      ).rejects.toMatchObject({ status: 422 });
+      expect(await backend.database.publication.count()).toBe(0);
+    },
+  );
 
   it('rejects active noops and rollback without a predecessor', async () => {
     const { administrator, first, service } = await PublicationFixtures.prepare(backend);

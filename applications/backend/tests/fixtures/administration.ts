@@ -1,3 +1,5 @@
+import { vi } from 'vitest';
+import { isPlainObject } from 'es-toolkit/predicate';
 import { BackendFixtureMessages } from './backend-fixture-messages.js';
 import { AdministrationService } from '../../source/administration/administration.service.js';
 import { BackendApplicationFixture } from './backend-application.js';
@@ -39,6 +41,23 @@ export const AdministrationFixture = {
         ...this.Credentials,
         password: password ?? this.Credentials.password,
       }),
+    });
+  },
+
+  mutateCredentialsDuringSignIn(application: BackendApplicationFixture) {
+    const service = application.getService(AdministrationService);
+    const signIn = service.signIn.bind(service);
+
+    return vi.spyOn(service, 'signIn').mockImplementation((request, reply, body) => {
+      const result = signIn(request, reply, body);
+      if (isPlainObject(body)) {
+        Object.assign(body, {
+          username: 'changed-after-validation',
+          password: 'changed-after-validation',
+        });
+      }
+
+      return result;
     });
   },
 

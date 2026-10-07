@@ -7,8 +7,10 @@ import { ConfigurationImportError } from './configuration-import-error.js';
 import { ConfigurationImportService } from './configuration-import.service.js';
 import type { ConfigurationList } from './configuration-management-types.js';
 import type { ConfigurationImportResult } from './configuration-import-types.js';
-import { ConfigurationImportHttpStatus } from './configuration-import-policy.js';
-import { ConfigurationImportPolicy } from './configuration-import-policy.js';
+import {
+  ConfigurationImportHttpStatus,
+  ConfigurationImportPolicy,
+} from './configuration-import-policy.js';
 
 @Injectable()
 export class ConfigurationManagementService {

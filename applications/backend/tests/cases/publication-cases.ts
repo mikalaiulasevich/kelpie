@@ -1,4 +1,10 @@
 export const PublicationCases = {
+  CorruptedVersions: [
+    { name: 'document', data: { document: {} } },
+    { name: 'checksum', data: { checksum: 'corrupted-checksum' } },
+    { name: 'version metadata', data: { version: 99 } },
+    { name: 'schema metadata', data: { schemaVersion: 'unsupported' } },
+  ],
   SuppliedVersions: [1, 2, 3],
   ProtectedRoutes: [
     { method: 'GET', route: 'configurations?funnelIdentifier=test' },

@@ -1,4 +1,5 @@
 export const PublicationAction = { Publish: 'publish', Rollback: 'rollback' } as const;
+
 export type PublicationAction = ValueOf<typeof PublicationAction>;
 
 export const PublicationPolicy = {

@@ -76,7 +76,10 @@ const PublicationChecks = {
       );
     }
   },
-  inactiveTarget(activeIdentifier: Nullable<string>, targetIdentifier: string): void {
+  inactiveTarget(
+    activeIdentifier: FunnelReference['activeVersionIdentifier'],
+    targetIdentifier: string,
+  ): void {
     if (activeIdentifier === targetIdentifier) {
       throw new PublicRequestError(
         HttpStatus.CONFLICT,
@@ -272,12 +275,7 @@ export class PublicationService {
 
     try {
       const prepared = ConfigurationImportDocument.prepare(target.document);
-      if (
-        prepared.checksum !== target.checksum ||
-        prepared.configuration.funnelId !== funnelIdentifier ||
-        prepared.configuration.version !== target.version ||
-        prepared.configuration.schemaVersion !== target.schemaVersion
-      ) {
+      if (!ConfigurationImportDocument.matchesVersion(target, prepared)) {
         throw new Error(PublicationMessages.InvalidStoredConfiguration);
       }
     } catch {

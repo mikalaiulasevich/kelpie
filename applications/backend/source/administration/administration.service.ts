@@ -134,9 +134,10 @@ export class AdministrationService {
   }
 
   private async verifyCredentials(credentials: AdministratorCredentials): Promise<Administrator> {
+    const { username, password } = credentials;
     const administrator = await this.database.client.administrator.findFirst();
-    const verified = await this.passwords.verify(credentials.password, administrator?.passwordHash);
-    if (!verified || isNull(administrator) || administrator.username !== credentials.username) {
+    const verified = await this.passwords.verify(password, administrator?.passwordHash);
+    if (!verified || isNull(administrator) || administrator.username !== username) {
       throw new UnauthorizedException(AdministrationMessages.InvalidCredentials);
     }
 

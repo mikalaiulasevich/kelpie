@@ -136,6 +136,21 @@ describe('administrator sessions', () => {
     expect(await AdministrationFixture.sessionStatus(application, replacement)).toBe(200);
   });
 
+  it('snapshots validated credentials before asynchronous verification', async () => {
+    const mutation = AdministrationFixture.mutateCredentialsDuringSignIn(application);
+    try {
+      const response = await AdministrationFixture.signIn(application);
+      expect(response.status).toBe(200);
+      expect(await response.json()).toEqual({
+        identifier: expect.any(String),
+        username: 'reviewer',
+      });
+      expect(await application.database.administratorSession.count()).toBe(1);
+    } finally {
+      mutation.mockRestore();
+    }
+  });
+
   it('bounds sign-in attempts per IP', async () => {
     for (let attempt = 0; attempt < 5; attempt += 1) {
       const response = await application.request('/api/administration/sign-in', {

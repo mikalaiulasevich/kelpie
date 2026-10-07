@@ -27,6 +27,7 @@ export const AdministrationSchemas = {
 } as const;
 
 export type AdministratorCredentials = Readonly<Static<typeof AdministrationSchemas.Credentials>>;
+
 export type AdministratorIdentity = Readonly<Static<typeof AdministrationSchemas.Identity>>;
 
 export type DecodedPasswordMaterial = Readonly<{

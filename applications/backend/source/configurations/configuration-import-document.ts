@@ -1,7 +1,15 @@
 import { createHash } from 'node:crypto';
+import { pick } from 'es-toolkit/object';
 import { sortBy } from 'es-toolkit/array';
 import { FunnelConfigurations, type FunnelConfiguration } from '@kelpie/contracts';
-import { isBoolean, isNull, isNumber, isPlainObject, isString } from 'es-toolkit/predicate';
+import {
+  isBoolean,
+  isEqual,
+  isNull,
+  isNumber,
+  isPlainObject,
+  isString,
+} from 'es-toolkit/predicate';
 import { attempt } from 'es-toolkit/util';
 import type { Prisma } from '../../generated/prisma/client.js';
 import { ConfigurationImportError } from './configuration-import-error.js';
@@ -10,6 +18,8 @@ import { ConfigurationImportPolicy } from './configuration-import-policy.js';
 import {
   ConfigurationImportErrorCode,
   type PreparedConfigurationImport,
+  type ConfigurationVersionMetadata,
+  type ConfigurationContentIdentity,
 } from './configuration-import-types.js';
 
 const ConfigurationJson = {
@@ -40,6 +50,25 @@ const ConfigurationJson = {
 } as const;
 
 export const ConfigurationImportDocument = {
+  identity(prepared: PreparedConfigurationImport): ConfigurationContentIdentity {
+    return {
+      funnelIdentifier: prepared.configuration.funnelId,
+      version: prepared.configuration.version,
+      schemaVersion: prepared.configuration.schemaVersion,
+      checksum: prepared.checksum,
+    };
+  },
+
+  matchesVersion(
+    version: ConfigurationVersionMetadata,
+    prepared: PreparedConfigurationImport,
+  ): boolean {
+    return isEqual(
+      pick(version, ConfigurationImportPolicy.IdentityFields),
+      ConfigurationImportDocument.identity(prepared),
+    );
+  },
+
   invalidSnapshot(): ConfigurationImportError {
     return new ConfigurationImportError(ConfigurationImportErrorCode.Invalid, [
       {

@@ -49,6 +49,9 @@ export const PublicationSchemas = {
 } as const;
 
 export type PublishRequest = Readonly<Static<typeof PublicationSchemas.PublishRequest>>;
+
 export type RollbackRequest = Readonly<Static<typeof PublicationSchemas.RollbackRequest>>;
+
 export type PublicationResponse = Readonly<Static<typeof PublicationSchemas.Response>>;
+
 export type PublicationHistory = DeepReadonly<Static<typeof PublicationSchemas.History>>;

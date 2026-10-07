@@ -58,6 +58,7 @@ Apply the readability and ownership principles reviewed in the Template referenc
 - Preserve `.js` relative import specifiers in NodeNext packages: they target emitted JavaScript. Source files remain `.ts`; public package imports use the package entry point. Frontend Bundler resolution is a separate tool contract.
 - Use `Object.freeze` only for a stated runtime mutation invariant, such as shared policy arrays. Use `as const` for compile-time readonly vocabularies and method objects; it does not provide runtime immutability.
 - Keep package exports explicit. Import another package through its public entry point.
+- Separate class members and independent exported declarations with blank lines. Group related schema fields and validators under their named domain owners; formatting alone does not replace ownership.
 - Always use braces for control-flow blocks. Separate guards, calculations, and returns with blank lines. Do not nest ternary expressions.
 - Model staged resource acquisition with immutable results and explicit cleanup ownership. Avoid mutable optional resource placeholders and phase flags that exist only to coordinate a catch block; keep failure handling beside the stage that can fail. Legitimate mutable lifecycle state remains appropriate for timers and active resource owners.
 - Give distinct validation phases and step-specific rules named functions. Prefer straightforward dispatch and guard clauses over long mixed-purpose functions.
