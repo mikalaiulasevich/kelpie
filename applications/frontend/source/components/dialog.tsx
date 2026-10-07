@@ -1,5 +1,6 @@
+'use client';
+
 import { useLocalization } from '../localization/use-localization';
-('use client');
 
 import * as React from 'react';
 import { ClassNames } from '../styling/combine-class-names';

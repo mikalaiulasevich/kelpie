@@ -16,11 +16,10 @@ export function AnalyticsComparisonChart({
   readonly variants: readonly AnalyticsVariant[];
 }) {
   const { t } = useLocalization();
-const comparisonChart = {
-  results: { label: t('Result completion'), color: 'var(--chart-2)' },
-  recommendations: { label: t('CTA conversion'), color: 'var(--chart-1)' },
-} satisfies ChartConfig;
-
+  const comparisonChart = {
+    results: { label: t('Result completion'), color: 'var(--chart-2)' },
+    recommendations: { label: t('CTA conversion'), color: 'var(--chart-1)' },
+  } satisfies ChartConfig;
 
   const comparisonData = variants.map((variant) => ({
     variant: t('Variant {variant}', { variant: variant.variant }),

@@ -171,7 +171,9 @@ export function AnalyticsStepOverview({
                     {!isNull(reach) && (
                       <Progress
                         value={Math.min(100, reach * 100)}
-                        aria-label={t('{step}: share of started sessions reached', { step: step.stepIdentifier })}
+                        aria-label={t('{step}: share of started sessions reached', {
+                          step: step.stepIdentifier,
+                        })}
                         className="mt-2 h-1"
                       />
                     )}

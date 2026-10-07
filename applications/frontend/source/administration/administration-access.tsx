@@ -41,7 +41,7 @@ export function AdministrationAccess(): UIElement {
         loading={
           <div
             role="status"
-            aria-label={'Opening workspace'}
+            aria-label={t('Opening workspace')}
             className="flex min-h-svh flex-col gap-6 p-8"
           >
             <SkeletonSummary />

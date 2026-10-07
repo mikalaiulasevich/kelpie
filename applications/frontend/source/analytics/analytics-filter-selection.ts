@@ -1,3 +1,4 @@
+import { Localization } from '../localization/localization';
 import { Type, type Static } from 'typebox';
 import { match } from 'ts-pattern';
 import type { AnalyticsQuery } from '../management/management-types';
@@ -58,19 +59,21 @@ export const AnalyticsFilterSelection = {
 
   trafficLabel(filters: AnalyticsFilters): string {
     return match(filters.trafficOrigin)
-      .with('all', () => 'All traffic')
-      .with('synthetic', () => 'Synthetic traffic')
-      .with('production', () => 'Production traffic')
+      .with('all', () => Localization.translate('All traffic'))
+      .with('synthetic', () => Localization.translate('Synthetic traffic'))
+      .with('production', () => Localization.translate('Production traffic'))
       .exhaustive();
   },
 
   campaignLabel(filters: AnalyticsFilters): string {
     if (filters.campaignMode === 'all') {
-      return 'All campaigns';
+      return Localization.translate('All campaigns');
     }
 
     const campaign = filters.campaignMode === 'none' ? '' : filters.campaign;
 
-    return `Campaign: ${campaign === '' ? '(empty)' : campaign}`;
+    return Localization.translate('Campaign: {campaign}', {
+      campaign: campaign === '' ? Localization.translate('(empty)') : campaign,
+    });
   },
 } as const;

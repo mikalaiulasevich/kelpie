@@ -457,7 +457,9 @@ export function AnalyticsVersionPanel({
                     <Progress
                       className="h-1.5"
                       value={startedSessions > 0 ? (variant.started / startedSessions) * 100 : 0}
-                      aria-label={t('Variant {variant} share of started sessions', { variant: variant.variant })}
+                      aria-label={t('Variant {variant} share of started sessions', {
+                        variant: variant.variant,
+                      })}
                     />
                   </div>
                 ))}
@@ -506,7 +508,9 @@ export function AnalyticsVersionPanel({
             value={variant.variant}
           >
             <Tabs defaultValue="steps" className="min-w-0 gap-4">
-              <TabsList aria-label={t('Variant {variant} detail views', { variant: variant.variant })}>
+              <TabsList
+                aria-label={t('Variant {variant} detail views', { variant: variant.variant })}
+              >
                 <TabsTrigger value="steps">
                   <ListOrdered className="size-4" />
                   {t('Steps')}

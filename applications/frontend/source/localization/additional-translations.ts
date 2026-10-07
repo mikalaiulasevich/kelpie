@@ -91,8 +91,17 @@ export const AdditionalTranslations: Readonly<Record<string, string>> = {
   'Version {version} variants': 'Варианты версии {version}',
   'Variant {variant} detail views': 'Подробные представления варианта {variant}',
   '{step}: share of started sessions reached': '{step}: доля начатых сессий, дошедших до шага',
-"CTA conversion is the share of started sessions with a recorded CTA click. Result completion is the share that viewed a result. CTA click-through is the share of result viewers who also clicked a CTA.": "Конверсия CTA — доля начатых сессий с зарегистрированным нажатием CTA. Достижение результата — доля сессий с просмотром результата. CTR — доля просмотревших результат, которые также нажали CTA.",
-"Compare variants within the same version and experiment. The configuration defines what differs between them. Differences across versions do not establish an experiment\u2019s effect.": "Сравнивайте варианты одной версии и эксперимента. Их различия определяет конфигурация. Разница между версиями сама по себе не доказывает эффект эксперимента.",
-"Result views and recorded CTA clicks per started session.": "Просмотры результатов и зарегистрированные нажатия CTA на начатую сессию.",
-"Variant {variant}: {metric}": "Вариант {variant}: {metric}",
+  'CTA conversion is the share of started sessions with a recorded CTA click. Result completion is the share that viewed a result. CTA click-through is the share of result viewers who also clicked a CTA.':
+    'Конверсия CTA — доля начатых сессий с зарегистрированным нажатием CTA. Достижение результата — доля сессий с просмотром результата. CTR — доля просмотревших результат, которые также нажали CTA.',
+  'Compare variants within the same version and experiment. The configuration defines what differs between them. Differences across versions do not establish an experiment\u2019s effect.':
+    'Сравнивайте варианты одной версии и эксперимента. Их различия определяет конфигурация. Разница между версиями сама по себе не доказывает эффект эксперимента.',
+  'Result views and recorded CTA clicks per started session.':
+    'Просмотры результатов и зарегистрированные нажатия CTA на начатую сессию.',
+  'Variant {variant}: {metric}': 'Вариант {variant}: {metric}',
+  breadcrumb: 'Навигационная цепочка',
+  'Loading records': 'Загрузка записей',
+  'Loading comparison chart': 'Загрузка сравнительного графика',
+  'Campaign: {campaign}': 'Кампания: {campaign}',
+  '(empty)': '(пусто)',
+  'Variant {variant}': 'Вариант {variant}',
 };

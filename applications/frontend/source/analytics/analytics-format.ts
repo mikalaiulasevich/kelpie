@@ -7,6 +7,13 @@ export const AnalyticsFormat = {
     return new Intl.NumberFormat(Localization.formattingLocale).format(value);
   },
 
+  percentage(value: number): string {
+    return new Intl.NumberFormat(Localization.formattingLocale, {
+      style: 'percent',
+      maximumFractionDigits: 1,
+    }).format(value);
+  },
+
   ratio(ratio: AnalyticsRatio): string {
     return isNull(ratio.value)
       ? Localization.translate('Not applicable')

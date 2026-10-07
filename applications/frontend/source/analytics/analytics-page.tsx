@@ -42,7 +42,9 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
   const pendingVersionLabel =
     appliedFilters.versionIdentifier === AnalyticsFilterSelection.Initial.versionIdentifier
       ? t('Latest version')
-      : appliedFilters.versionLabel;
+      : appliedFilters.versionLabel.replace(/^Version (\d+)$/, (_label, version: string) =>
+          t('Version {version}', { version }),
+        );
   const isLoading = analytics.status === 'loading';
 
   const applyFilters = (filters: AnalyticsFilters) => {

@@ -23,6 +23,7 @@ export const Localization = {
   },
 
   initialize(): void {
+    storageFailed = false;
     try {
       selectedLocale = localStorage.getItem(storageKey) === 'ru' ? 'ru' : 'en';
     } catch {
@@ -56,10 +57,10 @@ export const Localization = {
   },
 
   translate(message: string, parameters: Readonly<Record<string, TextOrNumber>> = {}): string {
-    const translated =
-      selectedLocale === 'ru'
-        ? (InterfaceTranslations[message] ?? ConfigurationTranslations[message] ?? AdditionalTranslations[message] ?? message)
-        : message;
+    const catalog = [InterfaceTranslations, ConfigurationTranslations, AdditionalTranslations].find(
+      (translations) => Object.hasOwn(translations, message),
+    );
+    const translated = selectedLocale === 'ru' && catalog ? (catalog[message] ?? message) : message;
 
     return translated.replace(/\{(\w+)\}/g, (placeholder: string, key: string) =>
       Object.hasOwn(parameters, key) ? String(parameters[key]) : placeholder,

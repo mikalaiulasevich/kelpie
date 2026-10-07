@@ -187,7 +187,12 @@ function VariantMetricDetails({ version, metric }: VariantMetricDetailsPropertie
                   <Progress
                     className="mt-2 h-1"
                     value={Math.min(100, value.value * 100)}
-                    aria-label={t('Variant {variant}: {metric}', { variant: variant.variant, metric: t(metric === 'resultCompletion' ? 'Result completion' : 'CTA conversion') })}
+                    aria-label={t('Variant {variant}: {metric}', {
+                      variant: variant.variant,
+                      metric: t(
+                        metric === 'resultCompletion' ? 'Result completion' : 'CTA conversion',
+                      ),
+                    })}
                   />
                 )}
               </>
