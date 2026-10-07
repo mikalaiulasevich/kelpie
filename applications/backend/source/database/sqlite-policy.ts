@@ -1,5 +1,5 @@
 export const SQLitePolicy = {
-  EnabledSetting: 1n,
+  EnabledSetting: 1,
   FileUrlPrefix: 'file:',
   BusyTimeoutMilliseconds: 5_000,
 } as const;

@@ -1,5 +1,5 @@
 import { Inject, Injectable, type OnApplicationShutdown, type OnModuleInit } from '@nestjs/common';
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
+import { DatabaseAdapters } from './database-adapters.js';
 import { PrismaClient } from '../../generated/prisma/client.js';
 import { ApplicationEnvironmentService } from '../environment/application-environment.js';
 import { DatabaseMessages } from './database-messages.js';
@@ -20,7 +20,7 @@ export class DatabaseService implements OnModuleInit, OnApplicationShutdown {
   constructor(@Inject(ApplicationEnvironmentService) environment: ApplicationEnvironmentService) {
     this.databaseUrl = environment.values.databaseUrl;
 
-    const adapter = new PrismaBetterSqlite3({ url: this.databaseUrl });
+    const adapter = DatabaseAdapters.create(this.databaseUrl);
     this.client = new PrismaClient({ adapter });
   }
 
@@ -51,7 +51,7 @@ export class DatabaseService implements OnModuleInit, OnApplicationShutdown {
       SQLiteStatements.ReadForeignKeys,
     );
 
-    if (settings[0]?.foreign_keys !== SQLitePolicy.EnabledSetting) {
+    if (Number(settings[0]?.foreign_keys) !== SQLitePolicy.EnabledSetting) {
       throw new Error(DatabaseMessages.ForeignKeysUnavailable);
     }
   }

@@ -37,43 +37,59 @@ Revisit a decision only with a concrete requirement, failing invariant, or measu
 
 ## Agreed stack and product decisions
 
-| Area                     | Decision                                                                                            |
-| ------------------------ | --------------------------------------------------------------------------------------------------- |
-| Backend                  | NestJS with Fastify and TypeScript                                                                  |
-| Runtime                  | Bun backend requested; retain Node.js/npm fallback; migration and dual-runtime verification pending |
-| Frontend                 | React, Vite, and TypeScript                                                                         |
-| Persistence              | Prisma and SQLite                                                                                   |
-| Interface                | Tailwind CSS and shadcn/ui; restrained SaaS presentation                                            |
-| Language                 | English interfaces and README; configuration locale en-AU                                           |
-| Architecture             | Modular monolith in one repository                                                                  |
-| Session state            | Backend stores confirmed answers, current step, version, and variant                                |
-| Draft input              | Browser persistence only; backend saves on Continue                                                 |
-| Navigation               | Explicit Continue on every question; accessible Back                                                |
-| Hidden answers           | Retained as inactive values; excluded from active routing and results                               |
-| Administration           | One administrator with password sign-in and server-side sessions                                    |
-| Configuration management | JSON upload, validation, draft, explicit publication, publication history, rollback                 |
-| Experiment override      | Assigned only at session creation; excluded from experiment comparison by default                   |
-| Synthetic traffic        | Explicitly marked and separately filterable                                                         |
-| Hosting                  | Free hosting to be selected later; persistent SQLite storage is required                            |
+| Area                     | Decision                                                                                                         |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| Backend                  | NestJS with Fastify and TypeScript                                                                               |
+| Runtime                  | Bun backend requested; retain Node.js/npm fallback; migration and dual-runtime verification pending              |
+| Public quiz              | Separate Next.js App Router application with React and TypeScript at applications/quiz                           |
+| Administration           | Existing applications/frontend becomes the React/Vite administration application; dashboard is an area within it |
+| Persistence              | Prisma and SQLite                                                                                                |
+| Interface                | Tailwind CSS and shadcn/ui; restrained SaaS presentation                                                         |
+| Language                 | English interfaces and README; configuration locale en-AU                                                        |
+| Architecture             | Modular monolith in one repository                                                                               |
+| Session state            | Backend stores confirmed answers, current step, version, and variant                                             |
+| Draft input              | Browser persistence only; backend saves on Continue                                                              |
+| Navigation               | Explicit Continue on every question; accessible Back                                                             |
+| Hidden answers           | Retained as inactive values; excluded from active routing and results                                            |
+| Administrator access     | One administrator with password sign-in and server-side sessions                                                 |
+| Configuration management | JSON upload, validation, draft, explicit publication, publication history, rollback                              |
+| Experiment override      | Assigned only at session creation; excluded from experiment comparison by default                                |
+| Synthetic traffic        | Explicitly marked and separately filterable                                                                      |
+| Hosting                  | Free hosting to be selected later; persistent SQLite storage is required                                         |
 
-GitHub Pages was requested for frontend hosting. It cannot run NestJS or persist SQLite. Prefer one origin for frontend and backend when selecting hosting; if GitHub Pages remains necessary, resolve browser cookie compatibility and domains explicitly before deployment. Do not assume unrelated-domain cookie sessions work reliably.
+Prefer one HTTPS origin with a reverse proxy routing `/api` to NestJS, `/administration` and its assets to the React/Vite administration build, and quiz pages to Next.js. Preserve `/api` when proxying: existing cookies are scoped to that path. Configure the Vite base path and Next.js asset routing explicitly; development uses equivalent local proxies. Next.js recommends a reverse proxy for self-hosting. This topology remains a deployment acceptance gate, not an implemented hosting claim. [Next.js self-hosting guidance](https://nextjs.org/docs/app/guides/self-hosting).
+
+GitHub Pages remains an optional static-hosting constraint, not a selected deployment. It cannot execute NestJS, a Next.js server, or persistent SQLite. A Next.js static export can serve a client-rendered quiz shell that fetches session state from NestJS, but cannot use request-time Next.js cookies, server actions, or Next.js rewrites. Publication must not depend on rebuilding exported pages. If Pages is retained, validate a compatible API origin, cookie/CSRF behavior, and external proxy routing before committing to that topology; unrelated-domain sessions are not assumed reliable. [Next.js static export limitations](https://nextjs.org/docs/app/guides/static-exports).
 
 ## Repository structure
 
 ```text
 applications/backend
-applications/frontend
+applications/quiz       # planned Next.js public quiz
+applications/frontend   # existing React/Vite workspace, planned administration
 packages/contracts
 packages/funnel-runtime
 configurations
 scripts
 ```
 
-Backend modules cover configuration management, publications, sessions, experiment assignment, event ingestion, analytics, and administrator access. Frontend areas cover the funnel, administration, and analytics. Shared packages must not depend on NestJS, React, Prisma, or browser globals.
+Backend modules cover configuration management, publications, sessions, experiment assignment, event ingestion, analytics, and administrator access. The public quiz and administration are separate applications in the same repository; analytics dashboard pages belong to administration. The current React/Vite workspace still contains only the readiness interface, and applications/quiz has not been scaffolded. Shared packages must not depend on NestJS, React, Prisma, or browser globals.
 
 Controllers handle transport validation and authorization, then call a single owning application service. Command services compose pure runtime operations and Prisma transactions; renderers do not implement domain decisions. Configuration owns immutable documents and activation, sessions owns commands and confirmation, ingestion owns event receipts, analytics reads persisted facts, and administration authorizes internal operations. Do not allow controllers or analytics code to write another module's tables directly. Keep shared contracts free of persistence models and transport-specific exceptions.
 
 Use full names in authored code. Preserve external field names such as event_id and funnel_version exactly at contract boundaries. Exact dependency versions and package management tooling are pinned in package manifests and package-lock.json.
+
+## Browser application ownership
+
+The Next.js quiz owns reusable configuration-driven screen renderers, accessible navigation, draft persistence, browser command coordination, and the persistent observation queue. Keep browser-only storage and lifecycle work inside client components and their domain operations. Next.js owns presentation and page delivery; NestJS remains the sole owner of authentication, configuration access, assignment, routing decisions, validation, revisions, persistence, and event acceptance. Do not create a second session system or duplicate domain commands in Next.js route handlers or server actions. Initial shells must not create sessions during build, prefetch, or server rendering.
+
+Fetch the current session and its pinned configuration through the NestJS API. Bootstrap and creation are serialized browser operations; render only after their authoritative response. Avoid shared Next.js caching of session or answer data. Pure shared runtime operations may provide local feedback, but Continue submits to NestJS and reconciles its resulting state before advancing. New configuration publication and rollback require no quiz rebuild.
+
+The React/Vite administration application owns administrator sign-in/out, draft upload and validation feedback, version history, publication, rollback, and the analytics dashboard. Reuse its authenticated transport and page layout for dashboard filters and comparisons; do not build a third dashboard application. Frontend route protection is navigation feedback; every internal API retains NestJS authorization and CSRF enforcement. Keep administrator credentials out of both applications' assets and browser persistence.
+
+Share contracts and pure runtime through existing package exports. Do not couple the applications through source imports or extract a shared UI package before repeated components justify it. Each application owns its framework configuration, tests, fixtures and build output. Select and pin compatible Next.js/React versions when the quiz is scaffolded; that implementation and its dependency installation are separate from this plan update.
+
+Acceptance covers direct quiz reopening, Back/refresh, stale-tab reconciliation, queue retry after reopening, administrative deep links, and both applications reaching the same authorized API through the chosen origin. Browser evidence must cover cookie scope and session separation as well as presentation.
 
 ## Source configurations and iteration mapping
 
@@ -226,7 +242,7 @@ An event fingerprint uses the normalized event name, identifier, pinned session 
 
 Validate before opening a write transaction. Use short per-element transactions for this bounded batch endpoint: earlier committed elements survive a later storage failure, and retrying the whole batch safely deduplicates them. Derive session metadata inside the authenticated ownership boundary. Do not emit or acknowledge an accepted receipt before its commit. Preserve input positions because malformed events may lack event_id and duplicate identifiers may appear within the same batch.
 
-Keep a persistent browser queue with stable event identifiers, isolated by session/version. Bound queue item count, serialized bytes, batch size and retry duration in policy; surface a delivery problem instead of silently claiming analytics success when storage is unavailable or full. Retry bounded batches with backoff and jitter. Delete accepted or duplicate items only after receipts; separate permanent rejection from retryable failure. Unload delivery is best effort, and unacknowledged items remain queued for reopening. State the unavoidable limitation if a browser never returns with unsent events.
+Keep the persistent browser queue in applications/quiz with stable event identifiers, isolated by session/version. Bound queue item count, serialized bytes, batch size and retry duration in policy; surface a delivery problem instead of silently claiming analytics success when storage is unavailable or full. Retry bounded batches with backoff and jitter. Delete accepted or duplicate items only after receipts; separate permanent rejection from retryable failure. Unload delivery is best effort, and unacknowledged items remain queued for reopening. State the unavoidable limitation if a browser never returns with unsent events.
 
 Raw answers never enter analytics properties or logs. answer_submitted carries answer_kind rather than the answer. Client UI observations do not constitute fraud-proof behavioral evidence; state transitions are authoritative.
 
@@ -325,6 +341,20 @@ Within the final verification budget, benchmark a larger reproducible dataset in
 
 ## Delivery sequence and acceptance gates
 
+The completed backend iterations 1–7 remain the baseline. Proceed through these remaining gates in dependency order; runtime migration is not complete until its evidence exists. Planning the two browser applications does not imply either interface has been implemented.
+
+| Remaining gate                     | Work                                                                                                   | Acceptance                                                                                                                                                                                                                          |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Runtime and deployment feasibility | Bun backend execution with Node.js/npm fallback; choose persistent hosting and routing topology        | Clean documented installation and generated Prisma client; identical database migrations and backend integration behavior on both runtimes; startup, shutdown, contention and retry checks; explicit remaining compatibility limits |
+| Synthetic traffic                  | Authorized deterministic scenario generation through existing backend boundaries                       | At least 100 sessions, actual A/B and branch coverage, mixed/repeated/shuffled batches, independent expected-metrics manifest; no public synthetic-origin override                                                                  |
+| Quiz foundation                    | Scaffold applications/quiz with Next.js; integrate configuration-driven renderers and session commands | All screen types, v1 branches, explicit Continue, Back, draft restoration, pinned version/variant, revision conflict and expired-session UX pass browser tests                                                                      |
+| Quiz observation delivery          | Durable bounded queue and event lifecycle in the quiz                                                  | Stable identifiers, receipt-driven removal, timeout retry, storage failures, reopening and expiry isolation; backend remains authoritative for transition events                                                                    |
+| Administration and dashboard       | Extend applications/frontend with sign-in, configuration management and analytics pages                | Authorized publication/rollback through the page; all required session-based metrics and filters; zero-denominator, loading, failure and synthetic-data states                                                                      |
+| Configuration second iteration     | Exercise v2 then v3 and rollback through both applications                                             | The compatibility sequence below passes without manual database schema changes or lost historical facts; retained v3 sessions keep their declared action after rollback                                                             |
+| Release and handoff                | Public deployment, persistence recovery, regression and documentation                                  | Verified public quiz and administration URLs, shared API origin, database restart/redeployment survival, backup restore, actual timeline and reproducible reviewer commands                                                         |
+
+Backend traffic generation and browser work may proceed independently once the runtime/database contract is stable. Complete the v1 quiz and management flows before treating v3 as assignment second-iteration evidence. Budget remaining work against the actual agreed start and time left; the earlier allocation below is a planning reference, not a promise that completed infrastructure can substitute for these browser and release gates.
+
 | Elapsed budget | Work                                                        | Acceptance gate                                                                                                                             |
 | -------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | 0–6 hours      | Contracts, runtime, persistence design, hosting feasibility | Configurations and routes pass; select hosting and smoke-test public frontend/backend access, cookies, and persistent SQLite across restart |
@@ -345,7 +375,7 @@ Second-iteration acceptance is an explicit sequence:
 
 The schedule is a planning budget, not an actual development log. Record real milestones as work occurs.
 
-After contracts are stable, delegate frontend, backend, and independent verification with explicit file ownership. A dedicated integration/review pass checks all five dimensions: requirements, security, idempotency, complexity, and measured performance. Avoid simultaneous edits to shared contracts without coordination.
+After contracts are stable, delegate quiz, administration, backend, and independent verification with explicit file ownership. A dedicated integration/review pass checks all five dimensions: requirements, security, idempotency, complexity, and measured performance. Avoid simultaneous edits to shared contracts without coordination.
 
 ## Requirement traceability and definition of done
 
