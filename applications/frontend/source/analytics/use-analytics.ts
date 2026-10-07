@@ -1,6 +1,11 @@
 import { useEffect, useEffectEvent, useState } from 'react';
 import { ManagementClient, ManagementError } from '../management/management-client';
-import type { AnalyticsQuery, AnalyticsResponse, ConfigurationList, ManagementQuery } from '../management/management-types';
+import type {
+  AnalyticsQuery,
+  AnalyticsResponse,
+  ConfigurationList,
+  ManagementQuery,
+} from '../management/management-types';
 import { AnalyticsMessages } from './analytics-messages';
 
 type AnalyticsLoadResult<Result> =
@@ -15,8 +20,13 @@ interface CompletedAnalyticsRequest<Query, Result> {
   readonly result: AnalyticsLoadResult<Result>;
 }
 
-export function useAnalytics(query: AnalyticsQuery, sequence: number, onUnauthorized: () => void): AnalyticsLoadState<AnalyticsResponse> {
-  const [completedRequest, setCompletedRequest] = useState<Optional<CompletedAnalyticsRequest<AnalyticsQuery, AnalyticsResponse>>>();
+export function useAnalytics(
+  query: AnalyticsQuery,
+  sequence: number,
+  onUnauthorized: () => void,
+): AnalyticsLoadState<AnalyticsResponse> {
+  const [completedRequest, setCompletedRequest] =
+    useState<Optional<CompletedAnalyticsRequest<AnalyticsQuery, AnalyticsResponse>>>();
   const handleUnauthorized = useEffectEvent(onUnauthorized);
 
   useEffect(() => {
@@ -35,10 +45,19 @@ export function useAnalytics(query: AnalyticsQuery, sequence: number, onUnauthor
 
         if (error instanceof ManagementError && error.status === 401) {
           handleUnauthorized();
+
           return;
         }
 
-        setCompletedRequest({ query, sequence, result: { status: 'failed', message: error instanceof ManagementError ? error.message : AnalyticsMessages.Unavailable } });
+        setCompletedRequest({
+          query,
+          sequence,
+          result: {
+            status: 'failed',
+            message:
+              error instanceof ManagementError ? error.message : AnalyticsMessages.Unavailable,
+          },
+        });
       },
     );
 
@@ -50,8 +69,13 @@ export function useAnalytics(query: AnalyticsQuery, sequence: number, onUnauthor
     : { status: 'loading' };
 }
 
-export function useAnalyticsVersionOptions(query: ManagementQuery, sequence: number, onUnauthorized: () => void): AnalyticsLoadState<ConfigurationList> {
-  const [completedRequest, setCompletedRequest] = useState<Optional<CompletedAnalyticsRequest<ManagementQuery, ConfigurationList>>>();
+export function useAnalyticsVersionOptions(
+  query: ManagementQuery,
+  sequence: number,
+  onUnauthorized: () => void,
+): AnalyticsLoadState<ConfigurationList> {
+  const [completedRequest, setCompletedRequest] =
+    useState<Optional<CompletedAnalyticsRequest<ManagementQuery, ConfigurationList>>>();
   const handleUnauthorized = useEffectEvent(onUnauthorized);
 
   useEffect(() => {
@@ -70,10 +94,15 @@ export function useAnalyticsVersionOptions(query: ManagementQuery, sequence: num
 
         if (error instanceof ManagementError && error.status === 401) {
           handleUnauthorized();
+
           return;
         }
 
-        setCompletedRequest({ query, sequence, result: { status: 'failed', message: AnalyticsMessages.VersionsUnavailable } });
+        setCompletedRequest({
+          query,
+          sequence,
+          result: { status: 'failed', message: AnalyticsMessages.VersionsUnavailable },
+        });
       },
     );
 

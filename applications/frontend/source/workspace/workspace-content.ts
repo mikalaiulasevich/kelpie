@@ -1,0 +1,16 @@
+export const WorkspaceContent = {
+  Name: 'Kelpie',
+  Area: 'Workspace',
+  Analytics: 'Analytics',
+  Versions: 'Configurations',
+  History: 'Activation history',
+  Administrator: 'Administrator',
+  SignOut: 'Sign out',
+  SigningOut: 'Signing out…',
+  Funnel: 'Funnel identifier',
+  OpenFunnel: 'Open funnel',
+  InvalidFunnel: 'Use letters, numbers, underscores or hyphens; begin with a letter.',
+  RequestFailure: 'The request could not be completed. Please try again.',
+  Scope: 'Funnel operations',
+  Support: 'Published versions stay immutable. Existing sessions keep their original version.',
+} as const;

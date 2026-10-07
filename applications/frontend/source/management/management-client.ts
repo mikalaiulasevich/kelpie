@@ -1,5 +1,6 @@
 import { Ajv, type ValidateFunction } from 'ajv';
 import ky, { isTimeoutError } from 'ky';
+import { isUndefined } from 'es-toolkit/predicate';
 import { AdministrationPolicy } from '../administration/administration-policy';
 import { ManagementMessages } from './management-messages';
 import { ManagementPolicy, ManagementRequestPolicy } from './management-policy';
@@ -93,13 +94,18 @@ const ManagementResponse = {
     );
   },
 
-  async boundedErrorBody(response: Response): Promise<unknown> {
+  async boundedErrorBody(response: Response, signal: AbortSignal): Promise<unknown> {
     const reader = response.body?.getReader();
 
     if (!reader) {
       return undefined;
     }
 
+    const cancel = () => {
+      void reader.cancel();
+    };
+
+    signal.addEventListener('abort', cancel, { once: true });
     const decoder = new TextDecoder();
     let text = '';
     let bytes = 0;
@@ -129,7 +135,10 @@ const ManagementResponse = {
         return undefined;
       }
     } finally {
-      await reader.cancel();
+      signal.removeEventListener('abort', cancel);
+      // Ky clones hook responses; cancelling a tee branch can await the other branch indefinitely.
+      void reader.cancel();
+      reader.releaseLock();
     }
   },
 
@@ -137,7 +146,7 @@ const ManagementResponse = {
     const parameters = new URLSearchParams();
 
     for (const [key, value] of Object.entries(query)) {
-      if (value !== undefined) {
+      if (!isUndefined(value)) {
         parameters.set(key, String(value));
       }
     }
@@ -171,10 +180,10 @@ const ManagementResponse = {
           : {}),
         hooks: {
           afterResponse: [
-            async ({ response }) => {
+            async ({ response, request }) => {
               if (!response.ok) {
                 throw ManagementResponse.error(
-                  await ManagementResponse.boundedErrorBody(response),
+                  await ManagementResponse.boundedErrorBody(response, request.signal),
                   response.status,
                   mutation,
                 );

@@ -1,13 +1,13 @@
-import { cn } from "cn"
+import { ClassNames } from '../styling/combine-class-names';
 
-function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
+function Skeleton({ className, ...properties }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="skeleton"
-      className={cn("animate-pulse rounded-md bg-accent", className)}
-      {...props}
+      className={ClassNames.combine('animate-pulse rounded-md bg-accent', className)}
+      {...properties}
     />
-  )
+  );
 }
 
-export { Skeleton }
+export { Skeleton };

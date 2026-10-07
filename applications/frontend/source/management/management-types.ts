@@ -9,8 +9,12 @@ const ManagementFields = {
   }),
   Count: Type.Integer({ minimum: 0, maximum: Number.MAX_SAFE_INTEGER }),
   VersionIdentifier: Type.String({ pattern: ManagementPolicy.UuidPattern }),
-  Variant: Type.Enum({ A: 'A', B: 'B' }),
-  TrafficOrigin: Type.Enum({ Production: 'production', Synthetic: 'synthetic', All: 'all' }),
+  Variant: Type.Enum({ A: 'A', B: 'B' } as const),
+  TrafficOrigin: Type.Enum({
+    Production: 'production',
+    Synthetic: 'synthetic',
+    All: 'all',
+  } as const),
   Funnel: Type.Object({
     identifier: Type.String(),
     activeVersionIdentifier: Type.Union([Type.String(), Type.Null()]),
@@ -87,7 +91,7 @@ const step = Type.Union([
         Number: 'number',
         SingleSelect: 'single-select',
         MultiSelect: 'multi-select',
-      }),
+      } as const),
       completed: ManagementFields.Count,
       completion: ratio,
       noncompletion,
@@ -135,7 +139,7 @@ export const ManagementSchemas = {
     nextOffset: Type.Union([Type.Integer(), Type.Null()]),
   }),
   ConfigurationImportResult: Type.Object({
-    outcome: Type.Enum({ Created: 'created', Existing: 'existing' }),
+    outcome: Type.Enum({ Created: 'created', Existing: 'existing' } as const),
     version: ManagementFields.Version,
   }),
   Publication: publication,
