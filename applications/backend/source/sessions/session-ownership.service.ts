@@ -71,24 +71,45 @@ export class SessionOwnershipService {
     if (!authentic) {
       return { hash: null, expired: false };
     }
+    const hash = CredentialSignatures.hash(`${payload}.${signature}`);
     const age = Date.now() - Number(timestamp);
-    if (age < 0 || age >= SessionPolicy.CookieLifetimeMilliseconds) {
+    if (age < 0) {
       return { hash: null, expired: true };
     }
+    if (age >= SessionPolicy.CookieLifetimeMilliseconds) {
+      const bound = await this.database.client.session.findUnique({
+        where: { accessTokenHash: hash },
+        select: { expiresAt: true },
+      });
+      if (isNull(bound) || bound.expiresAt.getTime() <= Date.now()) {
+        return { hash: null, expired: true };
+      }
+    }
 
-    return { hash: CredentialSignatures.hash(`${payload}.${signature}`), expired: false };
+    return { hash, expired: false };
+  }
+
+  refresh(request: FastifyRequest, reply: FastifyReply, expiresAt: Date): void {
+    const cookie = request.cookies[SessionPolicy.CookieName];
+    if (isString(cookie)) {
+      this.setCookie(reply, cookie, Math.max(0, expiresAt.getTime() - Date.now()));
+    }
   }
 
   async issue(reply: FastifyReply): Promise<void> {
     const token = randomBytes(SessionPolicy.TokenBytes).toString(SessionPolicy.BinaryEncoding);
     const payload = `${token}.${Date.now()}`;
     const signature = CredentialSignatures.sign(payload, await this.secret());
-    reply.setCookie(SessionPolicy.CookieName, `${payload}.${signature}`, {
+    this.setCookie(reply, `${payload}.${signature}`, SessionPolicy.CookieLifetimeMilliseconds);
+  }
+
+  private setCookie(reply: FastifyReply, value: string, lifetimeMilliseconds: number): void {
+    reply.setCookie(SessionPolicy.CookieName, value, {
       path: SessionPolicy.CookiePath,
       httpOnly: true,
       sameSite: SessionPolicy.SameSite,
       secure: this.environment.values.mode === ApplicationMode.Production,
-      maxAge: SessionPolicy.CookieLifetimeMilliseconds / 1000,
+      maxAge: Math.ceil(lifetimeMilliseconds / SessionPolicy.MillisecondsPerSecond),
     });
   }
 

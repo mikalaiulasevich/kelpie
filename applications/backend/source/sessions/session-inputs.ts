@@ -14,7 +14,11 @@ const validators = {
 
 export const SessionInputs = {
   create(body: unknown): CreateSessionRequest {
-    if (!validators.create(body) || !Number.isFinite(Date.parse(body.clientTimestamp))) {
+    if (
+      !validators.create(body) ||
+      !Number.isFinite(Date.parse(body.clientTimestamp)) ||
+      new Date(body.clientTimestamp).toISOString() !== body.clientTimestamp
+    ) {
       throw new PublicRequestError(
         HttpStatus.BAD_REQUEST,
         SessionErrorCode.Invalid,

@@ -6,10 +6,13 @@ import {
   type FunnelConfiguration,
 } from '@kelpie/contracts';
 import { FunnelEvaluation } from '@kelpie/funnel-runtime';
-import { isNull } from 'es-toolkit/predicate';
+import { isNull, isUndefined } from 'es-toolkit/predicate';
 import { sortBy } from 'es-toolkit/array';
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import type { Prisma } from '../../generated/prisma/client.js';
+import { ConfigurationImportDocument } from '../configurations/configuration-import-document.js';
+import { DatabaseErrors } from '../database/database-errors.js';
+import { SessionRecords } from './session-records.js';
 import { DatabaseService } from '../database/database.service.js';
 import { PublicRequestError } from '../transport/public-request-error.js';
 import { SessionEvents } from '../events/session-events.js';
@@ -28,14 +31,23 @@ import type {
 } from './session-types.js';
 
 const SessionCreation = {
-  fingerprint(body: CreateSessionRequest, query: SessionQuery): string {
+  fingerprint(
+    body: CreateSessionRequest,
+    query: SessionQuery,
+    configuration: FunnelConfiguration,
+  ): string {
+    const relevantQuery = {
+      ...SessionInputs.acquisition(query),
+      [configuration.experiment.overrideQueryParam]:
+        query[configuration.experiment.overrideQueryParam] ?? null,
+    };
     return createHash(SessionPolicy.HashAlgorithm)
       .update(
         JSON.stringify([
           'create',
           body.funnelIdentifier,
           body.clientTimestamp,
-          sortBy(Object.entries(query), [([key]) => key]),
+          sortBy(Object.entries(relevantQuery), [([key]) => key]),
         ]),
       )
       .digest(SessionPolicy.HashEncoding);
@@ -45,6 +57,13 @@ const SessionCreation = {
     const override = query[configuration.experiment.overrideQueryParam];
     if (override === ExperimentVariant.A || override === ExperimentVariant.B) {
       return { variant: override, source: SessionPolicy.Assignment.Forced };
+    }
+    if (!isUndefined(override)) {
+      throw new PublicRequestError(
+        HttpStatus.BAD_REQUEST,
+        SessionErrorCode.Invalid,
+        SessionMessages.Invalid,
+      );
     }
     const variants = configuration.experiment.variants;
     const threshold = variants.A.weight / (variants.A.weight + variants.B.weight);
@@ -128,26 +147,64 @@ export class SessionService {
 
   async create(
     request: FastifyRequest,
-    _reply: FastifyReply,
+    reply: FastifyReply,
     document: unknown,
     parameters: unknown,
   ): Promise<SessionState> {
     this.ownership.assertMutation(request);
     const body = SessionInputs.create(document);
     const query = SessionInputs.query(parameters);
-    const fingerprint = SessionCreation.fingerprint(body, query);
     const credentialHash = await this.ownership.requireCredential(request);
 
+    const state = await this.createOrReplay(credentialHash, body, query);
+    const session = await SessionRecords.requireOwned(this.database.client, credentialHash);
+    this.ownership.refresh(request, reply, session.expiresAt);
+
+    return state;
+  }
+
+  private async createOrReplay(
+    credentialHash: string,
+    body: CreateSessionRequest,
+    query: SessionQuery,
+  ): Promise<SessionState> {
+    try {
+      return await this.createTransaction(credentialHash, body, query);
+    } catch (error) {
+      if (!DatabaseErrors.isUniqueConstraint(error)) {
+        throw error;
+      }
+      const winner = await SessionRecords.requireOwned(this.database.client, credentialHash);
+
+      return SessionCreation.replay(
+        this.database.client,
+        winner,
+        body,
+        SessionCreation.fingerprint(body, query, SessionProjection.configuration(winner)),
+      );
+    }
+  }
+
+  private createTransaction(
+    credentialHash: string,
+    body: CreateSessionRequest,
+    query: SessionQuery,
+  ): Promise<SessionState> {
     return this.database.client.$transaction(async (transaction) => {
       const existing = await transaction.session.findUnique({
         where: { accessTokenHash: credentialHash },
         include: SessionPolicy.RecordInclude,
       });
       if (!isNull(existing)) {
-        return SessionCreation.replay(transaction, existing, body, fingerprint);
+        return SessionCreation.replay(
+          transaction,
+          existing,
+          body,
+          SessionCreation.fingerprint(body, query, SessionProjection.configuration(existing)),
+        );
       }
 
-      return this.createOwned(transaction, credentialHash, body, query, fingerprint);
+      return this.createOwned(transaction, credentialHash, body, query);
     });
   }
 
@@ -156,7 +213,6 @@ export class SessionService {
     credentialHash: string,
     body: CreateSessionRequest,
     query: SessionQuery,
-    fingerprint: string,
   ): Promise<SessionState> {
     const funnel = await transaction.funnel.findUnique({
       where: { identifier: body.funnelIdentifier },
@@ -169,11 +225,12 @@ export class SessionService {
         SessionMessages.Unavailable,
       );
     }
-    const validated = FunnelConfigurations.validate(funnel.activeVersion.document);
-    if (!validated.valid) {
+    const prepared = ConfigurationImportDocument.prepare(funnel.activeVersion.document);
+    if (!ConfigurationImportDocument.matchesVersion(funnel.activeVersion, prepared)) {
       throw new Error(SessionMessages.Corrupted);
     }
-    const configuration = validated.configuration;
+    const configuration = prepared.configuration;
+    const fingerprint = SessionCreation.fingerprint(body, query, configuration);
     const assignment = SessionCreation.assignment(configuration, query);
     const first = FunnelEvaluation.evaluate(configuration, assignment.variant, {}).route.steps[0];
     if (!first) {

@@ -8,6 +8,7 @@ export const SessionPolicy = {
   TokenBytes: 32,
   SecretBytes: 32,
   CookieLifetimeMilliseconds: 72 * 60 * 60 * 1000,
+  MillisecondsPerSecond: 1000,
   MillisecondsPerHour: 60 * 60 * 1000,
   CookiePattern: /^([A-Za-z0-9_-]{43})\.([0-9]{13})\.([A-Za-z0-9_-]{43})$/,
   HashAlgorithm: 'sha256',
