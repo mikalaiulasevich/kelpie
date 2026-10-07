@@ -52,6 +52,8 @@ export function Workspace({ identity, signOut, onUnauthorized }: WorkspaceProper
   const [message, setMessage] = useState('');
   const mounted = useRef(true);
   const signOutPending = useRef(false);
+  const dialogReturnTarget = useRef<Optional<HTMLElement>>(undefined);
+  const pageContainer = useRef<HTMLElement>(null);
   const title = match(page)
     .with(WorkspacePage.Analytics, () => WorkspaceContent.Analytics)
     .with(WorkspacePage.Versions, WorkspacePage.Version, () => WorkspaceContent.Versions)
@@ -69,7 +71,34 @@ export function Workspace({ identity, signOut, onUnauthorized }: WorkspaceProper
     };
   }, []);
 
-  const openImport = useCallback(() => setImportOpen(true), []);
+  const captureDialogTarget = useCallback(() => {
+    dialogReturnTarget.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : undefined;
+  }, []);
+  const restoreDialogFocus = useCallback(() => {
+    const target = dialogReturnTarget.current;
+
+    if (target?.isConnected) {
+      target.focus({ preventScroll: true });
+    } else {
+      pageContainer.current?.focus({ preventScroll: true });
+    }
+  }, []);
+  const openImport = useCallback(() => {
+    captureDialogTarget();
+    setImportOpen(true);
+  }, [captureDialogTarget]);
+  const openIntent = useCallback(
+    (nextIntent: PublicationIntent, returnFocusTarget?: HTMLElement) => {
+      captureDialogTarget();
+      if (returnFocusTarget) {
+        dialogReturnTarget.current = returnFocusTarget;
+      }
+
+      setIntent(nextIntent);
+    },
+    [captureDialogTarget],
+  );
   const onImported = useCallback((identifier: string) => {
     setRevision((value) => value + 1);
     WorkspaceNavigation.navigate(WorkspacePage.Versions, identifier);
@@ -131,7 +160,7 @@ export function Workspace({ identity, signOut, onUnauthorized }: WorkspaceProper
           </div>
           <FunnelSelector key={funnelIdentifier} funnelIdentifier={funnelIdentifier} page={page} />
         </header>
-        <main className="min-w-0 flex-1 p-5 sm:p-8 lg:p-10">
+        <main ref={pageContainer} tabIndex={-1} className="min-w-0 flex-1 p-5 sm:p-6 lg:p-8">
           {message && (
             <Alert variant="destructive" className="mb-6">
               <AlertDescription>{message}</AlertDescription>
@@ -144,7 +173,7 @@ export function Workspace({ identity, signOut, onUnauthorized }: WorkspaceProper
             revision={revision}
             onUnauthorized={onUnauthorized}
             onImport={openImport}
-            onIntent={setIntent}
+            onIntent={openIntent}
           />
         </main>
       </SidebarInset>
@@ -152,6 +181,7 @@ export function Workspace({ identity, signOut, onUnauthorized }: WorkspaceProper
         {importOpen && (
           <ConfigurationImportDialog
             onClose={() => setImportOpen(false)}
+            onReturnFocus={restoreDialogFocus}
             onImported={onImported}
             onUnauthorized={onUnauthorized}
           />
@@ -162,6 +192,7 @@ export function Workspace({ identity, signOut, onUnauthorized }: WorkspaceProper
             ownerIdentifier={identity.identifier}
             intent={intent}
             onClose={() => setIntent(undefined)}
+            onReturnFocus={restoreDialogFocus}
             onChanged={onChanged}
             onUnauthorized={onUnauthorized}
           />

@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
-import { BarChart3, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { BarChart3, ChevronDown, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../components/alert';
 import { Badge } from '../components/badge';
 import { Button } from '../components/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../components/collapsible';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '../components/empty';
 import { Skeleton } from '../components/skeleton';
 import type { AnalyticsQuery } from '../management/management-types';
@@ -41,16 +41,12 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
   const refresh = () => setRefreshSequence((sequence) => sequence + 1);
 
   return (
-    <div className="flex min-w-0 flex-col gap-7">
+    <div className="flex min-w-0 flex-col gap-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex max-w-2xl flex-col gap-2">
-          <span className="text-xs font-medium uppercase tracking-widest text-primary">
-            Measure & learn
-          </span>
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Funnel analytics</h1>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            Understand every step, compare A/B variants, and see how visitors reach their
-            recommendations.
+        <div className="flex flex-col gap-1.5">
+          <h1 className="workspace-page-title">Analytics</h1>
+          <p className="text-sm text-muted-foreground">
+            Sessions, conversions, and paths by version.
           </p>
         </div>
         <Button variant="outline" disabled={isLoading} onClick={refresh}>
@@ -76,34 +72,36 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
         <Badge variant="outline">{AnalyticsFilterSelection.campaignLabel(appliedFilters)}</Badge>
       </div>
       {appliedFilters.trafficOrigin !== 'production' && (
-        <Alert>
-          <AlertTitle>
-            {appliedFilters.trafficOrigin === 'synthetic'
-              ? 'Synthetic traffic selected'
-              : 'Production and synthetic traffic combined'}
-          </AlertTitle>
-          <AlertDescription>
-            Synthetic sessions help verify calculations. They do not establish experimental
-            effectiveness.
-          </AlertDescription>
-        </Alert>
+        <p className="text-xs text-muted-foreground">
+          Synthetic sessions are included. These data do not establish experimental effectiveness.
+        </p>
       )}
-      <Card>
-        <CardHeader>
-          <CardTitle>The experiment hypothesis</CardTitle>
-          <CardDescription>
-            Variant B increases the share of started sessions opening recommendations through
-            improved question order and result framing.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            CTA conversion is the primary metric. Result completion and CTA click-through are
-            supporting diagnostics. Compare A/B within the same version and experiment; comparisons
-            across versions are descriptive.
-          </p>
-        </CardContent>
-      </Card>
+      <Collapsible>
+        <CollapsibleTrigger asChild>
+          <Button variant="ghost" size="sm">
+            Metric definitions
+            <ChevronDown data-icon="inline-end" />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pt-3">
+          <div className="flex max-w-3xl flex-col gap-2 text-sm text-muted-foreground">
+            <p>
+              CTA conversion is the primary metric. Result completion and CTA click-through are
+              supporting diagnostics. Compare A/B within the same version and experiment;
+              comparisons across versions are descriptive.
+            </p>
+            <p>
+              Hypothesis: variant B increases the share of started sessions opening recommendations
+              through question order and result framing.
+            </p>
+            <p>
+              Filters apply to every numerator and denominator. Campaigns use acquisition UTM
+              captured when a session starts. Counts deduplicate repeated views and Back. Exclude
+              forced assignments for the main A/B comparison.
+            </p>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
       {analytics.status === 'loading' && (
         <div aria-label="Loading analytics" aria-busy="true" className="flex flex-col gap-4">
           <span className="sr-only" role="status">
@@ -147,7 +145,7 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
               </EmptyHeader>
             </Empty>
           ) : (
-            <div className="flex min-w-0 flex-col gap-10">
+            <div className="flex min-w-0 flex-col gap-6">
               {analytics.response.versions.map((version) => (
                 <AnalyticsVersionPanel key={version.versionIdentifier} version={version} />
               ))}

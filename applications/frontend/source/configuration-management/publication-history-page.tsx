@@ -15,6 +15,7 @@ import {
   CardTitle,
 } from '../components/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/table';
+import { Separator } from '../components/separator';
 import { Skeleton } from '../components/skeleton';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '../components/empty';
 import { Alert, AlertDescription, AlertTitle } from '../components/alert';
@@ -55,10 +56,9 @@ export function PublicationHistoryPage({
   const reload = () => setRefresh((value) => value + 1);
 
   return (
-    <div className="workspace-page flex flex-col gap-7">
-      <div className="flex flex-wrap items-end justify-between gap-5">
-        <div className="flex flex-col gap-3">
-          <p className="page-eyebrow">{ConfigurationContent.HistoryEyebrow}</p>
+    <div className="workspace-page flex flex-col gap-5">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-col gap-2">
           <h1 className="page-title">{ConfigurationContent.HistoryHeading}</h1>
           <p className="page-description">{ConfigurationContent.HistoryDescription}</p>
         </div>
@@ -82,10 +82,10 @@ export function PublicationHistoryPage({
         </Alert>
       )}
       {resource.status === 'ready' && (
-        <Card>
-          <CardHeader className="flex flex-wrap items-center justify-between gap-4">
+        <Card className="gap-0 overflow-hidden">
+          <CardHeader className="flex flex-wrap items-center justify-between gap-3 pb-4">
             <div className="flex flex-col gap-1.5">
-              <CardTitle>Activation log</CardTitle>
+              <CardTitle>Activations</CardTitle>
               <CardDescription>
                 {funnelIdentifier} · Current revision {resource.data.funnel.revision}
               </CardDescription>
@@ -109,7 +109,8 @@ export function PublicationHistoryPage({
               {ConfigurationContent.Rollback}
             </Button>
           </CardHeader>
-          <CardContent>
+          <Separator />
+          <CardContent className="px-0">
             {resource.data.items.length === 0 ? (
               <Empty>
                 <EmptyHeader>
@@ -123,7 +124,7 @@ export function PublicationHistoryPage({
                 </EmptyHeader>
               </Empty>
             ) : (
-              <Table>
+              <Table className="[&_td]:py-3 [&_td:first-child]:pl-5 [&_td:last-child]:pr-5 [&_th:first-child]:pl-5 [&_th:last-child]:pr-5">
                 <TableHeader>
                   <TableRow>
                     <TableHead>{ConfigurationContent.Revision}</TableHead>
@@ -145,13 +146,16 @@ export function PublicationHistoryPage({
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <code title={item.targetVersionIdentifier}>
+                        <code title={item.targetVersionIdentifier} className="text-xs">
                           {ConfigurationFormat.identifier(item.targetVersionIdentifier)}
                         </code>
                       </TableCell>
                       <TableCell>
                         {item.previousVersionIdentifier ? (
-                          <code title={item.previousVersionIdentifier}>
+                          <code
+                            title={item.previousVersionIdentifier}
+                            className="text-xs text-muted-foreground"
+                          >
                             {ConfigurationFormat.identifier(item.previousVersionIdentifier)}
                           </code>
                         ) : (
@@ -172,7 +176,8 @@ export function PublicationHistoryPage({
               </Table>
             )}
           </CardContent>
-          <CardFooter className="flex flex-wrap items-center justify-between gap-3">
+          <Separator />
+          <CardFooter className="flex flex-wrap items-center justify-between gap-3 pt-4">
             <p className="text-xs text-muted-foreground">
               Showing {offset + (resource.data.items.length > 0 ? 1 : 0)}–
               {offset + resource.data.items.length}

@@ -42,8 +42,8 @@ export function WorkspaceSidebar({
   const { setOpenMobile } = useSidebar();
 
   return (
-    <Sidebar collapsible="icon" variant="inset">
-      <SidebarHeader className="p-4">
+    <Sidebar collapsible="icon" variant="sidebar">
+      <SidebarHeader className="p-3">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
@@ -51,7 +51,7 @@ export function WorkspaceSidebar({
                 href={WorkspaceNavigation.href(WorkspacePage.Analytics, funnelIdentifier)}
                 onClick={() => setOpenMobile(false)}
               >
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
                   <Command />
                 </span>
                 <span className="grid gap-0.5">
@@ -90,11 +90,8 @@ export function WorkspaceSidebar({
             ))}
           </SidebarMenu>
         </SidebarGroup>
-        <div className="mx-4 mt-auto rounded-xl border border-sidebar-border p-4 text-xs leading-relaxed text-muted-foreground group-data-[collapsible=icon]:hidden">
-          {WorkspaceContent.Support}
-        </div>
       </SidebarContent>
-      <SidebarFooter className="p-4">
+      <SidebarFooter className="p-3">
         <SidebarMenu>
           <SidebarMenuItem>
             <div className="flex items-center gap-3 p-2 group-data-[collapsible=icon]:p-0">

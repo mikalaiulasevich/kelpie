@@ -20,6 +20,7 @@ import { ConfigurationFormat } from './configuration-format';
 
 interface ConfigurationImportDialogProperties {
   onClose: () => void;
+  onReturnFocus?: () => void;
   onImported: (funnelIdentifier: string) => void;
   onUnauthorized: () => void;
 }
@@ -32,6 +33,7 @@ interface SelectedConfiguration {
 
 export function ConfigurationImportDialog({
   onClose,
+  onReturnFocus,
   onImported,
   onUnauthorized,
 }: ConfigurationImportDialogProperties): UIElement {
@@ -143,6 +145,12 @@ export function ConfigurationImportDialog({
       }}
     >
       <DialogContent
+        onCloseAutoFocus={(event) => {
+          if (onReturnFocus) {
+            event.preventDefault();
+            onReturnFocus();
+          }
+        }}
         showCloseButton={!pending}
         onEscapeKeyDown={(event) => {
           if (pending) {

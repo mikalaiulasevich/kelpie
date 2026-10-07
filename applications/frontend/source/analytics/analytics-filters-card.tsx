@@ -1,8 +1,7 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { isNull } from 'es-toolkit/predicate';
-import { SlidersHorizontal } from 'lucide-react';
 import { Button } from '../components/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/card';
 import { Field, FieldDescription, FieldGroup, FieldLabel } from '../components/field';
 import { Input } from '../components/input';
 import {
@@ -59,19 +58,12 @@ export function AnalyticsFiltersCard({
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <SlidersHorizontal className="size-4 text-muted-foreground" aria-hidden="true" />
-          <CardTitle>Cohort filters</CardTitle>
-        </div>
-        <CardDescription>
-          Filters apply to every numerator and denominator. Campaigns use acquisition UTM captured
-          once when a session starts.
-        </CardDescription>
+      <CardHeader className="sr-only">
+        <CardTitle>Filters</CardTitle>
       </CardHeader>
       <CardContent className="@container/analytics-filters">
-        <form className="flex flex-col gap-5" onSubmit={applyFilters}>
-          <FieldGroup className="grid grid-cols-1 gap-5 @min-[36rem]/analytics-filters:grid-cols-2 @min-[56rem]/analytics-filters:grid-cols-3">
+        <form className="flex flex-col gap-4" onSubmit={applyFilters}>
+          <FieldGroup className="grid grid-cols-1 gap-4 @min-[36rem]/analytics-filters:grid-cols-2 @min-[56rem]/analytics-filters:grid-cols-3">
             <Field>
               <FieldLabel htmlFor="analytics-version">Version</FieldLabel>
               <Select
@@ -155,7 +147,7 @@ export function AnalyticsFiltersCard({
               )}
             </Field>
             <Field>
-              <FieldLabel htmlFor="analytics-campaign-mode">Campaign matching</FieldLabel>
+              <FieldLabel htmlFor="analytics-campaign-mode">Campaign</FieldLabel>
               <Select
                 value={draftFilters.campaignMode}
                 onValueChange={(campaignMode) => {
@@ -181,10 +173,10 @@ export function AnalyticsFiltersCard({
               </Select>
             </Field>
             <Field data-disabled={draftFilters.campaignMode !== 'exact'}>
-              <FieldLabel htmlFor="analytics-campaign">Acquisition campaign</FieldLabel>
+              <FieldLabel htmlFor="analytics-campaign">Campaign value</FieldLabel>
               <Input
                 id="analytics-campaign"
-                placeholder="e.g. autumn-launch"
+                placeholder="Case-sensitive UTM value"
                 maxLength={AnalyticsPagePolicy.MaximumCampaignLength}
                 value={draftFilters.campaign}
                 disabled={draftFilters.campaignMode !== 'exact'}
@@ -192,14 +184,13 @@ export function AnalyticsFiltersCard({
                   setDraftFilters((filters) => ({ ...filters, campaign: event.target.value }))
                 }
               />
-              <FieldDescription>Exact, case-sensitive UTM campaign value.</FieldDescription>
             </Field>
             <Field>
               <FieldLabel id="analytics-origin-label">Traffic origin</FieldLabel>
               <ToggleGroup
                 type="single"
                 variant="outline"
-                spacing={2}
+                spacing={0}
                 className="w-full flex-wrap"
                 value={draftFilters.trafficOrigin}
                 aria-labelledby="analytics-origin-label"
@@ -223,7 +214,7 @@ export function AnalyticsFiltersCard({
               <ToggleGroup
                 type="single"
                 variant="outline"
-                spacing={2}
+                spacing={0}
                 className="w-full flex-wrap"
                 value={draftFilters.includeForced ? 'include' : 'exclude'}
                 aria-labelledby="analytics-forced-label"
@@ -239,15 +230,11 @@ export function AnalyticsFiltersCard({
                 <ToggleGroupItem value="exclude">Exclude</ToggleGroupItem>
                 <ToggleGroupItem value="include">Include</ToggleGroupItem>
               </ToggleGroup>
-              <FieldDescription>Exclude overrides for the main A/B comparison.</FieldDescription>
+            </Field>
+            <Field className="justify-end">
+              <Button type="submit">Apply filters</Button>
             </Field>
           </FieldGroup>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-xs text-muted-foreground">
-              Session counts are deduplicated across repeated views and Back.
-            </p>
-            <Button type="submit">Apply filters</Button>
-          </div>
         </form>
       </CardContent>
     </Card>

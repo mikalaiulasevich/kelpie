@@ -12,7 +12,7 @@ describe('analytics presentation', () => {
 
     expect(markup.match(/Not applicable/g)).toHaveLength(3);
     expect(markup.match(/0 \/ 0 sessions/g)).toHaveLength(3);
-    expect(markup).toContain('Waiting for session observations');
+    expect(markup).toContain('No sessions yet');
     expect(markup).not.toContain('>0%</');
     expect(markup).not.toContain('Loading comparison chart');
   });
@@ -29,7 +29,7 @@ describe('analytics presentation', () => {
     expect(markup).toContain('2 / 4 sessions');
     expect(markup).toContain('CTA conversion · primary');
     expect(markup).not.toContain('Not applicable');
-    expect(markup).not.toContain('Waiting for session observations');
+    expect(markup).not.toContain('No sessions yet');
     expect(markup).toContain('Loading comparison chart');
   });
 });

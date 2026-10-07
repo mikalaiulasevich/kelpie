@@ -36,7 +36,7 @@ interface WorkspacePageContentProperties {
   revision: number;
   onUnauthorized: () => void;
   onImport: () => void;
-  onIntent: (intent: PublicationIntent) => void;
+  onIntent: (intent: PublicationIntent, returnFocusTarget?: HTMLElement) => void;
 }
 
 export function WorkspacePageContent({

@@ -85,11 +85,8 @@ export function AdministrationForm({ signIn }: AdministrationFormProperties): UI
   };
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-3">
-        <div className="form-emblem" aria-hidden="true">
-          <LockKeyhole />
-        </div>
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-2">
         <h1 className="auth-title">{AdministrationContent.SignInTitle}</h1>
         <p className="auth-description">{AdministrationContent.SignInDescription}</p>
       </div>
@@ -199,11 +196,7 @@ export function AdministrationForm({ signIn }: AdministrationFormProperties): UI
       </form>
       <div className="flex flex-col gap-5">
         <Separator />
-        <p className="access-note">
-          {AdministrationContent.AccessNote}
-          <br />
-          {AdministrationContent.AccessHelp}
-        </p>
+        <p className="access-note">{AdministrationContent.AccessHelp}</p>
       </div>
     </div>
   );

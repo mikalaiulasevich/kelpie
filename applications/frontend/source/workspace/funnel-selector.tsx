@@ -34,13 +34,13 @@ export function FunnelSelector({
   };
 
   return (
-    <form onSubmit={submit} className="w-full max-w-sm">
+    <form onSubmit={submit} className="w-full sm:max-w-xs">
       <FieldGroup>
         <Field data-invalid={invalid}>
           <FieldLabel htmlFor="workspace-funnel" className="sr-only">
             {WorkspaceContent.Funnel}
           </FieldLabel>
-          <InputGroup className="h-10">
+          <InputGroup className="h-10 sm:h-9">
             <InputGroupAddon>
               <Layers3 aria-hidden="true" />
             </InputGroupAddon>

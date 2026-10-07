@@ -1,12 +1,11 @@
 import { useCallback, useState } from 'react';
-import { ArrowLeft, RefreshCw, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, ChevronDown, RefreshCw } from 'lucide-react';
 import { ManagementClient, ManagementError } from '../management/management-client';
 import { ManagementMessages } from '../management/management-messages';
 import { useManagementRead } from '../management/use-management-read';
 import { Button } from '../components/button';
-import { Badge } from '../components/badge';
 import { Alert, AlertDescription, AlertTitle } from '../components/alert';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../components/collapsible';
 import { Skeleton } from '../components/skeleton';
 import { WorkspaceNavigation, WorkspacePage } from '../workspace/workspace-navigation';
 import { ConfigurationInspection } from './configuration-inspection';
@@ -42,7 +41,7 @@ export function ConfigurationVersionPage({
   );
 
   return (
-    <div className="workspace-page flex min-w-0 flex-col gap-7">
+    <div className="workspace-page flex min-w-0 flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Button variant="ghost" asChild>
           <a href={WorkspaceNavigation.href(WorkspacePage.Versions, funnelIdentifier)}>
@@ -83,47 +82,48 @@ export function ConfigurationVersionPage({
       )}
       {resource.status === 'ready' && (
         <>
-          <div className="flex flex-col gap-3">
-            <p className="page-eyebrow">CONFIGURATION INSPECTOR</p>
-            <div className="flex flex-wrap items-center gap-3">
+          <div className="flex min-w-0 flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
               <h1 className="page-title">Version {resource.data.version.version}</h1>
-              <Badge variant="secondary">
-                <ShieldCheck data-icon="inline-start" />
-                Immutable
-              </Badge>
+              <p className="page-description">{resource.data.document.title}</p>
             </div>
-            <p className="page-description">{resource.data.document.title}</p>
-            <p className="text-sm text-muted-foreground">
-              Inspect the saved document before choosing what goes live. Viewing this version does
-              not activate it.
+            <dl className="flex flex-wrap gap-x-8 gap-y-3 text-sm">
+              {[
+                { label: 'Funnel', value: resource.data.version.funnelIdentifier },
+                { label: 'Locale', value: resource.data.document.locale },
+                { label: 'Schema', value: resource.data.version.schemaVersion },
+                { label: 'Source status', value: resource.data.document.status },
+              ].map((item) => (
+                <div key={item.label} className="flex min-w-0 flex-col gap-1">
+                  <dt className="text-xs text-muted-foreground">{item.label}</dt>
+                  <dd className="break-all">{item.value}</dd>
+                </div>
+              ))}
+            </dl>
+            <Collapsible>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  Identifiers
+                  <ChevronDown data-icon="inline-end" />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pt-3">
+                <dl className="grid min-w-0 gap-3 text-xs sm:grid-cols-2">
+                  <div className="min-w-0">
+                    <dt className="text-muted-foreground">Version identifier</dt>
+                    <dd className="mt-1 break-all font-mono">{resource.data.version.identifier}</dd>
+                  </div>
+                  <div className="min-w-0">
+                    <dt className="text-muted-foreground">Content fingerprint</dt>
+                    <dd className="mt-1 break-all font-mono">{resource.data.version.checksum}</dd>
+                  </div>
+                </dl>
+              </CollapsibleContent>
+            </Collapsible>
+            <p className="text-xs text-muted-foreground">
+              Read-only document. Source status is separate from live activation.
             </p>
           </div>
-          <Card>
-            <CardHeader>
-              <CardTitle>Document identity</CardTitle>
-              <CardDescription>
-                Metadata from the backend. The document status describes its source; activation is
-                tracked separately.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <dl className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                {[
-                  { label: 'Funnel', value: resource.data.version.funnelIdentifier },
-                  { label: 'Schema', value: resource.data.version.schemaVersion },
-                  { label: 'Locale', value: resource.data.document.locale },
-                  { label: 'Source status', value: resource.data.document.status },
-                  { label: 'Version identifier', value: resource.data.version.identifier },
-                  { label: 'Content fingerprint', value: resource.data.version.checksum },
-                ].map((item) => (
-                  <div key={item.label} className="flex min-w-0 flex-col gap-1.5">
-                    <dt className="text-xs text-muted-foreground">{item.label}</dt>
-                    <dd className="break-all font-mono text-xs">{item.value}</dd>
-                  </div>
-                ))}
-              </dl>
-            </CardContent>
-          </Card>
           <ConfigurationInspection configuration={resource.data.document} />
         </>
       )}

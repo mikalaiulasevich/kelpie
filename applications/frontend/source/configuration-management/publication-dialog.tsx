@@ -20,6 +20,7 @@ interface PublicationDialogProperties {
   ownerIdentifier: string;
   intent: PublicationIntent;
   onClose: () => void;
+  onReturnFocus?: () => void;
   onChanged: (funnelIdentifier: string) => void;
   onUnauthorized: () => void;
 }
@@ -44,6 +45,7 @@ export function PublicationDialog({
   ownerIdentifier,
   intent,
   onClose,
+  onReturnFocus,
   onChanged,
   onUnauthorized,
 }: PublicationDialogProperties): UIElement {
@@ -131,6 +133,12 @@ export function PublicationDialog({
       }}
     >
       <DialogContent
+        onCloseAutoFocus={(event) => {
+          if (onReturnFocus) {
+            event.preventDefault();
+            onReturnFocus();
+          }
+        }}
         showCloseButton={!pending && !uncertain}
         onEscapeKeyDown={(event) => {
           if (pending || uncertain) {

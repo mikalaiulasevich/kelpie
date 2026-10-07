@@ -2,7 +2,6 @@ import { ConfigurationJson } from './configuration-json';
 import { useState } from 'react';
 import { ExperimentVariant, type FunnelConfiguration } from '@kelpie/contracts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/card';
-import { Badge } from '../components/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/tabs';
 import {
   Select,
@@ -27,59 +26,41 @@ export function ConfigurationInspection({ configuration }: ConfigurationInspecti
   const [variant, setVariant] = useState<ExperimentVariant>(ExperimentVariant.A);
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
-      <Card className="min-w-0">
-        <CardHeader>
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="flex min-w-0 flex-col gap-2">
-              <CardTitle className="break-words">{configuration.title}</CardTitle>
-              <CardDescription className="break-words">{configuration.description}</CardDescription>
-            </div>
-            <Badge variant="outline">Read only</Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="secondary">Version {configuration.version}</Badge>
-            <Badge variant="outline">{configuration.locale}</Badge>
-            <Badge variant="outline">Schema {configuration.schemaVersion}</Badge>
-            <Badge variant="outline">Document status: {configuration.status}</Badge>
-          </div>
+    <div className="flex min-w-0 flex-col gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex min-w-0 flex-col gap-2 sm:flex-1">
+          <p className="break-words text-sm text-muted-foreground">{configuration.description}</p>
           {configuration.releaseNote && (
-            <p className="break-words text-sm text-muted-foreground">{configuration.releaseNote}</p>
+            <p className="break-words text-sm">{configuration.releaseNote}</p>
           )}
-          <div className="flex flex-wrap items-center gap-3">
-            <label htmlFor="inspection-variant" className="text-sm font-medium">
-              Inspect variant
-            </label>
-            <Select
-              value={variant}
-              onValueChange={(value) => {
-                if (value === ExperimentVariant.A || value === ExperimentVariant.B) {
-                  setVariant(value);
-                }
-              }}
-            >
-              <SelectTrigger id="inspection-variant" className="w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value={ExperimentVariant.A}>Variant A</SelectItem>
-                  <SelectItem value={ExperimentVariant.B}>Variant B</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Steps and results include this variant’s content overrides. Visibility and result rules
-            are declarations, not a simulation of a participant’s answers.
-          </p>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="flex shrink-0 items-center gap-3">
+          <label htmlFor="inspection-variant" className="text-sm text-muted-foreground">
+            Preview
+          </label>
+          <Select
+            value={variant}
+            onValueChange={(value) => {
+              if (value === ExperimentVariant.A || value === ExperimentVariant.B) {
+                setVariant(value);
+              }
+            }}
+          >
+            <SelectTrigger id="inspection-variant" className="w-36">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value={ExperimentVariant.A}>Variant A</SelectItem>
+                <SelectItem value={ExperimentVariant.B}>Variant B</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
       <Tabs defaultValue="steps" className="min-w-0 gap-5">
         <div className="min-w-0 overflow-x-auto pb-1">
-          <TabsList className="w-max">
+          <TabsList variant="line" className="w-max">
             <TabsTrigger value="steps">Steps</TabsTrigger>
             <TabsTrigger value="variants">Variants</TabsTrigger>
             <TabsTrigger value="results">Results</TabsTrigger>

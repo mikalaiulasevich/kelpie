@@ -33,8 +33,10 @@ export function ConfigurationStepDetails({
     <Card className="min-w-0">
       <CardHeader>
         <div className="flex flex-wrap gap-2">
-          <Badge variant="outline">Step {position}</Badge>
-          <Badge variant="secondary">{step.type}</Badge>
+          <span className="text-xs text-muted-foreground">
+            Step {position} ·{' '}
+            {ConfigurationInspectionFormat.contentLabel(step.type.replaceAll('_', ' '))}
+          </span>
           {Object.hasOwn(configuration.experiment.variants[variant].stepOverrides, step.id) && (
             <Badge>Content override</Badge>
           )}
@@ -44,13 +46,15 @@ export function ConfigurationStepDetails({
         </CardTitle>
         <CardDescription className="break-all">{step.id}</CardDescription>
       </CardHeader>
-      <CardContent className="flex min-w-0 flex-col gap-5">
+      <CardContent className="flex min-w-0 flex-col gap-4">
         <div className="flex flex-col gap-3">
           {Object.entries(content)
             .filter(([field]) => field !== 'title' && field !== 'loadingTitle')
             .map(([field, value]) => (
               <div key={field}>
-                <p className="text-xs text-muted-foreground">{field}</p>
+                <p className="text-xs text-muted-foreground">
+                  {ConfigurationInspectionFormat.contentLabel(field)}
+                </p>
                 <p className="break-words text-sm">{value}</p>
               </div>
             ))}
@@ -91,7 +95,7 @@ export function ConfigurationStepDetails({
                 {selectionStep.input.options.map((option) => (
                   <li
                     key={option.value}
-                    className="flex flex-wrap items-baseline justify-between gap-2 rounded-md border p-3 text-sm"
+                    className="flex flex-wrap items-baseline justify-between gap-2 border-b py-2.5 text-sm last:border-b-0"
                   >
                     <span className="break-words">{option.label}</span>
                     <code className="break-all text-xs text-muted-foreground">{option.value}</code>

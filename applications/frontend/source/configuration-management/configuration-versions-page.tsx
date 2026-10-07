@@ -1,11 +1,10 @@
-import { WorkspaceNavigation, WorkspacePage } from '../workspace/workspace-navigation';
 import { ManagementPolicy } from '../management/management-policy';
 import { isNull } from 'es-toolkit/predicate';
 import { useCallback, useState } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
-  ArrowUpRight,
+  Columns3,
   FileJson,
   RefreshCw,
   RotateCcw,
@@ -25,9 +24,20 @@ import {
   CardTitle,
 } from '../components/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/table';
+import { Separator } from '../components/separator';
 import { Skeleton } from '../components/skeleton';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '../components/empty';
 import { Alert, AlertDescription, AlertTitle } from '../components/alert';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '../components/dropdown-menu';
+import { WorkspaceNavigation, WorkspacePage } from '../workspace/workspace-navigation';
+import { ConfigurationVersionActions } from './configuration-version-actions';
 
 import { ConfigurationContent } from './configuration-content';
 import { ConfigurationManagementPolicy } from './configuration-policy';
@@ -39,7 +49,7 @@ export interface ConfigurationVersionsPageProperties {
   revision: number;
   onUnauthorized: () => void;
   onImport: () => void;
-  onIntent: (intent: PublicationIntent) => void;
+  onIntent: (intent: PublicationIntent, returnFocusTarget?: HTMLElement) => void;
 }
 
 export function ConfigurationVersionsPage({
@@ -51,6 +61,8 @@ export function ConfigurationVersionsPage({
 }: ConfigurationVersionsPageProperties): UIElement {
   const [offsets, setOffsets] = useState<readonly number[]>([0]);
   const [refresh, setRefresh] = useState(0);
+  const [showSchema, setShowSchema] = useState(true);
+  const [showChecksum, setShowChecksum] = useState(false);
   const offset = offsets.at(-1) ?? 0;
   const request = useCallback(
     async (signal: AbortSignal) => {
@@ -72,23 +84,29 @@ export function ConfigurationVersionsPage({
     onUnauthorized,
   );
   const reload = () => setRefresh((value) => value + 1);
-  const publish = (version: ConfigurationVersionMetadata, expectedRevision: number) =>
-    onIntent({
-      kind: 'publish',
-      label: ConfigurationFormat.version(version.version),
-      command: {
-        operationIdentifier: globalThis.crypto.randomUUID(),
-        funnelIdentifier,
-        targetVersionIdentifier: version.identifier,
-        expectedRevision,
+  const publish = (
+    version: ConfigurationVersionMetadata,
+    expectedRevision: number,
+    returnFocusTarget?: HTMLElement,
+  ) =>
+    onIntent(
+      {
+        kind: 'publish',
+        label: ConfigurationFormat.version(version.version),
+        command: {
+          operationIdentifier: globalThis.crypto.randomUUID(),
+          funnelIdentifier,
+          targetVersionIdentifier: version.identifier,
+          expectedRevision,
+        },
       },
-    });
+      returnFocusTarget,
+    );
 
   return (
-    <div className="workspace-page flex flex-col gap-7">
-      <div className="flex flex-wrap items-end justify-between gap-5">
-        <div className="flex flex-col gap-3">
-          <p className="page-eyebrow">{ConfigurationContent.Eyebrow}</p>
+    <div className="workspace-page flex flex-col gap-5">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-col gap-2">
           <h1 className="page-title">{ConfigurationContent.Heading}</h1>
           <p className="page-description">{ConfigurationContent.Description}</p>
         </div>
@@ -99,11 +117,7 @@ export function ConfigurationVersionsPage({
       </div>
       {resource.status === 'loading' && (
         <div role="status" aria-label="Loading configurations" className="flex flex-col gap-4">
-          <div className="grid gap-4 sm:grid-cols-3">
-            {[0, 1, 2].map((index) => (
-              <Skeleton key={index} className="h-28 rounded-xl" />
-            ))}
-          </div>
+          <Skeleton className="h-12 w-full max-w-lg rounded-lg" />
           <Skeleton className="h-80 rounded-xl" />
         </div>
       )}
@@ -128,44 +142,60 @@ export function ConfigurationVersionsPage({
 
           return (
             <>
-              <div className="grid gap-4 sm:grid-cols-3">
-                <Card>
-                  <CardHeader>
-                    <CardDescription>{ConfigurationContent.CurrentVersion}</CardDescription>
-                    <CardTitle>{ConfigurationFormat.activeVersion(configurations)}</CardTitle>
-                  </CardHeader>
-                  <CardFooter>
-                    <p className="text-xs text-muted-foreground">New sessions use this version</p>
-                  </CardFooter>
-                </Card>
-                <Card>
-                  <CardHeader>
-                    <CardDescription>{ConfigurationContent.CurrentRevision}</CardDescription>
-                    <CardTitle>{configurations.funnel.revision}</CardTitle>
-                  </CardHeader>
-                  <CardFooter>
-                    <p className="text-xs text-muted-foreground">
-                      Changes are checked against this revision
-                    </p>
-                  </CardFooter>
-                </Card>
-                <Card>
-                  <CardHeader>
-                    <CardDescription>{ConfigurationContent.ListedVersions}</CardDescription>
-                    <CardTitle>{configurations.items.length}</CardTitle>
-                  </CardHeader>
-                  <CardFooter>
-                    <p className="text-xs text-muted-foreground">Immutable configuration records</p>
-                  </CardFooter>
-                </Card>
-              </div>
-              <Card>
-                <CardHeader className="flex flex-wrap items-center justify-between gap-4">
+              <dl className="flex flex-wrap items-center gap-x-8 gap-y-3 text-sm">
+                <div className="flex items-center gap-2">
+                  <dt className="text-muted-foreground">{ConfigurationContent.CurrentVersion}</dt>
+                  <dd className="font-medium">
+                    {ConfigurationFormat.activeVersion(configurations)}
+                  </dd>
+                </div>
+                <div className="flex items-center gap-2">
+                  <dt className="text-muted-foreground">{ConfigurationContent.CurrentRevision}</dt>
+                  <dd className="font-mono tabular-nums">{configurations.funnel.revision}</dd>
+                </div>
+                <div className="flex items-center gap-2">
+                  <dt className="text-muted-foreground">{ConfigurationContent.ListedVersions}</dt>
+                  <dd className="tabular-nums">{configurations.items.length}</dd>
+                </div>
+              </dl>
+              <Card className="gap-0 overflow-hidden">
+                <CardHeader className="flex flex-wrap items-center justify-between gap-3 pb-4">
                   <div className="flex flex-col gap-1.5">
-                    <CardTitle>Configuration versions</CardTitle>
+                    <CardTitle>Versions</CardTitle>
                     <CardDescription>{funnelIdentifier}</CardDescription>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline">
+                          <Columns3 data-icon="inline-start" />
+                          {ConfigurationContent.Columns}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuGroup>
+                          <DropdownMenuLabel>
+                            {ConfigurationContent.VisibleColumns}
+                          </DropdownMenuLabel>
+                          <DropdownMenuCheckboxItem
+                            className="min-h-11 sm:min-h-8"
+                            checked={showSchema}
+                            onCheckedChange={setShowSchema}
+                            onSelect={(event) => event.preventDefault()}
+                          >
+                            {ConfigurationContent.Schema}
+                          </DropdownMenuCheckboxItem>
+                          <DropdownMenuCheckboxItem
+                            className="min-h-11 sm:min-h-8"
+                            checked={showChecksum}
+                            onCheckedChange={setShowChecksum}
+                            onSelect={(event) => event.preventDefault()}
+                          >
+                            {ConfigurationContent.Checksum}
+                          </DropdownMenuCheckboxItem>
+                        </DropdownMenuGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     <Button variant="outline" onClick={reload}>
                       <RefreshCw data-icon="inline-start" />
                       {ConfigurationContent.Refresh}
@@ -190,7 +220,8 @@ export function ConfigurationVersionsPage({
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <Separator />
+                <CardContent className="px-0">
                   {configurations.items.length === 0 ? (
                     <Empty>
                       <EmptyHeader>
@@ -203,13 +234,13 @@ export function ConfigurationVersionsPage({
                       <Button onClick={onImport}>{ConfigurationContent.Import}</Button>
                     </Empty>
                   ) : (
-                    <Table>
+                    <Table className="[&_td]:py-3 [&_td:first-child]:pl-5 [&_td:last-child]:pr-5 [&_th:first-child]:pl-5 [&_th:last-child]:pr-5">
                       <TableHeader>
                         <TableRow>
                           <TableHead>{ConfigurationContent.Version}</TableHead>
                           <TableHead>{ConfigurationContent.Status}</TableHead>
-                          <TableHead>{ConfigurationContent.Schema}</TableHead>
-                          <TableHead>{ConfigurationContent.Checksum}</TableHead>
+                          {showSchema && <TableHead>{ConfigurationContent.Schema}</TableHead>}
+                          {showChecksum && <TableHead>{ConfigurationContent.Checksum}</TableHead>}
                           <TableHead className="text-right">
                             {ConfigurationContent.Actions}
                           </TableHead>
@@ -223,56 +254,48 @@ export function ConfigurationVersionsPage({
                           return (
                             <TableRow key={version.identifier}>
                               <TableCell>
-                                <div className="flex items-center gap-3">
-                                  <span className="flex size-9 items-center justify-center rounded-lg bg-muted text-primary">
-                                    <FileJson className="size-4" />
-                                  </span>
-                                  <span className="font-medium">
+                                <Button variant="ghost" size="sm" asChild>
+                                  <a
+                                    href={WorkspaceNavigation.href(
+                                      WorkspacePage.Version,
+                                      funnelIdentifier,
+                                      version.identifier,
+                                    )}
+                                    aria-label={`Details for version ${version.version}`}
+                                  >
                                     {ConfigurationFormat.version(version.version)}
-                                  </span>
-                                </div>
+                                  </a>
+                                </Button>
                               </TableCell>
                               <TableCell>
-                                <Badge variant={live ? 'default' : 'secondary'}>
+                                <Badge variant={live ? 'default' : 'outline'}>
                                   {live ? ConfigurationContent.Live : ConfigurationContent.Draft}
                                 </Badge>
                               </TableCell>
-                              <TableCell>{version.schemaVersion}</TableCell>
-                              <TableCell>
-                                <code
-                                  title={version.checksum}
-                                  className="text-xs text-muted-foreground"
-                                >
-                                  {ConfigurationFormat.identifier(version.checksum)}
-                                </code>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex justify-end gap-2">
-                                  <Button
-                                    variant="ghost"
-                                    asChild
-                                    aria-label={`Details for version ${version.version}`}
+                              {showSchema && <TableCell>{version.schemaVersion}</TableCell>}
+                              {showChecksum && (
+                                <TableCell>
+                                  <code
+                                    title={version.checksum}
+                                    className="text-xs text-muted-foreground"
                                   >
-                                    <a
-                                      href={WorkspaceNavigation.href(
-                                        WorkspacePage.Version,
-                                        funnelIdentifier,
-                                        version.identifier,
-                                      )}
-                                      aria-label={`Details for version ${version.version}`}
-                                    >
-                                      {ConfigurationContent.Inspect}
-                                    </a>
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    disabled={live}
-                                    onClick={() => publish(version, configurations.funnel.revision)}
-                                    aria-label={`Publish version ${version.version}`}
-                                  >
-                                    <ArrowUpRight data-icon="inline-end" />
-                                    {ConfigurationContent.Publish}
-                                  </Button>
+                                    {ConfigurationFormat.identifier(version.checksum)}
+                                  </code>
+                                </TableCell>
+                              )}
+                              <TableCell>
+                                <div className="flex justify-end">
+                                  <ConfigurationVersionActions
+                                    version={version}
+                                    live={live}
+                                    onPublish={(returnFocusTarget) =>
+                                      publish(
+                                        version,
+                                        configurations.funnel.revision,
+                                        returnFocusTarget ?? undefined,
+                                      )
+                                    }
+                                  />
                                 </div>
                               </TableCell>
                             </TableRow>
@@ -282,7 +305,8 @@ export function ConfigurationVersionsPage({
                     </Table>
                   )}
                 </CardContent>
-                <CardFooter className="flex flex-wrap items-center justify-between gap-3">
+                <Separator />
+                <CardFooter className="flex flex-wrap items-center justify-between gap-3 pt-4">
                   <p className="text-xs text-muted-foreground">
                     Showing {offset + (configurations.items.length > 0 ? 1 : 0)}–
                     {offset + configurations.items.length}

@@ -83,6 +83,18 @@ Separated workspace routing, funnel selection and analytics filter editing from 
 
 Fixed storage cleanup failures after publication and cancellation rejection from errored HTTP streams. Independent review prompted local lazy-module error boundaries. Browser checks with an isolated real backend verified sign-in, filters applying only on Apply, publication, navigation, revoked-session 401, forced chart download failure and reload recovery. Full Node.js 24.16.0 verification passed 588 tests plus types, lint, formatting, builds and Prisma validation. Storage failure coverage uses mocked browser storage/HTTP; deployment remains unverified.
 
+## Administration visual refinement (October 7, 2026)
+
+Studied public Intent UI patterns, minimalist dashboard, app-shell and details examples alongside the official shadcn documentation. Retained the existing libraries and dark neutral palette with one blue accent. Replaced decorative sign-in artwork and marketing headings with a centered form, compact page headers, property lists and full-width version/history tables. Analytics keeps explicit ratio operands and the synthetic-traffic caveat; longer metric definitions move into a disclosure. The read-only inspector uses line tabs and a step/detail layout, with identifiers and advanced validation disclosed on demand.
+
+Full Node.js 24.16.0 verification passed all 588 workspace tests, types, lint, formatting, builds and Prisma validation. Browser checks used an isolated real NestJS/SQLite backend for analytics filters, metric disclosure, mobile navigation, import dialog, A/B step inspection, publication, rollback, activation history and sign-out. Effective CSS widths of 390, 768 and 1600 pixels were inspected; a cramped mobile description/variant row was corrected and rechecked. The final presentation fixes also passed scoped types, lint, formatting and frontend build. No dependencies or backend contracts changed. Public deployment remains unverified.
+
+## Administration table interactions (October 7, 2026)
+
+Composed existing shadcn DropdownMenu primitives into per-version actions and column visibility controls. Version links open the read-only inspector directly; publication remains revision-checked and requires the existing confirmation. Schema and checksum columns can be toggled without changing the data query or pagination. Checksum starts hidden to reduce table density. No packages or backend contracts changed.
+
+Review and browser checks caught lost keyboard focus after closing programmatically opened dialogs. Publication menus now pass their trigger as an explicit return target; import and publication dialogs restore the caller, or the workspace content when that caller has been replaced by refreshed data. Tested keyboard menu entry, live-version publication disabled state, column toggles, Details navigation, Cancel/import focus return and real publication on an isolated NestJS/SQLite backend. The default table fits a 390-pixel CSS viewport. All 125 frontend tests, frontend build/typecheck, scoped lint, formatting and diff checks passed; full backend verification was not rerun for this frontend-only change.
+
 ## Verification history
 
 The initial foundation was installed and checked locally on Node.js 24 and 26. A frontend readiness check was inspected in desktop/mobile layouts at that milestone. Subsequent refactors were checked on Node.js 24.16.0; they do not constitute new browser or Node.js 26 verification.

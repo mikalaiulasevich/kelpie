@@ -1,7 +1,7 @@
 import { DeferredView } from '../application/deferred-view';
 import { lazy } from 'react';
 import { Skeleton } from '../components/skeleton';
-import { ArrowUpRight, GitBranch, Layers } from 'lucide-react';
+import { GitBranch } from 'lucide-react';
 import { Alert, AlertDescription } from '../components/alert';
 import { Badge } from '../components/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/card';
@@ -48,20 +48,18 @@ function AnalyticsVariantSummary({ variant }: { readonly variant: AnalyticsVaria
           <CardTitle>Variant {variant.variant}</CardTitle>
           <Badge variant="outline">{AnalyticsFormat.count(variant.started)} started</Badge>
         </div>
-        <CardDescription>Unique sessions in this cohort</CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-col gap-5">
+      <CardContent className="flex flex-col gap-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex flex-col gap-1">
             <span className="text-sm text-muted-foreground">CTA conversion · primary</span>
-            <span className="text-3xl font-semibold tracking-tight tabular-nums">
+            <span className="text-2xl font-semibold tracking-tight tabular-nums">
               {AnalyticsFormat.ratio(variant.ctaConversion)}
             </span>
             <span className="text-xs text-muted-foreground">
               {AnalyticsFormat.fraction(variant.ctaConversion)}
             </span>
           </div>
-          <ArrowUpRight className="size-6 text-primary" aria-hidden="true" />
         </div>
         <dl className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-2">
@@ -238,9 +236,8 @@ export function AnalyticsVersionPanel({ version }: { readonly version: Analytics
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Layers className="size-5 text-muted-foreground" aria-hidden="true" />
           <div className="flex flex-col gap-1">
-            <h2 className="text-xl font-semibold tracking-tight">
+            <h2 className="text-lg font-semibold tracking-tight">
               Version {version.funnelVersion}
             </h2>
             <p className="text-xs text-muted-foreground break-all">
@@ -259,17 +256,16 @@ export function AnalyticsVersionPanel({ version }: { readonly version: Analytics
           <TabsTrigger value="paths">Paths</TabsTrigger>
         </TabsList>
         <TabsContent value="summary" className="flex flex-col gap-5">
-          <div className="grid gap-4 xl:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
             {version.variants.map((variant) => (
               <AnalyticsVariantSummary key={variant.variant} variant={variant} />
             ))}
           </div>
           <Card>
             <CardHeader>
-              <CardTitle>From first visit to recommendations</CardTitle>
+              <CardTitle>Conversion rates</CardTitle>
               <CardDescription>
-                Compare result completion and CTA conversion within this version and experiment.
-                Percentages use started sessions as their denominator.
+                Result completion and CTA conversion use started sessions as their denominator.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -287,7 +283,7 @@ export function AnalyticsVersionPanel({ version }: { readonly version: Analytics
                     <EmptyMedia variant="icon">
                       <GitBranch />
                     </EmptyMedia>
-                    <EmptyTitle>Waiting for session observations</EmptyTitle>
+                    <EmptyTitle>No sessions yet</EmptyTitle>
                     <EmptyDescription>
                       This cohort has no started sessions. Ratios remain not applicable until a
                       denominator exists.

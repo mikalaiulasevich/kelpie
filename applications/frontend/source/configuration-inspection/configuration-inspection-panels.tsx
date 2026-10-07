@@ -47,8 +47,8 @@ export function ConfigurationStepsPanel({ configuration, variant }: VariantPanel
   return (
     <div className="flex min-w-0 flex-col gap-4">
       <p className="text-sm text-muted-foreground">
-        {variantConfiguration.stepSequence.length} ordered steps in variant {variant}. Conditional
-        steps appear only when their visibility rule matches.
+        {variantConfiguration.stepSequence.length} steps · Variant {variant} · Conditions are shown
+        as saved rules, not evaluated answers.
       </p>
       <div className="min-w-0 lg:hidden">
         <label htmlFor="inspection-step" className="mb-2 block text-sm font-medium">
@@ -69,11 +69,10 @@ export function ConfigurationStepsPanel({ configuration, variant }: VariantPanel
           </SelectContent>
         </Select>
       </div>
-      <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[15rem_minmax(0,1fr)]">
+      <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[13rem_minmax(0,1fr)]">
         <Card className="hidden min-w-0 lg:block">
           <CardHeader>
-            <CardTitle>Step sequence</CardTitle>
-            <CardDescription>Select a step to inspect.</CardDescription>
+            <CardTitle>Steps</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-1">
             {variantConfiguration.stepSequence.map((stepIdentifier, index) => {
@@ -83,12 +82,14 @@ export function ConfigurationStepsPanel({ configuration, variant }: VariantPanel
                 <Button
                   key={stepIdentifier}
                   variant={step.id === stepIdentifier ? 'secondary' : 'ghost'}
-                  className="h-auto min-h-10 w-full justify-start gap-2 whitespace-normal py-2"
+                  className="h-auto min-h-9 w-full justify-start gap-2 whitespace-normal py-2"
                   aria-pressed={step.id === stepIdentifier}
                   onClick={() => setSelectedIdentifier(stepIdentifier)}
                 >
-                  <span className="text-muted-foreground">{index + 1}.</span>
-                  <span className="min-w-0 flex-1 break-all text-left">{stepIdentifier}</span>
+                  <span className="w-5 shrink-0 text-muted-foreground">{index + 1}</span>
+                  <span className="min-w-0 flex-1 truncate text-left" title={stepIdentifier}>
+                    {stepIdentifier}
+                  </span>
                   {listedStep?.visibleWhen && <Badge variant="outline">If</Badge>}
                 </Button>
               );
