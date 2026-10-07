@@ -1,22 +1,24 @@
 # Funnel Runtime
 
-A TypeScript/NestJS (Fastify)/React foundation for configurable funnels. Implemented: configuration validation, pure funnel evaluation, the initial Prisma/SQLite schema, backend lifecycle and health endpoints, immutable configuration draft imports, administrator authentication, transactional publication/rollback APIs, signed user sessions, revisioned answer/navigation commands, event batch ingestion, session-based analytics APIs and a frontend readiness screen.
+A TypeScript/NestJS (Fastify) foundation with a planned Next.js quiz and React/Vite administration application for configurable funnels. Implemented: configuration validation, pure funnel evaluation, the initial Prisma/SQLite schema, backend lifecycle and health endpoints, immutable configuration draft imports, administrator authentication, transactional publication/rollback APIs, signed user sessions, revisioned answer/navigation commands, event batch ingestion, session-based analytics APIs and a frontend readiness screen.
 
 **The product is not complete.** The funnel/administration/dashboard UI, browser delivery queue, synthetic traffic and public deployment remain in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). No public application URL or agreed 48-hour start is recorded.
 
 ## Local development
 
-Use Node.js 24 and npm 11; the repository pins npm 11.19.1. Node.js 26 is also allowed by the package manifest, but recent verification used Node.js 24.
-
-Bun is the requested primary backend runtime; migration is pending. Current startup commands execute Node.js and Prisma uses `@prisma/adapter-better-sqlite3`. The checked-in `bun.lock` alone does not establish runtime compatibility.
+Use Bun 1.3.14 for backend execution and package installation. Node.js 24 and npm 11.19.1 remain required for TypeScript/Prisma tooling and the reviewer fallback. Node.js 26 is allowed by the manifest; current local dual-runtime verification uses Node.js 24.
 
 ```sh
-npm install --global npm@11.19.1
-npm ci
+npm install --global npm@11.19.1 bun@1.3.14
+bun install --frozen-lockfile
 npm run database:generate
 npm run database:migrate
-npm run development
+bun run development:bun
 ```
+
+For the Node.js/npm-only path, use `npm ci` followed by the same database commands and `npm run development`. After changing dependency manifests, update both `package-lock.json` and `bun.lock`; `trustedDependencies` allows only the required native/Prisma installation scripts.
+
+Bun uses the official `@prisma/adapter-libsql` against a local SQLite file; Node uses `@prisma/adapter-better-sqlite3`. No hosted libSQL/Turso service is used. This follows [Prisma's Bun guidance](https://docs.prisma.io/docs/v7/prisma-orm/quickstart/sqlite#using-sqlite-with-bun); it is not a `bun:sqlite` integration or a measured speedup. Both runtimes use the same database, migrations and ISO timestamp storage. Nest runs the TypeScript compiler output so decorator metadata remains consistent.
 
 Open http://127.0.0.1:5173. Vite proxies `/api` to http://127.0.0.1:3000. The page checks the actual backend; it does not simulate a funnel.
 
@@ -27,6 +29,8 @@ Application files are watched. Restart development after changing shared package
 | Command                         | Purpose                                                                                            |
 | ------------------------------- | -------------------------------------------------------------------------------------------------- |
 | `npm run verify`                | Configuration checksums, test layout, lint, formatting, types, tests, builds and Prisma validation |
+| `npm run verify:bun`            | Full Node verification followed by the same backend tests on Bun                                   |
+| `npm run test:bun`              | Backend Vitest suite running under Bun (Node tooling remains required)                             |
 | `npm run build`                 | Build shared packages and applications                                                             |
 | `npm run test`                  | Run workspace tests after dependency generation/build setup                                        |
 | `npm run database:generate`     | Generate Prisma Client                                                                             |
@@ -34,7 +38,7 @@ Application files are watched. Restart development after changing shared package
 | `npm run configurations:verify` | Verify original configuration bytes                                                                |
 | `npm run benchmark:runtime`     | Build and measure the pure runtime separately from correctness tests                               |
 
-After building and migrating, `npm run start --workspace=@kelpie/backend` starts the compiled backend. TLS, routing, secrets, persistent storage and backups still require deployment setup. Hosting remains unresolved; GitHub Pages can serve only the frontend.
+After `npm run build` and migrations, `bun run start:bun` starts the compiled backend on Bun; `npm run start:node` starts the same output on Node. Bun CLI commands are `bun run --cwd applications/backend configurations:import:bun <absolute-json-path>` and `bun run --cwd applications/backend administration:provision:bun`. TLS, routing, secrets, persistent storage and backups still require deployment setup. Hosting remains unresolved; GitHub Pages can serve only the frontend.
 
 ## Administrator API
 
@@ -112,7 +116,8 @@ The API aggregates in SQLite rather than loading individual event rows into Node
 
 ```text
 applications/backend       NestJS, SQLite lifecycle, health and diagnostics
-applications/frontend      React/Vite, Tailwind, shadcn/ui, readiness screen
+applications/frontend      React/Vite administration target; current readiness screen
+applications/quiz          Planned separate Next.js quiz (not scaffolded yet)
 packages/contracts         TypeBox/Ajv schemas and semantic validation
 packages/funnel-runtime    Answers, conditions, variants, routes and results
 configurations             Original JSON and SHA-256 manifest

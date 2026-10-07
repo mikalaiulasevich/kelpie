@@ -21,7 +21,10 @@ try {
   } else {
     const statement = database.prepare(request.statement);
     const rows = request.operation === 'read' ? statement.all() : [];
-    if (request.operation === 'write') statement.run(...request.parameters);
+    if (request.operation === 'write') {
+      statement.run(...request.parameters);
+    }
+
     process.stdout.write(JSON.stringify(rows));
   }
 } finally {
