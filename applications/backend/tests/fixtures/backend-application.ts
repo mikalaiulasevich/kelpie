@@ -27,9 +27,11 @@ export class BackendApplicationFixture {
 
   private constructor() {}
 
-  static async create(): Promise<BackendApplicationFixture> {
+  static async create(
+    environmentValues: ReadonlyDictionary<string, Optional<string>> = {},
+  ): Promise<BackendApplicationFixture> {
     const fixture = new BackendApplicationFixture();
-    await fixture.start();
+    await fixture.start(environmentValues);
 
     return fixture;
   }
@@ -99,7 +101,9 @@ export class BackendApplicationFixture {
     this.temporaryDirectory = undefined;
   }
 
-  private async start(): Promise<void> {
+  private async start(
+    environmentValues: ReadonlyDictionary<string, Optional<string>>,
+  ): Promise<void> {
     this.temporaryDirectory = await mkdtemp(
       resolve(tmpdir(), BackendTestPolicy.TemporaryDirectoryPrefix),
     );
@@ -119,7 +123,7 @@ export class BackendApplicationFixture {
           timeout: BackendTestPolicy.TimeoutMilliseconds,
         },
       );
-      this.application = await this.createApplication(databaseUrl);
+      this.application = await this.createApplication(databaseUrl, environmentValues);
       await this.application.listen(BackendTestPolicy.EphemeralPort, BackendTestPolicy.Host);
       this.baseUrl = this.resolveAddress();
     } catch (setupError) {
@@ -137,10 +141,14 @@ export class BackendApplicationFixture {
     }
   }
 
-  private async createApplication(databaseUrl: string): Promise<NestFastifyApplication> {
+  private async createApplication(
+    databaseUrl: string,
+    environmentValues: ReadonlyDictionary<string, Optional<string>>,
+  ): Promise<NestFastifyApplication> {
     const environment = ApplicationEnvironmentReader.read({
+      ...environmentValues,
       [EnvironmentFields.DatabaseUrl]: databaseUrl,
-      [EnvironmentFields.Mode]: ApplicationMode.Test,
+      [EnvironmentFields.Mode]: environmentValues[EnvironmentFields.Mode] ?? ApplicationMode.Test,
     });
 
     return ApplicationFactory.create(environment);

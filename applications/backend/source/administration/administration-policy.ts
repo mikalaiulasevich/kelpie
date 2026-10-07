@@ -26,7 +26,6 @@ export const AdministrationPasswordPolicy = {
   Separator: '$',
   SaltBytes: 16,
   KeyBytes: 64,
-  SaltPattern: /^[A-Za-z0-9_-]{22}$/,
-  KeyPattern: /^[A-Za-z0-9_-]{86}$/,
+  EncodedPattern: '^scrypt-v1\\$[A-Za-z0-9_-]{22}\\$[A-Za-z0-9_-]{86}$',
   Parameters: { N: 131_072, r: 8, p: 1, maxmem: 256 * 1024 * 1024 },
 } as const;

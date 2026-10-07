@@ -68,7 +68,18 @@ describe('administrator sessions', () => {
     });
     expect(unknownUser.status).toBe(401);
     const unknownResponse = await unknownUser.json();
-    expect(unknownResponse).toEqual({ ...wrongPassword, requestIdentifier: expect.any(String) });
+    expect(unknownResponse).toEqual({
+      statusCode: 401,
+      code: 'unauthorized',
+      message: 'Request could not be processed.',
+      requestIdentifier: expect.any(String),
+    });
+    expect(wrongPassword).toEqual({
+      statusCode: 401,
+      code: 'unauthorized',
+      message: 'Request could not be processed.',
+      requestIdentifier: expect.any(String),
+    });
     expect(JSON.stringify(wrongPassword)).not.toContain('private-wrong-password');
     expect(await application.database.administratorSession.count()).toBe(0);
   });
@@ -157,7 +168,7 @@ describe('administrator sessions', () => {
     expect(await response.json()).toEqual({
       statusCode: 429,
       code: 'rate_limited',
-      message: 'Too many requests.',
+      message: 'Too many requests. Try again later.',
       requestIdentifier: response.headers.get('x-request-id'),
     });
     expect(await application.database.administratorSession.count()).toBe(0);

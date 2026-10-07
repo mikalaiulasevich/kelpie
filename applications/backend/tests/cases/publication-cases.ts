@@ -1,4 +1,12 @@
 export const PublicationCases = {
+  SuppliedVersions: [1, 2, 3],
+  ProtectedRoutes: [
+    { method: 'GET', route: 'configurations?funnelIdentifier=test' },
+    { method: 'POST', route: 'configurations' },
+    { method: 'GET', route: 'publications?funnelIdentifier=test' },
+    { method: 'POST', route: 'publications' },
+    { method: 'POST', route: 'rollbacks' },
+  ],
   InvalidQueries: [
     { name: 'oversized page', query: { funnelIdentifier: 'test', limit: '101' } },
     { name: 'unbounded offset', query: { funnelIdentifier: 'test', offset: '10001' } },

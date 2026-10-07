@@ -17,7 +17,13 @@ import { ConfigurationImportService } from '../configurations/configuration-impo
 import { HealthController } from '../health/health.controller.js';
 
 @Module({
-  controllers: [HealthController, AdministrationController, ConfigurationManagementController, PublicationController, RollbackController],
+  controllers: [
+    HealthController,
+    AdministrationController,
+    ConfigurationManagementController,
+    PublicationController,
+    RollbackController,
+  ],
   providers: [
     ConfigurationManagementService,
     PublicationService,

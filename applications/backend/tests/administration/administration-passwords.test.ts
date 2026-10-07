@@ -14,6 +14,7 @@ describe('administrator password hashing', () => {
     expect(encoded).toMatch(/^scrypt-v1\$[\w-]{22}\$[\w-]{86}$/);
     expect(await passwords.verify(AdministrationFixture.Credentials.password, encoded)).toBe(true);
     expect(await passwords.verify('different-password', encoded)).toBe(false);
+    expect(await passwords.verify('different-password', 'malformed-stored-hash')).toBe(false);
     expect(await passwords.verify(AdministrationFixture.Credentials.password, undefined)).toBe(
       false,
     );

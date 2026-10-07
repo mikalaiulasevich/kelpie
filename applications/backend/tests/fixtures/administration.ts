@@ -1,3 +1,4 @@
+import { BackendFixtureMessages } from './backend-fixture-messages.js';
 import { AdministrationService } from '../../source/administration/administration.service.js';
 import { BackendApplicationFixture } from './backend-application.js';
 
@@ -17,7 +18,14 @@ export const AdministrationFixture = {
 
       return application;
     } catch (error) {
-      await application.close();
+      try {
+        await application.close();
+      } catch (cleanupError) {
+        throw new AggregateError([error, cleanupError], BackendFixtureMessages.SetupCleanupFailed, {
+          cause: cleanupError,
+        });
+      }
+
       throw error;
     }
   },

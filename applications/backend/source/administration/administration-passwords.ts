@@ -1,8 +1,13 @@
 import { randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
 import { ServiceUnavailableException } from '@nestjs/common';
-import { isUndefined } from 'es-toolkit/predicate';
+import { Ajv } from 'ajv';
+import { AdministrationSchemas } from './administration-types.js';
 import { AdministrationMessages } from './administration-messages.js';
 import { AdministrationPasswordPolicy, AdministrationPolicy } from './administration-policy.js';
+
+const validateEncodedPassword = new Ajv({ strict: true }).compile<string>(
+  AdministrationSchemas.EncodedPassword,
+);
 
 export class AdministrationPasswords {
   private busy = false;
@@ -19,15 +24,10 @@ export class AdministrationPasswords {
   }
 
   async verify(password: string, encoded: Optional<string>): Promise<boolean> {
-    const [version, saltText, keyText, extra] =
-      encoded?.split(AdministrationPasswordPolicy.Separator) ?? [];
-    const valid =
-      version === AdministrationPasswordPolicy.Version &&
-      !isUndefined(saltText) &&
-      AdministrationPasswordPolicy.SaltPattern.test(saltText) &&
-      !isUndefined(keyText) &&
-      AdministrationPasswordPolicy.KeyPattern.test(keyText) &&
-      isUndefined(extra);
+    const valid = validateEncodedPassword(encoded);
+    const [, saltText = '', keyText = ''] = valid
+      ? encoded.split(AdministrationPasswordPolicy.Separator)
+      : [];
     const salt = valid
       ? Buffer.from(saltText, AdministrationPolicy.BinaryEncoding)
       : Buffer.alloc(AdministrationPasswordPolicy.SaltBytes);

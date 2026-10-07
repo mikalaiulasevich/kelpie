@@ -1,4 +1,5 @@
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
+import { ApplicationEnvironmentReader } from '../environment/read-application-environment.js';
 import { ApplicationFactory } from '../application/create-application.js';
 import { DatabaseService } from '../database/database.service.js';
 import { AdministrationService } from './administration.service.js';
@@ -43,7 +44,9 @@ export const AdministrationProvisionCommand = {
       throw new Error(AdministrationCommandMessages.CredentialsRequired);
     }
 
-    const application = await ApplicationFactory.create();
+    const application = await ApplicationFactory.create(
+      ApplicationEnvironmentReader.read(environment),
+    );
     const identity = await ProvisioningApplication.execute(application, username, password);
     await application.close();
     process.stdout.write(`${JSON.stringify(identity)}\n`);

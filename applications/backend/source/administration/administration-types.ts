@@ -1,7 +1,8 @@
 import { Type, type Static } from 'typebox';
-import { AdministrationPolicy } from './administration-policy.js';
+import { AdministrationPasswordPolicy, AdministrationPolicy } from './administration-policy.js';
 
 export const AdministrationSchemas = {
+  EncodedPassword: Type.String({ pattern: AdministrationPasswordPolicy.EncodedPattern }),
   Credentials: Type.Object(
     {
       username: Type.String({ pattern: AdministrationPolicy.UsernamePattern }),
