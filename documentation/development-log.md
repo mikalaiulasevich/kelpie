@@ -15,7 +15,7 @@ The HTTP foundation now uses NestJS with Fastify, native request hooks and `@fas
 
 ## Backend iteration 1 — configuration drafts (October 7, 2026)
 
-Added immutable configuration imports through a trusted local command. The configuration domain owns validation, canonical content identity and transactionally stored drafts. Import does not publish or change existing sessions. Administrator-protected HTTP management and activation followed in iterations 2 and 3; user-session commands remain pending.
+Added immutable configuration imports through a trusted local command. The configuration domain owns validation, canonical content identity and transactionally stored drafts. Import does not publish or change existing sessions. Administrator-protected HTTP management and activation followed in iterations 2 and 3; user-session ownership and commands followed in iterations 4 and 5.
 
 Pino now owns backend diagnostic output, with validated LOG_LEVEL, a Nest LoggerService bridge, request correlation and bounded stream handling. CLI results remain machine-readable stdout; diagnostic records go to stderr.
 
@@ -29,11 +29,19 @@ A follow-up ownership pass consolidated shared management contracts and CLI life
 
 The repository-wide follow-up grouped shared schema owners without changing the serialized schema, contained throwing error-code accessors, reused database error classification and aligned health types. It also corrected stale frontend status text, simplified state rendering, hardened configuration-manifest validation and made root administrator provisioning prepare generated dependencies. Formatting checks now cover all workspace source modules. Runtime algorithms and raw benchmark evidence were retained.
 
+## Backend iterations 4 and 5 — session ownership and commands (October 7, 2026)
+
+Iteration 4 adds signed anonymous bootstrap cookies without analytical session creation, a persisted signing key, authenticated current-state reads and idempotent session creation. Creation pins the active version and weighted/forced variant, captures bounded acquisition parameters and commits the initial snapshot, operation receipt and `session_started` together. Expiration replaces ownership through a new handshake. Cookie renewal preserves the original credential and the server expiry.
+
+Iteration 5 adds explicit answer submission, information Continue and Back with optimistic session revisions. Commands atomically persist answers, confirmation changes, navigation transitions, authoritative events and immutable replay responses. Hidden answers retain their values while losing confirmation; only confirmed active values affect branching and results. Public identifiers alone cannot recover answers. Raw answer storage is separate from analytical event properties.
+
+Scoped real SQLite/HTTP tests cover creation retries, sticky versions/variants through publication and rollback, CSRF/ownership, delayed bootstrap expiry, retained branches and command concurrency/failure paths. A second Nest application against the same SQLite database checks persisted signing-key continuity; this is application-instance evidence, not a deployed restart or backup/restore drill. Full repository verification for this milestone is tracked separately; no new full-verification result is claimed here. Browser draft persistence, first-open coordination, client observations/CTA ingestion, analytics and UI remain pending.
+
 ## Verification history
 
 The initial foundation was installed and checked locally on Node.js 24 and 26. A frontend readiness check was inspected in desktop/mobile layouts at that milestone. Subsequent refactors were checked on Node.js 24.16.0; they do not constitute new browser or Node.js 26 verification.
 
-The subsequent plan-conformance pass corrected optional-answer progress, scoped operation identifiers to their session, isolated diagnostics from supplied error stacks and aligned development shutdown budgets. That pass was followed by the Fastify migration; the current verification after backend iterations 2 and 3 covers 380 tests and the full verification command. The previous toolkit review’s three 79-case benchmark runs and the current verification summary are recorded in [the engineering review](foundation-review.md). Raw reports and CSV history remain in [benchmarks](benchmarks/).
+The subsequent plan-conformance pass corrected optional-answer progress, scoped operation identifiers to their session, isolated diagnostics from supplied error stacks and aligned development shutdown budgets. That pass was followed by the Fastify migration; the recorded verification after backend iterations 2 and 3 covered 380 tests and the full verification command. That historical run predates session iterations 4 and 5. The previous toolkit review’s three 79-case benchmark runs and the current verification summary are recorded in [the engineering review](foundation-review.md). Raw reports and CSV history remain in [benchmarks](benchmarks/).
 
 A historical GitHub Actions attempt failed before jobs started; this cleanup does not establish current remote CI status. No public deployment has been verified.
 
@@ -41,7 +49,7 @@ A historical GitHub Actions attempt failed before jobs started; this cleanup doe
 
 | Iteration            | Status                                                                                                                                                           |
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| First working funnel | Runtime and administration APIs available. Session commands, funnel/admin UI, event ingestion, analytics and traffic generation remain to implement.             |
+| First working funnel | Runtime, administration and session APIs available. Funnel/admin UI, client event ingestion, analytics and traffic generation remain to implement.               |
 | Second iteration     | Pending the first working funnel. Publish v3, verify both variants and retained older sessions, then roll back to v2 while preserving v3 sessions and analytics. |
 | Bun and deployment   | Bun backend migration, Node.js/npm fallback verification, hosting with persistent storage and public acceptance remain pending.                                  |
 

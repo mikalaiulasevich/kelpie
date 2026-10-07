@@ -12,6 +12,61 @@ import type { SessionCommand } from './session-command-types.js';
 import { SessionCommandKind, SessionCommandErrorCode } from './session-command-policy.js';
 import { SessionCommandMessages } from './session-command-messages.js';
 
+interface NavigationDestination {
+  readonly step: Optional<FunnelStep>;
+  readonly kind: SessionTransitionKind;
+}
+
+const SessionNavigation = {
+  firstBlocking(evaluation: EvaluatedFunnel): Optional<FunnelStep> {
+    return evaluation.route.steps.find(
+      (step) =>
+        StepRules.isInteractive(step) &&
+        step.validation.required &&
+        !AnswerValidation.validate(
+          step,
+          DictionaryAccess.readOwn(evaluation.route.activeAnswers, step.input.name),
+        ).valid,
+    );
+  },
+
+  requested(
+    evaluation: EvaluatedFunnel,
+    current: FunnelStep,
+    command: SessionCommand,
+  ): NavigationDestination {
+    if (command.kind === SessionCommandKind.Back) {
+      return {
+        step: RouteResolution.previous(evaluation.route, current.id),
+        kind: SessionTransitionKind.Back,
+      };
+    }
+
+    return {
+      step: RouteResolution.next(evaluation.route, current.id),
+      kind: SessionTransitionKind.Forward,
+    };
+  },
+
+  resolve(
+    evaluation: EvaluatedFunnel,
+    current: FunnelStep,
+    command: SessionCommand,
+  ): NavigationDestination {
+    const requested = SessionNavigation.requested(evaluation, current, command);
+    const requiresResult =
+      current.type === StepType.Result || requested.step?.type === StepType.Result;
+    if (requiresResult && !evaluation.result) {
+      return {
+        step: SessionNavigation.firstBlocking(evaluation),
+        kind: SessionTransitionKind.RouteCorrection,
+      };
+    }
+
+    return requested;
+  },
+} as const;
+
 export const SessionCommandRouting = {
   evaluate(record: OwnedSession): EvaluatedFunnel {
     const configuration = SessionProjection.configuration(record);
@@ -58,39 +113,14 @@ export const SessionCommandRouting = {
       .map((answer) => answer.stepIdentifier);
   },
 
-  firstBlocking(evaluation: EvaluatedFunnel): Optional<FunnelStep> {
-    return evaluation.route.steps.find(
-      (step) =>
-        StepRules.isInteractive(step) &&
-        step.validation.required &&
-        !AnswerValidation.validate(
-          step,
-          DictionaryAccess.readOwn(evaluation.route.activeAnswers, step.input.name),
-        ).valid,
-    );
-  },
-
   transition(
     record: OwnedSession,
     evaluation: EvaluatedFunnel,
     command: SessionCommand,
   ): SessionTransitionEvent {
     const current = SessionCommandRouting.current(record, evaluation, command);
-    const direction =
-      command.kind === SessionCommandKind.Back
-        ? SessionTransitionKind.Back
-        : SessionTransitionKind.Forward;
-    const adjacent =
-      direction === SessionTransitionKind.Back
-        ? RouteResolution.previous(evaluation.route, current.id)
-        : RouteResolution.next(evaluation.route, current.id);
-    const unavailableResult =
-      (current.type === StepType.Result || adjacent?.type === StepType.Result) &&
-      !evaluation.result;
-    const destination = unavailableResult
-      ? SessionCommandRouting.firstBlocking(evaluation)
-      : adjacent;
-    if (!destination) {
+    const destination = SessionNavigation.resolve(evaluation, current, command);
+    if (!destination.step) {
       throw new PublicRequestError(
         HttpStatus.CONFLICT,
         SessionCommandErrorCode.UnavailableNavigation,
@@ -98,15 +128,18 @@ export const SessionCommandRouting = {
       );
     }
 
-    return {
+    const occurrence = {
       operationIdentifier: command.operationIdentifier,
-      kind: unavailableResult ? SessionTransitionKind.RouteCorrection : direction,
+      kind: destination.kind,
       fromStepIdentifier: current.id,
-      toStepIdentifier: destination.id,
+      toStepIdentifier: destination.step.id,
       clientTimestamp: command.clientTimestamp,
-      ...(command.kind === SessionCommandKind.Answer && StepRules.isInteractive(current)
-        ? { answerKind: current.type }
-        : {}),
     };
+
+    if (command.kind === SessionCommandKind.Answer && StepRules.isInteractive(current)) {
+      return { ...occurrence, answerKind: current.type };
+    }
+
+    return occurrence;
   },
 } as const;

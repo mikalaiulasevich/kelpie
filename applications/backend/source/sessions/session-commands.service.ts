@@ -36,6 +36,7 @@ const SessionCommandChecks = {
 
     return SessionSnapshots.read(operation.response);
   },
+
   revision(record: OwnedSession, command: SessionCommand): void {
     if (record.revision !== command.expectedSessionRevision) {
       throw new PublicRequestError(
@@ -45,6 +46,7 @@ const SessionCommandChecks = {
       );
     }
   },
+
   step(step: FunnelStep, command: SessionCommand): void {
     if (command.kind === SessionCommandKind.Back) {
       return;

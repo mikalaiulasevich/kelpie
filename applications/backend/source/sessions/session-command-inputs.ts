@@ -1,3 +1,4 @@
+import { SessionTimestamps } from './session-timestamps.js';
 import { SessionPolicy } from './session-policy.js';
 import { HttpStatus } from '@nestjs/common';
 import { Ajv } from 'ajv';
@@ -24,9 +25,11 @@ const validators = {
 };
 export const SessionCommandInputs = {
   read(kind: SessionCommandKind, value: unknown): SessionCommand {
-    if (kind === SessionCommandKind.Answer && validators.answer(value)) {
-      SessionCommandInputs.timestamp(value.clientTimestamp);
-
+    if (
+      kind === SessionCommandKind.Answer &&
+      validators.answer(value) &&
+      SessionTimestamps.isCanonical(value.clientTimestamp)
+    ) {
       return {
         ...value,
         answer: Array.isArray(value.answer) ? [...value.answer] : value.answer,
@@ -34,9 +37,11 @@ export const SessionCommandInputs = {
       };
     }
 
-    if (kind !== SessionCommandKind.Answer && validators.navigation(value)) {
-      SessionCommandInputs.timestamp(value.clientTimestamp);
-
+    if (
+      kind !== SessionCommandKind.Answer &&
+      validators.navigation(value) &&
+      SessionTimestamps.isCanonical(value.clientTimestamp)
+    ) {
       return { ...value, kind };
     }
 
@@ -46,16 +51,7 @@ export const SessionCommandInputs = {
       SessionCommandMessages.Invalid,
     );
   },
-  timestamp(value: string): void {
-    const date = new Date(value);
-    if (!Number.isFinite(date.getTime()) || date.toISOString() !== value) {
-      throw new PublicRequestError(
-        HttpStatus.BAD_REQUEST,
-        SessionCommandErrorCode.Invalid,
-        SessionCommandMessages.Invalid,
-      );
-    }
-  },
+
   fingerprint(command: SessionCommand): string {
     return createHash(SessionPolicy.HashAlgorithm)
       .update(

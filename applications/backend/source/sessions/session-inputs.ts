@@ -1,3 +1,4 @@
+import { SessionTimestamps } from './session-timestamps.js';
 import { Ajv } from 'ajv';
 import { HttpStatus } from '@nestjs/common';
 import { pick } from 'es-toolkit/object';
@@ -14,11 +15,7 @@ const validators = {
 
 export const SessionInputs = {
   create(body: unknown): CreateSessionRequest {
-    if (
-      !validators.create(body) ||
-      !Number.isFinite(Date.parse(body.clientTimestamp)) ||
-      new Date(body.clientTimestamp).toISOString() !== body.clientTimestamp
-    ) {
+    if (!validators.create(body) || !SessionTimestamps.isCanonical(body.clientTimestamp)) {
       throw new PublicRequestError(
         HttpStatus.BAD_REQUEST,
         SessionErrorCode.Invalid,

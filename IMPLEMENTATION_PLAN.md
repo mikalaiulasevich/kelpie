@@ -2,11 +2,13 @@
 
 Build a configurable funnel platform with reliable session state, immutable configuration versions, server-assigned experiments, idempotent events, and analytics based on unique sessions. Use professional engineering practices within the assignment's single-server SQLite constraints.
 
-This plan records agreed decisions and acceptance criteria. The 48-hour window begins at an explicitly agreed start; no start time has been recorded. The foundation is implemented; current verification and measurements are recorded in [the engineering review](documentation/foundation-review.md). The full platform and public deployment remain pending.
+This plan records agreed decisions and acceptance criteria. The 48-hour window begins at an explicitly agreed start; no start time has been recorded. The foundation and backend iterations 1–5 (drafts, administration, activation, session ownership and commands) are implemented; verification evidence and measurements are maintained in [the engineering review](documentation/foundation-review.md). The full platform and public deployment remain pending.
 
 ## Scope, design status, and decision ownership
 
 This is the implementation contract for the remaining product work, not evidence that its features already exist. Keep implementation milestones in the development log and check results in the engineering review; change this plan when an accepted design decision changes. AGENTS.md remains the code-quality contract. Every substantial change must identify its owning module, affected invariant, acceptance test, and operational limit before implementation.
+
+Current backend scope includes signed bootstrap/current-session cookies, transactional creation with pinned version/variant, confirmed answers, Continue/Back, revision conflicts and immutable command replay. Client observation ingestion, analytics, traffic generation, funnel/admin interfaces and deployment remain unimplemented. Completed backend iterations do not establish full browser or assignment acceptance. Latest scoped session checks are recorded in the development log; full repository verification after these iterations is still a separate gate.
 
 Mandatory scope is the assignment's working configurable funnel, publication/rollback, stable A/B, seven base events plus the declared v3 action, session-based analytics, reproducible traffic, and public delivery. No visual editor, payments, external analytics/authentication/database service, distributed queue, microservices, event sourcing, or multi-instance deployment is needed. Open-source in-process dependencies and the hosting platform are permitted; application data remains local. The financial-startup context does not introduce payment or regulated financial processing requirements.
 
@@ -150,6 +152,8 @@ Never rewrite an existing session's version or variant. Preserve referenced vers
 
 Establish anonymous ownership before creation: GET /sessions/current may issue a server-generated, signed, HttpOnly bootstrap cookie when no valid browser credential exists, without creating a funnel session or session_started event. Complete this handshake before POST /sessions; serialize bootstrap/create in the browser, including concurrent first-open tabs. POST requires the acknowledged credential and binds its hash uniquely to the new session in the creation transaction. A lost creation response can then be retried with the same cookie and operation identifier without storing or returning a plaintext access token in a replay body. Public session identifiers and operation identifiers are never credentials. Test lost bootstrap responses separately: retrying the handshake may replace an unused credential but must not create analytical sessions. The cookie middleware and browser coordination mechanism must pass the early origin/hosting integration gate.
 
+Implemented transport: `kelpie_session` is a signed HttpOnly, SameSite=Strict cookie scoped to `/api`, with Secure in production. Its signing key is generated lazily and persisted in `ApplicationSecret`; preserve and protect it with database backups. The unbound bootstrap lifetime is 72 hours. After binding, the configured server session expiry governs authorization; creation/replay renew the same cookie to the remaining lifetime without changing its credential hash or extending that expiry. Session mutations require the exact `ADMINISTRATION_ORIGIN` plus `X-Kelpie-Session: 1`; the setting intentionally serves both administration and user-session APIs.
+
 Create a new session idempotently, assign a variant once using server-side weighted randomness, capture immutable acquisition UTM, and persist session_started atomically. Refresh and reopening resume the existing valid session. A recognized override query parameter affects only new sessions and is marked forced.
 
 Mutation requests contain operationIdentifier and expectedSessionRevision. Authenticate the current owner and check expiration before any replay lookup. Check for a previous operation before checking revision. An identical retry returns the original response; a reused identifier with different content returns a conflict. Persist the state transition, authoritative events, and operation result atomically.
@@ -186,6 +190,8 @@ POST /administration/publications
 POST /administration/rollbacks
 GET  /administration/analytics
 ```
+
+The implemented creation body is `{ operationIdentifier, funnelIdentifier, clientTimestamp }`; navigation bodies are `{ operationIdentifier, expectedSessionRevision, stepIdentifier, clientTimestamp }`, with `answer` added for `/answers`. UUID operation identifiers and canonical UTC ISO timestamps are required. `/continue` advances information screens; `/answers` performs an explicit interactive Continue. Creation returns state with HTTP 201; navigation returns HTTP 200. Current-session GET wraps state as `{ state, expired }`. State exposes retained answer values and nullable confirmation revisions, pinned configuration, visible progress and an eligible result. Exact field descriptions are maintained in [README](README.md#user-session-api) and session schemas.
 
 Resolve authorized session ownership from cookies. Client identifiers alone never grant access. Return server state, revision, pinned configuration, confirmed answers, and current progress. Prevent shared caching of sensitive responses. Document request and response contracts and error handling before frontend/backend parallel work.
 

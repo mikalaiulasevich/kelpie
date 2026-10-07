@@ -1,8 +1,8 @@
 # Funnel Runtime
 
-A TypeScript/NestJS (Fastify)/React foundation for configurable funnels. Implemented: configuration validation, pure funnel evaluation, the initial Prisma/SQLite schema, backend lifecycle and health endpoints, immutable configuration draft imports, administrator authentication, transactional publication/rollback APIs, and a frontend readiness screen.
+A TypeScript/NestJS (Fastify)/React foundation for configurable funnels. Implemented: configuration validation, pure funnel evaluation, the initial Prisma/SQLite schema, backend lifecycle and health endpoints, immutable configuration draft imports, administrator authentication, transactional publication/rollback APIs, signed user sessions, revisioned answer/navigation commands and a frontend readiness screen.
 
-**The product is not complete.** Session commands, the administration UI, event ingestion, analytics, synthetic traffic and public deployment remain in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). No public application URL or agreed 48-hour start is recorded.
+**The product is not complete.** The funnel/administration UI, client event ingestion, analytics, synthetic traffic and public deployment remain in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). No public application URL or agreed 48-hour start is recorded.
 
 ## Local development
 
@@ -58,7 +58,28 @@ A publication body contains `operationIdentifier` (a fresh UUID per intent), `fu
 
 Lists accept `limit` (default 25, maximum 100) and `offset` (maximum 10000); responses include `nextOffset`. Each page is a consistent database snapshot, but separate pages may shift while new records are added. Responses contain metadata rather than whole configuration documents. All administrator routes require authentication except sign-in. Responses use `Cache-Control: no-store`; errors include a safe `code`, `message`, `statusCode` and server-owned `requestIdentifier`, with bounded validation `issues` where applicable.
 
-Publication changes the active pointer and appends history in one SQLite transaction. It never modifies pinned sessions, raw answers or events. The revision migration preserves prior history and breaks existing timestamp ties by insertion order. The administration interface and full old-session continuation scenario will be added with the corresponding frontend/session work.
+Publication changes the active pointer and appends history in one SQLite transaction. It never modifies pinned sessions, raw answers or events. The revision migration preserves prior history and breaks existing timestamp ties by insertion order. Backend integration tests exercise old-session continuation after publication and rollback; the administration interface and browser acceptance remain pending.
+
+## User-session API
+
+First call `GET /api/sessions/current` and retain its cookie before creating a session. The handshake returns `{ "state": null, "expired": false }` without creating a funnel session or event. With a valid existing session it returns `{ "state": <session state>, "expired": false }`; expiration returns null state, `expired: true`, and a replacement bootstrap cookie. Browser first-open coordination across tabs is still frontend work.
+
+All session mutations require the exact `Origin` configured by `ADMINISTRATION_ORIGIN` and `X-Kelpie-Session: 1`. This shared origin setting covers both APIs. Public session identifiers and operation identifiers never authorize requests. Responses disable caching.
+
+| Endpoint                              | JSON body                                                    | Response                                 |
+| ------------------------------------- | ------------------------------------------------------------ | ---------------------------------------- |
+| `POST /api/sessions`                  | `operationIdentifier`, `funnelIdentifier`, `clientTimestamp` | 201, initial session state               |
+| `POST /api/sessions/current/answers`  | Common command fields plus `answer`                          | 200, confirmed answer and advanced state |
+| `POST /api/sessions/current/continue` | Common command fields                                        | 200, advance from an information screen  |
+| `POST /api/sessions/current/back`     | Common command fields                                        | 200, previous available step             |
+
+Common command fields are `operationIdentifier` (UUID), `expectedSessionRevision`, `stepIdentifier` (the current step), and `clientTimestamp` (canonical UTC ISO text, for example `2026-10-07T10:00:00.000Z`). Creation omits the revision and step. Creation query parameters accept bounded `utm_source`, `utm_medium`, `utm_campaign`, `utm_term`, `utm_content` and the pinned configuration's override parameter (`variant=A` or `variant=B` in supplied files). Assignment is server-side, weighted and stable; overrides are marked forced. New sessions pin the active version transactionally.
+
+State contains session/version/funnel identifiers, funnel version, variant, pinned configuration, revision, current step, retained answers with `confirmationRevision`, visible progress and an eligible result or null. Answer values and confirmation are separate: hiding a branch clears confirmation while retaining its values, including explicit null. Unconfirmed values stay inactive until resubmission. Browser drafts are not yet implemented; clients must persist unfinished inputs separately and submit only on explicit Continue.
+
+Retry an uncertain command with the identical body and operation identifier. Ownership and expiry are checked before replay; an identical retry returns its original committed revision. Changed intent returns `operation_conflict`; an outdated revision returns `stale_revision` (409). Fetch current state before replacing newer UI state with an older replay. Invalid answers return 422 without changing state. Answers, revision, navigation transition, authoritative events and the replay response commit atomically. Creation stores an initial snapshot and `session_started`; answer/Back events contain bounded metadata, never raw answers. Information Continue records a forward transition without inventing an answer event. Client views, CTA observations and batch ingestion remain pending.
+
+The `kelpie_session` cookie is HttpOnly, SameSite=Strict, scoped to `/api`, and Secure in production. Its HMAC signing key is generated once and persisted in `ApplicationSecret`; storage keeps credential hashes, not plaintext browser cookies. Creation/replay renew the same cookie to the remaining configured session lifetime (72 hours in supplied configurations), without extending server expiry. Preserve the database, including its signing key, in protected backups; losing the key invalidates existing cookies. Backup/restore drills remain pending.
 
 ## Repository map
 
@@ -86,9 +107,9 @@ The supplied files remain byte-identical and all use schema version 1.0:
 
 Validation checks bounded JSON structure, references, condition types/order, merged content, result rules, weights and event declarations. Trigger prose is data, never executable code. Runtime operations require validated configurations.
 
-Use `FunnelRuntime.Evaluation.evaluate(configuration, variant, answers)` when both route and result are needed; it computes them with one route traversal. Hidden, omitted and invalid answers cannot influence active routing/results. Required unanswered questions block results even when excluded from progress. Confirmation of retained answers after reopening a branch belongs to the pending session command layer.
+Use `FunnelRuntime.Evaluation.evaluate(configuration, variant, answers)` when both route and result are needed; it computes them with one route traversal. Hidden, omitted and invalid answers cannot influence active routing/results. Required unanswered questions block results even when excluded from progress. The session command layer separately tracks confirmation revisions: hidden answers remain stored but cannot drive routing or results until explicitly confirmed again.
 
-The initial database schema separates answers from events and constrains version, operation and event identities. Those constraints alone do not implement authorization, version immutability, transactional commands or retry-safe replay. Their planned contracts and aggregation rules remain in the implementation plan.
+The initial database schema separates answers from events and constrains version, operation and event identities. Backend services now enforce authorization, immutable imports, transactional commands and retry-safe replay. Client observational events and analytical aggregation remain planned.
 
 **Experiment hypothesis:** B increases the share of started sessions opening recommendations through question order and result framing. The primary metric is unique CTA-clicking sessions / unique started sessions; result completion and CTA CTR among result viewers are secondary. Compare within one version/experiment, excluding forced assignments by default. Synthetic traffic will verify calculations, not prove the hypothesis.
 
@@ -102,7 +123,7 @@ npm run configurations:import -- "$PWD/configurations/funnel-v1.json"
 
 Use an absolute file path: the command runs in the backend workspace. It prints version metadata and `created` or `existing`, without the document. All three supplied files are supported. Import validates and snapshots the configuration, hashes canonical JSON (object key order is ignored; array order is preserved), and writes an immutable draft. Repeating the same content returns the same record; changing content under the same funnel/version fails. A configuration's `status` field never activates it. The checksum here identifies canonical content; provenance checksums under `configurations/` still identify the original file bytes.
 
-This is a trusted local operator command with database filesystem access. No unauthenticated import endpoint is exposed. Administrator authentication, publication/rollback and their HTTP interfaces remain subsequent backend iterations. Failure returns a nonzero exit code; correct the input or storage failure before retrying. A committed import is safe to repeat after a lost command result.
+This is a trusted local operator command with database filesystem access. No unauthenticated import endpoint is exposed. Authenticated administrator HTTP import, publication and rollback are also available as described above. Failure returns a nonzero exit code; correct the input or storage failure before retrying. A committed import is safe to repeat after a lost command result.
 
 ## Diagnostics and troubleshooting
 
@@ -143,6 +164,6 @@ The drain deadline cannot interrupt synchronous SQLite work. Backpressure drops 
 
 Implemented controls include validated environment input, loopback binding by default, body limits, security headers, server timeouts, redacted exceptions and database/migration readiness. Compressed JSON is unsupported (415). Frontend Ky requests have cancellation, no retries and a five-second total deadline.
 
-Administrator authentication, origin/header CSRF checks, sign-in throttling and publication command idempotency are implemented. User-session authorization and command idempotency, tested backup/restore and public hosting remain pending. SQLite targets one backend instance with persistent storage. Dependency override rationale is in [the engineering review](documentation/foundation-review.md#dependency-decisions); avoid unreviewed `npm audit fix --force` changes.
+Administrator authentication, origin/header CSRF checks, sign-in throttling and publication command idempotency are implemented. User-session authorization, revision checks and command replay are also implemented. Tested backup/restore, browser coordination and public hosting remain pending. SQLite targets one backend instance with persistent storage. Dependency override rationale is in [the engineering review](documentation/foundation-review.md#dependency-decisions); avoid unreviewed `npm audit fix --force` changes.
 
 Local verification is not deployed/browser acceptance. The last documented remote CI attempt failed before jobs started; a current remote CI result has not been established. Follow the implementation plan's acceptance gates before claiming delivery.
