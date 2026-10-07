@@ -1,5 +1,6 @@
 export const DiagnosticEvents = {
   FrameworkMessage: 'framework_message',
+  AdministrationProvisionFailed: 'administration_provision_failed',
   ConfigurationImportFailed: 'configuration_import_failed',
   RequestCompleted: 'request_completed',
   RequestAborted: 'request_aborted',
@@ -70,6 +71,7 @@ export const DiagnosticSeverity = {
 
 export const DiagnosticEventSeverity = {
   [DiagnosticEvents.FrameworkMessage]: DiagnosticSeverity.Information,
+  [DiagnosticEvents.AdministrationProvisionFailed]: DiagnosticSeverity.Error,
   [DiagnosticEvents.ConfigurationImportFailed]: DiagnosticSeverity.Error,
   [DiagnosticEvents.RequestCompleted]: DiagnosticSeverity.Information,
   [DiagnosticEvents.RequestAborted]: DiagnosticSeverity.Warning,

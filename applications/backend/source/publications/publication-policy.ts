@@ -17,3 +17,10 @@ export const PublicationPolicy = {
     Rollbacks: 'administration/rollbacks',
   },
 } as const;
+
+export const PublicationErrorCode = {
+  Conflict: 'operation_conflict',
+  StaleRevision: 'stale_revision',
+  AlreadyActive: 'already_active',
+  NoPreviousVersion: 'no_previous_version',
+} as const;

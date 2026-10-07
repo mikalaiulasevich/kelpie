@@ -1,3 +1,5 @@
+BEGIN IMMEDIATE;
+
 -- Preserve existing activation history; rowid breaks timestamp ties in insertion order.
 ALTER TABLE "Publication" ADD COLUMN "revision" INTEGER NOT NULL DEFAULT 0;
 WITH ordered_publications AS (
@@ -15,3 +17,5 @@ UPDATE "Funnel" SET "revision" = MAX("revision", COALESCE((
 ), 0));
 CREATE UNIQUE INDEX "Publication_funnelIdentifier_revision_key"
   ON "Publication"("funnelIdentifier", "revision");
+
+COMMIT;

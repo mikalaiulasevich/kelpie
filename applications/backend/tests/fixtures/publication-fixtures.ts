@@ -15,6 +15,7 @@ export const PublicationFixtures = {
     const third = await backend.configurationImports.import(
       ConfigurationImportFixtures.original(3),
     );
+
     return {
       administrator,
       first: first.version,

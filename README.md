@@ -1,8 +1,8 @@
 # Funnel Runtime
 
-A TypeScript/NestJS (Fastify)/React foundation for configurable funnels. Implemented: configuration validation, pure funnel evaluation, the initial Prisma/SQLite schema, backend lifecycle and health endpoints, immutable configuration draft imports, and a frontend readiness screen.
+A TypeScript/NestJS (Fastify)/React foundation for configurable funnels. Implemented: configuration validation, pure funnel evaluation, the initial Prisma/SQLite schema, backend lifecycle and health endpoints, immutable configuration draft imports, administrator authentication, transactional publication/rollback APIs, and a frontend readiness screen.
 
-**The product is not complete.** Session commands, administrator access, publication/rollback, event ingestion, analytics, synthetic traffic and public deployment remain in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). No public application URL or agreed 48-hour start is recorded.
+**The product is not complete.** Session commands, the administration UI, event ingestion, analytics, synthetic traffic and public deployment remain in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). No public application URL or agreed 48-hour start is recorded.
 
 ## Local development
 
@@ -35,6 +35,30 @@ Application files are watched. Restart development after changing shared package
 | `npm run benchmark:runtime`     | Build and measure the pure runtime separately from correctness tests                               |
 
 After building and migrating, `npm run start --workspace=@kelpie/backend` starts the compiled backend. TLS, routing, secrets, persistent storage and backups still require deployment setup. Hosting remains unresolved; GitHub Pages can serve only the frontend.
+
+## Administrator API
+
+Run migrations before provisioning credentials. Supply `ADMINISTRATOR_USERNAME` and `ADMINISTRATOR_PASSWORD` through your local secret environment, then run `npm run administrator:provision`. There is no default password. Provisioning again rotates the single administrator's credentials and revokes existing sessions. Do not put passwords in command arguments, source files or committed environment files.
+
+`ADMINISTRATION_ORIGIN` is the exact browser origin without a trailing slash (development default `http://127.0.0.1:5173`). Production requires an explicit HTTPS origin. Vite proxies the API during development; production should serve the frontend and API on the same origin. Cross-origin CORS and unrelated-domain GitHub Pages cookies are not implemented.
+
+Sign in with JSON `{ "username": "your-name", "password": "your-secret" }` at `POST /api/administration/sign-in`. Every administration mutation, including sign-in, must include the matching `Origin` and `X-Kelpie-Administration: 1` headers. The response sets an HttpOnly, SameSite=Strict cookie scoped to `/api/administration`; production adds Secure. Sessions expire after eight hours. A new sign-in replaces the previous administrator session. Password hashing uses asynchronous scrypt (N=131072, r=8, p=1); only one hash runs at a time, and excess work is rejected rather than queued. Sign-in is limited to five attempts per minute per client IP. Limits are process-local; the backend does not trust forwarded IP headers.
+
+| Endpoint | Behavior |
+| --- | --- |
+| `GET /api/administration/session` | Current administrator; 401 after expiration/revocation |
+| `POST /api/administration/sign-out` | Revoke current session and clear cookie |
+| `POST /api/administration/configurations` | Import the supplied configuration JSON as an immutable draft; 422 for invalid data, 409 for conflicting content |
+| `GET /api/administration/configurations?funnelIdentifier=workstyle-planner` | Version metadata plus active version and current revision |
+| `POST /api/administration/publications` | Activate a validated draft with optimistic concurrency and idempotency |
+| `POST /api/administration/rollbacks` | Activate the preceding version from activation history |
+| `GET /api/administration/publications?funnelIdentifier=workstyle-planner` | Activation history, newest revision first |
+
+A publication body contains `operationIdentifier` (a fresh UUID per intent), `funnelIdentifier`, `targetVersionIdentifier` (the imported version's UUID), and `expectedRevision` (from the list response). Rollback uses the same fields except `targetVersionIdentifier`. Retry the identical body and identifier after a timeout: it returns the originally persisted result, even if later commands changed the active version. Reusing an identifier for another intent or supplying a stale revision returns 409. A replay does not represent the latest active state; fetch the list again. Publishing the already-active version is rejected. Rollback records another activation, so rolling back again returns to the version active immediately before that rollback.
+
+Lists accept `limit` (default25, maximum100) and `offset` (maximum10000); responses include `nextOffset`. Each page is a consistent database snapshot, but separate pages may shift while new records are added. Responses contain metadata rather than whole configuration documents. All administrator routes require authentication except sign-in. Responses use `Cache-Control: no-store`; errors include a safe `code`, `message`, `statusCode` and server-owned `requestIdentifier`, with bounded validation `issues` where applicable.
+
+Publication changes the active pointer and appends history in one SQLite transaction. It never modifies pinned sessions, raw answers or events. The revision migration preserves prior history and breaks existing timestamp ties by insertion order. The administration interface and full old-session continuation scenario will be added with the corresponding frontend/session work.
 
 ## Repository map
 
@@ -119,6 +143,6 @@ The drain deadline cannot interrupt synchronous SQLite work. Backpressure drops 
 
 Implemented controls include validated environment input, loopback binding by default, body limits, security headers, server timeouts, redacted exceptions and database/migration readiness. Compressed JSON is unsupported (415). Frontend Ky requests have cancellation, no retries and a five-second total deadline.
 
-Authentication, CSRF, rate limits, command idempotency, tested backup/restore and public hosting remain pending. SQLite targets one backend instance with persistent storage. Dependency override rationale is in [the engineering review](documentation/foundation-review.md#dependency-decisions); avoid unreviewed `npm audit fix --force` changes.
+Administrator authentication, origin/header CSRF checks, sign-in throttling and publication command idempotency are implemented. User-session authorization and command idempotency, tested backup/restore and public hosting remain pending. SQLite targets one backend instance with persistent storage. Dependency override rationale is in [the engineering review](documentation/foundation-review.md#dependency-decisions); avoid unreviewed `npm audit fix --force` changes.
 
 Local verification is not deployed/browser acceptance. The last documented remote CI attempt failed before jobs started; a current remote CI result has not been established. Follow the implementation plan's acceptance gates before claiming delivery.

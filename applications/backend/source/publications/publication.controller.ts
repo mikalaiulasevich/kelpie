@@ -21,6 +21,7 @@ export class PublicationController {
   @Post()
   async publish(@Body() document: unknown, @Req() request: FastifyRequest) {
     const administrator = await this.administration.authorize(request);
+
     return this.publications.publish(document, administrator.identifier);
   }
 }

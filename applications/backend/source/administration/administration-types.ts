@@ -12,6 +12,16 @@ export const AdministrationSchemas = {
     },
     { additionalProperties: false },
   ),
+  Provisioning: Type.Object(
+    {
+      username: Type.String({ pattern: AdministrationPolicy.UsernamePattern }),
+      password: Type.String({
+        minLength: AdministrationPolicy.MinimumProvisionPasswordCharacters,
+        maxLength: AdministrationPolicy.MaximumPasswordCharacters,
+      }),
+    },
+    { additionalProperties: false },
+  ),
   Identity: Type.Object({ identifier: Type.String(), username: Type.String() }),
 } as const;
 

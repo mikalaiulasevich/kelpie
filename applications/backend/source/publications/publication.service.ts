@@ -1,5 +1,5 @@
 import {
-  ConflictException,
+  HttpStatus,
   Inject,
   Injectable,
   NotFoundException,
@@ -9,10 +9,16 @@ import { createHash } from 'node:crypto';
 import { Prisma, type Publication } from '../../generated/prisma/client.js';
 import { DatabaseService } from '../database/database.service.js';
 import { ConfigurationImportDocument } from '../configurations/configuration-import-document.js';
+import { PublicRequestError } from '../transport/public-request-error.js';
+import { PublicationErrorCode } from './publication-policy.js';
 import { PublicationInputs } from './publication-inputs.js';
 import { PublicationMessages } from './publication-messages.js';
 import { PublicationAction, PublicationPolicy } from './publication-policy.js';
-import type { PublicationIntent, PublicationResponse } from './publication-types.js';
+import type {
+  PublicationIntent,
+  PublicationResponse,
+  PublicationHistory,
+} from './publication-types.js';
 
 const PublicationRecords = {
   fingerprint(intent: PublicationIntent): string {
@@ -23,19 +29,33 @@ const PublicationRecords = {
           intent.administratorIdentifier,
           intent.funnelIdentifier,
           intent.expectedRevision,
-          intent.targetVersionIdentifier ?? null,
+          intent.action === PublicationAction.Publish ? intent.targetVersionIdentifier : null,
         ]),
       )
       .digest(PublicationPolicy.HashEncoding);
   },
   response(publication: Publication): PublicationResponse {
-    const { requestFingerprint: _fingerprint, createdAt, ...metadata } = publication;
-    return { ...metadata, createdAt: createdAt.toISOString() };
+    return {
+      identifier: publication.identifier,
+      operationIdentifier: publication.operationIdentifier,
+      action: publication.action,
+      administratorIdentifier: publication.administratorIdentifier,
+      funnelIdentifier: publication.funnelIdentifier,
+      targetVersionIdentifier: publication.targetVersionIdentifier,
+      previousVersionIdentifier: publication.previousVersionIdentifier,
+      revision: publication.revision,
+      createdAt: publication.createdAt.toISOString(),
+    };
   },
   replay(publication: Publication, fingerprint: string): PublicationResponse {
     if (publication.requestFingerprint !== fingerprint) {
-      throw new ConflictException(PublicationMessages.Conflict);
+      throw new PublicRequestError(
+        HttpStatus.CONFLICT,
+        PublicationErrorCode.Conflict,
+        PublicationMessages.Conflict,
+      );
     }
+
     return PublicationRecords.response(publication);
   },
 } as const;
@@ -58,8 +78,9 @@ export class PublicationService {
       administratorIdentifier,
     });
   }
-  async history(query: unknown) {
+  async history(query: unknown): Promise<PublicationHistory> {
     const { funnelIdentifier, limit, offset } = PublicationInputs.query(query);
+
     return this.database.client.$transaction(async (transaction) => {
       const funnel = await transaction.funnel.findUnique({
         where: { identifier: funnelIdentifier },
@@ -68,12 +89,14 @@ export class PublicationService {
       if (!funnel) {
         throw new NotFoundException(PublicationMessages.MissingFunnel);
       }
+
       const publications = await transaction.publication.findMany({
         where: { funnelIdentifier },
         orderBy: { revision: 'desc' },
         skip: offset,
         take: limit + 1,
       });
+
       return {
         funnel,
         items: publications.slice(0, limit).map(PublicationRecords.response),
@@ -89,6 +112,7 @@ export class PublicationService {
     if (existing) {
       return PublicationRecords.replay(existing, fingerprint);
     }
+
     try {
       return await this.database.client.$transaction(async (transaction) => {
         const repeated = await transaction.publication.findUnique({
@@ -97,6 +121,7 @@ export class PublicationService {
         if (repeated) {
           return PublicationRecords.replay(repeated, fingerprint);
         }
+
         return this.activate(transaction, intent, fingerprint);
       });
     } catch (error) {
@@ -106,12 +131,14 @@ export class PublicationService {
       ) {
         throw error;
       }
+
       const winner = await this.database.client.publication.findUnique({
         where: { operationIdentifier: intent.operationIdentifier },
       });
       if (!winner) {
         throw error;
       }
+
       return PublicationRecords.replay(winner, fingerprint);
     }
   }
@@ -126,13 +153,24 @@ export class PublicationService {
     if (!funnel) {
       throw new NotFoundException(PublicationMessages.MissingFunnel);
     }
+
     if (funnel.revision !== intent.expectedRevision) {
-      throw new ConflictException(PublicationMessages.StaleRevision);
+      throw new PublicRequestError(
+        HttpStatus.CONFLICT,
+        PublicationErrorCode.StaleRevision,
+        PublicationMessages.StaleRevision,
+      );
     }
+
     const targetIdentifier = await this.targetIdentifier(transaction, intent);
     if (funnel.activeVersionIdentifier === targetIdentifier) {
-      throw new ConflictException(PublicationMessages.AlreadyActive);
+      throw new PublicRequestError(
+        HttpStatus.CONFLICT,
+        PublicationErrorCode.AlreadyActive,
+        PublicationMessages.AlreadyActive,
+      );
     }
+
     await this.validateTarget(transaction, intent.funnelIdentifier, targetIdentifier);
     const revision = funnel.revision + 1;
     const changed = await transaction.funnel.updateMany({
@@ -140,8 +178,13 @@ export class PublicationService {
       data: { activeVersionIdentifier: targetIdentifier, revision },
     });
     if (changed.count !== 1) {
-      throw new ConflictException(PublicationMessages.StaleRevision);
+      throw new PublicRequestError(
+        HttpStatus.CONFLICT,
+        PublicationErrorCode.StaleRevision,
+        PublicationMessages.StaleRevision,
+      );
     }
+
     const publication = await transaction.publication.create({
       data: {
         operationIdentifier: intent.operationIdentifier,
@@ -154,22 +197,29 @@ export class PublicationService {
         revision,
       },
     });
+
     return PublicationRecords.response(publication);
   }
   private async targetIdentifier(
     transaction: Prisma.TransactionClient,
     intent: PublicationIntent,
   ): Promise<string> {
-    if (intent.action === PublicationAction.Publish && intent.targetVersionIdentifier) {
+    if (intent.action === PublicationAction.Publish) {
       return intent.targetVersionIdentifier;
     }
+
     const previous = await transaction.publication.findFirst({
       where: { funnelIdentifier: intent.funnelIdentifier },
       orderBy: { revision: 'desc' },
     });
     if (!previous?.previousVersionIdentifier) {
-      throw new ConflictException(PublicationMessages.NoPreviousVersion);
+      throw new PublicRequestError(
+        HttpStatus.CONFLICT,
+        PublicationErrorCode.NoPreviousVersion,
+        PublicationMessages.NoPreviousVersion,
+      );
     }
+
     return previous.previousVersionIdentifier;
   }
   private async validateTarget(
@@ -183,12 +233,14 @@ export class PublicationService {
     if (!target) {
       throw new NotFoundException(PublicationMessages.MissingVersion);
     }
+
     try {
       const prepared = ConfigurationImportDocument.prepare(target.document);
       if (
         prepared.checksum !== target.checksum ||
         prepared.configuration.funnelId !== funnelIdentifier ||
-        prepared.configuration.version !== target.version
+        prepared.configuration.version !== target.version ||
+        prepared.configuration.schemaVersion !== target.schemaVersion
       ) {
         throw new Error(PublicationMessages.InvalidStoredConfiguration);
       }

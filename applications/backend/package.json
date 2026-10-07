@@ -12,7 +12,8 @@
     "database:migrate": "tsx source/database/prepare-database-directory.ts && prisma migrate deploy",
     "database:validate": "prisma validate",
     "test": "vitest run",
-    "configurations:import": "tsx source/configurations/import-configuration.ts"
+    "configurations:import": "tsx source/configurations/import-configuration.ts",
+    "administration:provision": "tsx source/administration/provision-administrator.ts"
   },
   "dependencies": {
     "@fastify/cookie": "11.1.2",

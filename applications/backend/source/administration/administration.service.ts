@@ -24,6 +24,9 @@ import {
 const validateCredentials = new Ajv({ strict: true }).compile<AdministratorCredentials>(
   AdministrationSchemas.Credentials,
 );
+const validateProvisioning = new Ajv({ strict: true }).compile<AdministratorCredentials>(
+  AdministrationSchemas.Provisioning,
+);
 const AdministrationTokens = {
   hash(token: string): string {
     return createHash(AdministrationPolicy.TokenHashAlgorithm)
@@ -86,10 +89,7 @@ export class AdministrationService {
   }
 
   async provision(username: string, password: string): Promise<AdministratorIdentity> {
-    if (
-      !validateCredentials({ username, password }) ||
-      password.length < AdministrationPolicy.MinimumProvisionPasswordCharacters
-    ) {
+    if (!validateProvisioning({ username, password })) {
       throw new BadRequestException(AdministrationMessages.InvalidProvisioning);
     }
 

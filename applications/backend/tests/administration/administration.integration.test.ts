@@ -39,13 +39,37 @@ describe('administrator sessions', () => {
       body: JSON.stringify(AdministrationFixture.Credentials),
     });
     expect(forbidden.status).toBe(403);
+    const missingHeader = await application.request('/api/administration/sign-in', {
+      method: 'POST',
+      headers: { origin: 'http://127.0.0.1:5173', 'content-type': 'application/json' },
+      body: JSON.stringify(AdministrationFixture.Credentials),
+    });
+    const wrongOrigin = await application.request('/api/administration/sign-in', {
+      method: 'POST',
+      headers: { ...AdministrationFixture.Headers, origin: 'https://attacker.example' },
+      body: JSON.stringify(AdministrationFixture.Credentials),
+    });
+    expect(missingHeader.status).toBe(403);
+    expect(wrongOrigin.status).toBe(403);
     expect(await application.database.administratorSession.count()).toBe(0);
   });
 
   it('rejects wrong passwords with a generic response', async () => {
     const response = await AdministrationFixture.signIn(application, 'private-wrong-password');
     expect(response.status).toBe(401);
-    expect(await response.text()).not.toContain('private-wrong-password');
+    const wrongPassword = await response.json();
+    const unknownUser = await application.request('/api/administration/sign-in', {
+      method: 'POST',
+      headers: AdministrationFixture.Headers,
+      body: JSON.stringify({
+        username: 'unknown-user',
+        password: AdministrationFixture.Credentials.password,
+      }),
+    });
+    expect(unknownUser.status).toBe(401);
+    const unknownResponse = await unknownUser.json();
+    expect(unknownResponse).toEqual({ ...wrongPassword, requestIdentifier: expect.any(String) });
+    expect(JSON.stringify(wrongPassword)).not.toContain('private-wrong-password');
     expect(await application.database.administratorSession.count()).toBe(0);
   });
 
@@ -98,6 +122,25 @@ describe('administrator sessions', () => {
     );
   });
 
+  it('replaces the prior browser session without accumulating rows', async () => {
+    const cookie = AdministrationFixture.cookie(await AdministrationFixture.signIn(application));
+    const replacement = AdministrationFixture.cookie(
+      await AdministrationFixture.signIn(application),
+    );
+    expect(replacement).not.toBe(cookie);
+    expect(await application.database.administratorSession.count()).toBe(1);
+    expect(
+      (await application.request('/api/administration/session', { headers: { cookie } })).status,
+    ).toBe(401);
+    expect(
+      (
+        await application.request('/api/administration/session', {
+          headers: { cookie: replacement },
+        })
+      ).status,
+    ).toBe(200);
+  });
+
   it('bounds sign-in attempts per IP', async () => {
     for (let attempt = 0; attempt < 5; attempt += 1) {
       const response = await application.request('/api/administration/sign-in', {
@@ -107,8 +150,16 @@ describe('administrator sessions', () => {
       });
       expect(response.status).toBe(401);
     }
+
     const response = await AdministrationFixture.signIn(application);
     expect(response.status).toBe(429);
+    expect(response.headers.get('cache-control')).toBe('no-store');
+    expect(await response.json()).toEqual({
+      statusCode: 429,
+      code: 'rate_limited',
+      message: 'Too many requests.',
+      requestIdentifier: response.headers.get('x-request-id'),
+    });
     expect(await application.database.administratorSession.count()).toBe(0);
   });
 });

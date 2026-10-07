@@ -123,7 +123,7 @@ Progress counts currently available steps that are not listed in excludeTypes. T
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | Funnel               | Stable funnel identity and active configuration reference                                                                      |
 | FunnelVersion        | Unique funnel/version pair, immutable document, schema version, checksum                                                       |
-| Publication          | Activation and rollback history, administrator, timestamp, previous and target version                                         |
+| Publication          | Activation and rollback history, administrator, timestamp, monotonic funnel revision, previous and target version                                         |
 | Session              | Pinned version and experiment, assigned variant and assignment source, UTM, traffic origin, current step, revision, expiration |
 | SessionAnswer        | Retained answer value and nullable confirmation revision; active status derived from runtime                                   |
 | SessionTransition    | Immutable session, operation, resulting revision, kind, source step and destination step; server timestamp                     |
@@ -178,8 +178,10 @@ POST /events/batches
 
 POST /administration/sign-in
 POST /administration/sign-out
+GET  /administration/session
 GET  /administration/configurations
 POST /administration/configurations
+GET  /administration/publications
 POST /administration/publications
 POST /administration/rollbacks
 GET  /administration/analytics
@@ -257,6 +259,10 @@ Aggregate in SQLite using indexed queries; do not load all events into Node.js. 
 ## Security and operational requirements
 
 Use a single administrator, a vetted password hashing implementation, persistent revocable administrator sessions, sign-in throttling, and authorization on every internal endpoint. Bootstrap credentials from secrets without committing a default password. Prevent username/password and token leakage in logs.
+
+Implemented administration API decisions: one active administrator session, eight-hour server expiry, opaque256-bit cookie token with SHA-256 storage hash, asynchronous scrypt at N=131072/r=8/p=1 with one concurrent hash per application instance. Credential rotation revokes existing sessions. Sign-in is limited to five attempts per minute per IP with a bounded in-process cache; forwarded addresses remain untrusted. Cookie mutations require an exact configured Origin and `X-Kelpie-Administration: 1`; no cross-origin CORS is enabled. Production requires an explicit HTTPS origin. All administration responses disable caching. Deployment must verify same-origin browser behavior and TLS before public acceptance.
+
+Configuration/version management uses database-backed publication identifiers and monotonic per-funnel revisions. Replays check the original intent before current revision, and history responses exclude request fingerprints. List endpoints return at most100 metadata rows with offsets bounded at10000; concurrent additions may shift subsequent pages. A future large history requires keyset pagination before increasing these bounds.
 
 Protect cookie-authorized mutations from CSRF. Restrict cross-origin access if needed, apply security headers, prevent configuration content from injecting HTML, and set upload/body/batch limits. React text rendering must not become arbitrary HTML execution. Supplied CTA actions dispatch only to supported local handlers. Reject unknown actions and arbitrary navigation URLs; any future URL action requires a dedicated scheme/destination allowlist before it can be published.
 

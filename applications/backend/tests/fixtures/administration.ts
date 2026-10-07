@@ -14,20 +14,21 @@ export const AdministrationFixture = {
       await application
         .getService(AdministrationService)
         .provision(this.Credentials.username, this.Credentials.password);
+
       return application;
     } catch (error) {
       await application.close();
       throw error;
     }
   },
-  signIn(
-    application: BackendApplicationFixture,
-    password: string = AdministrationFixture.Credentials.password,
-  ): Promise<Response> {
+  signIn(application: BackendApplicationFixture, password?: string): Promise<Response> {
     return application.request('/api/administration/sign-in', {
       method: 'POST',
       headers: this.Headers,
-      body: JSON.stringify({ ...this.Credentials, password }),
+      body: JSON.stringify({
+        ...this.Credentials,
+        password: password ?? this.Credentials.password,
+      }),
     });
   },
   cookie(response: Response): string {

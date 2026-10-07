@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { BackendApplicationFixture } from '../fixtures/backend-application.js';
+import { DatabaseRecords } from '../fixtures/database-records.js';
 import { PublicationFixtures } from '../fixtures/publication-fixtures.js';
 
 describe('transactional publications with real SQLite', () => {
@@ -14,6 +15,9 @@ describe('transactional publications with real SQLite', () => {
 
   it('rolls back by activation history and replays immutable responses after later changes', async () => {
     const { administrator, first, third, service } = await PublicationFixtures.prepare(backend);
+    const pinned = await backend.database.session.create({
+      data: DatabaseRecords.sessionData(first.identifier),
+    });
     const initial = PublicationFixtures.request(first.funnelIdentifier, first.identifier);
     const original = await service.publish(initial, administrator.identifier);
     await service.publish(
@@ -32,6 +36,11 @@ describe('transactional publications with real SQLite', () => {
       revision: 3,
       action: 'rollback',
     });
+    expect(
+      await backend.database.session.findUniqueOrThrow({
+        where: { identifier: pinned.identifier },
+      }),
+    ).toEqual(pinned);
     expect(await service.publish(initial, administrator.identifier)).toEqual(original);
     expect(await service.rollback(rollback, administrator.identifier)).toEqual(restored);
     expect(
@@ -66,7 +75,7 @@ describe('transactional publications with real SQLite', () => {
         { ...request, targetVersionIdentifier: third.identifier },
         administrator.identifier,
       ),
-    ).rejects.toMatchObject({ status: 409 });
+    ).rejects.toMatchObject({ status: 409, code: 'operation_conflict' });
     await expect(service.publish(request, randomUUID())).rejects.toMatchObject({ status: 409 });
     expect(await backend.database.publication.count()).toBe(1);
   });
@@ -85,7 +94,7 @@ describe('transactional publications with real SQLite', () => {
     ]);
     expect(outcomes.filter((outcome) => outcome.status === 'fulfilled')).toHaveLength(1);
     expect(outcomes.find((outcome) => outcome.status === 'rejected')).toMatchObject({
-      reason: { status: 409 },
+      reason: { status: 409, code: 'stale_revision' },
     });
     expect(await backend.database.publication.count()).toBe(1);
   });

@@ -32,11 +32,12 @@ export const ManagementQuerySchema = Type.Object(
 );
 export type PublishRequest = Readonly<Static<typeof PublishRequestSchema>>;
 export type RollbackRequest = Readonly<Static<typeof RollbackRequestSchema>>;
-export interface ManagementQuery {
-  readonly funnelIdentifier: string;
-  readonly limit: number;
-  readonly offset: number;
-}
+export const ResolvedManagementQuerySchema = Type.Object({
+  funnelIdentifier: identifier,
+  limit: Type.Integer(),
+  offset: Type.Integer(),
+});
+export type ManagementQuery = Readonly<Static<typeof ResolvedManagementQuerySchema>>;
 const compiler = new Ajv({
   strict: true,
   allErrors: false,
@@ -53,23 +54,27 @@ export const PublicationInputs = {
     if (!validators.publish(value)) {
       throw new BadRequestException(PublicationMessages.InvalidRequest);
     }
+
     return { ...value };
   },
   rollback(value: unknown): RollbackRequest {
     if (!validators.rollback(value)) {
       throw new BadRequestException(PublicationMessages.InvalidRequest);
     }
+
     return { ...value };
   },
   query(value: unknown): ManagementQuery {
     if (!validators.query(value)) {
       throw new BadRequestException(PublicationMessages.InvalidQuery);
     }
+
     const limit = Number(value.limit ?? PublicationPolicy.DefaultPageSize);
     const offset = Number(value.offset ?? 0);
     if (limit > PublicationPolicy.MaximumPageSize || offset > PublicationPolicy.MaximumOffset) {
       throw new BadRequestException(PublicationMessages.InvalidQuery);
     }
+
     return { funnelIdentifier: value.funnelIdentifier, limit, offset };
   },
 } as const;

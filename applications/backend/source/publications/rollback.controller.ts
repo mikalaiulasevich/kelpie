@@ -16,6 +16,7 @@ export class RollbackController {
   @Post()
   async rollback(@Body() document: unknown, @Req() request: FastifyRequest) {
     const administrator = await this.administration.authorize(request);
+
     return this.publications.rollback(document, administrator.identifier);
   }
 }
