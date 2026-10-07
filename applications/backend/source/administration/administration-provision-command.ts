@@ -9,6 +9,7 @@ export const AdministrationProvisionCommand = {
   async run(environment: NodeJS.ProcessEnv = process.env): Promise<void> {
     const username = environment[AdministrationCommandPolicy.UsernameEnvironmentField];
     const password = environment[AdministrationCommandPolicy.PasswordEnvironmentField];
+
     if (!username || !password) {
       throw new Error(AdministrationCommandMessages.CredentialsRequired);
     }

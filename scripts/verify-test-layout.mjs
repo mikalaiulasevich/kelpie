@@ -8,22 +8,27 @@ import { TestLayoutPolicy } from './script-policy.mjs';
 const TestLayout = {
   /** @param {string} directory @param {string} testDirectory */
   async inspect(directory, testDirectory) {
-    for (const entry of await readdir(directory, { withFileTypes: true })) {
-      const path = join(directory, entry.name);
-      if (entry.isDirectory() && !TestLayoutPolicy.IgnoredDirectories.has(entry.name)) {
-        await TestLayout.inspect(path, testDirectory);
-      } else if (
-        entry.isFile() &&
-        TestLayoutPolicy.TestFilePattern.test(entry.name) &&
-        !path.startsWith(testDirectory + sep)
+    for (const directoryEntry of await readdir(directory, { withFileTypes: true })) {
+      const entryPath = join(directory, directoryEntry.name);
+
+      if (
+        directoryEntry.isDirectory() &&
+        !TestLayoutPolicy.IgnoredDirectories.has(directoryEntry.name)
       ) {
-        throw new Error(TestLayoutMessages.misplacedFile(path));
+        await TestLayout.inspect(entryPath, testDirectory);
+      } else if (
+        directoryEntry.isFile() &&
+        TestLayoutPolicy.TestFilePattern.test(directoryEntry.name) &&
+        !entryPath.startsWith(testDirectory + sep)
+      ) {
+        throw new Error(TestLayoutMessages.misplacedFile(entryPath));
       }
     }
   },
 };
 
 const repositoryDirectory = fileURLToPath(new URL('../', import.meta.url));
+
 for (const workspace of TestLayoutPolicy.Workspaces) {
   const workspaceDirectory = join(repositoryDirectory, workspace);
   await TestLayout.inspect(

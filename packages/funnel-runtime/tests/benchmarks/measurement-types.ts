@@ -6,6 +6,7 @@ export interface BenchmarkSampleCollection {
 }
 
 export const BenchmarkSuite = { Runtime: 'runtime' } as const;
+
 export type BenchmarkSuite = ValueOf<typeof BenchmarkSuite>;
 
 export interface BenchmarkMeasurementResult {

@@ -1,61 +1,35 @@
-import { SessionController } from '../sessions/session.controller.js';
-import { SessionService } from '../sessions/session.service.js';
-import { SessionOwnershipService } from '../sessions/session-ownership.service.js';
-import { SessionCommandsService } from '../sessions/session-commands.service.js';
-import { EventIngestionController } from '../events/event-ingestion.controller.js';
-import { EventIngestionService } from '../events/event-ingestion.service.js';
-import { AnalyticsController } from '../analytics/analytics.controller.js';
-import { AnalyticsService } from '../analytics/analytics.service.js';
-import { ConfigurationManagementController } from '../configurations/configuration-management.controller.js';
-import { ConfigurationManagementService } from '../configurations/configuration-management.service.js';
-import { PublicationController } from '../publications/publication.controller.js';
-import { PublicationService } from '../publications/publication.service.js';
-import { RollbackController } from '../publications/rollback.controller.js';
-import { AdministrationController } from '../administration/administration.controller.js';
-import { AdministrationGuard } from '../administration/administration.guard.js';
-import { AdministrationService } from '../administration/administration.service.js';
 import { Module, type DynamicModule } from '@nestjs/common';
 
-import { ApplicationShutdown } from './application-shutdown.js';
-import { DatabaseService } from '../database/database.service.js';
-import { ApplicationEnvironmentService } from '../environment/application-environment.js';
-import { EnvironmentInjection } from '../environment/environment-policy.js';
+import { AdministrationModule } from '../administration/administration.module.js';
+import { AnalyticsModule } from '../analytics/analytics.module.js';
+import { ConfigurationsModule } from '../configurations/configurations.module.js';
+import { EnvironmentModule } from '../environment/environment.module.js';
 import type { ApplicationEnvironment } from '../environment/environment-schemas.js';
-import { ConfigurationImportService } from '../configurations/configuration-import.service.js';
-import { HealthController } from '../health/health.controller.js';
+import { EventsModule } from '../events/events.module.js';
+import { HealthModule } from '../health/health.module.js';
+import { PublicationsModule } from '../publications/publications.module.js';
+import { SessionsModule } from '../sessions/sessions.module.js';
+import { TransportModule } from '../transport/transport.module.js';
+import { ApplicationShutdown } from './application-shutdown.js';
 
 @Module({
-  controllers: [
-    AnalyticsController,
-    EventIngestionController,
-    SessionController,
-    HealthController,
-    AdministrationController,
-    ConfigurationManagementController,
-    PublicationController,
-    RollbackController,
+  imports: [
+    AdministrationModule,
+    AnalyticsModule,
+    ConfigurationsModule,
+    EventsModule,
+    HealthModule,
+    PublicationsModule,
+    SessionsModule,
+    TransportModule,
   ],
-  providers: [
-    AnalyticsService,
-    EventIngestionService,
-    SessionService,
-    SessionOwnershipService,
-    SessionCommandsService,
-    ConfigurationManagementService,
-    PublicationService,
-    AdministrationService,
-    AdministrationGuard,
-    ApplicationEnvironmentService,
-    DatabaseService,
-    ApplicationShutdown,
-    ConfigurationImportService,
-  ],
+  providers: [ApplicationShutdown],
 })
 export class ApplicationModule {
   static register(environment: ApplicationEnvironment): DynamicModule {
     return {
       module: ApplicationModule,
-      providers: [{ provide: EnvironmentInjection.Values, useValue: { ...environment } }],
+      imports: [EnvironmentModule.register(environment)],
     };
   }
 }

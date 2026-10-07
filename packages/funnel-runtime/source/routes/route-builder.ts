@@ -41,8 +41,8 @@ export class RouteBuilder {
   }
 
   private build(): EvaluatedRoute {
-    for (const identifier of this.selectedVariant.stepSequence) {
-      const step = RouteSteps.resolve(this.configuration, this.selectedVariant, identifier);
+    for (const stepIdentifier of this.selectedVariant.stepSequence) {
+      const step = RouteSteps.resolve(this.configuration, this.selectedVariant, stepIdentifier);
       this.visit(step);
     }
 

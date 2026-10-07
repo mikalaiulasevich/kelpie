@@ -1,5 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
-import { Ajv } from 'ajv';
+import { SchemaCompiler } from '../validation/schema-compiler.js';
 import { PublicationMessages } from './publication-messages.js';
 import {
   PublicationSchemas,
@@ -7,16 +7,9 @@ import {
   type RollbackRequest,
 } from './publication-types.js';
 
-const compiler = new Ajv({
-  strict: true,
-  allErrors: false,
-  coerceTypes: false,
-  ownProperties: true,
-});
-
 const PublicationValidators = {
-  publish: compiler.compile<PublishRequest>(PublicationSchemas.PublishRequest),
-  rollback: compiler.compile<RollbackRequest>(PublicationSchemas.RollbackRequest),
+  publish: SchemaCompiler.compile<PublishRequest>(PublicationSchemas.PublishRequest),
+  rollback: SchemaCompiler.compile<RollbackRequest>(PublicationSchemas.RollbackRequest),
 } as const;
 
 export const PublicationInputs = {

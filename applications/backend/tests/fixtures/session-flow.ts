@@ -42,7 +42,10 @@ export const SessionFlowFixture = {
   async prepare(backend: BackendApplicationFixture) {
     const publication = await PublicationFixtures.prepare(backend);
     await publication.service.publish(
-      PublicationFixtures.request(publication.first.funnelIdentifier, publication.first.identifier),
+      PublicationFixtures.request(
+        publication.firstVersion.funnelIdentifier,
+        publication.firstVersion.identifier,
+      ),
       publication.administrator.identifier,
     );
 
@@ -105,6 +108,7 @@ export class SessionBrowserFixture {
       headers: { cookie: this.cookie },
     });
     const cookie = response.headers.get('set-cookie')?.split(';')[0];
+
     if (cookie) {
       this.cookie = cookie;
     }

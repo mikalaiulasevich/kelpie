@@ -1,3 +1,4 @@
+import type { FunnelConfiguration, FunnelResult } from '@kelpie/contracts';
 import { isEqual, isNull, isUndefined, isPlainObject } from 'es-toolkit/predicate';
 import { FunnelEvaluation } from '@kelpie/funnel-runtime';
 import type { Prisma } from '../../generated/prisma/client.js';
@@ -10,7 +11,36 @@ import {
   EventRejectionCode,
   ObservationName,
 } from './event-ingestion-policy.js';
-import type { ObservationEvent } from './event-ingestion-types.js';
+import type {
+  ObservationEvent,
+  ObservationProperties,
+  ResultObservationName,
+} from './event-ingestion-types.js';
+
+const ResultObservationProperties = {
+  [ObservationName.ResultViewed](result: FunnelResult): ObservationProperties {
+    return { result_id: result.id };
+  },
+
+  [ObservationName.CtaClicked](result: FunnelResult): ObservationProperties {
+    return { result_id: result.id, action: result.cta.action };
+  },
+
+  [ObservationName.RecommendationExpanded](result: FunnelResult): Optional<ObservationProperties> {
+    if (result.cta.action !== EventIngestionPolicy.ExpansionAction) {
+      return undefined;
+    }
+
+    return {
+      result_id: result.id,
+      action: result.cta.action,
+      source: EventIngestionPolicy.ExpansionSource,
+    };
+  },
+} as const satisfies ReadonlyDictionary<
+  ResultObservationName,
+  ValueMapper<FunnelResult, Optional<ObservationProperties>>
+>;
 
 const HistoricalObservations = {
   async state(
@@ -30,14 +60,16 @@ const HistoricalObservations = {
     return isNull(transition) ? undefined : SessionSnapshots.read(transition.operation.response);
   },
 
-  properties(
-    state: SessionState,
-    event: ObservationEvent,
-  ): Optional<Readonly<Record<string, TextOrNumber>>> {
-    const confirmed = SessionProjection.confirmedAnswers(state, state.configuration);
-    const evaluation = FunnelEvaluation.evaluate(state.configuration, state.variant, confirmed);
-    const index = evaluation.route.steps.findIndex((step) => step.id === event.step_id);
-    const step = evaluation.route.steps[index];
+  properties(state: SessionState, event: ObservationEvent): Optional<ObservationProperties> {
+    const confirmedAnswers = SessionProjection.confirmedAnswers(state, state.configuration);
+    const evaluation = FunnelEvaluation.evaluate(
+      state.configuration,
+      state.variant,
+      confirmedAnswers,
+    );
+    const stepIndex = evaluation.route.steps.findIndex((step) => step.id === event.step_id);
+    const step = evaluation.route.steps[stepIndex];
+
     if (isUndefined(step) || state.currentStepIdentifier !== event.step_id) {
       return undefined;
     }
@@ -45,33 +77,18 @@ const HistoricalObservations = {
     if (event.name === ObservationName.StepViewed) {
       return {
         step_type: step.type,
-        visible_step_index: index,
+        visible_step_index: stepIndex,
         visible_step_count: evaluation.route.steps.length,
       };
     }
 
     const result = state.result;
+
     if (isNull(result)) {
       return undefined;
     }
 
-    if (event.name === ObservationName.ResultViewed) {
-      return { result_id: result.id };
-    }
-
-    if (event.name === ObservationName.CtaClicked) {
-      return { result_id: result.id, action: result.cta.action };
-    }
-
-    if (result.cta.action !== EventIngestionPolicy.ExpansionAction) {
-      return undefined;
-    }
-
-    return {
-      result_id: result.id,
-      action: result.cta.action,
-      source: EventIngestionPolicy.ExpansionSource,
-    };
+    return ResultObservationProperties[event.name](result);
   },
 } as const;
 
@@ -88,14 +105,25 @@ const ObservationMetadata = {
       variant: session.variant,
       ...acquisition,
     };
-    const mismatch = Object.entries(metadata).some(
-      ([key, value]) => Object.hasOwn(event, key) && !isEqual(Reflect.get(event, key), value),
+    const hasMetadataMismatch = Object.entries(metadata).some(
+      ([fieldName, expectedValue]) =>
+        Object.hasOwn(event, fieldName) && !isEqual(Reflect.get(event, fieldName), expectedValue),
     );
-    const undeclaredAcquisition = SessionPolicy.AcquisitionFields.some(
-      (key) => Object.hasOwn(event, key) && !Object.hasOwn(acquisition, key),
+    const hasUndeclaredAcquisition = SessionPolicy.AcquisitionFields.some(
+      (fieldName) => Object.hasOwn(event, fieldName) && !Object.hasOwn(acquisition, fieldName),
     );
 
-    return !mismatch && !undeclaredAcquisition;
+    return !hasMetadataMismatch && !hasUndeclaredAcquisition;
+  },
+
+  declaresProperties(configuration: FunnelConfiguration, event: ObservationEvent): boolean {
+    const declaration = configuration.events.allowed.find((allowed) => allowed.name === event.name);
+
+    if (isUndefined(declaration)) {
+      return false;
+    }
+
+    return isEqual([...declaration.properties].sort(), Object.keys(event.properties).sort());
   },
 
   matchesState(session: OwnedSession, state: SessionState, event: ObservationEvent): boolean {
@@ -119,15 +147,13 @@ export const EventEligibility = {
     }
 
     const configuration = SessionProjection.configuration(session);
-    const declaration = configuration.events.allowed.find((allowed) => allowed.name === event.name);
-    if (
-      isUndefined(declaration) ||
-      !isEqual([...declaration.properties].sort(), Object.keys(event.properties).sort())
-    ) {
+
+    if (!ObservationMetadata.declaresProperties(configuration, event)) {
       return EventRejectionCode.Invalid;
     }
 
     const state = await HistoricalObservations.state(database, session, event.observationRevision);
+
     if (isUndefined(state) || !ObservationMetadata.matchesState(session, state, event)) {
       return EventRejectionCode.Ineligible;
     }

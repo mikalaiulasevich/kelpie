@@ -4,10 +4,26 @@ import { AnalyticsTrafficOrigin } from './analytics-policy.js';
 import type { AnalyticsQuery } from './analytics-types.js';
 
 export const AnalyticsQueries = {
+  versions(query: AnalyticsQuery): Prisma.FunnelVersionFindManyArgs {
+    const where: Prisma.FunnelVersionWhereInput = { funnelIdentifier: query.funnelIdentifier };
+
+    if (!isUndefined(query.versionIdentifier)) {
+      where.identifier = query.versionIdentifier;
+    }
+
+    return {
+      where,
+      orderBy: { version: 'desc' },
+      take: query.limit + 1,
+      skip: query.offset,
+    };
+  },
+
   cohort(query: AnalyticsQuery, versionIdentifiers: readonly string[], now: Date): Prisma.Sql {
     const conditions = [
       Prisma.sql`s."versionIdentifier" IN (${Prisma.join([...versionIdentifiers])})`,
     ];
+
     if (!query.includeForced) {
       conditions.push(Prisma.sql`s."assignmentSource" <> 'forced'`);
     }

@@ -53,6 +53,7 @@ const SessionCreation = {
 
   assignment(configuration: FunnelConfiguration, query: SessionQuery) {
     const override = query[configuration.experiment.overrideQueryParam];
+
     if (override === ExperimentVariant.A || override === ExperimentVariant.B) {
       return { variant: override, source: SessionPolicy.Assignment.Forced };
     }
@@ -79,8 +80,11 @@ const SessionCreation = {
     transaction: Prisma.TransactionClient,
     session: OwnedSession,
     body: CreateSessionRequest,
-    fingerprint: string,
+    query: SessionQuery,
   ): Promise<SessionState> {
+    const configuration = SessionProjection.configuration(session);
+    const fingerprint = SessionCreation.fingerprint(body, query, configuration);
+
     if (session.expiresAt.getTime() <= Date.now()) {
       throw new PublicRequestError(
         HttpStatus.UNAUTHORIZED,
@@ -89,7 +93,7 @@ const SessionCreation = {
       );
     }
 
-    const previous = await transaction.sessionOperation.findUnique({
+    const previousOperation = await transaction.sessionOperation.findUnique({
       where: {
         sessionIdentifier_operationIdentifier: {
           sessionIdentifier: session.identifier,
@@ -97,7 +101,8 @@ const SessionCreation = {
         },
       },
     });
-    if (isNull(previous)) {
+
+    if (isNull(previousOperation)) {
       throw new PublicRequestError(
         HttpStatus.CONFLICT,
         SessionErrorCode.Bound,
@@ -105,7 +110,7 @@ const SessionCreation = {
       );
     }
 
-    if (previous.requestFingerprint !== fingerprint) {
+    if (previousOperation.requestFingerprint !== fingerprint) {
       throw new PublicRequestError(
         HttpStatus.CONFLICT,
         SessionErrorCode.Conflict,
@@ -113,7 +118,7 @@ const SessionCreation = {
       );
     }
 
-    return SessionSnapshots.read(previous.response);
+    return SessionSnapshots.read(previousOperation.response);
   },
 } as const;
 
@@ -126,6 +131,7 @@ export class SessionService {
 
   async current(request: FastifyRequest, reply: FastifyReply): Promise<CurrentSessionResponse> {
     const credential = await this.ownership.verify(request);
+
     if (isNull(credential.hash)) {
       await this.ownership.issue(reply);
 
@@ -136,6 +142,7 @@ export class SessionService {
       where: { accessTokenHash: credential.hash },
       include: SessionPolicy.RecordInclude,
     });
+
     if (isNull(session)) {
       return { state: null, expired: false };
     }
@@ -179,14 +186,12 @@ export class SessionService {
         throw error;
       }
 
-      const winner = await SessionRecords.requireOwned(this.database.client, credentialHash);
-
-      return SessionCreation.replay(
+      const winningSession = await SessionRecords.requireOwned(
         this.database.client,
-        winner,
-        body,
-        SessionCreation.fingerprint(body, query, SessionProjection.configuration(winner)),
+        credentialHash,
       );
+
+      return SessionCreation.replay(this.database.client, winningSession, body, query);
     }
   }
 
@@ -196,17 +201,13 @@ export class SessionService {
     query: SessionQuery,
   ): Promise<SessionState> {
     return this.database.client.$transaction(async (transaction) => {
-      const existing = await transaction.session.findUnique({
+      const existingSession = await transaction.session.findUnique({
         where: { accessTokenHash: credentialHash },
         include: SessionPolicy.RecordInclude,
       });
-      if (!isNull(existing)) {
-        return SessionCreation.replay(
-          transaction,
-          existing,
-          body,
-          SessionCreation.fingerprint(body, query, SessionProjection.configuration(existing)),
-        );
+
+      if (!isNull(existingSession)) {
+        return SessionCreation.replay(transaction, existingSession, body, query);
       }
 
       return this.createOwned(transaction, credentialHash, body, query);
@@ -223,8 +224,10 @@ export class SessionService {
     const { configuration } = active;
     const fingerprint = SessionCreation.fingerprint(body, query, configuration);
     const assignment = SessionCreation.assignment(configuration, query);
-    const first = FunnelEvaluation.evaluate(configuration, assignment.variant, {}).route.steps[0];
-    if (!first) {
+    const firstStep = FunnelEvaluation.evaluate(configuration, assignment.variant, {}).route
+      .steps[0];
+
+    if (!firstStep) {
       throw new Error(SessionMessages.Corrupted);
     }
 
@@ -239,7 +242,7 @@ export class SessionService {
         trafficOrigin: SessionPolicy.TrafficOrigin,
         acquisitionParameters,
         campaign: acquisitionParameters.utm_campaign ?? null,
-        currentStepIdentifier: first.id,
+        currentStepIdentifier: firstStep.id,
         expiresAt: new Date(
           Date.now() + configuration.session.ttlHours * SessionPolicy.MillisecondsPerHour,
         ),
@@ -258,6 +261,7 @@ export class SessionService {
       where: { identifier: funnelIdentifier },
       include: { activeVersion: true },
     });
+
     if (!funnel?.activeVersion) {
       throw new PublicRequestError(
         HttpStatus.NOT_FOUND,
@@ -267,6 +271,7 @@ export class SessionService {
     }
 
     const prepared = ConfigurationImportDocument.prepare(funnel.activeVersion.document);
+
     if (!ConfigurationImportDocument.matchesVersion(funnel.activeVersion, prepared)) {
       throw new Error(SessionMessages.Corrupted);
     }

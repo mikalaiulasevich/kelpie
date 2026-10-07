@@ -13,6 +13,7 @@ const candidateDirectories = [
 const resolvedDirectory = candidateDirectories.find((directory) =>
   existsSync(resolve(directory, DatabasePaths.Schema)),
 );
+
 if (isUndefined(resolvedDirectory)) {
   throw new Error(ApplicationMessages.DirectoryUnavailable);
 }

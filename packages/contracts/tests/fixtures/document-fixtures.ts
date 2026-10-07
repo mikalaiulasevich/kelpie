@@ -22,6 +22,7 @@ export const DocumentFixtures = {
 
   nested(depth: number, leaf: unknown = {}): unknown {
     let value = leaf;
+
     for (let level = 0; level < depth; level += 1) {
       value = { child: value };
     }

@@ -1,9 +1,11 @@
 import { Socket } from 'node:net';
 import { StartupProcessPolicy } from './startup-policy.js';
 import { StartupProcessMessages } from './startup-messages.js';
+import { StartupDeadline } from './startup-deadline.js';
 
 export class IncompleteRequestFixture {
   private readonly socket = new Socket();
+
   private readonly closed: Promise<void>;
 
   private constructor() {
@@ -29,21 +31,9 @@ export class IncompleteRequestFixture {
   }
 
   async waitForClose(): Promise<void> {
-    let deadline: Optional<NodeJS.Timeout>;
-
-    try {
-      await Promise.race([
-        this.closed,
-        new Promise<never>((_, rejectDeadline) => {
-          deadline = setTimeout(
-            () => rejectDeadline(new Error(StartupProcessMessages.SocketCloseTimeout)),
-            StartupProcessPolicy.SocketCloseMilliseconds,
-          );
-        }),
-      ]);
-    } finally {
-      clearTimeout(deadline);
-    }
+    await StartupDeadline.wait(this.closed, StartupProcessPolicy.SocketCloseMilliseconds, () => {
+      throw new Error(StartupProcessMessages.SocketCloseTimeout);
+    });
   }
 
   close(): void {
@@ -51,30 +41,27 @@ export class IncompleteRequestFixture {
   }
 
   private async waitForAcceptance(port: number): Promise<void> {
-    let deadline: Optional<NodeJS.Timeout>;
+    const accepted = new Promise<void>((resolveAccepted, rejectAccepted) => {
+      let response = '';
+      this.socket.once('error', rejectAccepted);
+      this.socket.on('data', (chunk: Buffer) => {
+        response = (response + chunk.toString()).slice(
+          -StartupProcessPolicy.MaximumOutputCharacters,
+        );
+
+        if (response.includes('HTTP/1.1 100 Continue\r\n\r\n')) {
+          this.socket.removeListener('error', rejectAccepted);
+          resolveAccepted();
+        }
+      });
+      this.socket.connect(port, StartupProcessPolicy.Host, () => this.writeHeaders(port));
+    });
 
     try {
-      await new Promise<void>((resolveAccepted, rejectAccepted) => {
-        let response = '';
-        deadline = setTimeout(
-          () => rejectAccepted(new Error(StartupProcessMessages.RequestAcceptanceTimeout)),
-          StartupProcessPolicy.TimeoutMilliseconds,
-        );
-        this.socket.once('error', rejectAccepted);
-        this.socket.on('data', (chunk: Buffer) => {
-          response = (response + chunk.toString()).slice(
-            -StartupProcessPolicy.MaximumOutputCharacters,
-          );
-
-          if (response.includes('HTTP/1.1 100 Continue\r\n\r\n')) {
-            this.socket.removeListener('error', rejectAccepted);
-            resolveAccepted();
-          }
-        });
-        this.socket.connect(port, StartupProcessPolicy.Host, () => this.writeHeaders(port));
+      await StartupDeadline.wait(accepted, StartupProcessPolicy.TimeoutMilliseconds, () => {
+        throw new Error(StartupProcessMessages.RequestAcceptanceTimeout);
       });
     } finally {
-      clearTimeout(deadline);
       this.socket.removeAllListeners('data');
     }
   }

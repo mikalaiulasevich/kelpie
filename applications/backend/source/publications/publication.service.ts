@@ -6,6 +6,7 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { createHash } from 'node:crypto';
+import { isNull } from 'es-toolkit/predicate';
 import type { Prisma, Publication } from '../../generated/prisma/client.js';
 import { DatabaseErrors } from '../database/database-errors.js';
 import { DatabaseService } from '../database/database.service.js';
@@ -139,7 +140,8 @@ export class PublicationService {
     const existing = await this.database.client.publication.findUnique({
       where: { operationIdentifier: intent.operationIdentifier },
     });
-    if (existing) {
+
+    if (!isNull(existing)) {
       return PublicationRecords.replay(existing, fingerprint);
     }
 
@@ -148,7 +150,8 @@ export class PublicationService {
         const repeated = await transaction.publication.findUnique({
           where: { operationIdentifier: intent.operationIdentifier },
         });
-        if (repeated) {
+
+        if (!isNull(repeated)) {
           return PublicationRecords.replay(repeated, fingerprint);
         }
 
@@ -162,7 +165,8 @@ export class PublicationService {
       const winner = await this.database.client.publication.findUnique({
         where: { operationIdentifier: intent.operationIdentifier },
       });
-      if (!winner) {
+
+      if (isNull(winner)) {
         throw error;
       }
 
@@ -204,6 +208,7 @@ export class PublicationService {
       where: { identifier: funnel.identifier, revision: funnel.revision },
       data: { activeVersionIdentifier: targetIdentifier, revision },
     });
+
     if (changed.count !== 1) {
       throw new PublicRequestError(
         HttpStatus.CONFLICT,
@@ -251,6 +256,7 @@ export class PublicationService {
       where: { funnelIdentifier: intent.funnelIdentifier },
       orderBy: { revision: 'desc' },
     });
+
     if (!previous?.previousVersionIdentifier) {
       throw new PublicRequestError(
         HttpStatus.CONFLICT,
@@ -270,12 +276,14 @@ export class PublicationService {
     const target = await transaction.funnelVersion.findFirst({
       where: { identifier, funnelIdentifier },
     });
-    if (!target) {
+
+    if (isNull(target)) {
       throw new NotFoundException(PublicationMessages.MissingVersion);
     }
 
     try {
       const prepared = ConfigurationImportDocument.prepare(target.document);
+
       if (!ConfigurationImportDocument.matchesVersion(target, prepared)) {
         throw new Error(PublicationMessages.InvalidStoredConfiguration);
       }

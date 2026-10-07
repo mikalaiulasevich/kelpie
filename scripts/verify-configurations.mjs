@@ -36,6 +36,7 @@ const ConfigurationIntegrity = {
     const actualChecksum = createHash(ConfigurationFiles.ChecksumAlgorithm)
       .update(contents)
       .digest(ConfigurationFiles.ChecksumEncoding);
+
     if (actualChecksum !== expectedChecksum) {
       throw new Error(ConfigurationIntegrityMessages.changedContents(fileName));
     }
@@ -46,6 +47,7 @@ const ConfigurationIntegrity = {
 
   async verify() {
     const { directory, entries } = await ConfigurationIntegrity.manifest();
+
     for (const [fileName, expectedChecksum] of entries) {
       await ConfigurationIntegrity.verifyFile(directory, fileName, expectedChecksum);
     }

@@ -37,6 +37,7 @@ export const DatabaseWriterLock = {
       { stdio: ['pipe', 'pipe', 'pipe'] },
     );
     const exited = once(child, 'exit');
+
     try {
       await Promise.race([
         once(child.stdout, 'data', {

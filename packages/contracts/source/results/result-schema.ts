@@ -17,6 +17,7 @@ const recommendationsSchema = Type.Array(
   SchemaPrimitives.Text,
   ConfigurationSchemaPolicy.Recommendations,
 );
+
 const resultContentProperties = {
   title: SchemaPrimitives.Text,
   summary: SchemaPrimitives.Text,

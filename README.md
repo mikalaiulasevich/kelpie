@@ -120,6 +120,8 @@ scripts                    Development, clean builds and integrity checks
 documentation              Decisions, measurements and development evidence
 ```
 
+Backend feature ownership follows Nest modules: administration, configurations, publications, sessions, events, analytics and health. Each owns its controllers and providers. `DatabaseModule` exports the shared database service; `EnvironmentModule.register` provides application-local configuration globally once at bootstrap. `TransportModule` registers the global exception filter. `ApplicationModule` composes these modules and owns shutdown coordination. Stateless schemas, policies and operations remain ordinary domain imports.
+
 [AGENTS.md](AGENTS.md) owns coding/review conventions. Tests and support files live under each workspace's `tests/` directory. [The engineering review](documentation/foundation-review.md) explains architectural decisions, complexity and performance evidence; [the development log](documentation/development-log.md) records milestones. [The audit manifest](documentation/file-audit.json) contains current file hashes and verification scope, not a permanent correctness guarantee.
 
 ## Configurations and runtime

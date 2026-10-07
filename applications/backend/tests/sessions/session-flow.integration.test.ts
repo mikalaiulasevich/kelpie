@@ -150,8 +150,8 @@ describe('session HTTP acceptance', () => {
     );
     await publication.service.publish(
       PublicationFixtures.request(
-        publication.first.funnelIdentifier,
-        publication.third.identifier,
+        publication.firstVersion.funnelIdentifier,
+        publication.thirdVersion.identifier,
         1,
       ),
       publication.administrator.identifier,
@@ -170,7 +170,7 @@ describe('session HTTP acceptance', () => {
     await publication.service.rollback(
       {
         operationIdentifier: SessionFlowFixture.creation().operationIdentifier,
-        funnelIdentifier: publication.first.funnelIdentifier,
+        funnelIdentifier: publication.firstVersion.funnelIdentifier,
         expectedRevision: 2,
       },
       publication.administrator.identifier,

@@ -1,7 +1,7 @@
 import { isPlainObject, isString } from 'es-toolkit/predicate';
 import { SessionPolicy } from '../sessions/session-policy.js';
 import { HttpStatus } from '@nestjs/common';
-import { Ajv } from 'ajv';
+import { SchemaCompiler } from '../validation/schema-compiler.js';
 import { SessionTimestamps } from '../sessions/session-timestamps.js';
 import { PublicRequestError } from '../transport/public-request-error.js';
 import {
@@ -13,12 +13,10 @@ import {
 import { EventIngestionMessages } from './event-ingestion-messages.js';
 import { EventRejectionCode } from './event-ingestion-policy.js';
 
-const compiler = new Ajv({ strict: true, ownProperties: true, coerceTypes: false });
-
 const EventValidators = {
   identifier: new RegExp(SessionPolicy.OperationPattern),
-  batch: compiler.compile<ObservationBatch>(EventIngestionSchemas.Batch),
-  event: compiler.compile<ObservationEvent>(EventIngestionSchemas.Event),
+  batch: SchemaCompiler.compile<ObservationBatch>(EventIngestionSchemas.Batch),
+  event: SchemaCompiler.compile<ObservationEvent>(EventIngestionSchemas.Event),
 } as const;
 
 export const EventIngestionInputs = {

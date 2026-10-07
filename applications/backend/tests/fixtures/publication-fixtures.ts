@@ -9,17 +9,17 @@ export const PublicationFixtures = {
     const administrator = await backend.database.administrator.create({
       data: { username: randomUUID(), passwordHash: 'not-used-by-service-tests' },
     });
-    const first = await backend.configurationImports.import(
+    const firstImport = await backend.configurationImports.import(
       ConfigurationImportFixtures.original(1),
     );
-    const third = await backend.configurationImports.import(
+    const thirdImport = await backend.configurationImports.import(
       ConfigurationImportFixtures.original(3),
     );
 
     return {
       administrator,
-      first: first.version,
-      third: third.version,
+      firstVersion: firstImport.version,
+      thirdVersion: thirdImport.version,
       service: backend.getService(PublicationService),
     };
   },

@@ -2,6 +2,7 @@ import { Writable } from 'node:stream';
 
 export class DiagnosticStream extends Writable {
   readonly chunks: string[] = [];
+
   private pending: Optional<(error?: Nullable<Error>) => void>;
 
   constructor() {

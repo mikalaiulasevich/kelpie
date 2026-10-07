@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { BackendApplicationFixture } from '../fixtures/backend-application.js';
 import { SessionBrowserFixture, SessionFlowFixture } from '../fixtures/session-flow.js';
 import { EventBatchCases } from '../cases/event-batch-cases.js';
-import { EventBatchFixture } from '../fixtures/event-batch-fixture.js';
+import { EventAcceptanceFixture } from '../fixtures/event-acceptance.js';
 
 describe('event batches', () => {
   let backend: BackendApplicationFixture;
@@ -33,8 +33,8 @@ describe('event batches', () => {
   );
 
   it('retains positions, isolates malformed elements and replays the original timestamp', async () => {
-    const event = EventBatchFixture.view(await browser.create());
-    const response = await EventBatchFixture.post(backend, browser, [null, event, event]);
+    const event = EventAcceptanceFixture.view(await browser.create());
+    const response = await EventAcceptanceFixture.post(backend, browser, [null, event, event]);
     expect(response.status).toBe(200);
     const stored = await backend.database.event.findUniqueOrThrow({
       where: { identifier: event.event_id },
@@ -56,7 +56,7 @@ describe('event batches', () => {
         },
       ],
     });
-    const replay = await EventBatchFixture.post(backend, browser, [event]);
+    const replay = await EventAcceptanceFixture.post(backend, browser, [event]);
     expect(await replay.json()).toEqual({
       receipts: [
         {
@@ -73,10 +73,10 @@ describe('event batches', () => {
   });
 
   it('concurrent identical delivery produces one accepted event and one duplicate receipt', async () => {
-    const event = EventBatchFixture.view(await browser.create());
+    const event = EventAcceptanceFixture.view(await browser.create());
     const responses = await Promise.all([
-      EventBatchFixture.post(backend, browser, [event]),
-      EventBatchFixture.post(backend, browser, [event]),
+      EventAcceptanceFixture.post(backend, browser, [event]),
+      EventAcceptanceFixture.post(backend, browser, [event]),
     ]);
     expect(responses.map((response) => response.status)).toEqual([200, 200]);
     const payloads = await Promise.all(responses.map((response) => response.text()));
@@ -87,13 +87,13 @@ describe('event batches', () => {
 
   it('rejects expiration before duplicate lookup and rejects missing CSRF evidence', async () => {
     const state = await browser.create();
-    const event = EventBatchFixture.view(state);
-    expect((await EventBatchFixture.post(backend, browser, [event])).status).toBe(200);
+    const event = EventAcceptanceFixture.view(state);
+    expect((await EventAcceptanceFixture.post(backend, browser, [event])).status).toBe(200);
     await backend.database.session.update({
       where: { identifier: state.sessionIdentifier },
       data: { expiresAt: new Date(0) },
     });
-    expect((await EventBatchFixture.post(backend, browser, [event])).status).toBe(401);
+    expect((await EventAcceptanceFixture.post(backend, browser, [event])).status).toBe(401);
     const forbidden = await backend.request('/api/events/batches', {
       method: 'POST',
       headers: { cookie: browser.cookie, 'content-type': 'application/json' },

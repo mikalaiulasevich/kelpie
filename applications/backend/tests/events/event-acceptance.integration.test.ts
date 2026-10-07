@@ -143,8 +143,8 @@ describe('event ingestion independent HTTP acceptance', () => {
   it('keeps v3-only action eligibility after rollback without granting it to a new v1 session', async () => {
     await publication.service.publish(
       PublicationFixtures.request(
-        publication.first.funnelIdentifier,
-        publication.third.identifier,
+        publication.firstVersion.funnelIdentifier,
+        publication.thirdVersion.identifier,
         1,
       ),
       publication.administrator.identifier,
@@ -158,7 +158,7 @@ describe('event ingestion independent HTTP acceptance', () => {
     await publication.service.rollback(
       {
         operationIdentifier: SessionFlowFixture.creation().operationIdentifier,
-        funnelIdentifier: publication.first.funnelIdentifier,
+        funnelIdentifier: publication.firstVersion.funnelIdentifier,
         expectedRevision: 2,
       },
       publication.administrator.identifier,

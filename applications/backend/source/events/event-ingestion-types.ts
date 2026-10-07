@@ -35,7 +35,7 @@ export const EventIngestionSchemas = {
         maximum: EventIngestionPolicy.MaximumRevision,
       }),
       properties: Type.Record(Type.String(), Type.Union([EventFields.Text, Type.Integer()]), {
-        maxProperties: 3,
+        maxProperties: EventIngestionPolicy.MaximumProperties,
       }),
       funnel_id: Type.Optional(EventFields.Identifier),
       funnel_version: Type.Optional(Type.Integer({ minimum: 1 })),
@@ -89,3 +89,17 @@ export interface ParsedObservation {
   readonly identifier: Optional<string>;
   readonly event: Optional<ObservationEvent>;
 }
+
+export interface EventWriteCommand {
+  readonly credential: string;
+  readonly event: ObservationEvent;
+  readonly fingerprint: string;
+  readonly position: number;
+}
+
+export type ObservationProperties = ReadonlyDictionary<string, TextOrNumber>;
+
+export type ResultObservationName = Exclude<
+  ObservationEvent['name'],
+  typeof ObservationName.StepViewed
+>;

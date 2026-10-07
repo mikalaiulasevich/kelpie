@@ -18,15 +18,15 @@ export const RouteSteps = {
   resolve(
     configuration: FunnelConfiguration,
     variant: VariantConfiguration,
-    identifier: string,
+    stepIdentifier: string,
   ): FunnelStep {
-    const step = DictionaryAccess.readOwn(configuration.steps, identifier);
+    const step = DictionaryAccess.readOwn(configuration.steps, stepIdentifier);
 
     if (isUndefined(step)) {
       throw new Error(RouteMessages.ValidatedConfigurationRequired);
     }
 
-    return VariantOverrides.step(identifier, step, variant);
+    return VariantOverrides.step(stepIdentifier, step, variant);
   },
 
   isVisible(step: FunnelStep, answers: SessionAnswers): boolean {

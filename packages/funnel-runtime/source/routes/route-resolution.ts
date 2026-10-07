@@ -10,10 +10,10 @@ import { RouteDirection, type AvailableRoute } from './route-types.js';
 const RouteNavigation = {
   adjacent(
     route: AvailableRoute,
-    identifier: string,
+    stepIdentifier: string,
     direction: RouteDirection,
   ): Optional<FunnelStep> {
-    const position = route.steps.findIndex((step) => step.id === identifier);
+    const position = route.steps.findIndex((step) => step.id === stepIdentifier);
 
     if (position < 0) {
       return undefined;
@@ -33,11 +33,11 @@ export const RouteResolution = {
     return RouteBuilder.resolve(configuration, variant, answers).route;
   },
 
-  next(route: AvailableRoute, identifier: string): Optional<FunnelStep> {
-    return RouteNavigation.adjacent(route, identifier, RouteDirection.Next);
+  next(route: AvailableRoute, stepIdentifier: string): Optional<FunnelStep> {
+    return RouteNavigation.adjacent(route, stepIdentifier, RouteDirection.Next);
   },
 
-  previous(route: AvailableRoute, identifier: string): Optional<FunnelStep> {
-    return RouteNavigation.adjacent(route, identifier, RouteDirection.Previous);
+  previous(route: AvailableRoute, stepIdentifier: string): Optional<FunnelStep> {
+    return RouteNavigation.adjacent(route, stepIdentifier, RouteDirection.Previous);
   },
 } as const;

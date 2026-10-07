@@ -11,6 +11,7 @@ export class AdministrationGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<FastifyRequest>();
+
     if (!AdministrationPolicy.ReadMethods.some((method) => method === request.method)) {
       this.administration.assertMutationOrigin(request);
     }

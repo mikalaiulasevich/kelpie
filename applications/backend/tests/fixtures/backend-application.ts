@@ -22,7 +22,9 @@ const Processes = { execute: promisify(execFile) } as const;
 
 export class BackendApplicationFixture {
   private application: Optional<NestFastifyApplication>;
+
   private temporaryDirectory: Optional<string>;
+
   private baseUrl: Optional<string>;
 
   private constructor() {}
@@ -36,28 +38,28 @@ export class BackendApplicationFixture {
     return fixture;
   }
 
-  getService<Service>(token: Type<Service>): Service {
-    if (!this.application) {
+  getApplication(): NestFastifyApplication {
+    if (isUndefined(this.application)) {
       throw new Error(BackendFixtureMessages.Closed);
     }
 
-    return this.application.get(token);
+    return this.application;
+  }
+
+  getService<Service>(token: Type<Service>): Service {
+    return this.getApplication().get(token);
+  }
+
+  getModuleService<Service>(moduleType: Type<unknown>, token: Type<Service>): Service {
+    return this.getApplication().select(moduleType).get(token, { strict: true });
   }
 
   get database(): DatabaseService['client'] {
-    if (!this.application) {
-      throw new Error(BackendFixtureMessages.Closed);
-    }
-
-    return this.application.get(DatabaseService).client;
+    return this.getService(DatabaseService).client;
   }
 
   get configurationImports(): ConfigurationImportService {
-    if (!this.application) {
-      throw new Error(BackendFixtureMessages.Closed);
-    }
-
-    return this.application.get(ConfigurationImportService);
+    return this.getService(ConfigurationImportService);
   }
 
   async request(path: string, options?: RequestInit): Promise<Response> {

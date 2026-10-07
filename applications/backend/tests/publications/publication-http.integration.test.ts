@@ -32,6 +32,7 @@ describe('protected version management HTTP', () => {
   it('imports all supplied versions, activates, rolls back and authorizes before replay', async () => {
     const cookie = AdministrationFixture.cookie(await AdministrationFixture.signIn(backend));
     const firstDocument = ConfigurationImportFixtures.original();
+
     for (const version of PublicationCases.SuppliedVersions) {
       const response = await PublicationHttpFixtures.post(
         backend,

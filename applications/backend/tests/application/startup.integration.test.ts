@@ -35,6 +35,7 @@ describe('application process lifecycle', () => {
 
   it('exits after an occupied port without leaking database paths', async () => {
     const listener = await StartupPortFixture.create();
+
     try {
       const application = await StartupProcessFixture.create({ PORT: String(listener.port) });
 

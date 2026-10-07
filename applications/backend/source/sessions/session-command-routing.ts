@@ -38,30 +38,31 @@ const SessionNavigation = {
 
   requested(
     evaluation: EvaluatedFunnel,
-    current: FunnelStep,
+    currentStep: FunnelStep,
     command: SessionCommand,
   ): NavigationDestination {
     if (command.kind === SessionCommandKind.Back) {
       return {
-        step: RouteResolution.previous(evaluation.route, current.id),
+        step: RouteResolution.previous(evaluation.route, currentStep.id),
         kind: SessionTransitionKind.Back,
       };
     }
 
     return {
-      step: RouteResolution.next(evaluation.route, current.id),
+      step: RouteResolution.next(evaluation.route, currentStep.id),
       kind: SessionTransitionKind.Forward,
     };
   },
 
   resolve(
     evaluation: EvaluatedFunnel,
-    current: FunnelStep,
+    currentStep: FunnelStep,
     command: SessionCommand,
   ): NavigationDestination {
-    const requested = SessionNavigation.requested(evaluation, current, command);
+    const requested = SessionNavigation.requested(evaluation, currentStep, command);
     const requiresResult =
-      current.type === StepType.Result || requested.step?.type === StepType.Result;
+      currentStep.type === StepType.Result || requested.step?.type === StepType.Result;
+
     if (requiresResult && !evaluation.result) {
       return {
         step: SessionNavigation.firstBlocking(evaluation),
@@ -86,6 +87,7 @@ export const SessionCommandRouting = {
     const step = evaluation.route.steps.find(
       (candidate) => candidate.id === record.currentStepIdentifier,
     );
+
     if (!step || step.id !== command.stepIdentifier) {
       throw new PublicRequestError(
         HttpStatus.CONFLICT,
@@ -98,7 +100,9 @@ export const SessionCommandRouting = {
   },
 
   invalidatedAnswers(record: OwnedSession, evaluation: EvaluatedFunnel): ReadonlyList<string> {
-    const available = new Map(evaluation.route.steps.map((step) => [step.id, step]));
+    const availableStepsByIdentifier = new Map(
+      evaluation.route.steps.map((step) => [step.id, step]),
+    );
 
     return record.answers
       .filter((answer) => {
@@ -106,7 +110,7 @@ export const SessionCommandRouting = {
           return false;
         }
 
-        const step = available.get(answer.stepIdentifier);
+        const step = availableStepsByIdentifier.get(answer.stepIdentifier);
 
         return (
           !step ||
@@ -122,8 +126,9 @@ export const SessionCommandRouting = {
     evaluation: EvaluatedFunnel,
     command: SessionCommand,
   ): SessionTransitionEvent {
-    const current = SessionCommandRouting.current(record, evaluation, command);
-    const destination = SessionNavigation.resolve(evaluation, current, command);
+    const currentStep = SessionCommandRouting.current(record, evaluation, command);
+    const destination = SessionNavigation.resolve(evaluation, currentStep, command);
+
     if (!destination.step) {
       throw new PublicRequestError(
         HttpStatus.CONFLICT,
@@ -135,13 +140,13 @@ export const SessionCommandRouting = {
     const occurrence = {
       operationIdentifier: command.operationIdentifier,
       kind: destination.kind,
-      fromStepIdentifier: current.id,
+      fromStepIdentifier: currentStep.id,
       toStepIdentifier: destination.step.id,
       clientTimestamp: command.clientTimestamp,
     };
 
-    if (command.kind === SessionCommandKind.Answer && StepRules.isInteractive(current)) {
-      return { ...occurrence, answerKind: current.type };
+    if (command.kind === SessionCommandKind.Answer && StepRules.isInteractive(currentStep)) {
+      return { ...occurrence, answerKind: currentStep.type };
     }
 
     return occurrence;

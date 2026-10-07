@@ -1,14 +1,17 @@
 import assert from 'node:assert/strict';
-import { AdministrationService } from '../../source/administration/administration.service.js';
-import { AdministrationFixture } from './administration.js';
-import { AnalyticsFixture } from './analytics-fixture.js';
 import { randomUUID } from 'node:crypto';
 import { FunnelEvaluation } from '@kelpie/funnel-runtime';
+import { AdministrationService } from '../../source/administration/administration.service.js';
 import { SessionProjection } from '../../source/sessions/session-projection.js';
 import { SessionSnapshots } from '../../source/sessions/session-snapshots.js';
+import { AdministrationFixture } from './administration.js';
+import { AnalyticsFixture } from './analytics-fixture.js';
 import type { BackendApplicationFixture } from './backend-application.js';
-import type { SessionBrowserFixture } from './session-flow.js';
-import { SessionFlowFixture, type SessionFlowState } from './session-flow.js';
+import {
+  SessionFlowFixture,
+  type SessionBrowserFixture,
+  type SessionFlowState,
+} from './session-flow.js';
 
 const EventAcceptanceStatements = {
   RejectSecond: `CREATE TEMP TRIGGER reject_second_observation BEFORE INSERT ON Event
@@ -55,13 +58,13 @@ export const EventAcceptanceFixture = {
 
   event(
     state: SessionFlowState,
-    name: string,
+    eventName: string,
     properties: ReadonlyDictionary<string, TextOrNumber>,
   ) {
     return {
       event_id: randomUUID(),
       session_id: state.sessionIdentifier,
-      name,
+      name: eventName,
       client_timestamp: SessionFlowFixture.Timestamp,
       step_id: state.currentStepIdentifier,
       observationRevision: state.revision,
@@ -73,40 +76,42 @@ export const EventAcceptanceFixture = {
     const snapshot = SessionSnapshots.read(state);
     const answers = SessionProjection.confirmedAnswers(snapshot, snapshot.configuration);
     const evaluation = FunnelEvaluation.evaluate(snapshot.configuration, snapshot.variant, answers);
-    const index = evaluation.route.steps.findIndex(
+    const visibleStepIndex = evaluation.route.steps.findIndex(
       (step) => step.id === snapshot.currentStepIdentifier,
     );
-    const step = evaluation.route.steps[index];
+    const step = evaluation.route.steps[visibleStepIndex];
     assert.ok(step);
 
     return EventAcceptanceFixture.event(state, 'step_viewed', {
       step_type: step.type,
-      visible_step_index: index,
+      visible_step_index: visibleStepIndex,
       visible_step_count: evaluation.route.steps.length,
     });
   },
 
-  result(state: SessionFlowState, name: string) {
+  result(state: SessionFlowState, eventName: string) {
     const snapshot = SessionSnapshots.read(state);
     assert.ok(snapshot.result);
     const properties: Record<string, TextOrNumber> = { result_id: snapshot.result.id };
-    if (name !== 'result_viewed') {
+
+    if (eventName !== 'result_viewed') {
       properties['action'] = snapshot.result.cta.action;
     }
 
-    if (name === 'recommendation_expanded') {
+    if (eventName === 'recommendation_expanded') {
       properties['source'] = 'primary_cta';
     }
 
-    return EventAcceptanceFixture.event(state, name, properties);
+    return EventAcceptanceFixture.event(state, eventName, properties);
   },
 
   async answerSequence(
     browser: SessionBrowserFixture,
-    initial: SessionFlowState,
+    initialState: SessionFlowState,
     answers: readonly unknown[],
   ): Promise<SessionFlowState> {
-    let state = initial;
+    let state = initialState;
+
     for (const answer of answers) {
       state = await browser.answer(state, answer);
     }

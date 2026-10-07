@@ -27,6 +27,7 @@ const AdministrationTokens = {
 
   read(request: FastifyRequest): string {
     const token = request.cookies[AdministrationPolicy.CookieName];
+
     if (!isString(token) || !AdministrationPolicy.TokenPattern.test(token)) {
       throw new UnauthorizedException(AdministrationMessages.AuthenticationRequired);
     }
@@ -156,6 +157,7 @@ export class AdministrationService {
     const { username, password } = credentials;
     const administrator = await this.database.client.administrator.findFirst();
     const verified = await this.passwords.verify(password, administrator?.passwordHash);
+
     if (!verified || isNull(administrator) || administrator.username !== username) {
       throw new UnauthorizedException(AdministrationMessages.InvalidCredentials);
     }
@@ -172,6 +174,7 @@ export class AdministrationService {
       const current = await transaction.administrator.findUnique({
         where: { identifier: administrator.identifier },
       });
+
       if (isNull(current) || current.passwordHash !== administrator.passwordHash) {
         throw new UnauthorizedException(AdministrationMessages.InvalidCredentials);
       }

@@ -6,8 +6,9 @@ import {
   type SessionAnswers,
   type FunnelConfiguration,
   type StepAnswer,
+  type FunnelResult,
 } from '@kelpie/contracts';
-import { FunnelEvaluation } from '@kelpie/funnel-runtime';
+import { FunnelEvaluation, type EvaluatedFunnel } from '@kelpie/funnel-runtime';
 import { isNull, isString } from 'es-toolkit/predicate';
 import { SessionMessages } from './session-messages.js';
 import type { OwnedSession, SessionState, SessionAnswerSource } from './session-types.js';
@@ -15,6 +16,7 @@ import type { OwnedSession, SessionState, SessionAnswerSource } from './session-
 export const SessionProjection = {
   configuration(record: OwnedSession): FunnelConfiguration {
     const result = FunnelConfigurations.validate(record.version.document);
+
     if (!result.valid) {
       throw new Error(SessionMessages.Corrupted);
     }
@@ -51,8 +53,10 @@ export const SessionProjection = {
     configuration: FunnelConfiguration,
   ): SessionAnswers {
     const answers: Record<string, StepAnswer> = {};
+
     for (const answer of record.answers) {
       const step = configuration.steps[answer.stepIdentifier];
+
       if (
         isNull(answer.confirmationRevision) ||
         isNull(answer.value) ||
@@ -63,12 +67,23 @@ export const SessionProjection = {
       }
 
       const value = SessionProjection.answer(answer.value);
+
       if (!isNull(value)) {
         Object.defineProperty(answers, step.input.name, { value, enumerable: true });
       }
     }
 
     return answers;
+  },
+
+  result(evaluation: EvaluatedFunnel, currentStepIdentifier: string): FunnelResult | null {
+    const currentStep = evaluation.route.steps.find((step) => step.id === currentStepIdentifier);
+
+    if (currentStep?.type !== StepType.Result) {
+      return null;
+    }
+
+    return evaluation.result ?? null;
   },
 
   read(
@@ -81,9 +96,8 @@ export const SessionProjection = {
       value: SessionProjection.answer(answer.value),
       confirmationRevision: answer.confirmationRevision,
     }));
-    const confirmed = SessionProjection.confirmedAnswers(record, configuration);
-    const evaluation = FunnelEvaluation.evaluate(configuration, variant, confirmed);
-    const current = evaluation.route.steps.find((step) => step.id === record.currentStepIdentifier);
+    const confirmedAnswers = SessionProjection.confirmedAnswers(record, configuration);
+    const evaluation = FunnelEvaluation.evaluate(configuration, variant, confirmedAnswers);
 
     return {
       sessionIdentifier: record.identifier,
@@ -99,7 +113,7 @@ export const SessionProjection = {
         completed: evaluation.route.completedQuestionCount,
         total: evaluation.route.questionCount,
       },
-      result: current?.type === StepType.Result ? (evaluation.result ?? null) : null,
+      result: SessionProjection.result(evaluation, record.currentStepIdentifier),
     };
   },
 } as const;

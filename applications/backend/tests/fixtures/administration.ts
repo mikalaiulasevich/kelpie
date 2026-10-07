@@ -18,6 +18,7 @@ export const AdministrationFixture = {
 
   async create(): Promise<BackendApplicationFixture> {
     const application = await BackendApplicationFixture.create();
+
     try {
       await application
         .getService(AdministrationService)
@@ -54,6 +55,7 @@ export const AdministrationFixture = {
 
     return vi.spyOn(service, 'signIn').mockImplementation((request, reply, body) => {
       const result = signIn(request, reply, body);
+
       if (isPlainObject(body)) {
         Object.assign(body, {
           username: 'changed-after-validation',

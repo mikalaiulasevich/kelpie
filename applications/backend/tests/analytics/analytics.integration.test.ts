@@ -41,7 +41,7 @@ describe('analytics SQLite session sets', () => {
   it('counts unique intersections, information Continue, pending and expired observations', async () => {
     const response = await backend.getService(AnalyticsService).read({
       funnelIdentifier: 'workstyle-planner',
-      versionIdentifier: versions.firstVersion,
+      versionIdentifier: versions.firstVersionIdentifier,
       campaign: 'launch',
     });
     const variant = response.versions[0]?.variants[0];
@@ -73,7 +73,7 @@ describe('analytics SQLite session sets', () => {
   it('retains historical branches, excludes Back and repeated transitions, and separates destination loss', async () => {
     const response = await backend.getService(AnalyticsService).read({
       funnelIdentifier: 'workstyle-planner',
-      versionIdentifier: versions.firstVersion,
+      versionIdentifier: versions.firstVersionIdentifier,
       campaign: 'launch',
     });
     const edges = response.versions[0]?.variants[0]?.edges;
@@ -101,7 +101,7 @@ describe('analytics SQLite session sets', () => {
   it('includes zero-traffic variants and not-applicable ratios in configuration order', async () => {
     const response = await backend.getService(AnalyticsService).read({
       funnelIdentifier: 'workstyle-planner',
-      versionIdentifier: versions.firstVersion,
+      versionIdentifier: versions.firstVersionIdentifier,
       campaign: 'launch',
     });
     expect(response.versions[0]?.variants[1]).toMatchObject({
@@ -125,23 +125,24 @@ describe('analytics SQLite session sets', () => {
 
   it('applies campaign, forced-assignment and synthetic filters consistently', async () => {
     const service = backend.getService(AnalyticsService);
-    const base = {
+    const baseQuery = {
       funnelIdentifier: 'workstyle-planner',
-      versionIdentifier: versions.firstVersion,
+      versionIdentifier: versions.firstVersionIdentifier,
     };
     expect(
-      (await service.read({ ...base, includeForced: 'true' })).versions[0]?.variants[0]?.started,
+      (await service.read({ ...baseQuery, includeForced: 'true' })).versions[0]?.variants[0]
+        ?.started,
     ).toBe(6);
     expect(
-      (await service.read({ ...base, trafficOrigin: 'synthetic' })).versions[0]?.variants[0]
+      (await service.read({ ...baseQuery, trafficOrigin: 'synthetic' })).versions[0]?.variants[0]
         ?.started,
     ).toBe(1);
     expect(
-      (await service.read({ ...base, trafficOrigin: 'all', includeForced: 'true' })).versions[0]
-        ?.variants[0]?.started,
+      (await service.read({ ...baseQuery, trafficOrigin: 'all', includeForced: 'true' }))
+        .versions[0]?.variants[0]?.started,
     ).toBe(7);
     expect(
-      (await service.read({ ...base, campaign: 'other' })).versions[0]?.variants.map(
+      (await service.read({ ...baseQuery, campaign: 'other' })).versions[0]?.variants.map(
         (variant) => variant.started,
       ),
     ).toEqual([0, 1]);
@@ -152,7 +153,7 @@ describe('analytics SQLite session sets', () => {
     const firstPage = await service.read({ funnelIdentifier: 'workstyle-planner', limit: '1' });
     expect(firstPage.pagination.hasMore).toBe(true);
     expect(firstPage.versions[0]).toMatchObject({
-      versionIdentifier: versions.thirdVersion,
+      versionIdentifier: versions.thirdVersionIdentifier,
       funnelVersion: 3,
     });
     expect(firstPage.versions[0]?.variants.map((variant) => variant.started)).toEqual([0, 1]);
@@ -164,7 +165,7 @@ describe('analytics SQLite session sets', () => {
     expect(
       (await service.read({ funnelIdentifier: 'workstyle-planner', limit: '1', offset: '1' }))
         .versions[0]?.versionIdentifier,
-    ).toBe(versions.firstVersion);
+    ).toBe(versions.firstVersionIdentifier);
     expect((await service.read({ funnelIdentifier: 'missing' })).versions).toEqual([]);
   });
 
@@ -187,13 +188,11 @@ describe('analytics SQLite session sets', () => {
     await backend.database
       .$executeRaw`UPDATE "Session" SET "expiresAt" = ${new Date('2020-01-01T00:00:00.000Z').getTime()} WHERE "identifier" = 'expired'`;
     try {
-      const response = await backend
-        .getService(AnalyticsService)
-        .read({
-          funnelIdentifier: 'workstyle-planner',
-          versionIdentifier: versions.firstVersion,
-          campaign: 'launch',
-        });
+      const response = await backend.getService(AnalyticsService).read({
+        funnelIdentifier: 'workstyle-planner',
+        versionIdentifier: versions.firstVersionIdentifier,
+        campaign: 'launch',
+      });
       expect(
         response.versions[0]?.variants[0]?.steps.find((step) => step.stepIdentifier === 'intro'),
       ).toMatchObject({ expiredDropout: { numerator: 1, denominator: 2, value: 0.5 } });
@@ -207,12 +206,13 @@ describe('analytics SQLite session sets', () => {
 
   it('uses indexed source lookups in all aggregate query plans', async () => {
     const query = AnalyticsInputs.query({ funnelIdentifier: 'workstyle-planner' });
-    const cohort = AnalyticsQueries.cohort(query, [versions.firstVersion], new Date());
+    const cohort = AnalyticsQueries.cohort(query, [versions.firstVersionIdentifier], new Date());
     const statements = {
       summary: AnalyticsQueries.summary(cohort),
       steps: AnalyticsQueries.steps(cohort),
       edges: AnalyticsQueries.edges(cohort),
     };
+
     for (const [name, statement] of Object.entries(statements)) {
       const rows = await backend.database.$queryRaw<unknown[]>(
         Prisma.sql`EXPLAIN QUERY PLAN ${statement}`,

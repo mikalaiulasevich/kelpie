@@ -138,6 +138,7 @@ describe('administrator sessions', () => {
 
   it('snapshots validated credentials before asynchronous verification', async () => {
     const mutation = AdministrationFixture.mutateCredentialsDuringSignIn(application);
+
     try {
       const response = await AdministrationFixture.signIn(application);
       expect(response.status).toBe(200);

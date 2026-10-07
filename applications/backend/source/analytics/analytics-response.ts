@@ -93,3 +93,5 @@ export type AnalyticsVariant = DeepReadonly<Static<typeof AnalyticsResponseSchem
 export type AnalyticsVersion = DeepReadonly<Static<typeof AnalyticsResponseSchemas.Version>>;
 
 export type AnalyticsResponse = DeepReadonly<Static<typeof AnalyticsResponseSchemas.Response>>;
+
+export type AnalyticsMetadata = Omit<AnalyticsResponse, 'versions'>;

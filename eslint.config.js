@@ -16,8 +16,10 @@ const objectMethodSpacing = {
     return {
       ObjectExpression(node) {
         const source = context.sourceCode;
+
         for (const [index, property] of node.properties.entries()) {
           const previous = node.properties[index - 1];
+
           if (
             property.type !== 'Property' ||
             !property.method ||
@@ -30,6 +32,7 @@ const objectMethodSpacing = {
           }
 
           const between = source.text.slice(previous.range[1], property.range[0]);
+
           if (!/\n[\t \r]*\n/.test(between)) {
             const firstLineBreak = between.indexOf('\n');
             const separator = source.getTokenAfter(previous);
@@ -145,13 +148,20 @@ export default typescript.config(
       'kelpie/object-method-spacing': 'error',
       'no-console': ['error', { allow: ['warn', 'error', 'info'] }],
       curly: ['error', 'all'],
+      'lines-between-class-members': ['error', 'always'],
       'no-nested-ternary': 'error',
       'no-param-reassign': 'error',
       'no-restricted-syntax': ['error', ...restrictedSyntax, declarationRestrictions.helpers],
       'padding-line-between-statements': [
         'error',
         { blankLine: 'always', prev: '*', next: 'return' },
+        {
+          blankLine: 'always',
+          prev: ['const', 'let'],
+          next: ['if', 'for', 'while', 'switch', 'try'],
+        },
         { blankLine: 'always', prev: 'block-like', next: '*' },
+        { blankLine: 'always', prev: 'export', next: 'export' },
       ],
       '@typescript-eslint/no-non-null-assertion': 'error',
       '@typescript-eslint/no-explicit-any': 'error',
@@ -240,6 +250,11 @@ export default typescript.config(
       'padding-line-between-statements': [
         'error',
         { blankLine: 'always', prev: '*', next: 'return' },
+        {
+          blankLine: 'always',
+          prev: ['const', 'let'],
+          next: ['if', 'for', 'while', 'switch', 'try'],
+        },
         { blankLine: 'always', prev: 'block-like', next: '*' },
         { blankLine: 'always', prev: 'export', next: 'export' },
       ],

@@ -13,7 +13,6 @@ import { FrameworkLogger } from '../diagnostics/framework-logger.js';
 import { RequestDiagnostics } from '../diagnostics/request-diagnostics.js';
 import type { ApplicationEnvironment } from '../environment/environment-schemas.js';
 import { ApplicationEnvironmentReader } from '../environment/read-application-environment.js';
-import { PublicExceptionFilter } from '../transport/public-exception.filter.js';
 import { RateLimitResponses } from '../transport/rate-limit-responses.js';
 import { RequestBodyPolicy } from '../transport/request-body-policy.js';
 import { RequestCachePolicy } from '../transport/request-cache-policy.js';
@@ -49,7 +48,6 @@ const ApplicationSetup = {
       RequestBodyPolicy.parser(server),
     );
 
-    application.useGlobalFilters(new PublicExceptionFilter());
     application.enableShutdownHooks();
 
     const httpServer: unknown = application.getHttpServer();

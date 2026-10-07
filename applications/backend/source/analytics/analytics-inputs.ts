@@ -1,5 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
-import { Ajv } from 'ajv';
+import { SchemaCompiler } from '../validation/schema-compiler.js';
 import {
   AnalyticsSchemas,
   type AnalyticsQueryInput,
@@ -8,15 +8,9 @@ import {
 import { AnalyticsMessages } from './analytics-messages.js';
 import { AnalyticsPolicy, AnalyticsTrafficOrigin } from './analytics-policy.js';
 
-const compiler = new Ajv({
-  strict: true,
-  allErrors: false,
-  coerceTypes: false,
-  ownProperties: true,
-});
 const AnalyticsValidators = {
-  query: compiler.compile<AnalyticsQueryInput>(AnalyticsSchemas.Query),
-  resolved: compiler.compile<AnalyticsQuery>(AnalyticsSchemas.ResolvedQuery),
+  query: SchemaCompiler.compile<AnalyticsQueryInput>(AnalyticsSchemas.Query),
+  resolved: SchemaCompiler.compile<AnalyticsQuery>(AnalyticsSchemas.ResolvedQuery),
 } as const;
 
 export const AnalyticsInputs = {
@@ -32,6 +26,7 @@ export const AnalyticsInputs = {
       includeForced: value.includeForced === 'true',
       trafficOrigin: value.trafficOrigin ?? AnalyticsTrafficOrigin.Production,
     };
+
     if (!AnalyticsValidators.resolved(query)) {
       throw new BadRequestException(AnalyticsMessages.InvalidQuery);
     }

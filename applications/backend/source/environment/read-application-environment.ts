@@ -10,6 +10,7 @@ import { ApplicationMode, EnvironmentFields, EnvironmentPolicy } from './environ
 import { EnvironmentSchemas, type ApplicationEnvironment } from './environment-schemas.js';
 
 const schemaCompiler = new Ajv({ strict: true, coerceTypes: false });
+
 const environmentValidators = {
   logLevel: schemaCompiler.compile<Static<typeof EnvironmentSchemas.LogLevel>>(
     EnvironmentSchemas.LogLevel,
@@ -33,6 +34,7 @@ const EnvironmentValues = {
   administrationOrigin(value: Optional<string>, mode: ApplicationEnvironment['mode']): string {
     const origin = value ?? EnvironmentPolicy.DefaultAdministrationOrigin;
     const [, parsed] = attempt(() => new URL(origin));
+
     if (isNull(parsed) || parsed.origin !== origin) {
       throw new Error(EnvironmentMessages.InvalidAdministrationOrigin);
     }

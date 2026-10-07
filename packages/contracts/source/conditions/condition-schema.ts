@@ -9,6 +9,7 @@ const conditionValueSchema = Type.Union([
   Type.String(ConfigurationSchemaPolicy.ConditionText),
   Type.Number(),
 ]);
+
 const conditionReferenceSchema = Type.Ref(ConfigurationFormat.ConditionReference);
 
 const equalConditionSchema = Type.Object(

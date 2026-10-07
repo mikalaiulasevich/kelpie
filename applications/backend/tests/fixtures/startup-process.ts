@@ -10,9 +10,11 @@ import { applicationDirectory } from '../../source/application/application-direc
 import type { StartupExit } from './startup-types.js';
 import { StartupProcessPolicy } from './startup-policy.js';
 import { StartupProcessMessages } from './startup-messages.js';
+import { StartupDeadline } from './startup-deadline.js';
 
 export class StartupProcessFixture {
   private output = '';
+
   private readonly exited: Promise<StartupExit>;
 
   private constructor(
@@ -31,6 +33,7 @@ export class StartupProcessFixture {
   static async create(environment: NodeJS.ProcessEnv): Promise<StartupProcessFixture> {
     const directory = await mkdtemp(resolve(tmpdir(), StartupProcessPolicy.DirectoryPrefix));
     const databaseUrl = `${SQLitePolicy.FileUrlPrefix}${resolve(directory, StartupProcessPolicy.DatabaseFilename)}`;
+
     try {
       const process = spawn(globalThis.process.execPath, [...StartupProcessPolicy.EntryArguments], {
         cwd: applicationDirectory,
@@ -71,21 +74,10 @@ export class StartupProcessFixture {
   async waitForExit(
     timeoutMilliseconds: number = StartupProcessPolicy.TimeoutMilliseconds,
   ): Promise<StartupExit> {
-    let deadline: Optional<NodeJS.Timeout>;
-
-    try {
-      return await Promise.race([
-        this.exited,
-        new Promise<never>((_, rejectDeadline) => {
-          deadline = setTimeout(() => {
-            this.process.kill(StartupProcessPolicy.ForcedTerminationSignal);
-            rejectDeadline(new Error(StartupProcessMessages.ExitTimeout));
-          }, timeoutMilliseconds);
-        }),
-      ]);
-    } finally {
-      clearTimeout(deadline);
-    }
+    return StartupDeadline.wait(this.exited, timeoutMilliseconds, () => {
+      this.process.kill(StartupProcessPolicy.ForcedTerminationSignal);
+      throw new Error(StartupProcessMessages.ExitTimeout);
+    });
   }
 
   async waitUntilLive(port: number): Promise<void> {

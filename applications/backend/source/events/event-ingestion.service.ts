@@ -19,6 +19,7 @@ import {
 } from './event-ingestion-policy.js';
 import type {
   EventReceipt,
+  EventWriteCommand,
   EventBatchResponse,
   ObservationEvent,
   ParsedObservation,
@@ -81,6 +82,7 @@ export class EventIngestionService {
     const entries = EventIngestionInputs.batch(body);
     const credential = await this.ownership.requireCredential(request);
     const receipts: EventReceipt[] = [];
+
     for (const [position, entry] of entries.entries()) {
       receipts.push(await this.accept(credential, entry, position));
     }
@@ -95,40 +97,45 @@ export class EventIngestionService {
   ): Promise<EventReceipt> {
     const session = await SessionRecords.requireOwned(this.database.client, credential);
     const event = entry.event;
+
     if (isUndefined(event)) {
       return EventRecords.rejected(position, entry.identifier, EventRejectionCode.Invalid);
     }
 
     const rejection = await EventEligibility.rejection(this.database.client, session, event);
+
     if (!isUndefined(rejection)) {
       return EventRecords.rejected(position, event.event_id, rejection);
     }
 
-    const fingerprint = EventRecords.fingerprint(session, event);
+    const command: EventWriteCommand = {
+      credential,
+      event,
+      fingerprint: EventRecords.fingerprint(session, event),
+      position,
+    };
+
     try {
       return await this.database.client.$transaction((transaction) =>
-        this.element(transaction, credential, event, fingerprint, position),
+        this.persist(transaction, command),
       );
     } catch (error) {
       if (!DatabaseErrors.isUniqueConstraint(error)) {
         throw error;
       }
 
-      return this.database.client.$transaction((transaction) =>
-        this.element(transaction, credential, event, fingerprint, position),
-      );
+      return this.database.client.$transaction((transaction) => this.persist(transaction, command));
     }
   }
 
-  private async element(
+  private async persist(
     transaction: Prisma.TransactionClient,
-    credential: string,
-    event: ObservationEvent,
-    fingerprint: string,
-    position: number,
+    command: EventWriteCommand,
   ): Promise<EventReceipt> {
+    const { credential, event, fingerprint, position } = command;
     const session = await SessionRecords.requireOwned(transaction, credential);
     const existing = await transaction.event.findUnique({ where: { identifier: event.event_id } });
+
     if (!isNull(existing)) {
       if (
         existing.sessionIdentifier !== session.identifier ||

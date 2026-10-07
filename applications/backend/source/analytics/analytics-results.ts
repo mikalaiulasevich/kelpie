@@ -1,4 +1,5 @@
-import { Ajv, type ValidateFunction } from 'ajv';
+import type { ValidateFunction } from 'ajv';
+import { SchemaCompiler } from '../validation/schema-compiler.js';
 import { isPlainObject } from 'es-toolkit/predicate';
 import { AnalyticsMessages } from './analytics-messages.js';
 import {
@@ -9,53 +10,50 @@ import {
   type AnalyticsRatio,
 } from './analytics-types.js';
 
-const compiler = new Ajv({
-  strict: true,
-  allErrors: false,
-  coerceTypes: false,
-  ownProperties: true,
-});
 const AnalyticsValidators = {
-  summary: compiler.compile<AnalyticsSummaryRow>(AnalyticsSchemas.SummaryRow),
-  step: compiler.compile<AnalyticsStepRow>(AnalyticsSchemas.StepRow),
-  edge: compiler.compile<AnalyticsEdgeRow>(AnalyticsSchemas.EdgeRow),
+  summary: SchemaCompiler.compile<AnalyticsSummaryRow>(AnalyticsSchemas.SummaryRow),
+  step: SchemaCompiler.compile<AnalyticsStepRow>(AnalyticsSchemas.StepRow),
+  edge: SchemaCompiler.compile<AnalyticsEdgeRow>(AnalyticsSchemas.EdgeRow),
 } as const;
 
-export const AnalyticsResults = {
+const AnalyticsRows = {
   normalize(value: unknown): object {
     if (!isPlainObject(value)) {
       throw new Error(AnalyticsMessages.InvalidAggregate);
     }
 
     return Object.fromEntries(
-      Object.entries(value).map(([key, child]) => [
-        key,
-        typeof child === 'bigint' ? Number(child) : child,
+      Object.entries(value).map(([propertyName, propertyValue]) => [
+        propertyName,
+        typeof propertyValue === 'bigint' ? Number(propertyValue) : propertyValue,
       ]),
     );
   },
 
-  rows<Row>(rows: readonly unknown[], validate: ValidateFunction<Row>): readonly Row[] {
+  validate<Row>(rows: readonly unknown[], validate: ValidateFunction<Row>): readonly Row[] {
     return rows.map((row) => {
-      const value = AnalyticsResults.normalize(row);
-      if (!validate(value)) {
+      const normalizedRow = AnalyticsRows.normalize(row);
+
+      if (!validate(normalizedRow)) {
         throw new Error(AnalyticsMessages.InvalidAggregate);
       }
 
-      return value;
+      return normalizedRow;
     });
   },
+} as const;
 
+export const AnalyticsResults = {
   summaries(rows: readonly unknown[]): readonly AnalyticsSummaryRow[] {
-    return AnalyticsResults.rows(rows, AnalyticsValidators.summary);
+    return AnalyticsRows.validate(rows, AnalyticsValidators.summary);
   },
 
   steps(rows: readonly unknown[]): readonly AnalyticsStepRow[] {
-    return AnalyticsResults.rows(rows, AnalyticsValidators.step);
+    return AnalyticsRows.validate(rows, AnalyticsValidators.step);
   },
 
   edges(rows: readonly unknown[]): readonly AnalyticsEdgeRow[] {
-    return AnalyticsResults.rows(rows, AnalyticsValidators.edge);
+    return AnalyticsRows.validate(rows, AnalyticsValidators.edge);
   },
 
   ratio(numerator: number, denominator: number): AnalyticsRatio {

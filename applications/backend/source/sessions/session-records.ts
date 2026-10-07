@@ -15,6 +15,7 @@ export const SessionRecords = {
       where: { accessTokenHash: credentialHash },
       include: SessionPolicy.RecordInclude,
     });
+
     if (isNull(session) || session.expiresAt.getTime() <= Date.now()) {
       throw new PublicRequestError(
         HttpStatus.UNAUTHORIZED,

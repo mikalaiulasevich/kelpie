@@ -59,6 +59,7 @@ describe('Backend fixture cleanup failures', () => {
         errors: [applicationError, directoryError],
         cause: directoryError,
       });
+      expect(() => backend.getApplication()).toThrow('The backend fixture is closed.');
       await expect(backend.request('/api/health/live')).rejects.toThrow(
         'The backend fixture is closed.',
       );

@@ -99,3 +99,5 @@ export interface AnalyticsAggregateGroups {
   readonly steps: ReadonlyDictionary<string, readonly AnalyticsStepRow[]>;
   readonly edges: ReadonlyDictionary<string, readonly AnalyticsEdgeRow[]>;
 }
+
+export type AnalyticsGroup = Pick<AnalyticsSummaryRow, 'versionIdentifier' | 'variant'>;

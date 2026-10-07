@@ -14,45 +14,58 @@ import type {
   AnalyticsStepRow,
   AnalyticsAggregates,
   AnalyticsAggregateGroups,
+  AnalyticsQuery,
+  AnalyticsGroup,
 } from './analytics-types.js';
 import type {
   AnalyticsStep,
   AnalyticsEdge,
   AnalyticsVariant,
   AnalyticsVersion,
+  AnalyticsMetadata,
 } from './analytics-response.js';
 
 export const AnalyticsProjection = {
-  groupKey(versionIdentifier: string, variant: string): string {
+  metadata(query: AnalyticsQuery, pageLength: number, now: Date): AnalyticsMetadata {
+    return {
+      generatedAt: now.toISOString(),
+      filters: query,
+      pagination: {
+        limit: query.limit,
+        offset: query.offset,
+        hasMore: pageLength > query.limit,
+      },
+    };
+  },
+
+  groupKey({ versionIdentifier, variant }: AnalyticsGroup): string {
     return `${versionIdentifier}/${variant}`;
   },
 
   group(aggregates: AnalyticsAggregates): AnalyticsAggregateGroups {
-    const key = (row: { readonly versionIdentifier: string; readonly variant: string }) =>
-      AnalyticsProjection.groupKey(row.versionIdentifier, row.variant);
-
     return {
-      summaries: groupBy(aggregates.summaries, key),
-      steps: groupBy(aggregates.steps, key),
-      edges: groupBy(aggregates.edges, key),
+      summaries: groupBy(aggregates.summaries, AnalyticsProjection.groupKey),
+      steps: groupBy(aggregates.steps, AnalyticsProjection.groupKey),
+      edges: groupBy(aggregates.edges, AnalyticsProjection.groupKey),
     };
   },
 
   step(step: FunnelStep, row: Optional<AnalyticsStepRow>): AnalyticsStep {
-    const base = {
+    const stepMetrics = {
       stepIdentifier: step.id,
       conditional: Boolean(step.visibleWhen),
       reached: row?.reached ?? 0,
     };
+
     if (step.type === StepType.Result) {
-      return { ...base, type: StepType.Result };
+      return { ...stepMetrics, type: StepType.Result };
     }
 
     return {
-      ...base,
+      ...stepMetrics,
       type: step.type,
       completed: row?.completed ?? 0,
-      completion: AnalyticsResults.ratio(row?.observedCompleted ?? 0, base.reached),
+      completion: AnalyticsResults.ratio(row?.observedCompleted ?? 0, stepMetrics.reached),
       noncompletion: { open: row?.openNoncompletion ?? 0, expired: row?.expiredNoncompletion ?? 0 },
       expiredDropout: AnalyticsResults.ratio(
         row?.expiredNoncompletion ?? 0,
@@ -79,10 +92,12 @@ export const AnalyticsProjection = {
     variant: ExperimentVariant,
     aggregates: AnalyticsAggregateGroups,
   ): AnalyticsVariant {
-    const key = AnalyticsProjection.groupKey(versionIdentifier, variant);
-    const summary = aggregates.summaries[key]?.[0];
-    const steps = new Map((aggregates.steps[key] ?? []).map((row) => [row.stepIdentifier, row]));
-    const edges = aggregates.edges[key] ?? [];
+    const groupKey = AnalyticsProjection.groupKey({ versionIdentifier, variant });
+    const summary = aggregates.summaries[groupKey]?.[0];
+    const metricsByStepIdentifier = new Map(
+      (aggregates.steps[groupKey] ?? []).map((row) => [row.stepIdentifier, row]),
+    );
+    const edges = aggregates.edges[groupKey] ?? [];
     const started = summary?.started ?? 0;
 
     return {
@@ -91,13 +106,14 @@ export const AnalyticsProjection = {
       resultCompletion: AnalyticsResults.ratio(summary?.results ?? 0, started),
       ctaConversion: AnalyticsResults.ratio(summary?.clicks ?? 0, started),
       ctaClickThrough: AnalyticsResults.ratio(summary?.resultClicks ?? 0, summary?.results ?? 0),
-      steps: configuration.experiment.variants[variant].stepSequence.map((identifier) => {
-        const step = configuration.steps[identifier];
+      steps: configuration.experiment.variants[variant].stepSequence.map((stepIdentifier) => {
+        const step = configuration.steps[stepIdentifier];
+
         if (!step) {
           throw new Error(AnalyticsMessages.InvalidConfiguration);
         }
 
-        return AnalyticsProjection.step(step, steps.get(identifier));
+        return AnalyticsProjection.step(step, metricsByStepIdentifier.get(stepIdentifier));
       }),
       edges: edges.map(AnalyticsProjection.edge),
     };
@@ -105,6 +121,7 @@ export const AnalyticsProjection = {
 
   version(record: FunnelVersion, aggregates: AnalyticsAggregateGroups): AnalyticsVersion {
     const prepared = ConfigurationImportDocument.prepare(record.document);
+
     if (!ConfigurationImportDocument.matchesVersion(record, prepared)) {
       throw new Error(AnalyticsMessages.InvalidConfiguration);
     }

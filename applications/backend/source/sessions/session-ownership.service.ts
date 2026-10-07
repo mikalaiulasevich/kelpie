@@ -47,6 +47,7 @@ export class SessionOwnershipService {
 
   async requireCredential(request: FastifyRequest): Promise<string> {
     const credential = await this.verify(request);
+
     if (isNull(credential.hash)) {
       throw new PublicRequestError(
         HttpStatus.UNAUTHORIZED,
@@ -61,6 +62,7 @@ export class SessionOwnershipService {
   async verify(request: FastifyRequest): Promise<CredentialVerification> {
     const cookie = request.cookies[SessionPolicy.CookieName];
     const match = isString(cookie) ? SessionPolicy.CookiePattern.exec(cookie) : null;
+
     if (isNull(match)) {
       return { hash: null, expired: false };
     }
@@ -69,12 +71,14 @@ export class SessionOwnershipService {
     const payload = `${token}.${timestamp}`;
     const expected = CredentialSignatures.sign(payload, await this.secret());
     const authentic = timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+
     if (!authentic) {
       return { hash: null, expired: false };
     }
 
     const hash = CredentialSignatures.hash(`${payload}.${signature}`);
     const age = Date.now() - Number(timestamp);
+
     if (age < 0) {
       return { hash: null, expired: true };
     }
@@ -84,6 +88,7 @@ export class SessionOwnershipService {
         where: { accessTokenHash: hash },
         select: { expiresAt: true },
       });
+
       if (isNull(bound) || bound.expiresAt.getTime() <= Date.now()) {
         return { hash: null, expired: true };
       }
@@ -94,6 +99,7 @@ export class SessionOwnershipService {
 
   refresh(request: FastifyRequest, reply: FastifyReply, expiresAt: Date): void {
     const cookie = request.cookies[SessionPolicy.CookieName];
+
     if (isString(cookie)) {
       this.setCookie(reply, cookie, Math.max(0, expiresAt.getTime() - Date.now()));
     }

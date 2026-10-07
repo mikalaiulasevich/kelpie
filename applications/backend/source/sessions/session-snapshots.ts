@@ -1,6 +1,6 @@
 import { Ajv } from 'ajv';
 import { isEqual, isNull, isPlainObject, isString, isBoolean } from 'es-toolkit/predicate';
-import { FunnelConfigurations, StepType } from '@kelpie/contracts';
+import { FunnelConfigurations } from '@kelpie/contracts';
 import { SessionProjection } from './session-projection.js';
 import { FunnelEvaluation } from '@kelpie/funnel-runtime';
 import type { Prisma } from '../../generated/prisma/client.js';
@@ -53,15 +53,16 @@ export const SessionSnapshots = {
     }
 
     const validation = FunnelConfigurations.validate(value.configuration);
+
     if (!validation.valid) {
       throw new Error(SessionMessages.Corrupted);
     }
 
     const configuration = validation.configuration;
-    const confirmed = SessionProjection.confirmedAnswers(value, configuration);
-    const evaluation = FunnelEvaluation.evaluate(configuration, value.variant, confirmed);
-    const current = evaluation.route.steps.find((step) => step.id === value.currentStepIdentifier);
-    const result = current?.type === StepType.Result ? (evaluation.result ?? null) : null;
+    const confirmedAnswers = SessionProjection.confirmedAnswers(value, configuration);
+    const evaluation = FunnelEvaluation.evaluate(configuration, value.variant, confirmedAnswers);
+    const result = SessionProjection.result(evaluation, value.currentStepIdentifier);
+
     if (!isEqual(result, value.result)) {
       throw new Error(SessionMessages.Corrupted);
     }

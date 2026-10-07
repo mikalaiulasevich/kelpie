@@ -58,6 +58,7 @@ const SessionCommandChecks = {
 
     if (command.kind === SessionCommandKind.Answer && StepRules.isInteractive(step)) {
       const validation = AnswerValidation.validate(step, command.answer);
+
       if (validation.valid) {
         return;
       }
@@ -104,6 +105,7 @@ export class SessionCommandsService {
     this.ownership.assertMutation(request);
     const fingerprint = SessionCommandInputs.fingerprint(command);
     const credentialHash = await this.ownership.requireCredential(request);
+
     try {
       return await this.database.client.$transaction(async (transaction) => {
         const record = await SessionRecords.requireOwned(transaction, credentialHash);
@@ -112,7 +114,8 @@ export class SessionCommandsService {
           record.identifier,
           command.operationIdentifier,
         );
-        if (operation) {
+
+        if (!isNull(operation)) {
           return SessionCommandChecks.replay(operation, fingerprint);
         }
 
@@ -130,7 +133,8 @@ export class SessionCommandsService {
           record.identifier,
           command.operationIdentifier,
         );
-        if (!winner) {
+
+        if (isNull(winner)) {
           throw error;
         }
 
@@ -143,7 +147,7 @@ export class SessionCommandsService {
     transaction: Prisma.TransactionClient,
     sessionIdentifier: string,
     operationIdentifier: string,
-  ) {
+  ): Promise<SessionOperation | null> {
     return transaction.sessionOperation.findUnique({
       where: { sessionIdentifier_operationIdentifier: { sessionIdentifier, operationIdentifier } },
     });
@@ -183,6 +187,7 @@ export class SessionCommandsService {
     const answered = await this.storeAnswer(transaction, context);
     const evaluation = SessionCommandRouting.evaluate(answered, configuration);
     const invalidated = SessionCommandRouting.invalidatedAnswers(answered, evaluation);
+
     if (invalidated.length > 0) {
       await transaction.sessionAnswer.updateMany({
         where: { sessionIdentifier: record.identifier, stepIdentifier: { in: [...invalidated] } },
@@ -203,6 +208,7 @@ export class SessionCommandsService {
       where: { identifier: record.identifier, revision: record.revision },
       data: { revision, currentStepIdentifier: transition.toStepIdentifier },
     });
+
     if (updated.count !== 1) {
       throw new PublicRequestError(
         HttpStatus.CONFLICT,
@@ -248,6 +254,7 @@ export class SessionCommandsService {
     context: SessionCommandContext,
   ): Promise<OwnedSession> {
     const { record, credentialHash, command, revision } = context;
+
     if (command.kind !== SessionCommandKind.Answer) {
       return record;
     }
