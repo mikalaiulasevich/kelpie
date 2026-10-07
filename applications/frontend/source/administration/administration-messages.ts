@@ -1,4 +1,5 @@
 export const AdministrationMessages = {
+  InvalidInput: 'Enter a valid username and password.',
   InvalidCredentials: 'The username or password is incorrect.',
   SessionExpired: 'Your session has expired. Please sign in again.',
   RateLimited: 'Too many attempts. Please wait before trying again.',

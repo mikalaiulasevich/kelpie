@@ -122,22 +122,37 @@ describe('administration client', () => {
     expect(fetch).toHaveBeenCalledTimes(1);
   });
 
-  it('preserves a sign-out failure and does not retry the mutation', async () => {
-    const fetch = AdministrationClientFixture.response({}, 503);
+  it.each(AdministrationClientCases.SignOutFailures)(
+    'preserves sign-out $name without retrying',
+    async ({ status, message }) => {
+      const fetch = AdministrationClientFixture.response({}, status);
+
+      await expect(AdministrationClient.signOut(new AbortController().signal)).rejects.toThrow(
+        message,
+      );
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it('completes sign-out when the server session has already expired', async () => {
+    const fetch = AdministrationClientFixture.response({}, 401);
+
+    await expect(
+      AdministrationClient.signOut(new AbortController().signal),
+    ).resolves.toBeUndefined();
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('preserves network failure during sign-out without retrying', async () => {
+    const fetch = AdministrationClientFixture.networkFailure();
 
     await expect(AdministrationClient.signOut(new AbortController().signal)).rejects.toThrow(
       'unavailable',
     );
 
     expect(fetch).toHaveBeenCalledTimes(1);
-  });
-
-  it('reports expiration when signing out an expired session', async () => {
-    AdministrationClientFixture.response({}, 401);
-
-    await expect(AdministrationClient.signOut(new AbortController().signal)).rejects.toThrow(
-      'session has expired',
-    );
   });
 
   it('rejects sign-out responses that do not match the no-content contract', async () => {

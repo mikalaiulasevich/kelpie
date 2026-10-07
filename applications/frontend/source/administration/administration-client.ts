@@ -20,6 +20,12 @@ const AdministrationResponse = {
     }
 
     switch (response.status) {
+      case 400:
+        throw new AdministrationError(
+          credentialsRequest
+            ? AdministrationMessages.InvalidInput
+            : AdministrationMessages.Unavailable,
+        );
       case 401:
         throw new AdministrationError(
           credentialsRequest
@@ -145,6 +151,11 @@ export const AdministrationClient = {
           },
         },
       );
+
+      if (response.status === 401) {
+        return;
+      }
+
       AdministrationResponse.requireSuccess(response);
 
       if (response.status !== 204) {

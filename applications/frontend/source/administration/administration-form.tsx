@@ -23,7 +23,10 @@ export function AdministrationForm({ signIn }: AdministrationFormProperties): UI
   const [password, setPassword] = useState('');
   const [visible, setVisible] = useState(false);
   const [capsLock, setCapsLock] = useState(false);
-  const [errors, setErrors] = useState<{ username?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{
+    username?: Optional<string>;
+    password?: Optional<string>;
+  }>({});
   const [message, setMessage] = useState('');
   const [pending, setPending] = useState(false);
   const requestPending = useRef(false);
