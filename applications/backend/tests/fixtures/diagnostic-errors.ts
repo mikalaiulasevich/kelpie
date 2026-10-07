@@ -2,6 +2,14 @@ import { ErrorDiagnostics } from '../../source/diagnostics/error-diagnostics.js'
 import type { ErrorDescription } from '../../source/diagnostics/diagnostics-types.js';
 
 export const DiagnosticFixtures = {
+  unreadableMessage(): Error {
+    return Object.defineProperty(new Error('secret'), 'message', {
+      get: () => {
+        throw new Error('private accessor');
+      },
+    });
+  },
+
   multilineError(message: string): Error {
     return new Error(message);
   },

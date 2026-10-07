@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { sortBy } from 'es-toolkit/array';
 import { FunnelConfigurations, type FunnelConfiguration } from '@kelpie/contracts';
-import { isBoolean, isNull, isNumber, isString } from 'es-toolkit/predicate';
+import { isBoolean, isNull, isNumber, isPlainObject, isString } from 'es-toolkit/predicate';
 import { attempt } from 'es-toolkit/util';
 import type { Prisma } from '../../generated/prisma/client.js';
 import { ConfigurationImportError } from './configuration-import-error.js';
@@ -31,7 +31,7 @@ const ConfigurationJson = {
       return value.map((child: unknown) => ConfigurationJson.value(child));
     }
 
-    if (typeof value === 'object') {
+    if (isPlainObject(value)) {
       return ConfigurationJson.object(value);
     }
 

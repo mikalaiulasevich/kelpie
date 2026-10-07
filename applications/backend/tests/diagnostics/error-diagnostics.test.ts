@@ -94,12 +94,7 @@ describe('Error diagnostics', () => {
   });
 
   it('contains failures from error metadata accessors', () => {
-    const error = new Error('secret');
-    Object.defineProperty(error, 'message', {
-      get: () => {
-        throw new Error('private accessor');
-      },
-    });
+    const error = DiagnosticFixtures.unreadableMessage();
 
     expect(ErrorDiagnostics.describe(error)).toMatchObject({
       classification: 'unknown',
