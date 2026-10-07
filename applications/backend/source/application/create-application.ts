@@ -77,11 +77,10 @@ export const ApplicationFactory = {
       trustProxy: false,
     });
     const [creationError, application] = await attemptAsync(() =>
-      NestFactory.create<NestFastifyApplication>(
-        ApplicationModule.register(environment),
-        adapter,
-        { ...ApplicationCreationOptions, logger: FrameworkLogger },
-      ),
+      NestFactory.create<NestFastifyApplication>(ApplicationModule.register(environment), adapter, {
+        ...ApplicationCreationOptions,
+        logger: FrameworkLogger,
+      }),
     );
 
     // The successful result is never null, even when the rejected value itself is null.

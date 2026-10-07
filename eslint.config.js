@@ -180,4 +180,8 @@ export default typescript.config(
       ],
     },
   },
+  {
+    files: ['applications/backend/source/**/*.ts'],
+    rules: { 'no-console': ['error', {}] },
+  },
 );

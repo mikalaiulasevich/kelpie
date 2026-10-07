@@ -1,10 +1,74 @@
 import { once } from 'node:events';
-import { describe, expect, it } from 'vitest';
-import { DiagnosticSink } from '../../source/diagnostics/diagnostics.js';
+import { describe, expect, it, vi } from 'vitest';
+import { DiagnosticSink, RequestContext } from '../../source/diagnostics/diagnostics.js';
 import { DiagnosticEvents } from '../../source/diagnostics/diagnostic-policy.js';
+import { DiagnosticLevelCases } from '../cases/diagnostic-level-cases.js';
+import { DiagnosticRecordsFixture } from '../fixtures/diagnostic-records.js';
 import { DiagnosticStream } from '../fixtures/diagnostic-stream.js';
 
 describe('Diagnostic sink', () => {
+  it.each(DiagnosticLevelCases.Explicit)(
+    'writes structured Pino %s records with correlation',
+    (level) => {
+      const stream = new DiagnosticStream();
+      const sink = new DiagnosticSink(stream, 'trace');
+
+      try {
+        RequestContext.run({ requestIdentifier: 'server-correlation' }, () => {
+          sink.write({ event: DiagnosticEvents.ApplicationStarted }, level);
+        });
+
+        expect(JSON.parse(stream.chunks[0] ?? '')).toEqual({
+          time: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/),
+          level,
+          requestIdentifier: 'server-correlation',
+          event: 'application_started',
+        });
+        stream.flush();
+      } finally {
+        stream.destroy();
+      }
+    },
+  );
+
+  it('applies configured thresholds without counting filtered records as dropped', () => {
+    const stream = new DiagnosticStream();
+    const sink = new DiagnosticSink(stream);
+
+    try {
+      sink.write({ event: DiagnosticEvents.ApplicationStarted }, 'debug');
+      expect(stream.chunks).toHaveLength(0);
+      sink.setLevel('debug');
+      sink.write({ event: DiagnosticEvents.ApplicationStarted }, 'debug');
+      sink.write({ event: DiagnosticEvents.ApplicationStarted }, 'trace');
+      stream.flush();
+
+      expect(stream.chunks).toHaveLength(1);
+      expect(JSON.parse(stream.chunks[0] ?? '')).toMatchObject({ level: 'debug' });
+    } finally {
+      stream.destroy();
+    }
+  });
+
+  it('redacts sensitive fields while retaining safe structured metadata', () => {
+    const stream = new DiagnosticStream();
+    const sink = new DiagnosticSink(stream);
+
+    try {
+      sink.write(DiagnosticRecordsFixture.sensitive());
+
+      expect(stream.chunks[0]).not.toContain('private-log-secret');
+      expect(JSON.parse(stream.chunks[0] ?? '')).toMatchObject({
+        event: 'application_started',
+        details: { safe: 'retained' },
+        error: { classification: 'error', fingerprint: 'reporting-site', frames: [] },
+      });
+      stream.flush();
+    } finally {
+      stream.destroy();
+    }
+  });
+
   it('drops records during backpressure and reports the count once after draining', () => {
     const stream = new DiagnosticStream();
     const sink = new DiagnosticSink(stream);
@@ -28,6 +92,31 @@ describe('Diagnostic sink', () => {
       expect(JSON.parse(stream.chunks[2] ?? '')).toMatchObject({ event: 'application_started' });
       stream.flush();
     } finally {
+      stream.destroy();
+    }
+  });
+
+  it('contains a synchronous destination failure and reports its lost record after recovery', () => {
+    const stream = new DiagnosticStream();
+    const sink = new DiagnosticSink(stream);
+    const destination = vi.spyOn(stream, 'write').mockImplementationOnce(() => {
+      throw new Error('private destination failure');
+    });
+
+    try {
+      expect(() => sink.write({ event: DiagnosticEvents.ApplicationStarted })).not.toThrow();
+      expect(stream.chunks).toHaveLength(0);
+      sink.write({ event: DiagnosticEvents.ApplicationStarted });
+      stream.flush();
+
+      expect(JSON.parse(stream.chunks[1] ?? '')).toMatchObject({
+        event: 'records_dropped',
+        droppedRecords: 1,
+      });
+      expect(stream.chunks.join('')).not.toContain('private destination failure');
+      stream.flush();
+    } finally {
+      destination.mockRestore();
       stream.destroy();
     }
   });
