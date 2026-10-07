@@ -35,23 +35,22 @@ describe('application process lifecycle', () => {
 
   it('exits after an occupied port without leaking database paths', async () => {
     const listener = await StartupPortFixture.create();
-    let application: Optional<StartupProcessFixture>;
-
     try {
-      application = await StartupProcessFixture.create({ PORT: String(listener.port) });
-      const outcome = await application.waitForExit();
+      const application = await StartupProcessFixture.create({ PORT: String(listener.port) });
 
-      expect(outcome).toEqual({ code: 1, signal: null });
-      expect(application.diagnostics).toContain('application_failed');
-      expect(application.diagnostics).toContain('EADDRINUSE');
-      expect(application.diagnostics).not.toContain(application.databaseUrl);
-      expect(application.diagnostics).not.toContain('private-database-marker');
-    } finally {
       try {
-        await application?.close();
+        const outcome = await application.waitForExit();
+
+        expect(outcome).toEqual({ code: 1, signal: null });
+        expect(application.diagnostics).toContain('application_failed');
+        expect(application.diagnostics).toContain('EADDRINUSE');
+        expect(application.diagnostics).not.toContain(application.databaseUrl);
+        expect(application.diagnostics).not.toContain('private-database-marker');
       } finally {
-        await listener.close();
+        await application.close();
       }
+    } finally {
+      await listener.close();
     }
   });
 
@@ -85,22 +84,25 @@ describe('application process lifecycle', () => {
       const port = listener.port;
       await listener.close();
       const application = await StartupProcessFixture.create({ PORT: String(port) });
-      let request: Optional<IncompleteRequestFixture>;
 
       try {
         await application.waitUntilLive(port);
-        request = await IncompleteRequestFixture.create(port);
-        application.terminate();
-        const outcome = await application.waitForExit(
-          StartupProcessPolicy.SlowRequestExitMilliseconds,
-        );
-        await request.waitForClose();
+        const request = await IncompleteRequestFixture.create(port);
 
-        expect(outcome).toEqual({ code: null, signal: 'SIGTERM' });
-        expect(application.diagnostics).toContain('shutdown_deadline_exceeded');
-        expect(application.diagnostics).not.toContain('application_failed');
+        try {
+          application.terminate();
+          const outcome = await application.waitForExit(
+            StartupProcessPolicy.SlowRequestExitMilliseconds,
+          );
+          await request.waitForClose();
+
+          expect(outcome).toEqual({ code: null, signal: 'SIGTERM' });
+          expect(application.diagnostics).toContain('shutdown_deadline_exceeded');
+          expect(application.diagnostics).not.toContain('application_failed');
+        } finally {
+          request.close();
+        }
       } finally {
-        request?.close();
         await application.close();
       }
     },

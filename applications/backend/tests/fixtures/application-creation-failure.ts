@@ -6,7 +6,7 @@ import { ApplicationEnvironmentReader } from '../../source/environment/read-appl
 import { ApplicationMode, EnvironmentFields } from '../../source/environment/environment-policy.js';
 
 export const ApplicationCreationFailure = {
-  prepare(setupError: Error, cleanupError?: Error) {
+  prepare(setupError: unknown, cleanupError?: Error) {
     const originalClose = FastifyAdapter.prototype.close;
     const Cleanup = {
       async close(this: FastifyAdapter): Promise<void> {

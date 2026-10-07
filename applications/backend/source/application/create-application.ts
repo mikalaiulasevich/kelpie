@@ -3,6 +3,8 @@ import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import helmet from '@fastify/helmet';
 import { Server } from 'node:http';
+import { isNull } from 'es-toolkit/predicate';
+import { attemptAsync } from 'es-toolkit/util';
 
 import { RequestDiagnostics } from '../diagnostics/request-diagnostics.js';
 import { ApplicationMessages } from './application-messages.js';
@@ -43,6 +45,25 @@ const ApplicationSetup = {
   },
 } as const;
 
+const ApplicationCleanup = {
+  async releaseAndRethrow(
+    setupError: unknown,
+    resource: FastifyAdapter | NestFastifyApplication,
+  ): Promise<never> {
+    try {
+      await resource.close();
+    } catch (cleanupError) {
+      throw new AggregateError(
+        [setupError, cleanupError],
+        ApplicationMessages.InitializationCleanupFailed,
+        { cause: cleanupError },
+      );
+    }
+
+    throw setupError;
+  },
+} as const;
+
 export const ApplicationFactory = {
   async create(
     environment: ApplicationEnvironment = ApplicationEnvironmentReader.read(process.env),
@@ -52,33 +73,25 @@ export const ApplicationFactory = {
       logger: false,
       trustProxy: false,
     });
-    let application: Optional<NestFastifyApplication>;
-
-    try {
-      application = await NestFactory.create<NestFastifyApplication>(
+    const [creationError, application] = await attemptAsync(() =>
+      NestFactory.create<NestFastifyApplication>(
         ApplicationModule.register(environment),
         adapter,
         ApplicationCreationOptions,
-      );
+      ),
+    );
+
+    // The successful result is never null, even when the rejected value itself is null.
+    if (isNull(application)) {
+      return ApplicationCleanup.releaseAndRethrow(creationError, adapter);
+    }
+
+    try {
       await ApplicationSetup.configure(application, adapter);
 
       return application;
     } catch (setupError) {
-      try {
-        if (application) {
-          await application.close();
-        } else {
-          await adapter.close();
-        }
-      } catch (cleanupError) {
-        throw new AggregateError(
-          [setupError, cleanupError],
-          ApplicationMessages.InitializationCleanupFailed,
-          { cause: cleanupError },
-        );
-      }
-
-      throw setupError;
+      return ApplicationCleanup.releaseAndRethrow(setupError, application);
     }
   },
 } as const;

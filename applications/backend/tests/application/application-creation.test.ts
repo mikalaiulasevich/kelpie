@@ -1,19 +1,22 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ApplicationFactory } from '../../source/application/create-application.js';
+import { StartupFailureCases } from '../cases/startup-failure-cases.js';
 import { ApplicationCreationFailure } from '../fixtures/application-creation-failure.js';
 
 describe('application creation cleanup', () => {
   afterEach(() => vi.restoreAllMocks());
 
-  it('closes its Fastify adapter when Nest rejects before returning an application', async () => {
-    const setupError = new Error('Nest initialization failed.');
-    const fixture = ApplicationCreationFailure.prepare(setupError);
+  it.each(StartupFailureCases)(
+    'closes its Fastify adapter after $name before an application exists',
+    async ({ error }) => {
+      const fixture = ApplicationCreationFailure.prepare(error);
 
-    await expect(ApplicationFactory.create(fixture.environment)).rejects.toBe(setupError);
+      await expect(ApplicationFactory.create(fixture.environment)).rejects.toBe(error);
 
-    expect(fixture.create).toHaveBeenCalledOnce();
-    expect(fixture.close).toHaveBeenCalledOnce();
-  });
+      expect(fixture.create).toHaveBeenCalledOnce();
+      expect(fixture.close).toHaveBeenCalledOnce();
+    },
+  );
 
   it('preserves both Nest initialization and adapter cleanup failures', async () => {
     const setupError = new Error('Nest initialization failed.');

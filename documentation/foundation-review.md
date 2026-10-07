@@ -146,11 +146,13 @@ The database is still a scaffold. SessionTransition, answer confirmation revisio
 
 NestJS uses the official Fastify adapter with native hooks and `@fastify/helmet`. JSON bodies are bounded to 256 KiB and must contain an object or array; unsupported media types, non-UTF-8 charsets, compressed bodies and prototype-poisoning keys are rejected. Security headers and server-owned request identifiers also cover rejected requests. Native Fastify logging stays disabled so it cannot bypass the redacted diagnostics owner. Trusted-proxy handling stays disabled until a deployment topology is defined.
 
+Startup uses immutable acquisition results (`attemptAsync`) and separate creation/listening failure boundaries. Cleanup receives the resource owned by that stage; no optional application placeholder or mutable diagnostic phase coordinates the catches. Tuple handling checks the non-null application result, so null/undefined rejections still fail and release the adapter.
+
 Real HTTP integration tests cover parser rejection, accepted JSON through routing, health/readiness, concurrent correlation and redacted failures. Subprocess tests cover startup failures, port release and bounded shutdown with an incomplete request. This migration does not establish a throughput improvement or Bun runtime compatibility.
 
 ## Verification evidence
 
-After the Fastify migration, the full Node.js 24.16.0 check passed `npm run verify`: 252 tests (99 backend, 12 frontend, 65 contracts, 76 runtime), strict types, lint, formatting, clean builds, configuration checksums, test layout and Prisma validation. This section owns verification updates; benchmark assertions are separate from test counts.
+After the Fastify migration, the full Node.js 24.16.0 check passed `npm run verify`: 257 tests (104 backend, 12 frontend, 65 contracts, 76 runtime), strict types, lint, formatting, clean builds, configuration checksums, test layout and Prisma validation. This section owns verification updates; benchmark assertions are separate from test counts.
 
 A subsequent isolated `npm run benchmark:runtime` run completed all 79 scenarios with correctness assertions and source/build identity checks. Its [raw report](benchmarks/2026-10-06T19-43-53.019Z-5f307b82-ef08-42de-a7eb-88403317d91a.json) and CSV tables are retained; one run does not establish a performance improvement. An initial concurrent attempt overlapped clean builds and failed before saving a report; the successful rerun started after verification finished.
 
