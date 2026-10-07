@@ -1,48 +1,58 @@
-import { AdditionalTranslations } from './additional-translations';
-import { ConfigurationTranslations } from './configuration-translations';
-import { InterfaceTranslations } from './interface-translations';
-
-export type InterfaceLocale = 'en' | 'ru';
+import { LocalizationPolicy } from './localization-policy';
+import { LocalizationTranslation } from './localization-translation';
+import {
+  InterfaceLocale,
+  type LocalizationSnapshot,
+  type TranslationParameters,
+} from './localization-types';
 
 const listeners = new Set<() => void>();
-const storageKey = 'kelpie.administration.language';
-let selectedLocale: InterfaceLocale = 'en';
-let storageFailed = false;
+let current: LocalizationSnapshot = {
+  locale: LocalizationPolicy.DefaultLocale,
+  storageFailed: false,
+};
 
-export const Localization = {
-  get locale(): InterfaceLocale {
-    return selectedLocale;
-  },
-
-  get formattingLocale(): string {
-    return selectedLocale === 'ru' ? 'ru-RU' : 'en-US';
-  },
-
-  get storageFailed(): boolean {
-    return storageFailed;
-  },
-
-  initialize(): void {
-    storageFailed = false;
-    try {
-      selectedLocale = localStorage.getItem(storageKey) === 'ru' ? 'ru' : 'en';
-    } catch {
-      storageFailed = true;
-    }
-
-    document.documentElement.lang = selectedLocale;
-  },
-
-  setLocale(locale: InterfaceLocale): void {
-    selectedLocale = locale;
-    storageFailed = false;
-    try {
-      localStorage.setItem(storageKey, locale);
-    } catch {
-      storageFailed = true;
+const LocalizationState = {
+  update(locale: InterfaceLocale, storageFailed: boolean): void {
+    if (current.locale !== locale || current.storageFailed !== storageFailed) {
+      current = { locale, storageFailed };
     }
 
     document.documentElement.lang = locale;
+  },
+} as const;
+
+export const Localization = {
+  get locale(): InterfaceLocale {
+    return current.locale;
+  },
+
+  get formattingLocale(): string {
+    return LocalizationPolicy.FormattingLocales[current.locale];
+  },
+
+  initialize(): void {
+    try {
+      const stored = localStorage.getItem(LocalizationPolicy.StorageKey);
+      LocalizationState.update(
+        stored === InterfaceLocale.Russian
+          ? InterfaceLocale.Russian
+          : LocalizationPolicy.DefaultLocale,
+        false,
+      );
+    } catch {
+      LocalizationState.update(current.locale, true);
+    }
+  },
+
+  setLocale(locale: InterfaceLocale): void {
+    try {
+      localStorage.setItem(LocalizationPolicy.StorageKey, locale);
+      LocalizationState.update(locale, false);
+    } catch {
+      LocalizationState.update(locale, true);
+    }
+
     listeners.forEach((listener) => listener());
   },
 
@@ -52,18 +62,14 @@ export const Localization = {
     return () => listeners.delete(listener);
   },
 
-  snapshot(): InterfaceLocale {
-    return selectedLocale;
+  snapshot(): LocalizationSnapshot {
+    return current;
   },
 
-  translate(message: string, parameters: Readonly<Record<string, TextOrNumber>> = {}): string {
-    const catalog = [InterfaceTranslations, ConfigurationTranslations, AdditionalTranslations].find(
-      (translations) => Object.hasOwn(translations, message),
-    );
-    const translated = selectedLocale === 'ru' && catalog ? (catalog[message] ?? message) : message;
-
-    return translated.replace(/\{(\w+)\}/g, (placeholder: string, key: string) =>
-      Object.hasOwn(parameters, key) ? String(parameters[key]) : placeholder,
+  translate(message: string, parameters: TranslationParameters = {}): string {
+    return LocalizationTranslation.interpolate(
+      LocalizationTranslation.resolve(current.locale, message),
+      parameters,
     );
   },
 };

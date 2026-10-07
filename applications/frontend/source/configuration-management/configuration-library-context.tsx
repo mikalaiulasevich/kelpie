@@ -1,3 +1,4 @@
+import { ConfigurationManagementPolicy } from './configuration-policy';
 import { useLocalization } from '../localization/use-localization';
 import {
   ArrowUpRight,
@@ -29,12 +30,12 @@ import { ConfigurationLibrary } from './configuration-library';
 import { ClassNames } from '../styling/combine-class-names';
 
 export function ConfigurationStatus({ live }: { live: boolean }): UIElement {
-  const { t } = useLocalization();
+  const { t: translate } = useLocalization();
 
   return (
     <Badge variant={live ? 'success' : 'secondary'}>
       {live ? <CircleCheck aria-hidden="true" /> : <FilePenLine aria-hidden="true" />}
-      {live ? t(ConfigurationContent.Live) : t(ConfigurationContent.Inactive)}
+      {live ? translate(ConfigurationContent.Live) : translate(ConfigurationContent.Inactive)}
     </Badge>
   );
 }
@@ -44,17 +45,20 @@ export function ConfigurationHighlights({
 }: {
   configurations: ConfigurationList;
 }): UIElement {
-  const { t } = useLocalization();
+  const { t: translate } = useLocalization();
   const versions = [...configurations.items]
     .sort((left, right) => right.version - left.version)
-    .slice(0, 3);
+    .slice(0, ConfigurationManagementPolicy.HighlightCount);
 
   return (
-    <section className="flex flex-col gap-3" aria-label={t(ConfigurationContent.Highlights)}>
+    <section
+      className="flex flex-col gap-3"
+      aria-label={translate(ConfigurationContent.Highlights)}
+    >
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-base font-semibold">{t(ConfigurationContent.Highlights)}</h2>
+        <h2 className="text-base font-semibold">{translate(ConfigurationContent.Highlights)}</h2>
         <span className="text-xs text-muted-foreground">
-          {t(ConfigurationContent.HighlightsScope)}
+          {translate(ConfigurationContent.HighlightsScope)}
         </span>
       </div>
       <div className="configuration-highlights grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))]">
@@ -84,36 +88,40 @@ export function ConfigurationHighlights({
                   version.identifier,
                 )}
               >
-                {t(ConfigurationContent.Version)} {version.version}
+                {translate(ConfigurationContent.Version)} {version.version}
               </a>
               <CardDescription className="text-xs leading-relaxed">
                 {version.identifier === configurations.funnel.activeVersionIdentifier
-                  ? t('Serving new sessions. Existing sessions keep their assigned version.')
-                  : t('Saved configuration. Inspect its steps and experiment before activation.')}
+                  ? translate(ConfigurationContent.LiveVersionDescription)
+                  : translate(ConfigurationContent.InactiveVersionDescription)}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <dl className="grid grid-cols-2 gap-3 border-t pt-3 text-xs">
                 <div>
-                  <dt className="mb-1 text-muted-foreground">{t('Schema')}</dt>
+                  <dt className="mb-1 text-muted-foreground">
+                    {translate(ConfigurationContent.Schema)}
+                  </dt>
                   <dd>{version.schemaVersion}</dd>
                 </div>
                 <div className="min-w-0">
                   <dt className="mb-1 flex items-center gap-1 text-muted-foreground">
                     <Fingerprint className="size-3" aria-hidden="true" />
-                    {t('Fingerprint')}
+                    {translate(ConfigurationContent.Fingerprint)}
                   </dt>
                   <dd className="truncate" title={version.checksum}>
-                    {version.checksum.slice(0, 12)}
+                    {version.checksum.slice(0, ConfigurationManagementPolicy.ChecksumPreviewLength)}
                   </dd>
                 </div>
               </dl>
             </CardContent>
             <CardFooter className="mt-auto justify-between gap-2 px-5 text-xs text-muted-foreground">
-              <span>{t('View configuration')}</span>
+              <span>{translate(ConfigurationContent.ViewConfiguration)}</span>
               <Button variant="ghost" size="icon" asChild>
                 <a
-                  aria-label={t('Inspect version {version}', { version: version.version })}
+                  aria-label={translate(ConfigurationContent.InspectVersionLabel, {
+                    version: version.version,
+                  })}
                   href={WorkspaceNavigation.href(
                     WorkspacePage.Version,
                     version.funnelIdentifier,
@@ -138,18 +146,18 @@ export function ConfigurationLibraryContext({
   configurations: ConfigurationList;
   history: PublicationHistory;
 }): UIElement {
-  const { t } = useLocalization();
+  const { t: translate } = useLocalization();
   const latest = history.items[0];
 
   return (
     <aside
       className="flex min-w-0 flex-col gap-5"
-      aria-label={t(ConfigurationContent.FunnelContext)}
+      aria-label={translate(ConfigurationContent.FunnelContext)}
     >
       <Card className="compact-card relative overflow-hidden">
         <CardHeader>
           <div className="flex items-center justify-between gap-2">
-            <CardTitle>{t(ConfigurationContent.CurrentVersion)}</CardTitle>
+            <CardTitle>{translate(ConfigurationContent.CurrentVersion)}</CardTitle>
             <span
               className={ClassNames.combine(
                 'flex size-8 items-center justify-center rounded-[10px]',
@@ -165,7 +173,9 @@ export function ConfigurationLibraryContext({
               )}
             </span>
           </div>
-          <CardDescription>{t(ConfigurationContent.ActiveVersionDescription)}</CardDescription>
+          <CardDescription>
+            {translate(ConfigurationContent.ActiveVersionDescription)}
+          </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           <div>
@@ -181,20 +191,22 @@ export function ConfigurationLibraryContext({
             <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
               <dt className="flex min-w-0 items-center gap-2 leading-snug text-muted-foreground">
                 <History aria-hidden="true" className="size-4 shrink-0" />
-                {t(ConfigurationContent.Revision)}
+                {translate(ConfigurationContent.Revision)}
               </dt>
               <dd className="text-xl font-medium tabular-nums">{configurations.funnel.revision}</dd>
             </div>
             <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t pt-2">
               <dt className="flex min-w-0 items-center gap-2 leading-snug text-muted-foreground">
                 <Layers3 aria-hidden="true" className="size-4 shrink-0" />
-                {t(ConfigurationContent.ListedVersions)}
+                {translate(ConfigurationContent.ListedVersions)}
               </dt>
               <dd className="text-xl font-medium tabular-nums">{configurations.items.length}</dd>
             </div>
             {latest && (
               <div className="flex min-w-0 flex-col gap-1.5 border-t pt-2">
-                <dt className="text-muted-foreground">{t(ConfigurationContent.LastActivation)}</dt>
+                <dt className="text-muted-foreground">
+                  {translate(ConfigurationContent.LastActivation)}
+                </dt>
                 <dd className="break-words text-xs leading-relaxed">
                   {ConfigurationFormat.date(latest.createdAt)}
                 </dd>
@@ -212,7 +224,7 @@ export function ConfigurationLibraryContext({
                   configurations.funnel.activeVersionIdentifier,
                 )}
               >
-                {t(ConfigurationContent.InspectActive)}
+                {translate(ConfigurationContent.InspectActive)}
                 <ArrowUpRight data-icon="inline-end" />
               </a>
             </Button>
@@ -221,57 +233,59 @@ export function ConfigurationLibraryContext({
       </Card>
       <Card className="compact-card">
         <CardHeader>
-          <CardTitle>{t(ConfigurationContent.RecentActivity)}</CardTitle>
-          <CardDescription>{t(ConfigurationContent.ActivationContext)}</CardDescription>
+          <CardTitle>{translate(ConfigurationContent.RecentActivity)}</CardTitle>
+          <CardDescription>{translate(ConfigurationContent.ActivationContext)}</CardDescription>
         </CardHeader>
         <CardContent>
           {history.items.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              {t(ConfigurationContent.HistoryEmptyDescription)}
+              {translate(ConfigurationContent.HistoryEmptyDescription)}
             </p>
           ) : (
             <ol className="flex flex-col">
-              {history.items.slice(0, 3).map((publication, index) => (
-                <li
-                  className="group/activity relative flex gap-3 pb-4 last:pb-0"
-                  key={publication.identifier}
-                >
-                  <span
-                    aria-hidden="true"
-                    className="absolute bottom-0 left-4 top-8 w-px bg-border group-last/activity:hidden"
-                  />
-                  <span
-                    className={ClassNames.combine(
-                      'relative flex size-8 shrink-0 items-center justify-center rounded-full border',
-                      index === 0
-                        ? 'border-primary/25 bg-primary/10 text-primary'
-                        : 'border-border bg-card text-muted-foreground',
-                    )}
+              {history.items
+                .slice(0, ConfigurationManagementPolicy.RecentPublicationCount)
+                .map((publication, index) => (
+                  <li
+                    className="group/activity relative flex gap-3 pb-4 last:pb-0"
+                    key={publication.identifier}
                   >
-                    <History aria-hidden="true" className="size-3.5" />
-                  </span>
-                  <div className="flex min-w-0 flex-col gap-1">
-                    <p className="text-sm font-medium">
-                      {ConfigurationFormat.action(publication.action)}{' '}
-                      <span className="font-normal text-muted-foreground">
-                        {t('· r')} {publication.revision}
-                      </span>
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {ConfigurationFormat.date(publication.createdAt)}
-                    </p>
-                    <code
-                      className="w-fit max-w-full truncate rounded border bg-muted/40 px-1.5 py-0.5 text-xs text-muted-foreground"
-                      title={publication.targetVersionIdentifier}
-                    >
-                      {ConfigurationLibrary.versionLabel(
-                        configurations,
-                        publication.targetVersionIdentifier,
+                    <span
+                      aria-hidden="true"
+                      className="absolute bottom-0 left-4 top-8 w-px bg-border group-last/activity:hidden"
+                    />
+                    <span
+                      className={ClassNames.combine(
+                        'relative flex size-8 shrink-0 items-center justify-center rounded-full border',
+                        index === 0
+                          ? 'border-primary/25 bg-primary/10 text-primary'
+                          : 'border-border bg-card text-muted-foreground',
                       )}
-                    </code>
-                  </div>
-                </li>
-              ))}
+                    >
+                      <History aria-hidden="true" className="size-3.5" />
+                    </span>
+                    <div className="flex min-w-0 flex-col gap-1">
+                      <p className="text-sm font-medium">
+                        {ConfigurationFormat.action(publication.action)}{' '}
+                        <span className="font-normal text-muted-foreground">
+                          {translate(ConfigurationContent.RevisionPrefix)} {publication.revision}
+                        </span>
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {ConfigurationFormat.date(publication.createdAt)}
+                      </p>
+                      <code
+                        className="w-fit max-w-full truncate rounded border bg-muted/40 px-1.5 py-0.5 text-xs text-muted-foreground"
+                        title={publication.targetVersionIdentifier}
+                      >
+                        {ConfigurationLibrary.versionLabel(
+                          configurations,
+                          publication.targetVersionIdentifier,
+                        )}
+                      </code>
+                    </div>
+                  </li>
+                ))}
             </ol>
           )}
         </CardContent>
@@ -283,7 +297,7 @@ export function ConfigurationLibraryContext({
                 configurations.funnel.identifier,
               )}
             >
-              {t(ConfigurationContent.ViewHistory)}
+              {translate(ConfigurationContent.ViewHistory)}
               <ArrowUpRight data-icon="inline-end" />
             </a>
           </Button>
@@ -291,7 +305,7 @@ export function ConfigurationLibraryContext({
       </Card>
       <div className="flex items-start gap-3 px-1 text-xs leading-relaxed text-muted-foreground">
         <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
-        <p>{t(ConfigurationContent.VersionSafety)}</p>
+        <p>{translate(ConfigurationContent.VersionSafety)}</p>
       </div>
     </aside>
   );

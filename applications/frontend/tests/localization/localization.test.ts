@@ -11,7 +11,7 @@ describe('Administration interface localization', () => {
       localization.initialize();
 
       expect(localization.locale).toBe(expected);
-      expect(localization.snapshot()).toBe(expected);
+      expect(localization.snapshot().locale).toBe(expected);
       expect(localization.formattingLocale).toBe(formatting);
       expect(document.documentElement.lang).toBe(expected);
     },
@@ -49,12 +49,12 @@ describe('Administration interface localization', () => {
 
     localization.setLocale('ru');
 
-    expect(localization.storageFailed).toBe(true);
+    expect(localization.snapshot().storageFailed).toBe(true);
     expect(localization.locale).toBe('ru');
     expect(document.documentElement.lang).toBe('ru');
     expect(localization.translate('Settings')).toBe('Настройки');
     localization.setLocale('en');
-    expect(localization.storageFailed).toBe(false);
+    expect(localization.snapshot().storageFailed).toBe(false);
   });
 
   it('falls back to English when reading browser storage fails', async () => {
@@ -67,9 +67,37 @@ describe('Administration interface localization', () => {
 
     expect(localization.locale).toBe('en');
     expect(document.documentElement.lang).toBe('en');
-    expect(localization.storageFailed).toBe(true);
+    expect(localization.snapshot().storageFailed).toBe(true);
     localization.initialize();
-    expect(localization.storageFailed).toBe(false);
+    expect(localization.snapshot().storageFailed).toBe(false);
+  });
+
+  it('publishes storage failure and recovery even when the selected language does not change', async () => {
+    const { localization, storage } = await LocalizationFixtures.create('ru');
+    localization.initialize();
+    const initial = localization.snapshot();
+    const changed = vi.fn(() => localization.snapshot());
+    const unsubscribe = localization.subscribe(changed);
+    storage.setItem.mockImplementationOnce(() => {
+      throw new DOMException('Storage blocked', 'SecurityError');
+    });
+
+    localization.setLocale('ru');
+    const failed = localization.snapshot();
+
+    expect(failed).not.toBe(initial);
+    expect(failed).toEqual({ locale: 'ru', storageFailed: true });
+    expect(changed).toHaveReturnedWith(failed);
+    expect(localization.snapshot()).toBe(failed);
+
+    localization.setLocale('ru');
+    const recovered = localization.snapshot();
+
+    expect(recovered).not.toBe(failed);
+    expect(recovered).toEqual({ locale: 'ru', storageFailed: false });
+    localization.setLocale('ru');
+    expect(localization.snapshot()).toBe(recovered);
+    unsubscribe();
   });
 
   it('interpolates translated labels without translating identifiers or interpreting replacement syntax', async () => {

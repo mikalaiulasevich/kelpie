@@ -1,8 +1,28 @@
+import { AnalyticsFormatPolicy } from './analytics-policy';
+import { AnalyticsContent } from './analytics-content';
 import { Localization } from '../localization/localization';
 import { Type, type Static } from 'typebox';
 import { isNull } from 'es-toolkit/predicate';
 import type { AnalyticsRatio, AnalyticsVersion } from '../management/management-types';
 import { ManagementSchemas } from '../management/management-types';
+
+export const AnalyticsRateMetric = {
+  ResultCompletion: 'resultCompletion',
+  CallToActionConversion: 'ctaConversion',
+} as const;
+
+export const AnalyticsRateMetricSchema = Type.Enum(AnalyticsRateMetric);
+
+export type AnalyticsRateMetric = Static<typeof AnalyticsRateMetricSchema>;
+
+export const AnalyticsSummaryMetric = {
+  ...AnalyticsRateMetric,
+  Started: 'started',
+} as const;
+
+export const AnalyticsSummaryMetricSchema = Type.Enum(AnalyticsSummaryMetric);
+
+export type AnalyticsSummaryMetric = Static<typeof AnalyticsSummaryMetricSchema>;
 
 export const MarketingMetricsSchema = Type.Object({
   started: Type.Number(),
@@ -15,6 +35,8 @@ export const MarketingMetricsSchema = Type.Object({
 });
 
 type MarketingMetrics = Readonly<Static<typeof MarketingMetricsSchema>>;
+
+type AnalyticsDifference = MarketingMetrics['conversionDifference'];
 
 export const AnalyticsMarketingMetrics = {
   ratio(numerator: number, denominator: number): AnalyticsRatio {
@@ -39,10 +61,6 @@ export const AnalyticsMarketingMetrics = {
       (total, variant) => total + variant.ctaClickThrough.denominator,
       0,
     );
-    const variantA = version.variants.find((variant) => variant.variant === 'A');
-    const variantB = version.variants.find((variant) => variant.variant === 'B');
-    const rateA = variantA?.ctaConversion.value ?? null;
-    const rateB = variantB?.ctaConversion.value ?? null;
 
     return {
       started,
@@ -51,8 +69,19 @@ export const AnalyticsMarketingMetrics = {
       resultRate: this.ratio(results, started),
       conversionRate: this.ratio(clicks, started),
       clickThrough: this.ratio(resultClicks, resultViewers),
-      conversionDifference: isNull(rateA) || isNull(rateB) ? null : (rateB - rateA) * 100,
+      conversionDifference: this.compare(version, AnalyticsRateMetric.CallToActionConversion),
     };
+  },
+
+  compare(version: AnalyticsVersion, metric: AnalyticsRateMetric): AnalyticsDifference {
+    const controlRate =
+      version.variants.find((variant) => variant.variant === 'A')?.[metric].value ?? null;
+    const treatmentRate =
+      version.variants.find((variant) => variant.variant === 'B')?.[metric].value ?? null;
+
+    return isNull(controlRate) || isNull(treatmentRate)
+      ? null
+      : (treatmentRate - controlRate) * 100;
   },
 
   ribbon(counts: readonly number[], maximum: number, scale: number): string {
@@ -66,7 +95,7 @@ export const AnalyticsMarketingMetrics = {
     return `M 0 ${90 - start} L 48 ${90 - start} C 154 ${90 - start}, 166 ${90 - middle}, 280 ${90 - middle} L 320 ${90 - middle} C 434 ${90 - middle}, 446 ${90 - end}, 552 ${90 - end} L 600 ${90 - end} L 600 ${90 + end} L 552 ${90 + end} C 446 ${90 + end}, 434 ${90 + middle}, 320 ${90 + middle} L 280 ${90 + middle} C 166 ${90 + middle}, 154 ${90 + start}, 48 ${90 + start} L 0 ${90 + start} Z`;
   },
 
-  differenceColor(value: number | null): string {
+  differenceColor(value: AnalyticsDifference): string {
     if (isNull(value) || value === 0) {
       return 'var(--muted-foreground)';
     }
@@ -74,13 +103,13 @@ export const AnalyticsMarketingMetrics = {
     return value < 0 ? 'var(--destructive)' : 'var(--success)';
   },
 
-  difference(value: number | null): string {
+  difference(value: AnalyticsDifference): string {
     if (isNull(value)) {
-      return Localization.translate('Not available');
+      return Localization.translate(AnalyticsContent.NotAvailable);
     }
 
     const formatted = new Intl.NumberFormat(Localization.formattingLocale, {
-      maximumFractionDigits: 1,
+      maximumFractionDigits: AnalyticsFormatPolicy.MaximumFractionDigits,
       signDisplay: 'exceptZero',
     }).format(value);
 

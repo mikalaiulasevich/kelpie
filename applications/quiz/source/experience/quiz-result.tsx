@@ -1,3 +1,4 @@
+import { QuizContent } from './quiz-content';
 import { useQuizLocale } from '../localization/quiz-locale-provider';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Check, CircleCheck, Printer } from 'lucide-react';
@@ -26,7 +27,7 @@ export function QuizResult({ result, busy, onBack, onAction }: QuizResultPropert
       <span className="result-seal">
         <CircleCheck />
       </span>
-      <p className="eyebrow">{translate('YOUR TEAM’S NEXT CHAPTER')}</p>
+      <p className="eyebrow">{translate(QuizContent.Result.Eyebrow)}</p>
       <h1 ref={heading} tabIndex={-1}>
         {translate(result.title)}
       </h1>
@@ -44,15 +45,15 @@ export function QuizResult({ result, busy, onBack, onAction }: QuizResultPropert
           {translate(result.cta.label)}
           <ArrowRight />
         </Button>
-        <span>{translate('Small changes. A practical place to start.')}</span>
+        <span>{translate(QuizContent.Result.Reassurance)}</span>
       </div>
       {expanded && (
         <div className="recommendation-sheet" id="recommendations">
           <div className="recommendation-heading">
-            <h2>{translate('Your action list')}</h2>
+            <h2>{translate(QuizContent.Result.ActionsTitle)}</h2>
             <Button appearance="quiet" onClick={() => window.print()}>
               <Printer />
-              {translate('Print')}
+              {translate(QuizContent.Actions.Print)}
             </Button>
           </div>
           <ol>
@@ -64,16 +65,12 @@ export function QuizResult({ result, busy, onBack, onAction }: QuizResultPropert
               </li>
             ))}
           </ol>
-          <p className="result-footnote">
-            {translate(
-              'A fictional recommendation for this assessment. Use it as a conversation starter with your team.',
-            )}
-          </p>
+          <p className="result-footnote">{translate(QuizContent.Result.Disclaimer)}</p>
         </div>
       )}
       <Button appearance="quiet" disabled={busy} onClick={() => void onBack()}>
         <ArrowLeft />
-        {translate('Review your answers')}
+        {translate(QuizContent.Result.Review)}
       </Button>
     </section>
   );

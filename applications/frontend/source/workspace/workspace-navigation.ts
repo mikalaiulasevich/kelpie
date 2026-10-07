@@ -1,3 +1,5 @@
+import { Type, type Static } from 'typebox';
+import { WorkspaceNavigationPolicy } from './workspace-policy';
 import { isString } from 'es-toolkit/predicate';
 
 export const WorkspacePage = {
@@ -9,44 +11,49 @@ export const WorkspacePage = {
 
 export type WorkspacePage = ValueOf<typeof WorkspacePage>;
 
-export interface WorkspaceLocation {
-  readonly page: WorkspacePage;
-  readonly funnelIdentifier: string;
-  readonly versionIdentifier?: string;
-}
+const WorkspaceSchemas = {
+  Location: Type.Object({
+    page: Type.Enum(WorkspacePage),
+    funnelIdentifier: Type.String(),
+    versionIdentifier: Type.Optional(Type.String()),
+  }),
+} as const;
+
+export type WorkspaceLocation = Readonly<Static<typeof WorkspaceSchemas.Location>>;
 
 export const WorkspaceNavigation = {
-  DefaultFunnel: 'workstyle-planner',
-  MaximumIdentifierCharacters: 100,
-  VersionIdentifierPattern: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
-  IdentifierPattern: /^[a-zA-Z][a-zA-Z0-9_-]*$/,
-
   validIdentifier(value: unknown): value is string {
     return (
       isString(value) &&
-      value.length <= this.MaximumIdentifierCharacters &&
-      this.IdentifierPattern.test(value)
+      value.length <= WorkspaceNavigationPolicy.MaximumIdentifierCharacters &&
+      WorkspaceNavigationPolicy.IdentifierPattern.test(value)
     );
+  },
+
+  validVersionIdentifier(value: unknown): value is string {
+    return isString(value) && WorkspaceNavigationPolicy.VersionIdentifierPattern.test(value);
   },
 
   read(): WorkspaceLocation {
     const [path, query] = globalThis.location.hash.slice(1).split('?');
     const parameters = new URLSearchParams(query);
     const candidate = parameters.get('funnel');
-    const version = parameters.get('version');
+    const versionIdentifier = parameters.get('version');
     const page =
       Object.values(WorkspacePage).find((value) => value === path) ?? WorkspacePage.Analytics;
+    const funnelIdentifier = WorkspaceNavigation.validIdentifier(candidate)
+      ? candidate
+      : WorkspaceNavigationPolicy.DefaultFunnel;
 
-    return {
-      page:
-        page === WorkspacePage.Version && (!version || !this.VersionIdentifierPattern.test(version))
-          ? WorkspacePage.Versions
-          : page,
-      ...(page === WorkspacePage.Version && version && this.VersionIdentifierPattern.test(version)
-        ? { versionIdentifier: version }
-        : {}),
-      funnelIdentifier: this.validIdentifier(candidate) ? candidate : this.DefaultFunnel,
-    };
+    if (page !== WorkspacePage.Version) {
+      return { page, funnelIdentifier };
+    }
+
+    if (!WorkspaceNavigation.validVersionIdentifier(versionIdentifier)) {
+      return { page: WorkspacePage.Versions, funnelIdentifier };
+    }
+
+    return { page, funnelIdentifier, versionIdentifier };
   },
 
   href(page: WorkspacePage, funnelIdentifier: string, versionIdentifier?: string): string {
@@ -60,6 +67,6 @@ export const WorkspaceNavigation = {
   },
 
   navigate(page: WorkspacePage, funnelIdentifier: string): void {
-    globalThis.location.hash = this.href(page, funnelIdentifier);
+    globalThis.location.hash = WorkspaceNavigation.href(page, funnelIdentifier);
   },
 } as const;

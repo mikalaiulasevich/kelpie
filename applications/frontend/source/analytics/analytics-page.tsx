@@ -1,3 +1,4 @@
+import { AnalyticsContent } from './analytics-content';
 import { useLocalization } from '../localization/use-localization';
 import { Kbd, KbdGroup } from '../components/kbd';
 import { ActionShortcutCatalog } from '../workspace/action-shortcuts';
@@ -26,7 +27,7 @@ interface AnalyticsPageProperties {
 }
 
 export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPageProperties) {
-  const { t } = useLocalization();
+  const { t: translate } = useLocalization();
 
   const [appliedFilters, setAppliedFilters] = useState<AnalyticsFilters>(
     AnalyticsFilterSelection.Initial,
@@ -41,9 +42,9 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
   const selectedVersion = analytics.status === 'ready' ? analytics.response.versions[0] : undefined;
   const pendingVersionLabel =
     appliedFilters.versionIdentifier === AnalyticsFilterSelection.Initial.versionIdentifier
-      ? t('Latest version')
+      ? translate(AnalyticsContent.LatestVersion)
       : appliedFilters.versionLabel.replace(/^Version (\d+)$/, (_label, version: string) =>
-          t('Version {version}', { version }),
+          translate(AnalyticsContent.VersionLabel, { version }),
         );
   const isLoading = analytics.status === 'loading';
 
@@ -76,8 +77,8 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
               <Badge variant="secondary" className="analytics-context-chip">
                 <Shuffle aria-hidden="true" />
                 {appliedFilters.includeForced
-                  ? t('Forced assignments included')
-                  : t('Forced assignments excluded')}
+                  ? translate(AnalyticsContent.ForcedIncluded)
+                  : translate(AnalyticsContent.ForcedExcluded)}
               </Badge>
               <Badge variant="secondary" className="analytics-context-chip">
                 <Megaphone aria-hidden="true" />
@@ -88,10 +89,10 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
               <SheetTrigger asChild>
                 <Button variant="outline" aria-keyshortcuts={ActionShortcutCatalog.Filters.aria}>
                   <SlidersHorizontal data-icon="inline-start" />
-                  {t('Filters')}
+                  {translate(AnalyticsContent.Filters)}
                   <KbdGroup aria-hidden="true" className="ml-1 hidden sm:inline-flex">
-                    <Kbd>{t('Alt')}</Kbd>
-                    <Kbd>{t('F')}</Kbd>
+                    <Kbd>{'Alt'}</Kbd>
+                    <Kbd>{'F'}</Kbd>
                   </KbdGroup>
                 </Button>
               </SheetTrigger>
@@ -102,17 +103,17 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
                 aria-keyshortcuts={ActionShortcutCatalog.Refresh.aria}
               >
                 <RefreshCw data-icon="inline-start" />
-                {t('Refresh')}
+                {translate(AnalyticsContent.Refresh)}
                 <KbdGroup aria-hidden="true" className="ml-1 hidden sm:inline-flex">
-                  <Kbd>{t('Alt')}</Kbd>
-                  <Kbd>{t('R')}</Kbd>
+                  <Kbd>{'Alt'}</Kbd>
+                  <Kbd>{'R'}</Kbd>
                 </KbdGroup>
               </Button>
             </div>
           </div>
           {appliedFilters.trafficOrigin !== 'production' && (
             <p className="text-xs text-muted-foreground">
-              {t('Includes test sessions. Don’t use these results to choose a winning variant.')}
+              {translate(AnalyticsContent.TestTrafficWarning)}
             </p>
           )}
         </div>
@@ -131,7 +132,7 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
           }
           selectedLabel={
             selectedVersion
-              ? t('Version {version}', { version: selectedVersion.funnelVersion })
+              ? translate(AnalyticsContent.VersionLabel, { version: selectedVersion.funnelVersion })
               : pendingVersionLabel
           }
           onUnauthorized={onUnauthorized}
@@ -142,14 +143,19 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
         />
         {analytics.status === 'ready' && (
           <span className="text-xs text-muted-foreground">
-            {t('Updated')} {AnalyticsFormat.generatedAt(analytics.response.generatedAt)}
+            {translate(AnalyticsContent.Updated)}{' '}
+            {AnalyticsFormat.generatedAt(analytics.response.generatedAt)}
           </span>
         )}
       </div>
       {analytics.status === 'loading' && (
-        <div aria-label={t('Loading analytics')} aria-busy="true" className="flex flex-col gap-4">
+        <div
+          aria-label={translate(AnalyticsContent.LoadingAnalytics)}
+          aria-busy="true"
+          className="flex flex-col gap-4"
+        >
           <span className="sr-only" role="status">
-            {t('Loading analytics')}
+            {translate(AnalyticsContent.LoadingAnalytics)}
           </span>
           <SkeletonSummary />
           <SkeletonChart />
@@ -157,10 +163,10 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
       )}
       {analytics.status === 'failed' && (
         <LoadErrorState
-          title={t('Analytics could not be loaded')}
+          title={translate(AnalyticsContent.AnalyticsUnavailable)}
           message={analytics.message}
           onRetry={refresh}
-          retryLabel="Try again"
+          retryLabel={AnalyticsContent.TryAgain}
         />
       )}
       {analytics.status === 'ready' && (
@@ -171,16 +177,14 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
                 <EmptyMedia>
                   <JourneyIllustration />
                 </EmptyMedia>
-                <EmptyTitle>{t('No matching versions')}</EmptyTitle>
+                <EmptyTitle>{translate(AnalyticsContent.EmptyVersions)}</EmptyTitle>
                 <EmptyDescription>
-                  {t(
-                    'Change the version or campaign filter. If this funnel is new, import a configuration first.',
-                  )}
+                  {translate(AnalyticsContent.EmptyVersionsDescription)}
                 </EmptyDescription>
               </EmptyHeader>
               <Button variant="outline" onClick={openFilters}>
                 <SlidersHorizontal data-icon="inline-start" />
-                {t('Adjust filters')}
+                {translate(AnalyticsContent.AdjustFilters)}
               </Button>
             </Empty>
           ) : (
@@ -199,27 +203,15 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
       <Collapsible>
         <CollapsibleTrigger asChild>
           <Button variant="ghost" size="sm">
-            {t('Metric definitions')}
+            {translate(AnalyticsContent.MetricDefinitions)}
             <ChevronDown data-icon="inline-end" />
           </Button>
         </CollapsibleTrigger>
         <CollapsibleContent className="pt-3">
           <div className="flex max-w-3xl flex-col gap-2 text-sm text-muted-foreground">
-            <p>
-              {t(
-                'CTA conversion is the share of started sessions with a recorded CTA click. Result completion is the share that viewed a result. CTA click-through is the share of result viewers who also clicked a CTA.',
-              )}
-            </p>
-            <p>
-              {t(
-                'Compare variants within the same version and experiment. The configuration defines what differs between them. Differences across versions do not establish an experiment’s effect.',
-              )}
-            </p>
-            <p>
-              {t(
-                'All counts and rates use the selected filters. Campaigns come from the UTM value recorded at session start. Repeat views count once per session. Exclude forced assignments when comparing A and B.',
-              )}
-            </p>
+            <p>{translate(AnalyticsContent.ConversionDefinition)}</p>
+            <p>{translate(AnalyticsContent.ComparisonDefinition)}</p>
+            <p>{translate(AnalyticsContent.FilterDefinition)}</p>
           </div>
         </CollapsibleContent>
       </Collapsible>

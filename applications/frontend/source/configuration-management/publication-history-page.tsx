@@ -24,7 +24,7 @@ import { LoadErrorState } from '../components/load-error-state';
 import { ConfigurationContent } from './configuration-content';
 import { ConfigurationManagementPolicy } from './configuration-policy';
 import { PublicationHistoryFeed } from './publication-history-feed';
-import type { PublicationIntent } from './publication-intents';
+import { PublicationIntents, type PublicationIntent } from './publication-intents';
 
 interface PublicationHistoryPageProperties {
   funnelIdentifier: string;
@@ -39,7 +39,7 @@ export function PublicationHistoryPage({
   onUnauthorized,
   onIntent,
 }: PublicationHistoryPageProperties): UIElement {
-  const { t } = useLocalization();
+  const { t: translate } = useLocalization();
   const [offsets, setOffsets] = useState<readonly number[]>([0]);
   const [refresh, setRefresh] = useState(0);
   const offset = offsets.at(-1) ?? 0;
@@ -70,8 +70,8 @@ export function PublicationHistoryPage({
     <div className="workspace-page flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="screen-heading flex flex-col gap-3">
-          <h1 className="page-title">{t(ConfigurationContent.HistoryHeading)}</h1>
-          <p className="page-description">{t(ConfigurationContent.HistoryDescription)}</p>
+          <h1 className="page-title">{translate(ConfigurationContent.HistoryHeading)}</h1>
+          <p className="page-description">{translate(ConfigurationContent.HistoryDescription)}</p>
         </div>
         <Button
           variant="outline"
@@ -80,7 +80,7 @@ export function PublicationHistoryPage({
           aria-keyshortcuts={ActionShortcutCatalog.Refresh.aria}
         >
           <RefreshCw data-icon="inline-start" />
-          {t(ConfigurationContent.Refresh)}
+          {translate(ConfigurationContent.Refresh)}
           <KbdGroup aria-hidden="true" className="ml-1 hidden sm:inline-flex">
             <Kbd>Alt</Kbd>
             <Kbd>R</Kbd>
@@ -90,38 +90,33 @@ export function PublicationHistoryPage({
       {resource.status === 'loading' && <SkeletonRows label="Loading activation history" />}
       {resource.status === 'error' && (
         <LoadErrorState
-          title={t('Activation history could not be loaded')}
-          message={t(resource.message)}
+          title={translate(ConfigurationContent.ActivationHistoryCouldNotBeLoaded)}
+          message={translate(resource.message)}
           onRetry={reload}
-          retryLabel={t('Try again')}
+          retryLabel={translate(ConfigurationContent.Retry)}
         />
       )}
       {resource.status === 'ready' && (
         <Card className="publication-log w-full gap-0 overflow-hidden">
           <CardHeader className="flex flex-wrap items-center justify-between gap-4 pb-5">
             <div className="flex flex-col gap-1.5">
-              <CardTitle>{t('Activity')}</CardTitle>
+              <CardTitle>{translate(ConfigurationContent.Activity)}</CardTitle>
               <CardDescription>
-                {funnelIdentifier} {t('· Current revision')} {resource.data.funnel.revision}
+                {funnelIdentifier} {translate(ConfigurationContent.CurrentRevisionPrefix)}{' '}
+                {resource.data.funnel.revision}
               </CardDescription>
             </div>
             <Button
               variant="outline"
               disabled={offset !== 0 || !resource.data.items[0]?.previousVersionIdentifier}
               onClick={() =>
-                onIntent({
-                  kind: 'rollback',
-                  label: 'Previous activated version',
-                  command: {
-                    operationIdentifier: globalThis.crypto.randomUUID(),
-                    funnelIdentifier,
-                    expectedRevision: resource.data.funnel.revision,
-                  },
-                })
+                onIntent(
+                  PublicationIntents.rollback(funnelIdentifier, resource.data.funnel.revision),
+                )
               }
             >
               <RotateCcw data-icon="inline-start" />
-              {t(ConfigurationContent.Rollback)}
+              {translate(ConfigurationContent.Rollback)}
             </Button>
           </CardHeader>
           <Separator />
@@ -132,9 +127,9 @@ export function PublicationHistoryPage({
                   <EmptyMedia variant="icon">
                     <History />
                   </EmptyMedia>
-                  <EmptyTitle>{t(ConfigurationContent.HistoryEmptyTitle)}</EmptyTitle>
+                  <EmptyTitle>{translate(ConfigurationContent.HistoryEmptyTitle)}</EmptyTitle>
                   <EmptyDescription>
-                    {t(ConfigurationContent.HistoryEmptyDescription)}
+                    {translate(ConfigurationContent.HistoryEmptyDescription)}
                   </EmptyDescription>
                 </EmptyHeader>
               </Empty>
@@ -148,7 +143,8 @@ export function PublicationHistoryPage({
           <Separator />
           <CardFooter className="flex flex-wrap items-center justify-between gap-4 pt-4">
             <p className="text-xs text-muted-foreground">
-              {t('Showing')} {offset + (resource.data.items.length > 0 ? 1 : 0)}–
+              {translate(ConfigurationContent.Showing)}{' '}
+              {offset + (resource.data.items.length > 0 ? 1 : 0)}–
               {offset + resource.data.items.length}
             </p>
             <div className="flex gap-2">
@@ -158,7 +154,7 @@ export function PublicationHistoryPage({
                 onClick={() => setOffsets((previous) => previous.slice(0, -1))}
               >
                 <ArrowLeft data-icon="inline-start" />
-                {t(ConfigurationContent.Previous)}
+                {translate(ConfigurationContent.Previous)}
               </Button>
               <Button
                 variant="outline"
@@ -175,7 +171,7 @@ export function PublicationHistoryPage({
                 }}
               >
                 <ArrowRight data-icon="inline-end" />
-                {t(ConfigurationContent.Next)}
+                {translate(ConfigurationContent.Next)}
               </Button>
             </div>
           </CardFooter>

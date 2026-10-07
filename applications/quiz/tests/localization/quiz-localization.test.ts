@@ -1,44 +1,9 @@
-import { isString } from 'es-toolkit';
+import { ConfigurationContent } from '../fixtures/configuration-content';
+import { LocalizationCases } from '../cases/localization-cases';
 import { describe, expect, it } from 'vitest';
 import { QuizLocalization } from '../../source/localization/quiz-localization';
 import { QuizRussianContent } from '../../source/localization/quiz-content-translations';
 import { readFileSync } from 'node:fs';
-
-const ConfigurationContent = {
-  collect(value: unknown): string[] {
-    if (Array.isArray(value)) {
-      return value.flatMap(ConfigurationContent.collect);
-    }
-
-    if (!value || typeof value !== 'object') {
-      return [];
-    }
-
-    return Object.entries(value).flatMap(([key, content]) => {
-      if (
-        [
-          'title',
-          'body',
-          'eyebrow',
-          'helperText',
-          'primaryActionLabel',
-          'label',
-          'summary',
-          'unit',
-        ].includes(key) &&
-        isString(content)
-      ) {
-        return [content];
-      }
-
-      if (key === 'recommendations' && Array.isArray(content)) {
-        return content.filter((item): item is string => isString(item));
-      }
-
-      return ConfigurationContent.collect(content);
-    });
-  },
-};
 
 describe('Quiz localization', () => {
   it('accepts only supported preferences and falls back to English', () => {
@@ -56,9 +21,7 @@ describe('Quiz localization', () => {
   });
 
   it('covers all supplied configuration display content without editing configuration documents', () => {
-    const originals = ['funnel-v1.json', 'funnel-v2.json', 'funnel-v3.json'];
-
-    for (const filename of originals) {
+    for (const filename of LocalizationCases.ConfigurationFiles) {
       const configuration: unknown = JSON.parse(
         readFileSync(new URL(`../../../../configurations/${filename}`, import.meta.url), 'utf8'),
       );

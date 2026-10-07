@@ -1,5 +1,5 @@
 import { isError } from 'es-toolkit/predicate';
-import { ManagementError } from './management-client';
+import { ManagementError } from './management-error';
 import { ManagementMessages } from './management-messages';
 
 export type ManagementRead<Result> =

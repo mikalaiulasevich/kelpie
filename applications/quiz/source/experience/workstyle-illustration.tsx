@@ -1,3 +1,4 @@
+import { QuizContent } from './quiz-content';
 import { useQuizLocale } from '../localization/quiz-locale-provider';
 import { ArrowUpRight, Check, CircleDot, GitBranch, Users } from 'lucide-react';
 
@@ -7,7 +8,7 @@ export function WorkstyleIllustration() {
   return (
     <div
       className="workstyle-illustration"
-      aria-label={translate('From your team’s answers to a practical workstyle recommendation')}
+      aria-label={translate(QuizContent.Illustration.Description)}
       role="img"
     >
       <div className="illustration-orbit orbit-one" />
@@ -17,48 +18,48 @@ export function WorkstyleIllustration() {
           <Users />
         </span>
         <span>
-          {translate('Built around')}
+          {translate(QuizContent.Illustration.BuiltAround)}
           <br />
-          <strong>{translate('your people.')}</strong>
+          <strong>{translate(QuizContent.Illustration.People)}</strong>
         </span>
       </div>
       <div className="illustration-paper">
         <div className="paper-top">
-          <span className="mini-eyebrow">{translate('A LITTLE CLARITY')}</span>
+          <span className="mini-eyebrow">{translate(QuizContent.Illustration.Eyebrow)}</span>
           <ArrowUpRight />
         </div>
         <h2>
-          {translate('Your team.')}
+          {translate(QuizContent.Welcome.TeamHeadline)}
           <br />
-          {translate('Your way of working.')}
+          {translate(QuizContent.Illustration.Working)}
         </h2>
         <div className="paper-line">
           <CircleDot />
-          <span>{translate('How you work together')}</span>
+          <span>{translate(QuizContent.Illustration.Together)}</span>
           <Check />
         </div>
         <div className="paper-line">
           <CircleDot />
-          <span>{translate('What needs to change')}</span>
+          <span>{translate(QuizContent.Illustration.Change)}</span>
           <Check />
         </div>
         <div className="paper-line">
           <CircleDot />
-          <span>{translate('Where to start')}</span>
+          <span>{translate(QuizContent.Illustration.Start)}</span>
           <Check />
         </div>
         <div className="paper-result">
           <GitBranch />
           <div>
-            <small>{translate('THE NEXT STEP')}</small>
-            <strong>{translate('A plan that fits.')}</strong>
+            <small>{translate(QuizContent.Illustration.NextStep)}</small>
+            <strong>{translate(QuizContent.Illustration.Plan)}</strong>
           </div>
         </div>
       </div>
       <span className="illustration-stamp">
-        {translate('LESS GUESSWORK')}
+        {translate(QuizContent.Illustration.StampTitle)}
         <br />
-        <span>{translate('more direction')}</span>
+        <span>{translate(QuizContent.Illustration.StampEmphasis)}</span>
       </span>
     </div>
   );

@@ -1,9 +1,8 @@
 import { useLocalization } from '../localization/use-localization';
 import { DeferredView } from '../application/deferred-view';
-import { LoaderCircle, RefreshCw } from 'lucide-react';
+import { LoaderCircle } from 'lucide-react';
 import { match } from 'ts-pattern';
-import { Button } from '../components/button';
-import { Alert, AlertDescription } from '../components/alert';
+import { AdministrationConnectionState } from './administration-connection-state';
 import { AdministrationForm } from './administration-form';
 import { useAdministrationSession } from './use-administration-session';
 import { AdministrationContent } from './administration-content';
@@ -58,28 +57,22 @@ export function AdministrationAccess(): UIElement {
       </DeferredView>
     ))
     .with({ status: AdministrationSessionStatus.Unavailable }, ({ message }) => (
-      <div className="flex flex-col gap-6">
-        <h1 className="auth-title">{t(AdministrationContent.UnavailableTitle)}</h1>
-        <Alert variant="destructive">
-          <AlertDescription>{t(message)}</AlertDescription>
-        </Alert>
-        <Button
-          variant="outline"
-          className="h-12"
-          onClick={() => {
-            void checkSession();
-          }}
-        >
-          <RefreshCw data-icon="inline-start" />
-          {t(AdministrationContent.Retry)}
-        </Button>
-      </div>
+      <AdministrationConnectionState
+        message={message}
+        onRetry={() => {
+          void checkSession();
+        }}
+      />
     ))
     .exhaustive();
 
   return session.status === AdministrationSessionStatus.SignedIn ? (
     content
   ) : (
-    <AdministrationAuthLayout>{content}</AdministrationAuthLayout>
+    <AdministrationAuthLayout
+      connectionUnavailable={session.status === AdministrationSessionStatus.Unavailable}
+    >
+      {content}
+    </AdministrationAuthLayout>
   );
 }

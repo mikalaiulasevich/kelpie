@@ -1,7 +1,10 @@
+import { ConfigurationMessages } from './configuration-messages';
 import { Ajv } from 'ajv';
 import { Type, type Static } from 'typebox';
 import { isNull } from 'es-toolkit/predicate';
 import { ManagementSchemas } from '../management/management-types';
+import type { ConfigurationVersionMetadata } from '../management/management-types';
+import { ConfigurationFormat } from './configuration-format';
 import { ConfigurationContent } from './configuration-content';
 
 export const PublicationIntentSchema = Type.Union([
@@ -28,6 +31,35 @@ export type PublicationIntent = Readonly<Static<typeof PublicationIntentSchema>>
 const validateIntent = new Ajv().compile<PublicationIntent>(PublicationIntentSchema);
 
 export const PublicationIntents = {
+  publish(
+    funnelIdentifier: string,
+    version: ConfigurationVersionMetadata,
+    expectedRevision: number,
+  ): PublicationIntent {
+    return {
+      kind: 'publish',
+      label: ConfigurationFormat.version(version.version),
+      command: {
+        operationIdentifier: globalThis.crypto.randomUUID(),
+        funnelIdentifier,
+        targetVersionIdentifier: version.identifier,
+        expectedRevision,
+      },
+    };
+  },
+
+  rollback(funnelIdentifier: string, expectedRevision: number): PublicationIntent {
+    return {
+      kind: 'rollback',
+      label: ConfigurationContent.PreviousActivatedVersion,
+      command: {
+        operationIdentifier: globalThis.crypto.randomUUID(),
+        funnelIdentifier,
+        expectedRevision,
+      },
+    };
+  },
+
   key(ownerIdentifier: string): string {
     return `kelpie.publication-intent.${ownerIdentifier}`;
   },
@@ -53,7 +85,7 @@ export const PublicationIntents = {
     try {
       globalThis.sessionStorage.setItem(this.key(ownerIdentifier), JSON.stringify(intent));
     } catch (error) {
-      throw new Error(ConfigurationContent.StorageFailure, { cause: error });
+      throw new Error(ConfigurationMessages.StorageFailure, { cause: error });
     }
   },
 

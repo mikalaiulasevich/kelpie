@@ -26,6 +26,8 @@ model FunnelVersion {
   schemaVersion        String
   document             Json
   checksum             String
+  importedByUsername   String?
+  experimentPlan       ExperimentPlan?
   createdAt            DateTime      @default(now())
   funnel               Funnel        @relation("FunnelVersions", fields: [funnelIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
   activeFor            Funnel?       @relation("ActiveVersion")
@@ -77,6 +79,7 @@ model Session {
   operations            SessionOperation[]
   transitions           SessionTransition[]
   events                Event[]
+  businessOutcomes      BusinessOutcome[]
 
   @@index([versionIdentifier, variant, createdAt])
   @@index([campaign, createdAt])
@@ -133,6 +136,8 @@ model Administrator {
   createdAt    DateTime               @default(now())
   sessions     AdministratorSession[]
   publications Publication[]
+  businessOutcomes BusinessOutcome[]
+  experimentPlans ExperimentPlan[]
 }
 
 model AdministratorSession {
@@ -167,4 +172,32 @@ model ApplicationSecret {
   identifier String   @id
   value      String
   createdAt  DateTime @default(now())
+}
+
+model BusinessOutcome {
+ identifier String @id @default(uuid())
+ externalIdentifier String
+ sessionIdentifier String
+ kind String
+ occurredAt DateTime
+ source String
+ provenance String
+ administratorIdentifier String
+ recordedAt DateTime @default(now())
+ session Session @relation(fields: [sessionIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
+ administrator Administrator @relation(fields: [administratorIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
+ @@unique([source, externalIdentifier])
+ @@index([sessionIdentifier, occurredAt, kind])
+}
+
+model ExperimentPlan {
+ versionIdentifier String @id
+ hypothesis String
+ primaryMetric String
+ targetSamplePerVariant Int
+ plannedEndAt DateTime
+ administratorIdentifier String
+ createdAt DateTime @default(now())
+ version FunnelVersion @relation(fields: [versionIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
+ administrator Administrator @relation(fields: [administratorIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
 }

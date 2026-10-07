@@ -1,3 +1,4 @@
+import { ConfigurationInspectionContent } from './configuration-inspection-content';
 import { useLocalization } from '../localization/use-localization';
 import { ChevronDown, FilePenLine, Flag } from 'lucide-react';
 import { ConfigurationJson } from './configuration-json';
@@ -11,18 +12,18 @@ export function ConfigurationOverrideDetails({
   kind,
   changes,
 }: ConfigurationOverrideDetailsProperties): UIElement {
-  const { t } = useLocalization();
+  const { t: translate } = useLocalization();
   const identifiers = Object.keys(changes ?? {});
   const isSteps = kind === 'steps';
   const Icon = isSteps ? FilePenLine : Flag;
   const itemLabel = identifiers.length === 1 ? kind.slice(0, -1) : kind;
   const description =
     identifiers.length > 0
-      ? t('Variant-specific overrides for {count} {kind}.', {
+      ? translate(ConfigurationInspectionContent.OverrideCountDescription, {
           count: identifiers.length,
-          kind: t(itemLabel),
+          kind: translate(itemLabel),
         })
-      : t('No overrides. Uses the original {kind}.', { kind: t(kind) });
+      : translate(ConfigurationInspectionContent.NoOverridesDescription, { kind: translate(kind) });
 
   return (
     <details className="override-disclosure">
@@ -32,7 +33,9 @@ export function ConfigurationOverrideDetails({
         </span>
         <span className="override-disclosure-label">
           <span className="override-disclosure-title">
-            {isSteps ? t('Step content changes') : t('Result changes')}
+            {isSteps
+              ? translate(ConfigurationInspectionContent.StepContentChanges)
+              : translate(ConfigurationInspectionContent.ResultChanges)}
             <span className="override-disclosure-count">{identifiers.length}</span>
           </span>
           <span className="override-disclosure-description">{description}</span>
@@ -44,7 +47,7 @@ export function ConfigurationOverrideDetails({
           <>
             <div className="override-disclosure-targets">
               <span className="text-xs text-muted-foreground">
-                {t('Affected')} {t(kind)}
+                {translate(ConfigurationInspectionContent.Affected)} {translate(kind)}
               </span>
               <ul>
                 {identifiers.map((identifier) => (
@@ -56,8 +59,11 @@ export function ConfigurationOverrideDetails({
           </>
         ) : (
           <p className="text-xs leading-relaxed text-muted-foreground">
-            {t('This variant inherits all')} {isSteps ? t('step content') : t('result content')}{' '}
-            {t('from the original configuration.')}
+            {translate(ConfigurationInspectionContent.ThisVariantInheritsAll)}{' '}
+            {isSteps
+              ? translate(ConfigurationInspectionContent.StepContent)
+              : translate(ConfigurationInspectionContent.InheritedResultContent)}{' '}
+            {translate(ConfigurationInspectionContent.FromTheOriginalConfiguration)}
           </p>
         )}
       </div>

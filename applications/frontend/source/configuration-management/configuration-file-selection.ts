@@ -1,4 +1,5 @@
-import { ConfigurationContent } from './configuration-content';
+import { ConfigurationMessages } from './configuration-messages';
+
 import { ConfigurationManagementPolicy } from './configuration-policy';
 
 interface ConfigurationFileSelectionCallbacks {
@@ -28,7 +29,7 @@ export class ConfigurationFileSelection {
     }
 
     if (file.size > ConfigurationManagementPolicy.MaximumJsonBytes) {
-      this.callbacks.setMessage(ConfigurationContent.FileTooLarge);
+      this.callbacks.setMessage(ConfigurationMessages.FileTooLarge);
 
       return;
     }
@@ -46,7 +47,7 @@ export class ConfigurationFileSelection {
       this.callbacks.accept(document, file);
     } catch {
       if (sequence === this.sequence) {
-        this.callbacks.setMessage(ConfigurationContent.InvalidJson);
+        this.callbacks.setMessage(ConfigurationMessages.InvalidJson);
       }
     } finally {
       if (sequence === this.sequence) {

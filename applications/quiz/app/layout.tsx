@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: 'Find a work model that fits your team. A thoughtful, guided workstyle assessment.',
 };
 
-export default function QuizLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function QuizLayout({ children }: UIPropertiesWithChildren) {
   return (
     <html lang="en">
       <body>

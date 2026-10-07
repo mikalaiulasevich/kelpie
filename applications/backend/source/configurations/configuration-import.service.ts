@@ -17,7 +17,7 @@ import {
 export class ConfigurationImportService {
   constructor(@Inject(DatabaseService) private readonly database: DatabaseService) {}
 
-  async import(document: unknown): Promise<ConfigurationImportResult> {
+  async import(document: unknown, importedBy?: string): Promise<ConfigurationImportResult> {
     const prepared = ConfigurationImportDocument.prepare(document);
     const existing = await this.findVersion(prepared);
 
@@ -26,7 +26,7 @@ export class ConfigurationImportService {
     }
 
     try {
-      const version = await this.createVersion(prepared);
+      const version = await this.createVersion(prepared, importedBy);
 
       return { outcome: ConfigurationImportOutcome.Created, version };
     } catch (error) {
@@ -72,6 +72,7 @@ export class ConfigurationImportService {
 
   private async createVersion(
     prepared: PreparedConfigurationImport,
+    importedBy?: string,
   ): Promise<ConfigurationVersionMetadata> {
     const { configuration, document } = prepared;
 
@@ -86,6 +87,7 @@ export class ConfigurationImportService {
         data: {
           ...ConfigurationImportDocument.identity(prepared),
           document,
+          importedByUsername: importedBy ?? null,
         },
         select: ConfigurationImportPolicy.VersionSelection,
       });

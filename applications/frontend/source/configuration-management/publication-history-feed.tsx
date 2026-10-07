@@ -1,4 +1,3 @@
-import { Localization } from '../localization/localization';
 import { useLocalization } from '../localization/use-localization';
 import { groupBy } from 'es-toolkit';
 import { Check, RotateCcw } from 'lucide-react';
@@ -20,24 +19,6 @@ interface PublicationVersionLinkProperties {
   identifier: string;
 }
 
-const PublicationHistoryFormat = {
-  day(value: string): string {
-    const date = new Date(value);
-
-    return Number.isNaN(date.getTime())
-      ? value
-      : new Intl.DateTimeFormat(Localization.formattingLocale, { dateStyle: 'long' }).format(date);
-  },
-
-  time(value: string): string {
-    const date = new Date(value);
-
-    return Number.isNaN(date.getTime())
-      ? value
-      : new Intl.DateTimeFormat(Localization.formattingLocale, { timeStyle: 'short' }).format(date);
-  },
-} as const;
-
 function PublicationVersionLink({
   funnelIdentifier,
   identifier,
@@ -47,7 +28,7 @@ function PublicationVersionLink({
 
   if (
     !WorkspaceNavigation.validIdentifier(funnelIdentifier) ||
-    !WorkspaceNavigation.VersionIdentifierPattern.test(identifier)
+    !WorkspaceNavigation.validVersionIdentifier(identifier)
   ) {
     return <code title={identifier}>{label}</code>;
   }
@@ -68,8 +49,10 @@ export function PublicationHistoryFeed({
   funnelIdentifier,
   items,
 }: PublicationHistoryFeedProperties): UIElement {
-  const { t } = useLocalization();
-  const days = groupBy(items, (item) => PublicationHistoryFormat.day(item.createdAt));
+  const { t: translate } = useLocalization();
+  const days = groupBy(items, (item) =>
+    ConfigurationFormat.timestamp(item.createdAt, { dateStyle: 'long' }),
+  );
 
   return (
     <div className="flex flex-col gap-8 py-6">
@@ -106,12 +89,12 @@ export function PublicationHistoryFeed({
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="text-sm font-medium">
                         {item.action === 'rollback'
-                          ? t(PublicationHistoryContent.RolledBack)
-                          : t(PublicationHistoryContent.Published)}
+                          ? translate(PublicationHistoryContent.RolledBack)
+                          : translate(PublicationHistoryContent.Published)}
                       </h3>
                       <Badge variant="outline">
-                        <span className="sr-only">{t(ConfigurationContent.Revision)} </span>#
-                        {item.revision}
+                        <span className="sr-only">{translate(ConfigurationContent.Revision)} </span>
+                        #{item.revision}
                       </Badge>
                     </div>
                     <time
@@ -119,12 +102,12 @@ export function PublicationHistoryFeed({
                       title={ConfigurationFormat.date(item.createdAt)}
                       className="ml-auto text-xs whitespace-nowrap text-muted-foreground tabular-nums"
                     >
-                      {PublicationHistoryFormat.time(item.createdAt)}
+                      {ConfigurationFormat.timestamp(item.createdAt, { timeStyle: 'short' })}
                     </time>
                   </div>
                   <dl className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground">
                     <div className="flex items-baseline gap-2">
-                      <dt>{t(ConfigurationContent.Target)}</dt>
+                      <dt>{translate(ConfigurationContent.Target)}</dt>
                       <dd>
                         <PublicationVersionLink
                           funnelIdentifier={funnelIdentifier}
@@ -133,7 +116,7 @@ export function PublicationHistoryFeed({
                       </dd>
                     </div>
                     <div className="flex items-baseline gap-2">
-                      <dt>{t(ConfigurationContent.PreviousVersion)}</dt>
+                      <dt>{translate(ConfigurationContent.PreviousVersion)}</dt>
                       <dd>
                         {item.previousVersionIdentifier ? (
                           <PublicationVersionLink

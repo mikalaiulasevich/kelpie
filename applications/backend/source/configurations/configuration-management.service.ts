@@ -2,7 +2,8 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { isNull } from 'es-toolkit/predicate';
 import { omit } from 'es-toolkit/object';
 import { DatabaseService } from '../database/database.service.js';
-import { ManagementQueries } from '../management/management-queries.js';
+import { Prisma } from '../../generated/prisma/client.js';
+import { ConfigurationLibraryQuery } from './configuration-library-query.js';
 import { ManagementRecords } from '../management/management-records.js';
 import { PublicRequestError } from '../transport/public-request-error.js';
 import { ConfigurationImportError } from './configuration-import-error.js';
@@ -27,9 +28,9 @@ export class ConfigurationManagementService {
     @Inject(ConfigurationImportService) private readonly imports: ConfigurationImportService,
   ) {}
 
-  async import(document: unknown): Promise<ConfigurationImportResult> {
+  async import(document: unknown, importedBy?: string): Promise<ConfigurationImportResult> {
     try {
-      return await this.imports.import(document);
+      return await this.imports.import(document, importedBy);
     } catch (error) {
       if (!(error instanceof ConfigurationImportError)) {
         throw error;
@@ -45,22 +46,55 @@ export class ConfigurationManagementService {
   }
 
   async list(query: unknown): Promise<ConfigurationList> {
-    const pagination = ManagementQueries.read(query);
+    const pagination = ConfigurationLibraryQuery.read(query);
     const { funnelIdentifier, limit, offset } = pagination;
 
     return this.database.client.$transaction(async (transaction) => {
       const funnel = await ManagementRecords.readFunnel(transaction, funnelIdentifier);
 
-      const versions = await transaction.funnelVersion.findMany({
-        where: { funnelIdentifier },
-        select: ConfigurationImportPolicy.VersionSelection,
-        orderBy: { version: 'desc' },
-        skip: offset,
-        take: limit + 1,
+      const condition = ConfigurationLibraryQuery.condition(
+        pagination,
+        funnel.activeVersionIdentifier,
+      );
+      const identifiers = await transaction.$queryRaw<{ identifier: string }[]>(
+        Prisma.sql`SELECT "identifier" FROM "FunnelVersion" WHERE ${condition} ORDER BY ${ConfigurationLibraryQuery.order(pagination.sort)} LIMIT ${limit + 1} OFFSET ${offset}`,
+      );
+      const counts = await transaction.$queryRaw<{ total: bigint }[]>(
+        Prisma.sql`SELECT COUNT(*) AS total FROM "FunnelVersion" WHERE ${condition}`,
+      );
+      const records = await transaction.funnelVersion.findMany({
+        where: { identifier: { in: identifiers.map(({ identifier }) => identifier) } },
+      });
+      const recordsByIdentifier = new Map(records.map((record) => [record.identifier, record]));
+      const versions = identifiers.map(({ identifier }) => {
+        const record = recordsByIdentifier.get(identifier);
+
+        if (!record) {
+          throw new Error(ConfigurationManagementMessages.CorruptedVersion);
+        }
+
+        const prepared = ConfigurationImportDocument.prepare(record.document);
+
+        if (!ConfigurationImportDocument.matchesVersion(record, prepared)) {
+          throw new Error(ConfigurationManagementMessages.CorruptedVersion);
+        }
+
+        return {
+          identifier: record.identifier,
+          funnelIdentifier: record.funnelIdentifier,
+          version: record.version,
+          schemaVersion: record.schemaVersion,
+          checksum: record.checksum,
+          importedAt: record.createdAt.toISOString(),
+          importedBy: record.importedByUsername,
+          description: prepared.configuration.description,
+          documentStatus: prepared.configuration.status,
+        };
       });
 
       return {
         funnel,
+        total: Number(counts[0]?.total ?? 0),
         ...ManagementRecords.page(versions, pagination),
       };
     });

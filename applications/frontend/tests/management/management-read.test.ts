@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { ManagementError } from '../../source/management/management-client';
+import { ManagementError } from '../../source/management/management-error';
 import { ManagementReadFixture } from '../fixtures/management-read-fixtures';
 
 // The hook owns aborting this operation when its request changes or it unmounts.

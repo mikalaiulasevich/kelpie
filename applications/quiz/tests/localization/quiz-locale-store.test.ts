@@ -1,22 +1,6 @@
+import { LocaleStorageFixture } from '../fixtures/locale-storage-fixture';
 import { describe, expect, it, vi } from 'vitest';
-import { QuizLocalization } from '../../source/localization/quiz-localization';
-
-const LocaleStorageFixture = {
-  async create() {
-    vi.resetModules();
-    const values = new Map<string, string>();
-    const storage = {
-      getItem: vi.fn((key: string) => values.get(key) ?? null),
-      setItem: vi.fn((key: string, value: string) => values.set(key, value)),
-    };
-    vi.stubGlobal('localStorage', storage);
-    const eventTarget = new EventTarget();
-    vi.stubGlobal('window', eventTarget);
-    const { QuizLocaleStore } = await import('../../source/localization/quiz-locale-store');
-
-    return { store: QuizLocaleStore, storage, values, eventTarget };
-  },
-};
+import { QuizLocalizationPolicy } from '../../source/localization/quiz-localization-policy';
 
 describe('Quiz language preference storage', () => {
   it('restores the selected language after module reload and notifies subscribers', async () => {
@@ -54,9 +38,9 @@ describe('Quiz language preference storage', () => {
     const listener = vi.fn();
     const unsubscribe = store.subscribe(listener);
     store.write('en');
-    values.set(QuizLocalization.StorageKey, 'ru');
+    values.set(QuizLocalizationPolicy.StorageKey, 'ru');
     const event = new Event('storage');
-    Object.defineProperty(event, 'key', { value: QuizLocalization.StorageKey });
+    Object.defineProperty(event, 'key', { value: QuizLocalizationPolicy.StorageKey });
     eventTarget.dispatchEvent(event);
 
     expect(store.read()).toBe('ru');

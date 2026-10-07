@@ -1,3 +1,6 @@
+import { AnalyticsSessionTimeline } from './analytics-session-timeline.js';
+import type { AnalyticsSessionResponse } from './analytics-session-types.js';
+import { AnalyticsInsightsRead } from './analytics-insights.js';
 import { Inject, Injectable } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service.js';
 import { AnalyticsInputs } from './analytics-inputs.js';
@@ -45,12 +48,13 @@ const AnalyticsReadModel = {
       versions.map((version) => version.identifier),
       now,
     );
-    const aggregates = AnalyticsProjection.group(
-      await AnalyticsReadModel.aggregates(transaction, cohort),
-    );
+    const rawAggregates = await AnalyticsReadModel.aggregates(transaction, cohort);
+    const aggregates = AnalyticsProjection.group(rawAggregates);
+    const insights = await AnalyticsInsightsRead.read(transaction, query, versions.map((version) => version.identifier), now, rawAggregates);
 
     return {
       ...metadata,
+      insights,
       versions: versions.map((version) => AnalyticsProjection.version(version, aggregates)),
     };
   },
@@ -59,6 +63,12 @@ const AnalyticsReadModel = {
 @Injectable()
 export class AnalyticsService {
   constructor(@Inject(DatabaseService) private readonly database: DatabaseService) {}
+
+  async sessions(input: unknown): Promise<AnalyticsSessionResponse> {
+    const { query, selection } = AnalyticsSessionTimeline.input(input);
+
+    return this.database.client.$transaction((transaction) => AnalyticsSessionTimeline.read(transaction, query, selection, new Date()), { timeout: AnalyticsPolicy.TransactionTimeout });
+  }
 
   async read(input: unknown): Promise<AnalyticsResponse> {
     const query = AnalyticsInputs.query(input);

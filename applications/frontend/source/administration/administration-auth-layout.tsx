@@ -4,7 +4,13 @@ import { useEffect, type ReactNode } from 'react';
 import { KelpieMark } from '../components/kelpie-mark';
 import { AdministrationContent } from './administration-content';
 
-export function AdministrationAuthLayout({ children }: { children: ReactNode }): UIElement {
+export function AdministrationAuthLayout({
+  children,
+  connectionUnavailable = false,
+}: {
+  children: ReactNode;
+  connectionUnavailable?: boolean;
+}): UIElement {
   const { t, locale } = useLocalization();
 
   useEffect(() => {
@@ -16,13 +22,18 @@ export function AdministrationAuthLayout({ children }: { children: ReactNode }):
       <div className="absolute right-4 top-4">
         <LanguageSettings />
       </div>
-      <section className="auth-main" aria-label={t('Administrator access')}>
+      <section
+        className={connectionUnavailable ? 'auth-main auth-main-connection' : 'auth-main'}
+        aria-label={t('Administrator access')}
+      >
         <a href="/" className="brand auth-brand" aria-label={t('Kelpie administration')}>
           <KelpieMark />
-          <span>{t('kelpie')}</span>
+          <span>{t('Kelpie')}</span>
         </a>
         <div className="form-container">{children}</div>
-        <p className="access-note">{t(AdministrationContent.AccessHelp)}</p>
+        {!connectionUnavailable && (
+          <p className="access-note">{t(AdministrationContent.AccessHelp)}</p>
+        )}
       </section>
       <footer className="auth-footer">
         <span>{t('Kelpie')}</span>

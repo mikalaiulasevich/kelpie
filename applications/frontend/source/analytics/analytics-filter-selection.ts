@@ -1,3 +1,4 @@
+import { AnalyticsContent } from './analytics-content';
 import { Localization } from '../localization/localization';
 import { Type, type Static } from 'typebox';
 import { match } from 'ts-pattern';
@@ -22,7 +23,7 @@ export type AnalyticsFilters = Static<typeof AnalyticsFiltersSchema>;
 export const AnalyticsFilterSelection = {
   Initial: {
     versionIdentifier: AnalyticsPagePolicy.AllVersionsValue,
-    versionLabel: 'All versions',
+    versionLabel: AnalyticsContent.AllVersions,
     campaign: '',
     campaignMode: 'all',
     trafficOrigin: 'production',
@@ -59,21 +60,21 @@ export const AnalyticsFilterSelection = {
 
   trafficLabel(filters: AnalyticsFilters): string {
     return match(filters.trafficOrigin)
-      .with('all', () => Localization.translate('All traffic'))
-      .with('synthetic', () => Localization.translate('Synthetic traffic'))
-      .with('production', () => Localization.translate('Production traffic'))
+      .with('all', () => Localization.translate(AnalyticsContent.AllTraffic))
+      .with('synthetic', () => Localization.translate(AnalyticsContent.SyntheticTraffic))
+      .with('production', () => Localization.translate(AnalyticsContent.ProductionTraffic))
       .exhaustive();
   },
 
   campaignLabel(filters: AnalyticsFilters): string {
     if (filters.campaignMode === 'all') {
-      return Localization.translate('All campaigns');
+      return Localization.translate(AnalyticsContent.AllCampaigns);
     }
 
     const campaign = filters.campaignMode === 'none' ? '' : filters.campaign;
 
-    return Localization.translate('Campaign: {campaign}', {
-      campaign: campaign === '' ? Localization.translate('(empty)') : campaign,
+    return Localization.translate(AnalyticsContent.CampaignLabel, {
+      campaign: campaign === '' ? Localization.translate(AnalyticsContent.EmptyCampaign) : campaign,
     });
   },
 } as const;

@@ -29,3 +29,16 @@ export const AdministrationFormMessages = {
   PasswordRequired: 'Enter your password.',
   RequestFailed: 'Unable to complete the request. Please try again.',
 } as const;
+
+export const AdministrationConnectionContent = {
+  Status: 'Connection unavailable',
+  Title: 'Your workspace is out of reach',
+  Description:
+    'Kelpie could not check your administrator session. The service may be temporarily unavailable, or the connection may have been interrupted.',
+  NextTitle: 'Let’s reconnect',
+  NextDescription:
+    'Check your internet connection, then try again. You do not need to reset your password for this connection error.',
+  Retry: 'Retry connection',
+  Help: 'Still unable to connect? Contact your administrator and share the details below.',
+  Details: 'Connection details',
+} as const;

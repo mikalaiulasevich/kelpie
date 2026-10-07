@@ -1,8 +1,9 @@
+import { ConfigurationMessages } from './configuration-messages';
 import { useLocalization } from '../localization/use-localization';
 import { useEffect, useRef, useState } from 'react';
 import { isError } from 'es-toolkit/predicate';
 import { AlertCircle, ArrowUpRight, RotateCcw } from 'lucide-react';
-import { ManagementError } from '../management/management-client';
+import { ManagementError } from '../management/management-error';
 import { Button } from '../components/button';
 import {
   Dialog,
@@ -50,7 +51,7 @@ export function PublicationDialog({
   onChanged,
   onUnauthorized,
 }: PublicationDialogProperties): UIElement {
-  const { t } = useLocalization();
+  const { t: translate } = useLocalization();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<Optional<ManagementError | Error>>();
   const [uncertain, setUncertain] = useState(() => !!PublicationIntents.read(ownerIdentifier));
@@ -112,7 +113,7 @@ export function PublicationDialog({
           setRecoveryRetained(!PublicationIntents.clear(ownerIdentifier));
         }
 
-        setError(isError(failure) ? failure : new Error(ConfigurationContent.CommandFailure));
+        setError(isError(failure) ? failure : new Error(ConfigurationMessages.CommandFailure));
       }
     } finally {
       requestPending.current = false;
@@ -156,54 +157,60 @@ export function PublicationDialog({
         <DialogHeader>
           <DialogTitle>
             {intent.kind === 'publish'
-              ? t(ConfigurationContent.PublishTitle)
-              : t(ConfigurationContent.RollbackTitle)}
+              ? translate(ConfigurationContent.PublishTitle)
+              : translate(ConfigurationContent.RollbackTitle)}
           </DialogTitle>
           <DialogDescription>
             {intent.kind === 'publish'
-              ? t(ConfigurationContent.PublishDescription)
-              : t(ConfigurationContent.RollbackDescription)}
+              ? translate(ConfigurationContent.PublishDescription)
+              : translate(ConfigurationContent.RollbackDescription)}
           </DialogDescription>
         </DialogHeader>
         <dl className="grid gap-4 rounded-xl border bg-muted/30 p-4 text-sm">
           <div className="flex flex-wrap justify-between gap-2">
-            <dt className="text-muted-foreground">{t(ConfigurationContent.Funnel)}</dt>
+            <dt className="text-muted-foreground">{translate(ConfigurationContent.Funnel)}</dt>
             <dd className="font-medium">{intent.command.funnelIdentifier}</dd>
           </div>
           <div className="flex justify-between gap-2">
-            <dt className="text-muted-foreground">{t(ConfigurationContent.Version)}</dt>
-            <dd className="font-medium">{t(intent.label)}</dd>
+            <dt className="text-muted-foreground">{translate(ConfigurationContent.Version)}</dt>
+            <dd className="font-medium">{translate(intent.label)}</dd>
           </div>
           <div className="flex justify-between gap-2">
-            <dt className="text-muted-foreground">{t(ConfigurationContent.CurrentRevision)}</dt>
+            <dt className="text-muted-foreground">
+              {translate(ConfigurationContent.CurrentRevision)}
+            </dt>
             <dd>{intent.command.expectedRevision}</dd>
           </div>
         </dl>
         {error && (
           <Alert variant="destructive">
             <AlertCircle />
-            <AlertTitle>{t(ConfigurationContent.CommandFailure)}</AlertTitle>
+            <AlertTitle>{translate(ConfigurationMessages.CommandFailure)}</AlertTitle>
             <AlertDescription>
-              {conflict ? t(ConfigurationContent.Conflict) : t(error.message)}
+              {conflict ? translate(ConfigurationMessages.Conflict) : translate(error.message)}
             </AlertDescription>
           </Alert>
         )}
         {uncertain && (
           <Alert>
             <AlertCircle />
-            <AlertDescription>{t(ConfigurationContent.UnknownOutcome)}</AlertDescription>
+            <AlertDescription>{translate(ConfigurationMessages.UnknownOutcome)}</AlertDescription>
           </Alert>
         )}
         {recoveryRetained && (
           <Alert>
             <AlertCircle />
-            {confirmed && <AlertTitle>{t(ConfigurationContent.CommandConfirmed)}</AlertTitle>}
-            <AlertDescription>{t(ConfigurationContent.RecoveryRetained)}</AlertDescription>
+            {confirmed && (
+              <AlertTitle>{translate(ConfigurationContent.CommandConfirmed)}</AlertTitle>
+            )}
+            <AlertDescription>{translate(ConfigurationMessages.RecoveryRetained)}</AlertDescription>
           </Alert>
         )}
         <DialogFooter>
           <Button variant="outline" onClick={close} disabled={pending || uncertain}>
-            {confirmed ? t(ConfigurationContent.Close) : t(ConfigurationContent.Cancel)}
+            {confirmed
+              ? translate(ConfigurationContent.Close)
+              : translate(ConfigurationContent.Cancel)}
           </Button>
           {!confirmed &&
             (conflict ? (
@@ -213,7 +220,7 @@ export function PublicationDialog({
                   close();
                 }}
               >
-                {t(ConfigurationContent.RefreshReview)}
+                {translate(ConfigurationContent.RefreshReview)}
               </Button>
             ) : (
               <Button
@@ -227,7 +234,7 @@ export function PublicationDialog({
                 ) : (
                   <RotateCcw data-icon="inline-start" />
                 )}
-                {t(PublicationPresentation.submitLabel(intent, pending, uncertain))}
+                {translate(PublicationPresentation.submitLabel(intent, pending, uncertain))}
               </Button>
             ))}
         </DialogFooter>

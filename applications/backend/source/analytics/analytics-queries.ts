@@ -1,9 +1,13 @@
 import { isUndefined } from 'es-toolkit/predicate';
 import { Prisma } from '../../generated/prisma/client.js';
-import { AnalyticsTrafficOrigin } from './analytics-policy.js';
+import { AnalyticsPolicy, AnalyticsTrafficOrigin } from './analytics-policy.js';
 import type { AnalyticsQuery } from './analytics-types.js';
 
 export const AnalyticsQueries = {
+  timestamp(column: Prisma.Sql): Prisma.Sql {
+    return Prisma.sql`CASE WHEN typeof(${column}) IN ('integer', 'real') THEN ${column} ELSE CAST((julianday(${column}) - 2440587.5) * 86400000 AS INTEGER) END`;
+  },
+
   versions(query: AnalyticsQuery): Prisma.FunnelVersionFindManyArgs {
     const where: Prisma.FunnelVersionWhereInput = { funnelIdentifier: query.funnelIdentifier };
 
@@ -36,23 +40,45 @@ export const AnalyticsQueries = {
       conditions.push(Prisma.sql`s."campaign" = ${query.campaign}`);
     }
 
+    for (const [parameter, path] of [[query.source, '$.utm_source'], [query.medium, '$.utm_medium']]) {
+      if (!isUndefined(parameter)) {
+        conditions.push(Prisma.sql`COALESCE(json_extract(s."acquisitionParameters", ${path}), '') = ${parameter}`);
+      }
+    }
+
+    const startedAt = AnalyticsQueries.timestamp(Prisma.sql`s."createdAt"`);
+    const deadline = isUndefined(query.conversionWindowHours)
+      ? Prisma.sql`${Number.MAX_SAFE_INTEGER}`
+      : Prisma.sql`${startedAt} + ${query.conversionWindowHours * AnalyticsPolicy.MillisecondsPerHour}`;
+
+    if (query.from && query.to) {
+      conditions.push(Prisma.sql`${startedAt} >= ${Date.parse(query.from)} AND ${startedAt} < ${Date.parse(query.to)}`);
+    }
+
     return Prisma.sql`WITH cohort AS (
       SELECT s."identifier", s."versionIdentifier", s."variant",
+        ${startedAt} AS "startedAt", ${deadline} AS deadline,
+        COALESCE(json_extract(s."acquisitionParameters", '$.utm_source'), '') AS source,
+        COALESCE(json_extract(s."acquisitionParameters", '$.utm_medium'), '') AS medium,
+        COALESCE(s."campaign", '') AS campaign,
         CASE WHEN typeof(s."expiresAt") IN ('integer', 'real')
           THEN s."expiresAt" <= ${now.getTime()}
-          ELSE julianday(s."expiresAt") <= julianday(${now.toISOString()}) END AS expired
+          ELSE julianday(s."expiresAt") <= julianday(${now.toISOString()}) END OR ${deadline} <= ${now.getTime()} AS expired
       FROM "Session" s
       WHERE ${Prisma.join(conditions, ' AND ')}
         AND EXISTS (SELECT 1 FROM "Event" e WHERE e."sessionIdentifier" = s."identifier"
           AND e."name" = 'session_started' AND e."source" = 'server')
+    ), eligible_events AS (
+      SELECT e.* FROM "Event" e JOIN cohort c ON c."identifier" = e."sessionIdentifier"
+      WHERE ${AnalyticsQueries.timestamp(Prisma.sql`e."serverTimestamp"`)} <= c.deadline
     ), views AS (
       SELECT DISTINCT e."sessionIdentifier", e."stepIdentifier"
-      FROM "Event" e JOIN cohort c ON c."identifier" = e."sessionIdentifier"
+      FROM eligible_events e JOIN cohort c ON c."identifier" = e."sessionIdentifier"
       WHERE e."name" = 'step_viewed' AND e."source" = 'client' AND e."stepIdentifier" IS NOT NULL
     ), forwards AS (
       SELECT DISTINCT t."sessionIdentifier", t."fromStepIdentifier", t."toStepIdentifier"
       FROM "SessionTransition" t JOIN cohort c ON c."identifier" = t."sessionIdentifier"
-      WHERE t."kind" = 'forward'
+      WHERE t."kind" = 'forward' AND ${AnalyticsQueries.timestamp(Prisma.sql`t."createdAt"`)} <= c.deadline
     ), completions AS (
       SELECT DISTINCT "sessionIdentifier", "fromStepIdentifier" FROM forwards
     )`;
@@ -61,8 +87,8 @@ export const AnalyticsQueries = {
   summary(cohort: Prisma.Sql): Prisma.Sql {
     return Prisma.sql`${cohort}, outcomes AS (
       SELECT c.*,
-        EXISTS (SELECT 1 FROM "Event" e WHERE e."sessionIdentifier" = c."identifier" AND e."name" = 'result_viewed' AND e."source" = 'client') AS result,
-        EXISTS (SELECT 1 FROM "Event" e WHERE e."sessionIdentifier" = c."identifier" AND e."name" = 'cta_clicked' AND e."source" = 'client') AS clicked
+        EXISTS (SELECT 1 FROM eligible_events e WHERE e."sessionIdentifier" = c."identifier" AND e."name" = 'result_viewed' AND e."source" = 'client') AS result,
+        EXISTS (SELECT 1 FROM eligible_events e WHERE e."sessionIdentifier" = c."identifier" AND e."name" = 'cta_clicked' AND e."source" = 'client') AS clicked
       FROM cohort c
     )
     SELECT "versionIdentifier", "variant", COUNT(*) AS started,

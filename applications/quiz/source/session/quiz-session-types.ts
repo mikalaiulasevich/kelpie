@@ -1,3 +1,4 @@
+import Ajv from 'ajv';
 import { Type, type Static } from 'typebox';
 import type { FunnelConfiguration, FunnelResult, StepAnswer } from '@kelpie/contracts';
 
@@ -71,12 +72,47 @@ export type QuizSessionState = Omit<
   'configuration' | 'result'
 > & { readonly configuration: FunnelConfiguration; readonly result: FunnelResult | null };
 
+export type QuizSessionEnvelope = Omit<Static<typeof QuizSessionSchemas.Envelope>, 'state'> & {
+  readonly state: QuizSessionState | null;
+};
+
 export type QuizObservation = Static<typeof QuizSessionSchemas.Events>[number];
 
 export type QuizObservationInput = Pick<QuizObservation, 'name' | 'properties'>;
 
-export interface QuizPendingCommand {
-  readonly path: string;
-  readonly sessionIdentifier?: string;
-  readonly body: Readonly<Record<string, TextOrNumber | StepAnswer | null>>;
+export type QuizPendingCommand = DeepReadonly<Static<typeof QuizSessionSchemas.Pending>>;
+
+const compiler = new Ajv({ strict: false });
+
+export const QuizSessionValidators = {
+  result: compiler.compile<FunnelResult | null>(QuizSessionSchemas.Result),
+  pending: compiler.compile<QuizPendingCommand>(QuizSessionSchemas.Pending),
+  state: compiler.compile<Static<typeof QuizSessionSchemas.State>>(QuizSessionSchemas.State),
+  envelope: compiler.compile<Static<typeof QuizSessionSchemas.Envelope>>(
+    QuizSessionSchemas.Envelope,
+  ),
+  events: compiler.compile<Static<typeof QuizSessionSchemas.Events>>(QuizSessionSchemas.Events),
+  receipts: compiler.compile<Static<typeof QuizSessionSchemas.Receipts>>(
+    QuizSessionSchemas.Receipts,
+  ),
+  answer: compiler.compile<StepAnswer | null>(QuizSessionSchemas.Answer),
+};
+
+export const QuizNavigationDirection = { Continue: 'continue', Back: 'back' } as const;
+
+export type QuizNavigationDirection =
+  (typeof QuizNavigationDirection)[keyof typeof QuizNavigationDirection];
+
+export interface QuizSessionController {
+  readonly state: QuizSessionState | null;
+  readonly loading: boolean;
+  readonly busy: boolean;
+  readonly expired: boolean;
+  readonly error: string | null;
+  readonly deliveryError: string | null;
+  readonly start: (funnelIdentifier: string, query?: string) => Promise<void>;
+  readonly continueStep: (answer?: StepAnswer | null) => Promise<void>;
+  readonly back: () => Promise<void>;
+  readonly recordResultAction: () => Promise<void>;
+  readonly retry: () => Promise<void>;
 }

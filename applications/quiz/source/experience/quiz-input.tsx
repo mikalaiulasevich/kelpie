@@ -1,3 +1,7 @@
+import { QuizAnswerInput } from './quiz-answer-input';
+import { QuizExperiencePolicy } from './quiz-experience-policy';
+
+import { QuizContent } from './quiz-content';
 import { useQuizLocale } from '../localization/quiz-locale-provider';
 import type { InteractiveStep, StepAnswer } from '@kelpie/contracts';
 import { Check, Minus, Plus } from 'lucide-react';
@@ -26,18 +30,16 @@ export function QuizInput({ step, value, disabled, invalid, onChange }: QuizInpu
       >
         <legend className="sr-only">{translate(step.content.title)}</legend>
         <label htmlFor="number-answer" className="input-label">
-          {translate('Your answer')}
+          {translate(QuizContent.Input.Answer)}
           {step.input.unit && <span>· {translate(step.input.unit ?? '')}</span>}
         </label>
         <div className="number-control">
           <Button
             appearance="secondary"
             type="button"
-            aria-label={translate('Decrease answer')}
+            aria-label={translate(QuizContent.Input.Decrease)}
             disabled={numericValue <= step.input.min}
-            onClick={() =>
-              onChange(Number(Math.max(step.input.min, numericValue - step.input.step).toFixed(8)))
-            }
+            onClick={() => onChange(QuizAnswerInput.adjust(step, value, -1))}
           >
             <Minus />
           </Button>
@@ -58,18 +60,16 @@ export function QuizInput({ step, value, disabled, invalid, onChange }: QuizInpu
           <Button
             appearance="secondary"
             type="button"
-            aria-label={translate('Increase answer')}
+            aria-label={translate(QuizContent.Input.Increase)}
             disabled={numericValue >= step.input.max}
-            onClick={() =>
-              onChange(Number(Math.min(step.input.max, numericValue + step.input.step).toFixed(8)))
-            }
+            onClick={() => onChange(QuizAnswerInput.adjust(step, value, 1))}
           >
             <Plus />
           </Button>
         </div>
         <input
           className="number-slider"
-          aria-label={translate('Adjust answer')}
+          aria-label={translate(QuizContent.Input.Adjust)}
           type="range"
           min={step.input.min}
           max={step.input.max}
@@ -118,19 +118,16 @@ export function QuizInput({ step, value, disabled, invalid, onChange }: QuizInpu
                   return;
                 }
 
-                const previous = Array.isArray(value) ? value : [];
-                onChange(
-                  checked
-                    ? previous.filter((item) => item !== option.value)
-                    : [...previous, option.value],
-                );
+                onChange(QuizAnswerInput.toggle(value, option.value));
               }}
             />
             <span className="choice-indicator" data-multiple={multiple} aria-hidden="true">
               {checked && <Check />}
             </span>
             <span className="choice-label">{translate(option.label)}</span>
-            <kbd aria-hidden="true">{index < 9 ? index + 1 : ''}</kbd>
+            <kbd aria-hidden="true">
+              {index < QuizExperiencePolicy.MaximumShortcutOptions ? index + 1 : ''}
+            </kbd>
           </label>
         );
       })}

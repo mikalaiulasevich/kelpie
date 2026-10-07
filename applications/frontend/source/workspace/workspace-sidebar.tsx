@@ -50,7 +50,7 @@ function SidebarBrand({
     >
       <KelpieMark />
       <span>
-        {t('kelpie')}
+        {t('Kelpie')}
         <span className="workspace-sidebar-product">{t('Flow analytics')}</span>
       </span>
     </a>

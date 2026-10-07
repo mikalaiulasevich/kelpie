@@ -104,4 +104,15 @@ export const AdditionalTranslations: Readonly<Record<string, string>> = {
   'Campaign: {campaign}': 'Кампания: {campaign}',
   '(empty)': '(пусто)',
   'Variant {variant}': 'Вариант {variant}',
+  'Connection unavailable': 'Нет соединения',
+  'Your workspace is out of reach': 'Не удалось открыть рабочее пространство',
+  'Kelpie could not check your administrator session. The service may be temporarily unavailable, or the connection may have been interrupted.':
+    'Kelpie не удалось проверить вашу сессию администратора. Возможно, сервис временно недоступен или соединение прервалось.',
+  'Let\u2019s reconnect': 'Попробуем восстановить связь',
+  'Check your internet connection, then try again. You do not need to reset your password for this connection error.':
+    'Проверьте подключение к интернету и повторите попытку. Сбрасывать пароль из-за этой ошибки соединения не нужно.',
+  'Retry connection': 'Повторить подключение',
+  'Still unable to connect? Contact your administrator and share the details below.':
+    'Не помогло? Свяжитесь с администратором и передайте сведения об ошибке ниже.',
+  'Connection details': 'Сведения об ошибке',
 };

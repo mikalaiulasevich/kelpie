@@ -1,3 +1,5 @@
+import { QuizLocalizationMessages } from './quiz-localization-messages';
+import { QuizLocales } from './quiz-localization-types';
 import { Settings } from 'lucide-react';
 import { useQuizLocale } from './quiz-locale-provider';
 import { QuizLocalization } from './quiz-localization';
@@ -9,32 +11,28 @@ export function QuizSettings() {
     <details className="quiz-settings">
       <summary>
         <Settings aria-hidden="true" />
-        <span>{translate('Settings')}</span>
+        <span>{translate(QuizLocalizationMessages.Settings.Title)}</span>
       </summary>
       <div className="quiz-settings-panel">
-        <label htmlFor="quiz-language">{translate('Language')}</label>
+        <label htmlFor="quiz-language">
+          {translate(QuizLocalizationMessages.Settings.Language)}
+        </label>
         <select
           id="quiz-language"
           value={locale}
           onChange={(event) => changeLocale(QuizLocalization.resolve(event.target.value))}
         >
-          <option value="en" lang="en">
+          <option value={QuizLocales.English} lang={QuizLocales.English}>
             English
           </option>
-          <option value="ru" lang="ru">
+          <option value={QuizLocales.Russian} lang={QuizLocales.Russian}>
             Русский
           </option>
         </select>
-        <p>{translate('Language is saved in this browser. Your answers stay unchanged.')}</p>
-        <p>
-          {translate(
-            'Custom configuration content is shown in its original language when a translation is unavailable.',
-          )}
-        </p>
+        <p>{translate(QuizLocalizationMessages.Settings.Saved)}</p>
+        <p>{translate(QuizLocalizationMessages.Settings.OriginalContent)}</p>
         {!storageAvailable && (
-          <p role="status">
-            {translate('Language could not be saved. It will reset when this page is refreshed.')}
-          </p>
+          <p role="status">{translate(QuizLocalizationMessages.Settings.Unavailable)}</p>
         )}
       </div>
     </details>

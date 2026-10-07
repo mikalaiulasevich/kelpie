@@ -4,3 +4,7 @@ export const AnalyticsPagePolicy = {
   MaximumCampaignLength: 200,
   AllVersionsValue: 'all',
 } as const;
+
+export const AnalyticsFormatPolicy = {
+  MaximumFractionDigits: 1,
+} as const;

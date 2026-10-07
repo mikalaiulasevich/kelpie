@@ -1,9 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  QuizDrafts,
-  QuizSessionApi,
-  QuizPendingStorage,
-} from '../../source/session/quiz-session-api';
+import { QuizSessionApi } from '../../source/session/quiz-session-api';
+import { QuizDrafts, QuizPendingStorage } from '../../source/session/quiz-session-storage';
 import { QuizObservations } from '../../source/session/quiz-observations';
 import { QuizObservationDelivery } from '../../source/session/quiz-observation-delivery';
 import { SessionFixtures } from '../fixtures/session-fixtures';

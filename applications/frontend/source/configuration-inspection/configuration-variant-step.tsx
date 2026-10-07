@@ -1,3 +1,4 @@
+import { ConfigurationInspectionContent } from './configuration-inspection-content';
 import { useLocalization } from '../localization/use-localization';
 import type { ExperimentVariant, FunnelStep } from '@kelpie/contracts';
 import {
@@ -32,40 +33,68 @@ export function ConfigurationVariantStep({
   variant,
   otherVariant,
 }: ConfigurationVariantStepProperties): UIElement {
-  const { t } = useLocalization();
+  const { t: translate } = useLocalization();
   const presentation = match(step?.type)
-    .with('info', () => ({ icon: Info, label: t('Information') }))
-    .with('single-select', () => ({ icon: CircleDot, label: t('Single choice') }))
-    .with('multi-select', () => ({ icon: ListChecks, label: t('Multiple choice') }))
-    .with('number', () => ({ icon: Hash, label: t('Number input') }))
-    .with('result', () => ({ icon: Flag, label: t('Result') }))
-    .with(undefined, () => ({ icon: Info, label: t('Step') }))
+    .with('info', () => ({
+      icon: Info,
+      label: translate(ConfigurationInspectionContent.Information),
+    }))
+    .with('single-select', () => ({
+      icon: CircleDot,
+      label: translate(ConfigurationInspectionContent.SingleChoice),
+    }))
+    .with('multi-select', () => ({
+      icon: ListChecks,
+      label: translate(ConfigurationInspectionContent.MultipleChoice),
+    }))
+    .with('number', () => ({
+      icon: Hash,
+      label: translate(ConfigurationInspectionContent.NumberInput),
+    }))
+    .with('result', () => ({ icon: Flag, label: translate(ConfigurationInspectionContent.Result) }))
+    .with(undefined, () => ({ icon: Info, label: translate(ConfigurationInspectionContent.Step) }))
     .exhaustive();
   const StepIcon = presentation.icon;
   const displacement = isUndefined(otherPosition) ? 0 : position - otherPosition;
   const change = match(otherPosition)
     .with(undefined, () => ({
       icon: Plus,
-      label: t('Only in {variant}', { variant }),
-      detail: t('Not in variant {variant}', { variant: otherVariant }),
+      label: translate(ConfigurationInspectionContent.OnlyInVariant, { variant }),
+      detail: translate(ConfigurationInspectionContent.AbsentFromVariant, {
+        variant: otherVariant,
+      }),
     }))
     .when(
       () => displacement === 0,
       () => ({
         icon: Check,
-        label: t('Same position'),
-        detail: t('Both variants · #{position}', { position }),
+        label: translate(ConfigurationInspectionContent.SamePosition),
+        detail: translate(ConfigurationInspectionContent.BothVariantsPosition, { position }),
       }),
     )
     .otherwise(() => ({
       icon: displacement < 0 ? ArrowUp : ArrowDown,
       label:
         Math.abs(displacement) === 1
-          ? t(displacement < 0 ? '1 place earlier' : '1 place later')
-          : t(displacement < 0 ? '{count} places earlier' : '{count} places later', {
-              count: Math.abs(displacement),
-            }),
-      detail: `${otherVariant} #${otherPosition} → ${variant} #${position}`,
+          ? translate(
+              displacement < 0
+                ? ConfigurationInspectionContent.OnePlaceEarlier
+                : ConfigurationInspectionContent.OnePlaceLater,
+            )
+          : translate(
+              displacement < 0
+                ? ConfigurationInspectionContent.PlacesEarlier
+                : ConfigurationInspectionContent.PlacesLater,
+              {
+                count: Math.abs(displacement),
+              },
+            ),
+      detail: ConfigurationInspectionContent.positionChange(
+        otherVariant,
+        otherPosition,
+        variant,
+        position,
+      ),
     }));
   const ChangeIcon = change.icon;
 

@@ -1,3 +1,4 @@
+import type { AnalyticsSessionResponse } from './analytics-session-types.js';
 import { Controller, Get, Inject, Query, UseGuards } from '@nestjs/common';
 import { RouteConfig } from '@nestjs/platform-fastify';
 import { AdministrationGuard } from '../administration/administration.guard.js';
@@ -9,6 +10,12 @@ import { AnalyticsService } from './analytics.service.js';
 @UseGuards(AdministrationGuard)
 export class AnalyticsController {
   constructor(@Inject(AnalyticsService) private readonly analytics: AnalyticsService) {}
+
+  @Get(AnalyticsPolicy.SessionsRoute)
+  @RouteConfig({ rateLimit: AnalyticsPolicy.RateLimit })
+  sessions(@Query() query: unknown): Promise<AnalyticsSessionResponse> {
+    return this.analytics.sessions(query);
+  }
 
   @Get()
   @RouteConfig({ rateLimit: AnalyticsPolicy.RateLimit })

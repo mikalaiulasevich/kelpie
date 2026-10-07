@@ -133,7 +133,7 @@ export class SessionService {
     const credential = await this.ownership.verify(request);
 
     if (isNull(credential.hash)) {
-      await this.ownership.issue(reply);
+      await this.ownership.issue(reply, this.ownership.isPreview(request));
 
       return { state: null, expired: credential.expired };
     }
@@ -148,7 +148,7 @@ export class SessionService {
     }
 
     if (session.expiresAt.getTime() <= Date.now()) {
-      await this.ownership.issue(reply);
+      await this.ownership.issue(reply, this.ownership.isPreview(request));
 
       return { state: null, expired: true };
     }
@@ -163,6 +163,14 @@ export class SessionService {
     parameters: unknown,
   ): Promise<SessionState> {
     this.ownership.assertMutation(request);
+    if (this.ownership.isPreview(request)) {
+      throw new PublicRequestError(
+        HttpStatus.FORBIDDEN,
+        SessionErrorCode.Forbidden,
+        SessionMessages.Forbidden,
+      );
+    }
+
     const body = SessionInputs.create(document);
     const query = SessionInputs.query(parameters);
     const credentialHash = await this.ownership.requireCredential(request);
@@ -172,6 +180,58 @@ export class SessionService {
     this.ownership.refresh(request, reply, session.expiresAt);
 
     return state;
+  }
+
+  async preview(
+    reply: FastifyReply,
+    body: CreateSessionRequest,
+    configuration: ActiveSessionConfiguration,
+    variant: ExperimentVariant,
+    administratorIdentifier: string,
+  ): Promise<SessionState> {
+    const fingerprint = createHash(SessionPolicy.HashAlgorithm)
+      .update(
+        JSON.stringify([
+          'preview',
+          administratorIdentifier,
+          configuration.identifier,
+          variant,
+          body.clientTimestamp,
+        ]),
+      )
+      .digest(SessionPolicy.HashEncoding);
+    const credentialHash = await this.ownership.issue(reply, true);
+
+    return this.database.client.$transaction(async (transaction) => {
+      const existing = await transaction.sessionOperation.findFirst({
+        where: { operationIdentifier: body.operationIdentifier },
+      });
+
+      if (existing) {
+        if (existing.requestFingerprint !== fingerprint) {
+          throw new PublicRequestError(
+            HttpStatus.CONFLICT,
+            SessionErrorCode.Conflict,
+            SessionMessages.Conflict,
+          );
+        }
+
+        await transaction.session.update({
+          where: { identifier: existing.sessionIdentifier },
+          data: { accessTokenHash: credentialHash },
+        });
+
+        return SessionSnapshots.read(existing.response);
+      }
+
+      return this.createOwned(
+        transaction,
+        credentialHash,
+        body,
+        { [configuration.configuration.experiment.overrideQueryParam]: variant },
+        { configuration, fingerprint },
+      );
+    });
   }
 
   private async createOrReplay(
@@ -219,10 +279,14 @@ export class SessionService {
     credentialHash: string,
     body: CreateSessionRequest,
     query: SessionQuery,
+    preview?: { configuration: ActiveSessionConfiguration; fingerprint: string },
   ): Promise<SessionState> {
-    const active = await this.activeConfiguration(transaction, body.funnelIdentifier);
+    const active =
+      preview?.configuration ??
+      (await this.activeConfiguration(transaction, body.funnelIdentifier));
     const { configuration } = active;
-    const fingerprint = SessionCreation.fingerprint(body, query, configuration);
+    const fingerprint =
+      preview?.fingerprint ?? SessionCreation.fingerprint(body, query, configuration);
     const assignment = SessionCreation.assignment(configuration, query);
     const firstStep = FunnelEvaluation.evaluate(configuration, assignment.variant, {}).route
       .steps[0];
@@ -239,7 +303,7 @@ export class SessionService {
         experimentIdentifier: configuration.experiment.id,
         variant: assignment.variant,
         assignmentSource: assignment.source,
-        trafficOrigin: SessionPolicy.TrafficOrigin,
+        trafficOrigin: preview ? 'synthetic' : SessionPolicy.TrafficOrigin,
         acquisitionParameters,
         campaign: acquisitionParameters.utm_campaign ?? null,
         currentStepIdentifier: firstStep.id,

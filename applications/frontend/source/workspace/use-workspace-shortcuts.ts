@@ -5,10 +5,7 @@ import { WorkspaceShortcutCatalog, WorkspaceShortcuts } from './workspace-shortc
 export function useWorkspaceShortcuts(funnelIdentifier: string, openHelp: () => void): void {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
-      const shortcut = WorkspaceShortcuts.resolve(event, {
-        editing: WorkspaceShortcuts.isEditing(event.target),
-        overlayOpen: WorkspaceShortcuts.hasOpenOverlay(),
-      });
+      const shortcut = WorkspaceShortcuts.resolve(event, WorkspaceShortcuts.context(event.target));
 
       if (!shortcut) {
         return;

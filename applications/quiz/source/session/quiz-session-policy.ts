@@ -1,4 +1,8 @@
 export const QuizSessionPolicy = {
+  ConflictStatus: 409,
+  ServerFailureStatus: 500,
+  RestoreStatuses: [409, 401, 410],
+  SessionLockName: 'kelpie.quiz.session',
   Current: '/api/sessions/current',
   Create: '/api/sessions',
   Events: '/api/events/batches',

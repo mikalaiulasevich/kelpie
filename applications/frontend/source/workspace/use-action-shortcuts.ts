@@ -7,10 +7,7 @@ export function useActionShortcuts(bindings: readonly ActionShortcutBinding[]): 
     const onKeyDown = (event: KeyboardEvent): void => {
       const binding = ActionShortcuts.resolve(
         event,
-        {
-          editing: WorkspaceShortcuts.isEditing(event.target),
-          overlayOpen: WorkspaceShortcuts.hasOpenOverlay(),
-        },
+        WorkspaceShortcuts.context(event.target),
         bindings,
       );
 

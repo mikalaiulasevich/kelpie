@@ -1,3 +1,4 @@
+import type { NumberStep } from '@kelpie/contracts';
 import { vi } from 'vitest';
 import configurationDocument from '../../../../configurations/funnel-v1.json';
 import expansionConfigurationDocument from '../../../../configurations/funnel-v3.json';
@@ -20,6 +21,16 @@ export const SessionFixtures = {
       progress: { completed: 0, total: 8 },
       result: null,
     });
+  },
+
+  numericStep(): NumberStep {
+    return {
+      id: 'numeric-answer',
+      type: 'number',
+      content: { title: 'Numeric answer' },
+      input: { name: 'numeric-answer', min: 0, max: 1, step: 0.1 },
+      validation: { required: true },
+    };
   },
 
   resultState(): QuizSessionState {

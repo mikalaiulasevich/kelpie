@@ -27,7 +27,7 @@ export function ConfigurationVersionActions({
   live,
   onPublish,
 }: ConfigurationVersionActionsProperties): UIElement {
-  const { t } = useLocalization();
+  const { t: translate } = useLocalization();
   const trigger = useRef<HTMLButtonElement>(null);
 
   return (
@@ -37,7 +37,9 @@ export function ConfigurationVersionActions({
           ref={trigger}
           variant="ghost"
           size="icon"
-          aria-label={t('Actions for version {version}', { version: version.version })}
+          aria-label={translate(ConfigurationContent.VersionActionsLabel, {
+            version: version.version,
+          })}
         >
           <Ellipsis aria-hidden="true" />
         </Button>
@@ -54,7 +56,7 @@ export function ConfigurationVersionActions({
               )}
             >
               <FileSearch />
-              {t(ConfigurationContent.Inspect)}
+              {translate(ConfigurationContent.Inspect)}
             </a>
           </DropdownMenuItem>
         </DropdownMenuGroup>
@@ -68,7 +70,7 @@ export function ConfigurationVersionActions({
             }}
           >
             <Rocket />
-            {t(ConfigurationContent.Publish)}
+            {translate(ConfigurationContent.Publish)}
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

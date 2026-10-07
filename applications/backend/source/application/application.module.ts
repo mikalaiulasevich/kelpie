@@ -1,3 +1,5 @@
+import { ExperimentPlanModule } from '../experiment-plans/experiment-plan.module.js';
+import { BusinessOutcomeModule } from '../business-outcomes/business-outcome.module.js';
 import { Module, type DynamicModule } from '@nestjs/common';
 
 import { AdministrationModule } from '../administration/administration.module.js';
@@ -16,6 +18,8 @@ import { ApplicationShutdown } from './application-shutdown.js';
   imports: [
     AdministrationModule,
     AnalyticsModule,
+    BusinessOutcomeModule,
+    ExperimentPlanModule,
     ConfigurationsModule,
     EventsModule,
     HealthModule,

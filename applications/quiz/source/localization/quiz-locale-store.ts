@@ -1,7 +1,9 @@
 import { isNull } from 'es-toolkit';
-import { QuizLocalization, type QuizLocale } from './quiz-localization';
+import { QuizLocalization } from './quiz-localization';
+import { QuizLocalizationPolicy } from './quiz-localization-policy';
+import type { QuizLocale } from './quiz-localization-types';
 
-let selectedLocale: QuizLocale | undefined;
+let selectedLocale: Optional<QuizLocale>;
 const listeners = new Set<() => void>();
 
 export const QuizLocaleStore = {
@@ -11,9 +13,9 @@ export const QuizLocaleStore = {
     }
 
     try {
-      return QuizLocalization.resolve(localStorage.getItem(QuizLocalization.StorageKey));
+      return QuizLocalization.resolve(localStorage.getItem(QuizLocalizationPolicy.StorageKey));
     } catch {
-      return 'en';
+      return QuizLocalizationPolicy.DefaultLocale;
     }
   },
 
@@ -22,7 +24,7 @@ export const QuizLocaleStore = {
     let saved = true;
 
     try {
-      localStorage.setItem(QuizLocalization.StorageKey, locale);
+      localStorage.setItem(QuizLocalizationPolicy.StorageKey, locale);
     } catch {
       saved = false;
     }
@@ -37,7 +39,7 @@ export const QuizLocaleStore = {
   subscribe(listener: () => void): () => void {
     listeners.add(listener);
     const synchronize = (event: StorageEvent) => {
-      if (event.key === QuizLocalization.StorageKey || isNull(event.key)) {
+      if (event.key === QuizLocalizationPolicy.StorageKey || isNull(event.key)) {
         selectedLocale = undefined;
         listener();
       }
@@ -52,6 +54,6 @@ export const QuizLocaleStore = {
   },
 
   serverSnapshot(): QuizLocale {
-    return 'en';
+    return QuizLocalizationPolicy.DefaultLocale;
   },
 };

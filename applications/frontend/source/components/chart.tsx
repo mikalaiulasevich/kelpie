@@ -1,4 +1,4 @@
-import { isString, isUndefined } from 'es-toolkit';
+import { isNil, isString, isUndefined } from 'es-toolkit';
 import { ChartMessages } from './chart-messages';
 import { ChartPayload } from './chart-payload';
 
@@ -6,6 +6,8 @@ import * as React from 'react';
 import { ClassNames } from '../styling/combine-class-names';
 import * as RechartsPrimitive from 'recharts';
 import type { TooltipValueType } from 'recharts';
+import type { ChartConfiguration, ChartContextProperties } from './chart-types';
+import { ChartStyleRules } from './chart-style-rules';
 
 import { ChartPolicy } from './chart-policy';
 
@@ -13,23 +15,6 @@ interface ChartIndicatorStyle extends React.CSSProperties {
   '--color-bg'?: Optional<string>;
   '--color-border'?: Optional<string>;
 }
-
-type TooltipNameType = TextOrNumber;
-
-export type ChartConfig = Record<
-  string,
-  {
-    label?: React.ReactNode;
-    icon?: React.ComponentType;
-  } & (
-    | { color?: string; theme?: never }
-    | { color?: never; theme: Record<(typeof ChartPolicy.Themes)[number], string> }
-  )
->;
-
-type ChartContextProperties = {
-  configuration: ChartConfig;
-};
 
 const ChartContext = React.createContext<ChartContextProperties | null>(null);
 
@@ -51,7 +36,7 @@ function ChartContainer({
   initialDimension = ChartPolicy.InitialDimension,
   ...properties
 }: React.ComponentProps<'div'> & {
-  config: ChartConfig;
+  config: ChartConfiguration;
   children: React.ComponentProps<typeof RechartsPrimitive.ResponsiveContainer>['children'];
   initialDimension?: {
     width: number;
@@ -81,43 +66,16 @@ function ChartContainer({
   );
 }
 
-const ChartStyle = ({
-  id: identifier,
-  config: configuration,
-}: {
-  id: string;
-  config: ChartConfig;
-}) => {
-  const colorConfiguration = Object.entries(configuration).filter(
-    ([, itemConfiguration]) => itemConfiguration.theme ?? itemConfiguration.color,
-  );
-
-  if (!colorConfiguration.length) {
-    return null;
-  }
-
-  return (
-    <style
-      dangerouslySetInnerHTML={{
-        __html: ChartPolicy.Themes.map((theme) => [theme, ChartPolicy.Selectors[theme]] as const)
-          .map(
-            ([theme, prefix]) => `
-${prefix} [data-chart=${identifier}] {
-${colorConfiguration
-  .map(([key, itemConfiguration]) => {
-    const color = itemConfiguration.theme?.[theme] ?? itemConfiguration.color;
-
-    return color ? `  --color-${key}: ${color};` : null;
-  })
-  .join('\n')}
+interface ChartStyleProperties {
+  readonly id: string;
+  readonly config: ChartConfiguration;
 }
-`,
-          )
-          .join('\n'),
-      }}
-    />
-  );
-};
+
+function ChartStyle({ id: identifier, config: configuration }: ChartStyleProperties) {
+  const rules = ChartStyleRules.create(identifier, configuration);
+
+  return rules ? <style dangerouslySetInnerHTML={{ __html: rules }} /> : null;
+}
 
 const ChartTooltip = RechartsPrimitive.Tooltip;
 
@@ -143,7 +101,7 @@ function ChartTooltipContent({
     nameKey?: string;
     labelKey?: string;
   } & Omit<
-    RechartsPrimitive.DefaultTooltipContentProps<TooltipValueType, TooltipNameType>,
+    RechartsPrimitive.DefaultTooltipContentProps<TooltipValueType, TextOrNumber>,
     'accessibilityLayer'
   >) {
   const { configuration } = useChart();
@@ -245,7 +203,7 @@ function ChartTooltipContent({
                           {itemConfiguration?.label ?? item.name}
                         </span>
                       </div>
-                      {item.value != null && (
+                      {!isNil(item.value) && (
                         <span className="font-mono font-medium text-foreground tabular-nums">
                           {typeof item.value === 'number'
                             ? item.value.toLocaleString()

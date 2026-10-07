@@ -16,12 +16,18 @@ const AnalyticsQueryFields = {
   funnelIdentifier: ManagementSchemas.Identifier,
   versionIdentifier: Type.Optional(AnalyticsFields.VersionIdentifier),
   campaign: Type.Optional(AnalyticsFields.Campaign),
+  source: Type.Optional(AnalyticsFields.Campaign),
+  medium: Type.Optional(AnalyticsFields.Campaign),
+  from: Type.Optional(Type.String({ maxLength: 40 })),
+  to: Type.Optional(Type.String({ maxLength: 40 })),
+  timezone: Type.Optional(Type.String({ maxLength: 100 })),
 } as const;
 
 export const AnalyticsSchemas = {
   Query: Type.Object(
     {
       ...AnalyticsQueryFields,
+      conversionWindowHours: Type.Optional(Type.String({ pattern: '^[1-9][0-9]{0,3}$' })),
       includeForced: Type.Optional(Type.Union([Type.Literal('true'), Type.Literal('false')])),
       trafficOrigin: Type.Optional(Type.Enum(AnalyticsTrafficOrigin)),
       limit: Type.Optional(Type.String({ pattern: ManagementPolicy.PageSizePattern })),
@@ -32,6 +38,7 @@ export const AnalyticsSchemas = {
   ResolvedQuery: Type.Object(
     {
       ...AnalyticsQueryFields,
+      conversionWindowHours: Type.Optional(Type.Integer({ minimum: 1, maximum: 2160 })),
       includeForced: Type.Boolean(),
       trafficOrigin: Type.Enum(AnalyticsTrafficOrigin),
       limit: Type.Integer({ minimum: 1, maximum: AnalyticsPolicy.MaximumLimit }),

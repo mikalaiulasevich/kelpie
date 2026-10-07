@@ -1,3 +1,4 @@
+import { WorkspaceShortcutPolicy } from './workspace-policy';
 import { Type, type Static } from 'typebox';
 import { WorkspacePage } from './workspace-navigation';
 import { WorkspaceContent } from './workspace-content';
@@ -40,7 +41,7 @@ export const WorkspaceShortcuts = {
     event: WorkspaceShortcutEvent,
     context: WorkspaceShortcutContext,
   ): Optional<WorkspaceShortcut> {
-    if (this.isBlocked(event, context)) {
+    if (WorkspaceShortcuts.isBlocked(event, context)) {
       return undefined;
     }
 
@@ -49,6 +50,13 @@ export const WorkspaceShortcuts = {
     }
 
     return WorkspaceShortcutCatalog.Navigation.find((item) => item.code === event.code)?.page;
+  },
+
+  context(target: EventTarget | null): WorkspaceShortcutContext {
+    return {
+      editing: WorkspaceShortcuts.isEditing(target),
+      overlayOpen: WorkspaceShortcuts.hasOpenOverlay(),
+    };
   },
 
   isBlocked(event: WorkspaceShortcutEvent, context: WorkspaceShortcutContext): boolean {
@@ -70,7 +78,7 @@ export const WorkspaceShortcuts = {
       target instanceof Element &&
       Boolean(
         target.closest(
-          'input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="combobox"], [role="spinbutton"]',
+          WorkspaceShortcutPolicy.EditingSelector,
         ),
       )
     );
@@ -79,7 +87,7 @@ export const WorkspaceShortcuts = {
   hasOpenOverlay(): boolean {
     return Boolean(
       document.querySelector(
-        '[role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [data-slot="popover-content"]',
+        WorkspaceShortcutPolicy.OverlaySelector,
       ),
     );
   },

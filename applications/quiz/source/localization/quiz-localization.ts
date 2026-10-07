@@ -1,9 +1,7 @@
+import { QuizLocales, type QuizLocale } from './quiz-localization-types';
+import { QuizLocalizationMessages } from './quiz-localization-messages';
 import { QuizRussianMessages } from './quiz-translations';
 import { QuizRussianContent } from './quiz-content-translations';
-
-export const QuizLocales = { English: 'en', Russian: 'ru' } as const;
-
-export type QuizLocale = (typeof QuizLocales)[keyof typeof QuizLocales];
 
 const translations: Readonly<Record<string, string>> = {
   ...QuizRussianMessages,
@@ -11,8 +9,6 @@ const translations: Readonly<Record<string, string>> = {
 };
 
 export const QuizLocalization = {
-  StorageKey: 'kelpie.quiz.locale',
-
   resolve(value: string | null): QuizLocale {
     return value === QuizLocales.Russian ? QuizLocales.Russian : QuizLocales.English;
   },
@@ -44,26 +40,7 @@ export const QuizLocalization = {
       return text;
     }
 
-    const patterns = [
-      {
-        expression: /^Enter at least (.+)\.$/,
-        format: (value: string) => `Введите не меньше ${value}.`,
-      },
-      {
-        expression: /^Enter no more than (.+)\.$/,
-        format: (value: string) => `Введите не больше ${value}.`,
-      },
-      {
-        expression: /^Use increments of (.+)\.$/,
-        format: (value: string) => `Используйте шаг ${value}.`,
-      },
-      {
-        expression: /^Choose at least (.+) options\.$/,
-        format: (value: string) => `Выберите не меньше ${value} вариантов.`,
-      },
-    ];
-
-    for (const pattern of patterns) {
+    for (const pattern of QuizLocalizationMessages.Validation) {
       const value = pattern.expression.exec(text)?.[1];
 
       if (value) {

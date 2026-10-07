@@ -8,45 +8,50 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '../components/dialog';
-import { Localization } from './localization';
+import { LocalizationContent } from './localization-content';
+import { InterfaceLocale } from './localization-types';
 import { useLocalization } from './use-localization';
 
 export function LanguageSettings() {
-  const { locale, t, setLocale } = useLocalization();
+  const { locale, t: translate, setLocale, storageFailed } = useLocalization();
 
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="ghost" className="justify-start">
           <Settings2 aria-hidden="true" />
-          {t('Settings')}
+          {translate(LocalizationContent.Settings)}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>{t('Settings')}</DialogTitle>
-          <DialogDescription>
-            {t('Applies to this administration app in this browser.')}
-          </DialogDescription>
+          <DialogTitle>{translate(LocalizationContent.Settings)}</DialogTitle>
+          <DialogDescription>{translate(LocalizationContent.Description)}</DialogDescription>
         </DialogHeader>
         <label className="flex flex-col gap-2 text-sm">
-          {t('Interface language')}
+          {translate(LocalizationContent.Language)}
           <select
             className="h-11 rounded-md border border-border bg-background px-3"
             value={locale}
-            onChange={(event) => setLocale(event.target.value === 'ru' ? 'ru' : 'en')}
+            onChange={(event) =>
+              setLocale(
+                event.target.value === InterfaceLocale.Russian
+                  ? InterfaceLocale.Russian
+                  : InterfaceLocale.English,
+              )
+            }
           >
-            <option value="en" lang="en">
-              English
+            <option value={InterfaceLocale.English} lang={InterfaceLocale.English}>
+              {LocalizationContent.English}
             </option>
-            <option value="ru" lang="ru">
-              Русский
+            <option value={InterfaceLocale.Russian} lang={InterfaceLocale.Russian}>
+              {LocalizationContent.Russian}
             </option>
           </select>
         </label>
-        {Localization.storageFailed && (
+        {storageFailed && (
           <p role="status" className="text-sm text-destructive">
-            {t('Language preference could not be saved.')}
+            {translate(LocalizationContent.PersistenceFailed)}
           </p>
         )}
       </DialogContent>

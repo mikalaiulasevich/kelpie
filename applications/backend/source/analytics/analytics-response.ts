@@ -1,5 +1,6 @@
 import { Type, type Static } from 'typebox';
 import { StepType, ExperimentVariant } from '@kelpie/contracts';
+import { AnalyticsInsightSchemas } from './analytics-insight-types.js';
 import { AnalyticsSchemas } from './analytics-types.js';
 
 const AnalyticsResponseFields = {
@@ -74,6 +75,7 @@ export const AnalyticsResponseSchemas = {
   Version: AnalyticsVersionSchemas.Version,
   Response: Type.Object({
     generatedAt: Type.String(),
+    insights: Type.Optional(AnalyticsInsightSchemas.Insights),
     filters: AnalyticsSchemas.ResolvedQuery,
     pagination: Type.Object({
       limit: AnalyticsSchemas.Count,

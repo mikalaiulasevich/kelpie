@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
-import { ManagementClient, ManagementError } from '../management/management-client';
+import { ManagementClient } from '../management/management-client';
+import { ManagementError } from '../management/management-error';
 import type {
   AnalyticsQuery,
   AnalyticsResponse,

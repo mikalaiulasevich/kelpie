@@ -1,5 +1,5 @@
 import { isNull, isString } from 'es-toolkit';
-import type { ChartConfig } from './chart';
+import type { ChartConfiguration } from './chart-types';
 
 export const ChartPayload = {
   property(payload: unknown, key: string): unknown {
@@ -10,7 +10,7 @@ export const ChartPayload = {
     return Reflect.get(payload, key);
   },
 
-  configuration(configuration: ChartConfig, payload: unknown, key: string) {
+  configuration(configuration: ChartConfiguration, payload: unknown, key: string) {
     const directKey = ChartPayload.property(payload, key);
     const nestedKey = ChartPayload.property(ChartPayload.property(payload, 'payload'), key);
 

@@ -1,3 +1,4 @@
+import { ConfigurationInspectionContent } from './configuration-inspection-content';
 import { useLocalization } from '../localization/use-localization';
 import {
   StepRules,
@@ -20,7 +21,7 @@ export function ConfigurationStepMap({
   step,
   position,
 }: ConfigurationStepMapProperties): UIElement {
-  const { t } = useLocalization();
+  const { t: translate } = useLocalization();
   const sequence = configuration.experiment.variants[variant].stepSequence;
   const previous = sequence[position - 2];
   const next = sequence[position];
@@ -33,17 +34,21 @@ export function ConfigurationStepMap({
   return (
     <div className="step-map">
       {selection && (
-        <section className="step-choice-summary" aria-label={t('Selection limits')}>
+        <section
+          className="step-choice-summary"
+          aria-label={translate(ConfigurationInspectionContent.SelectionLimits)}
+        >
           <h4>
             <ListChecks className="size-4" aria-hidden="true" />
-            {t('Selection limits')}
+            {translate(ConfigurationInspectionContent.SelectionLimits)}
           </h4>
           <p className="step-choice-number">
             {minimum}
             <span>–</span>
             {maximum}
             <small>
-              {t('of')} {step.input.options.length} {t('options')}
+              {translate(ConfigurationInspectionContent.Of)} {step.input.options.length}{' '}
+              {translate(ConfigurationInspectionContent.Options)}
             </small>
           </p>
           <div className="step-choice-scale" aria-hidden="true">
@@ -60,43 +65,47 @@ export function ConfigurationStepMap({
           </div>
           <p className="step-choice-legend">
             <span>
-              {t('Minimum')} {minimum}
+              {translate(ConfigurationInspectionContent.Minimum)} {minimum}
             </span>
             <span>
-              {t('Maximum')} {maximum}
+              {translate(ConfigurationInspectionContent.Maximum)} {maximum}
             </span>
           </p>
           <p className="step-map-help">
-            {t('The range shows how many answers are accepted, not which options are selected.')}
+            {translate(ConfigurationInspectionContent.SelectionLimitsDescription)}
           </p>
         </section>
       )}
-      <section className="step-sequence-summary" aria-label={t('Configured step sequence')}>
+      <section
+        className="step-sequence-summary"
+        aria-label={translate(ConfigurationInspectionContent.ConfiguredStepSequence)}
+      >
         <h4>
           <GitBranch className="size-4" aria-hidden="true" />
-          {t('In the flow')}{' '}
+          {translate(ConfigurationInspectionContent.InTheFlow)}{' '}
           <span>
             {position} / {sequence.length}
           </span>
         </h4>
         <ol>
           <li>
-            <span>{t('Previous')}</span>
-            <strong>{previous ?? t('Start of flow')}</strong>
+            <span>{translate(ConfigurationInspectionContent.Previous)}</span>
+            <strong>{previous ?? translate(ConfigurationInspectionContent.StartOfFlow)}</strong>
           </li>
           <li aria-current="step">
             <ArrowDown className="size-3" aria-hidden="true" />
-            <span>{t('Current')}</span>
+            <span>{translate(ConfigurationInspectionContent.Current)}</span>
             <strong>{step.id}</strong>
           </li>
           <li>
             <ArrowDown className="size-3" aria-hidden="true" />
-            <span>{t('Next')}</span>
-            <strong>{next ?? t('End of flow')}</strong>
+            <span>{translate(ConfigurationInspectionContent.Next)}</span>
+            <strong>{next ?? translate(ConfigurationInspectionContent.EndOfFlow)}</strong>
           </li>
         </ol>
         <p className="step-map-help">
-          {t('Variant')} {variant} {t('configuration order. Visibility rules can skip steps.')}
+          {translate(ConfigurationInspectionContent.Variant)} {variant}{' '}
+          {translate(ConfigurationInspectionContent.SequenceVisibilityDescription)}
         </p>
       </section>
     </div>

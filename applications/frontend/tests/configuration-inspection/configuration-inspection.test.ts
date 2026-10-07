@@ -1,14 +1,12 @@
+import { ConfigurationInspectionProjection } from '../../source/configuration-inspection/configuration-inspection-projection';
 import { ConfigurationJson } from '../../source/configuration-inspection/configuration-json';
 import { ConfigurationStepDetails } from '../../source/configuration-inspection/configuration-step-details';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { DictionaryAccess, ExperimentVariant } from '@kelpie/contracts';
 import { describe, expect, it } from 'vitest';
-import { ConfigurationInspectionFormat } from '../../source/configuration-inspection/configuration-inspection-format';
-import {
-  ConfigurationStepsPanel,
-  ConfigurationResultsPanel,
-} from '../../source/configuration-inspection/configuration-inspection-panels';
+import { ConfigurationStepsPanel } from '../../source/configuration-inspection/configuration-steps-panel';
+import { ConfigurationResultsPanel } from '../../source/configuration-inspection/configuration-results-panel';
 import { ConfigurationInspectionFixture } from '../fixtures/configuration-inspection-fixtures';
 
 describe('configuration inspection', () => {
@@ -23,7 +21,7 @@ describe('configuration inspection', () => {
       return;
     }
 
-    const content = ConfigurationInspectionFormat.stepContent(
+    const content = ConfigurationInspectionProjection.stepContent(
       configuration,
       ExperimentVariant.B,
       step,
@@ -34,7 +32,7 @@ describe('configuration inspection', () => {
       'Choose up to three. Some answers may open a follow-up question.',
     );
     expect(
-      ConfigurationInspectionFormat.stepContent(configuration, ExperimentVariant.A, step).title,
+      ConfigurationInspectionProjection.stepContent(configuration, ExperimentVariant.A, step).title,
     ).toBe('What should the operating model improve?');
     const partialOverrideConfiguration = {
       ...configuration,
@@ -51,7 +49,7 @@ describe('configuration inspection', () => {
     };
 
     expect(
-      ConfigurationInspectionFormat.stepContent(
+      ConfigurationInspectionProjection.stepContent(
         partialOverrideConfiguration,
         ExperimentVariant.B,
         step,

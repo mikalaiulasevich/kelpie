@@ -1,3 +1,4 @@
+import { AnalyticsContent } from './analytics-content';
 import { useLocalization } from '../localization/use-localization';
 import { useMemo, useState } from 'react';
 import { Check, ChevronDown, ChevronLeft, ChevronRight, GitBranch } from 'lucide-react';
@@ -28,7 +29,7 @@ export function AnalyticsVersionPicker({
   onRefresh,
   onSelect,
 }: AnalyticsVersionPickerProperties) {
-  const { t } = useLocalization();
+  const { t: translate } = useLocalization();
 
   const [open, setOpen] = useState(false);
   const [offset, setOffset] = useState(0);
@@ -41,7 +42,7 @@ export function AnalyticsVersionPicker({
   const visibleVersions =
     versions.status === 'ready'
       ? versions.response.items.filter((version) =>
-          t('Version {version}', { version: version.version })
+          translate(AnalyticsContent.VersionLabel, { version: version.version })
             .toLowerCase()
             .includes(search.trim().toLowerCase()),
         )
@@ -53,7 +54,7 @@ export function AnalyticsVersionPicker({
         <Button
           variant="outline"
           className="w-full justify-between sm:w-64"
-          aria-label={t('Choose version: {version}', { version: selectedLabel })}
+          aria-label={translate(AnalyticsContent.ChooseVersionLabel, { version: selectedLabel })}
         >
           <GitBranch data-icon="inline-start" />
           {selectedLabel}
@@ -63,37 +64,38 @@ export function AnalyticsVersionPicker({
       <PopoverContent
         align="start"
         className="w-80 max-w-[calc(100vw-2rem)] p-3"
-        aria-label={t('Choose configuration version')}
+        aria-label={translate(AnalyticsContent.ChooseVersion)}
       >
         <div className="flex flex-col gap-3">
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            aria-label={t('Search this page')}
-            placeholder={t('Search this page…')}
+            aria-label={translate(AnalyticsContent.SearchPage)}
+            placeholder={translate(AnalyticsContent.SearchPlaceholder)}
           />
           <p className="text-xs text-muted-foreground">
-            {t('Page')} {Math.floor(offset / AnalyticsPagePolicy.VersionOptionsPerPage) + 1}{' '}
-            {t('· up to')} {t(' ')}
-            {AnalyticsPagePolicy.VersionOptionsPerPage} {t('versions. Search covers this page.')}
+            {translate(AnalyticsContent.Page)}{' '}
+            {Math.floor(offset / AnalyticsPagePolicy.VersionOptionsPerPage) + 1}{' '}
+            {translate(AnalyticsContent.UpTo)} {AnalyticsPagePolicy.VersionOptionsPerPage}{' '}
+            {translate(AnalyticsContent.PageSearchScope)}
           </p>
           <div className="flex max-h-64 flex-col gap-1 overflow-y-auto">
             {versions.status === 'loading' && (
               <p className="p-3 text-sm text-muted-foreground" role="status">
-                {t('Loading versions…')}
+                {translate(AnalyticsContent.LoadingVersions)}
               </p>
             )}
             {versions.status === 'failed' && (
               <div className="p-3 text-sm">
-                <p>{t(versions.message)}</p>
+                <p>{translate(versions.message)}</p>
                 <Button variant="link" onClick={onRefresh}>
-                  {t('Retry')}
+                  {translate(AnalyticsContent.Retry)}
                 </Button>
               </div>
             )}
             {versions.status === 'ready' && visibleVersions.length === 0 && (
               <p className="p-3 text-sm text-muted-foreground">
-                {t('No matching versions on this page. Try another page or clear the search.')}
+                {translate(AnalyticsContent.EmptyVersionSearch)}
               </p>
             )}
             {visibleVersions.map((version) => (
@@ -103,11 +105,11 @@ export function AnalyticsVersionPicker({
                 className="justify-between"
                 aria-pressed={selectedIdentifier === version.identifier}
                 onClick={() => {
-                  onSelect(version.identifier, `Version ${version.version}`);
+                  onSelect(version.identifier, AnalyticsContent.versionLabel(version.version));
                   setOpen(false);
                 }}
               >
-                {t('Version')} {version.version}
+                {translate(AnalyticsContent.Version)} {version.version}
                 {selectedIdentifier === version.identifier && <Check data-icon="inline-end" />}
               </Button>
             ))}
@@ -124,7 +126,7 @@ export function AnalyticsVersionPicker({
               }
             >
               <ChevronLeft data-icon="inline-start" />
-              {t('Previous')}
+              {translate(AnalyticsContent.Previous)}
             </Button>
             <Button
               variant="outline"
@@ -144,7 +146,7 @@ export function AnalyticsVersionPicker({
                 }
               }}
             >
-              {t('Next')}
+              {translate(AnalyticsContent.Next)}
               <ChevronRight data-icon="inline-end" />
             </Button>
           </div>

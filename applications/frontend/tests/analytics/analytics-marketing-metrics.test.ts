@@ -29,6 +29,22 @@ describe('marketing analytics metrics', () => {
     expect(AnalyticsMarketingMetrics.difference(metrics.conversionDifference)).toBe('+30 PP');
   });
 
+  it('compares the selected rate with the same B-minus-A direction regardless of variant order', () => {
+    const version = AnalyticsMarketingFixtures.version([
+      AnalyticsMarketingFixtures.variant('B', 200, 100, 100),
+      AnalyticsMarketingFixtures.variant('A', 100, 100, 25),
+    ]);
+
+    expect(AnalyticsMarketingMetrics.compare(version, 'resultCompletion')).toBe(-50);
+    expect(AnalyticsMarketingMetrics.compare(version, 'ctaConversion')).toBe(25);
+    expect(
+      AnalyticsMarketingMetrics.compare(
+        AnalyticsMarketingFixtures.version([AnalyticsMarketingFixtures.variant('A', 10, 10, 5)]),
+        'resultCompletion',
+      ),
+    ).toBeNull();
+  });
+
   it('uses the authoritative result-click population for click-through', () => {
     const variant = AnalyticsMarketingFixtures.variant('A', 100, 60, 40);
     const version = AnalyticsMarketingFixtures.version([

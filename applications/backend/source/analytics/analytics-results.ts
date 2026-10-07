@@ -16,7 +16,7 @@ const AnalyticsValidators = {
   edge: SchemaCompiler.compile<AnalyticsEdgeRow>(AnalyticsSchemas.EdgeRow),
 } as const;
 
-const AnalyticsRows = {
+export const AnalyticsRows = {
   normalize(value: unknown): object {
     if (!isPlainObject(value)) {
       throw new Error(AnalyticsMessages.InvalidAggregate);

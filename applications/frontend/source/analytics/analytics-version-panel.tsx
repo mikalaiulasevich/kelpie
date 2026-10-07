@@ -1,5 +1,8 @@
+import { AnalyticsRatioValue } from './analytics-ratio-value';
+import { AnalyticsStepTable } from './analytics-step-table';
+import { AnalyticsPathTable } from './analytics-path-table';
+import { AnalyticsContent } from './analytics-content';
 import { useLocalization } from '../localization/use-localization';
-import { AnalyticsStepPresentation } from './analytics-step-presentation';
 import { AnalyticsMarketingOverview } from './analytics-marketing-overview';
 import { AnalyticsStepOverview } from './analytics-step-overview';
 import { DeferredView } from '../application/deferred-view';
@@ -30,21 +33,8 @@ import {
   CardTitle,
 } from '../components/card';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '../components/empty';
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '../components/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/tabs';
-import type {
-  AnalyticsRatio,
-  AnalyticsVariant,
-  AnalyticsVersion,
-} from '../management/management-types';
+import type { AnalyticsVariant, AnalyticsVersion } from '../management/management-types';
 import { AnalyticsFormat } from './analytics-format';
 import { ClassNames } from '../styling/combine-class-names';
 
@@ -54,32 +44,12 @@ const AnalyticsComparisonChart = lazy(() =>
   })),
 );
 
-function AnalyticsRatioValue({
-  ratio,
-  tone = 'neutral',
-}: {
-  readonly ratio: AnalyticsRatio;
-  readonly tone?: 'neutral' | 'positive' | 'negative';
-}) {
-  useLocalization();
-
-  return (
-    <div className="flex flex-col gap-1">
-      <span
-        data-tone={ratio.numerator > 0 ? tone : 'neutral'}
-        className="font-semibold tabular-nums data-[tone=positive]:text-success data-[tone=negative]:text-destructive"
-      >
-        {AnalyticsFormat.ratio(ratio)}
-      </span>
-      <span className="text-xs text-muted-foreground tabular-nums">
-        {AnalyticsFormat.fraction(ratio)}
-      </span>
-    </div>
-  );
+interface AnalyticsVariantSummaryProperties {
+  readonly variant: AnalyticsVariant;
 }
 
-function AnalyticsVariantSummary({ variant }: { readonly variant: AnalyticsVariant }) {
-  const { t } = useLocalization();
+function AnalyticsVariantSummary({ variant }: AnalyticsVariantSummaryProperties) {
+  const { t: translate } = useLocalization();
 
   return (
     <Card className="analytics-metric gap-4 overflow-hidden py-0" data-variant={variant.variant}>
@@ -95,10 +65,11 @@ function AnalyticsVariantSummary({ variant }: { readonly variant: AnalyticsVaria
           </span>
           <div className="flex flex-col gap-1">
             <CardTitle>
-              {t('Variant')} {variant.variant}
+              {translate(AnalyticsContent.Variant)} {variant.variant}
             </CardTitle>
             <CardDescription className="text-xs">
-              {variant.steps.length} {t('steps ·')} {variant.edges.length} {t('transitions')}
+              {variant.steps.length} {translate(AnalyticsContent.StepsSeparator)}{' '}
+              {variant.edges.length} {translate(AnalyticsContent.TransitionsUnit)}
             </CardDescription>
           </div>
         </div>
@@ -107,7 +78,7 @@ function AnalyticsVariantSummary({ variant }: { readonly variant: AnalyticsVaria
         <div className="flex flex-col gap-2">
           <span className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
             <MousePointer2 className="size-3.5" />
-            {t('CTA conversion · primary')}
+            {translate(AnalyticsContent.PrimaryConversion)}
           </span>
           <p
             data-applicable={!isNull(variant.ctaConversion.value)}
@@ -123,19 +94,23 @@ function AnalyticsVariantSummary({ variant }: { readonly variant: AnalyticsVaria
             <Progress
               className="analytics-metric-progress mt-2 h-1"
               value={variant.ctaConversion.value * 100}
-              aria-label={t('Variant {variant} CTA conversion', { variant: variant.variant })}
+              aria-label={translate(AnalyticsContent.VariantConversionLabel, {
+                variant: variant.variant,
+              })}
             />
           )}
         </div>
         <div className="flex flex-col items-end gap-2 border-l pl-5">
           <span className="flex items-center gap-2 text-xs text-muted-foreground">
             <Users className="size-3.5" />
-            {t('Started')}
+            {translate(AnalyticsContent.Started)}
           </span>
           <p className="text-2xl font-semibold tracking-tight tabular-nums">
             {AnalyticsFormat.count(variant.started)}
           </p>
-          <span className="text-xs text-muted-foreground">{t('sessions')}</span>
+          <span className="text-xs text-muted-foreground">
+            {translate(AnalyticsContent.SessionsUnit)}
+          </span>
         </div>
       </CardContent>
       <CardFooter className="grid grid-cols-2 items-start gap-4 border-t py-3 [.border-t]:pt-3">
@@ -147,14 +122,14 @@ function AnalyticsVariantSummary({ variant }: { readonly variant: AnalyticsVaria
                 variant.resultCompletion.numerator > 0 && 'text-success',
               )}
             />
-            {t('Result completion')}
+            {translate(AnalyticsContent.ResultCompletion)}
           </span>
           <AnalyticsRatioValue ratio={variant.resultCompletion} tone="positive" />
         </div>
         <div className="flex flex-col gap-2">
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <ArrowUpRight className="size-3.5 text-primary" />
-            {t('CTA click-through')}
+            {translate(AnalyticsContent.CallToActionClickThrough)}
           </span>
           <AnalyticsRatioValue ratio={variant.ctaClickThrough} tone="positive" />
         </div>
@@ -163,213 +138,13 @@ function AnalyticsVariantSummary({ variant }: { readonly variant: AnalyticsVaria
   );
 }
 
-function AnalyticsSteps({ variant }: { readonly variant: AnalyticsVariant }) {
-  const { t } = useLocalization();
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          {t('Variant')} {variant.variant} {t('· steps')}
-        </CardTitle>
-        <CardDescription>
-          {t('See how many sessions reached each step and continued to the next one.')}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableCaption>
-            {t(
-              'Open sessions can still continue. Expired dropout is the share of expired viewers who did not complete the step. Results are the final step, so only views are counted.',
-            )}
-          </TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('Step')}</TableHead>
-              <TableHead>{t('Reached')}</TableHead>
-              <TableHead>{t('Completed')}</TableHead>
-              <TableHead>{t('Completion')}</TableHead>
-              <TableHead>{t('Open')}</TableHead>
-              <TableHead>{t('Expired')}</TableHead>
-              <TableHead>{t('Expired dropout')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {variant.steps.map((step, index) => {
-              const presentation = AnalyticsStepPresentation.describe(step.type);
-              const StepIcon = presentation.icon;
-
-              return (
-                <TableRow key={step.stepIdentifier} className="transition-colors duration-150">
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary tabular-nums">
-                        {index + 1}
-                      </span>
-                      <div className="flex min-w-0 flex-col gap-1">
-                        <span className="font-medium leading-snug">{step.stepIdentifier}</span>
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                          <span className="inline-flex items-center gap-1.5">
-                            <StepIcon className="size-3.5" aria-hidden="true" />
-                            {t(presentation.label)}
-                          </span>
-                          {step.conditional && (
-                            <span className="inline-flex items-center gap-1.5">
-                              <GitBranch className="size-3.5" aria-hidden="true" />
-                              {t('Conditional')}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="tabular-nums">
-                    {AnalyticsFormat.count(step.reached)}
-                  </TableCell>
-                  {step.type === 'result' ? (
-                    <TableCell colSpan={5}>
-                      <Badge variant="success">{t('Terminal · reach only')}</Badge>
-                    </TableCell>
-                  ) : (
-                    <>
-                      <TableCell className="tabular-nums">
-                        {AnalyticsFormat.count(step.completed)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex min-w-24 flex-col gap-2">
-                          <AnalyticsRatioValue ratio={step.completion} tone="positive" />
-                          {!isNull(step.completion.value) && (
-                            <Progress
-                              className="h-1 bg-success/15 [&_[data-slot=progress-indicator]]:bg-success"
-                              value={step.completion.value * 100}
-                              aria-label={t('{step} completion', { step: step.stepIdentifier })}
-                            />
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell
-                        data-nonzero={step.noncompletion.open > 0}
-                        className="tabular-nums data-[nonzero=true]:text-warning"
-                      >
-                        {AnalyticsFormat.count(step.noncompletion.open)}
-                      </TableCell>
-                      <TableCell
-                        data-nonzero={step.noncompletion.expired > 0}
-                        className="font-medium tabular-nums data-[nonzero=true]:text-destructive"
-                      >
-                        {AnalyticsFormat.count(step.noncompletion.expired)}
-                      </TableCell>
-                      <TableCell>
-                        <AnalyticsRatioValue ratio={step.expiredDropout} tone="negative" />
-                      </TableCell>
-                    </>
-                  )}
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
-  );
-}
-
-function AnalyticsPaths({ variant }: { readonly variant: AnalyticsVariant }) {
-  const { t } = useLocalization();
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          {t('Variant')} {variant.variant} {t('· transitions')}
-        </CardTitle>
-        <CardDescription>
-          {t(
-            'Follow sessions between steps. Sessions sent to another branch aren’t counted as missing the destination.',
-          )}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableCaption>
-            {t(
-              'Observed conversion: source viewers reaching this destination. Branch share: transitions on this edge / source forward transitions. Transition-to-view: destination viewers / edge transitions. Branch shares may exceed 100% in total after revisits.',
-            )}
-          </TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('Path')}</TableHead>
-              <TableHead>{t('Transitions')}</TableHead>
-              <TableHead>{t('Observed conversion')}</TableHead>
-              <TableHead>{t('Branch share')}</TableHead>
-              <TableHead>{t('Transition-to-view')}</TableHead>
-              <TableHead>{t('Destination pending')}</TableHead>
-              <TableHead>{t('Destination expired')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {variant.edges.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={7} className="h-28 text-center">
-                  <div className="flex flex-col items-center gap-2">
-                    <Route className="size-5 text-muted-foreground" />
-                    <span className="font-medium">{t('No paths recorded yet')}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {t('Paths appear after a session moves forward between steps.')}
-                    </span>
-                  </div>
-                </TableCell>
-              </TableRow>
-            )}
-            {variant.edges.map((edge) => (
-              <TableRow key={`${edge.fromStepIdentifier}:${edge.toStepIdentifier}`}>
-                <TableCell>
-                  <div className="flex flex-col gap-1">
-                    <span className="font-medium">{edge.fromStepIdentifier}</span>
-                    <span className="text-xs text-muted-foreground">→ {edge.toStepIdentifier}</span>
-                  </div>
-                </TableCell>
-                <TableCell className="tabular-nums">
-                  {AnalyticsFormat.count(edge.transitions)}
-                </TableCell>
-                <TableCell>
-                  <AnalyticsRatioValue ratio={edge.observedConversion} />
-                </TableCell>
-                <TableCell>
-                  <AnalyticsRatioValue ratio={edge.branchShare} />
-                </TableCell>
-                <TableCell>
-                  <AnalyticsRatioValue ratio={edge.transitionToView} />
-                </TableCell>
-                <TableCell
-                  data-nonzero={edge.destinationNonreach.open > 0}
-                  className="tabular-nums data-[nonzero=true]:text-warning"
-                >
-                  {AnalyticsFormat.count(edge.destinationNonreach.open)}
-                </TableCell>
-                <TableCell
-                  data-nonzero={edge.destinationNonreach.expired > 0}
-                  className="font-medium tabular-nums data-[nonzero=true]:text-destructive"
-                >
-                  {AnalyticsFormat.count(edge.destinationNonreach.expired)}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
-  );
-}
-
-export function AnalyticsVersionPanel({
-  version,
-  onOpenFilters,
-}: {
+interface AnalyticsVersionPanelProperties {
   readonly version: AnalyticsVersion;
   readonly onOpenFilters?: () => void;
-}) {
-  const { t } = useLocalization();
+}
+
+export function AnalyticsVersionPanel({ version, onOpenFilters }: AnalyticsVersionPanelProperties) {
+  const { t: translate } = useLocalization();
 
   const hasObservations = version.variants.some((variant) => variant.started > 0);
   const startedSessions = version.variants.reduce((total, variant) => total + variant.started, 0);
@@ -377,7 +152,9 @@ export function AnalyticsVersionPanel({
   return (
     <section
       className="@container/analytics-version flex min-w-0 flex-col gap-5"
-      aria-label={t('Version {version} analytics', { version: version.funnelVersion })}
+      aria-label={translate(AnalyticsContent.VersionAnalyticsLabel, {
+        version: version.funnelVersion,
+      })}
     >
       <AnalyticsMarketingOverview version={version} />
       <div className="analytics-bento grid min-w-0 gap-5 @min-[60rem]/analytics-version:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
@@ -390,13 +167,13 @@ export function AnalyticsVersionPanel({
           <Card className="analytics-chart min-w-0 gap-4 py-5">
             <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
               <div className="flex flex-col gap-2">
-                <CardTitle>{t('Conversion by variant')}</CardTitle>
+                <CardTitle>{translate(AnalyticsContent.ConversionByVariant)}</CardTitle>
                 <CardDescription>
-                  {t('Result views and recorded CTA clicks per started session.')}
+                  {translate(AnalyticsContent.ConversionDescription)}
                 </CardDescription>
               </div>
               <Badge variant="outline">
-                {t('Version')} {version.funnelVersion}
+                {translate(AnalyticsContent.Version)} {version.funnelVersion}
               </Badge>
             </CardHeader>
             <CardContent>
@@ -410,16 +187,14 @@ export function AnalyticsVersionPanel({
                     <EmptyMedia variant="icon">
                       <GitBranch />
                     </EmptyMedia>
-                    <EmptyTitle>{t('No sessions yet')}</EmptyTitle>
+                    <EmptyTitle>{translate(AnalyticsContent.EmptySessions)}</EmptyTitle>
                     <EmptyDescription>
-                      {t(
-                        'No sessions match these filters. Try another filter or check back after the funnel receives traffic.',
-                      )}
+                      {translate(AnalyticsContent.EmptySessionsDescription)}
                     </EmptyDescription>
                   </EmptyHeader>
                   {onOpenFilters && (
                     <Button variant="outline" onClick={onOpenFilters}>
-                      {t('Adjust filters')}
+                      {translate(AnalyticsContent.AdjustFilters)}
                     </Button>
                   )}
                 </Empty>
@@ -430,7 +205,7 @@ export function AnalyticsVersionPanel({
             <CardHeader>
               <div className="flex items-center gap-2">
                 <FlaskConical className="size-4 text-primary" />
-                <CardTitle>{t('Session split')}</CardTitle>
+                <CardTitle>{translate(AnalyticsContent.SessionSplit)}</CardTitle>
               </div>
               <CardDescription className="break-words">
                 {version.experimentIdentifier}
@@ -438,7 +213,9 @@ export function AnalyticsVersionPanel({
             </CardHeader>
             <CardContent className="grid gap-5 @min-[38rem]/analytics-version:grid-cols-2">
               <div className="flex flex-col gap-2">
-                <span className="text-sm text-muted-foreground">{t('Started sessions')}</span>
+                <span className="text-sm text-muted-foreground">
+                  {translate(AnalyticsContent.StartedSessions)}
+                </span>
                 <span className="text-4xl font-semibold tracking-tight tabular-nums">
                   {AnalyticsFormat.count(startedSessions)}
                 </span>
@@ -448,16 +225,17 @@ export function AnalyticsVersionPanel({
                   <div key={variant.variant} className="flex flex-col gap-2">
                     <div className="flex items-center justify-between text-xs">
                       <span>
-                        {t('Variant')} {variant.variant}
+                        {translate(AnalyticsContent.Variant)} {variant.variant}
                       </span>
                       <span className="text-muted-foreground tabular-nums">
-                        {AnalyticsFormat.count(variant.started)} {t('sessions')}
+                        {AnalyticsFormat.count(variant.started)}{' '}
+                        {translate(AnalyticsContent.SessionsUnit)}
                       </span>
                     </div>
                     <Progress
                       className="h-1.5"
                       value={startedSessions > 0 ? (variant.started / startedSessions) * 100 : 0}
-                      aria-label={t('Variant {variant} share of started sessions', {
+                      aria-label={translate(AnalyticsContent.VariantStartsLabel, {
                         variant: variant.variant,
                       })}
                     />
@@ -466,11 +244,7 @@ export function AnalyticsVersionPanel({
               </div>
               <div className="flex gap-2 border-t pt-4 text-xs leading-relaxed text-muted-foreground @min-[38rem]/analytics-version:col-span-2">
                 <Info className="mt-0.5 size-3.5 shrink-0" />
-                <p>
-                  {t(
-                    'Both chart rates use started sessions. CTA click-through uses only sessions that viewed a result.',
-                  )}
-                </p>
+                <p>{translate(AnalyticsContent.RateDenominatorDescription)}</p>
               </div>
             </CardContent>
           </Card>
@@ -482,19 +256,21 @@ export function AnalyticsVersionPanel({
       >
         <div className="analytics-detail-heading">
           <div className="flex flex-col gap-1">
-            <h3 className="text-base font-semibold">{t('Step-by-step results')}</h3>
+            <h3 className="text-base font-semibold">{translate(AnalyticsContent.StepResults)}</h3>
             <p className="text-xs text-muted-foreground">
-              {t('Choose a variant to review its steps and paths.')}
+              {translate(AnalyticsContent.StepResultsDescription)}
             </p>
           </div>
         </div>
         <TabsList
           className="analytics-variant-tabs"
-          aria-label={t('Version {version} variants', { version: version.funnelVersion })}
+          aria-label={translate(AnalyticsContent.VersionVariantsLabel, {
+            version: version.funnelVersion,
+          })}
         >
           {version.variants.map((variant) => (
             <TabsTrigger key={variant.variant} value={variant.variant}>
-              {t('Variant')} {variant.variant}
+              {translate(AnalyticsContent.Variant)} {variant.variant}
               <span className="ml-1 rounded bg-background/60 px-1.5 text-xs tabular-nums">
                 {variant.steps.length}
               </span>
@@ -509,30 +285,30 @@ export function AnalyticsVersionPanel({
           >
             <Tabs defaultValue="steps" className="min-w-0 gap-4">
               <TabsList
-                aria-label={t('Variant {variant} detail views', { variant: variant.variant })}
+                aria-label={translate(AnalyticsContent.VariantDetailsLabel, {
+                  variant: variant.variant,
+                })}
               >
                 <TabsTrigger value="steps">
                   <ListOrdered className="size-4" />
-                  {t('Steps')}
+                  {translate(AnalyticsContent.Steps)}
                 </TabsTrigger>
                 <TabsTrigger value="paths">
                   <Route className="size-4" />
-                  {t('Paths')}
+                  {translate(AnalyticsContent.Paths)}
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="steps" className="flex min-w-0 flex-col gap-4">
                 <AnalyticsStepOverview variant={variant} />
-                <AnalyticsSteps variant={variant} />
+                <AnalyticsStepTable variant={variant} />
                 <Alert>
                   <AlertDescription>
-                    {t(
-                      'Sessions can go back or switch branches, so counts may rise between steps. Only events received by the server are included.',
-                    )}
+                    {translate(AnalyticsContent.RevisitDescription)}
                   </AlertDescription>
                 </Alert>
               </TabsContent>
               <TabsContent value="paths">
-                <AnalyticsPaths variant={variant} />
+                <AnalyticsPathTable variant={variant} />
               </TabsContent>
             </Tabs>
           </TabsContent>

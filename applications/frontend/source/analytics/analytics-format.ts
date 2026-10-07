@@ -1,3 +1,5 @@
+import { AnalyticsFormatPolicy } from './analytics-policy';
+import { AnalyticsContent } from './analytics-content';
 import { Localization } from '../localization/localization';
 import { isNull } from 'es-toolkit/predicate';
 import type { AnalyticsRatio } from '../management/management-types';
@@ -10,21 +12,18 @@ export const AnalyticsFormat = {
   percentage(value: number): string {
     return new Intl.NumberFormat(Localization.formattingLocale, {
       style: 'percent',
-      maximumFractionDigits: 1,
+      maximumFractionDigits: AnalyticsFormatPolicy.MaximumFractionDigits,
     }).format(value);
   },
 
   ratio(ratio: AnalyticsRatio): string {
     return isNull(ratio.value)
-      ? Localization.translate('Not applicable')
-      : new Intl.NumberFormat(Localization.formattingLocale, {
-          style: 'percent',
-          maximumFractionDigits: 1,
-        }).format(ratio.value);
+      ? Localization.translate(AnalyticsContent.NotApplicable)
+      : this.percentage(ratio.value);
   },
 
   fraction(ratio: AnalyticsRatio): string {
-    return `${new Intl.NumberFormat(Localization.formattingLocale).format(ratio.numerator)} / ${new Intl.NumberFormat(Localization.formattingLocale).format(ratio.denominator)} ${Localization.translate('sessions')}`;
+    return `${this.count(ratio.numerator)} / ${this.count(ratio.denominator)} ${Localization.translate(AnalyticsContent.SessionsUnit)}`;
   },
 
   generatedAt(value: string): string {

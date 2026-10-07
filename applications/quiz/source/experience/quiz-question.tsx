@@ -1,10 +1,13 @@
+import { QuizAnswerInput } from './quiz-answer-input';
+
+import { QuizContent } from './quiz-content';
 import { useQuizLocale } from '../localization/quiz-locale-provider';
 import { isUndefined } from 'es-toolkit';
 import { useEffect, useRef, useState } from 'react';
 import { StepRules, type FunnelStep, type StepAnswer } from '@kelpie/contracts';
 import { AnswerValidation } from '@kelpie/funnel-runtime';
 import { ArrowLeft, ArrowRight, Check, LoaderCircle, ShieldCheck } from 'lucide-react';
-import { QuizDrafts } from '../session/quiz-session-api';
+import { QuizDrafts } from '../session/quiz-session-storage';
 import type { QuizSessionState } from '../session/quiz-session-types';
 import { Button } from '../components/button';
 import { QuizInput } from './quiz-input';
@@ -120,24 +123,19 @@ export function QuizQuestion({
           return;
         }
 
-        const previous = Array.isArray(draft.value) ? draft.value : [];
-        changeAnswer(
-          previous.includes(option.value)
-            ? previous.filter((value) => value !== option.value)
-            : [...previous, option.value],
-        );
+        changeAnswer(QuizAnswerInput.toggle(draft.value, option.value));
       }}
     >
       <div className="question-eyebrow">
         <span className="eyebrow">
           {interactive
-            ? translate('LET’S UNDERSTAND YOUR TEAM')
-            : translate(step.content.eyebrow ?? 'A BETTER WAY TO WORK')}
+            ? translate(QuizContent.Question.InteractiveEyebrow)
+            : translate(step.content.eyebrow ?? QuizContent.Question.InformationEyebrow)}
         </span>
         {multiple && (
           <span className="selection-count">
             <Check />
-            {selectedCount} {translate('selected')}
+            {selectedCount} {translate(QuizContent.Question.Selected)}
           </span>
         )}
       </div>
@@ -145,11 +143,7 @@ export function QuizQuestion({
         {translate(step.content.title ?? '')}
       </h1>
       <p id="question-help" className="question-help">
-        {translate(
-          step.content.helperText ??
-            step.content.body ??
-            'Choose the answer that feels closest to your team today.',
-        )}
+        {translate(step.content.helperText ?? step.content.body ?? QuizContent.Question.Help)}
       </p>
       {interactive && (
         <QuizInput
@@ -185,19 +179,21 @@ export function QuizQuestion({
           onClick={() => void onBack()}
         >
           <ArrowLeft />
-          {translate('Back')}
+          {translate(QuizContent.Actions.Back)}
         </Button>
         <Button type="submit" disabled={busy}>
           {busy ? <LoaderCircle className="spin" /> : null}
-          {busy ? translate('Saving…') : translate(step.content.primaryActionLabel ?? 'Continue')}
+          {busy
+            ? translate(QuizContent.Question.Saving)
+            : translate(step.content.primaryActionLabel ?? QuizContent.Actions.Continue)}
           <ArrowRight />
         </Button>
       </div>
       <p className="save-note">
         <ShieldCheck />
-        {translate('Answers are confirmed only when you continue.')}
+        {translate(QuizContent.Question.Confirmation)}
         <span className="keyboard-hint">
-          {translate('Press')}
+          {translate(QuizContent.Question.Shortcut)}
           <kbd>Enter ↵</kbd>
         </span>
       </p>

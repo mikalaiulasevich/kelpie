@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ManagementClient, ManagementError } from '../../source/management/management-client';
+import { ManagementClient } from '../../source/management/management-client';
+import { ManagementError } from '../../source/management/management-error';
 import { ManagementClientFixture } from '../fixtures/management-client-fixtures';
 import { ManagementClientCases } from '../cases/management-client-cases';
 

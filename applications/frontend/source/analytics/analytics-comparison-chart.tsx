@@ -1,3 +1,5 @@
+import type { ChartConfiguration } from '../components/chart-types';
+import { AnalyticsContent } from './analytics-content';
 import { AnalyticsFormat } from './analytics-format';
 import { useLocalization } from '../localization/use-localization';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
@@ -7,22 +9,24 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  type ChartConfig,
 } from '../components/chart';
 
-export function AnalyticsComparisonChart({
-  variants,
-}: {
+interface AnalyticsComparisonChartProperties {
   readonly variants: readonly AnalyticsVariant[];
-}) {
-  const { t } = useLocalization();
+}
+
+export function AnalyticsComparisonChart({ variants }: AnalyticsComparisonChartProperties) {
+  const { t: translate } = useLocalization();
   const comparisonChart = {
-    results: { label: t('Result completion'), color: 'var(--chart-2)' },
-    recommendations: { label: t('CTA conversion'), color: 'var(--chart-1)' },
-  } satisfies ChartConfig;
+    results: { label: translate(AnalyticsContent.ResultCompletion), color: 'var(--chart-2)' },
+    recommendations: {
+      label: translate(AnalyticsContent.CallToActionConversion),
+      color: 'var(--chart-1)',
+    },
+  } satisfies ChartConfiguration;
 
   const comparisonData = variants.map((variant) => ({
-    variant: t('Variant {variant}', { variant: variant.variant }),
+    variant: translate(AnalyticsContent.VariantLabel, { variant: variant.variant }),
     results: isNull(variant.resultCompletion.value) ? null : variant.resultCompletion.value * 100,
     recommendations: isNull(variant.ctaConversion.value) ? null : variant.ctaConversion.value * 100,
   }));
@@ -59,7 +63,11 @@ export function AnalyticsComparisonChart({
                 formatter={(value, name) => (
                   <div className="flex w-full items-center justify-between gap-4">
                     <span className="text-muted-foreground">
-                      {t(name === 'results' ? 'Result completion' : 'CTA conversion')}
+                      {translate(
+                        name === 'results'
+                          ? AnalyticsContent.ResultCompletion
+                          : AnalyticsContent.CallToActionConversion,
+                      )}
                     </span>
                     <span className="font-medium tabular-nums">
                       {typeof value === 'number' ? AnalyticsFormat.percentage(value / 100) : value}
@@ -88,11 +96,11 @@ export function AnalyticsComparisonChart({
       <div className="mt-4 flex flex-wrap justify-center gap-5 text-xs text-muted-foreground">
         <span className="flex items-center gap-2">
           <span className="size-2 rounded-full bg-chart-2" />
-          {t('Result completion')}
+          {translate(AnalyticsContent.ResultCompletion)}
         </span>
         <span className="flex items-center gap-2">
           <span className="size-2 rounded-full bg-chart-1" />
-          {t('CTA conversion')}
+          {translate(AnalyticsContent.CallToActionConversion)}
         </span>
       </div>
     </>

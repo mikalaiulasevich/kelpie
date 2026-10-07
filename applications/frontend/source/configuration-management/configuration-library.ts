@@ -3,12 +3,7 @@ import type {
   ConfigurationVersionMetadata,
 } from '../management/management-types';
 import { ConfigurationFormat } from './configuration-format';
-
-interface ConfigurationLibrarySelection {
-  search: string;
-  status: string;
-  descending: boolean;
-}
+import type { ConfigurationLibrarySelection } from './configuration-library-types';
 
 export const ConfigurationLibrary = {
   select(

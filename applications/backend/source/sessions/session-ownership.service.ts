@@ -2,6 +2,7 @@ import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypt
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { isNull, isString } from 'es-toolkit/predicate';
 import type { FastifyRequest, FastifyReply } from 'fastify';
+import { AdministrationService } from '../administration/administration.service.js';
 import { DatabaseService } from '../database/database.service.js';
 import { ApplicationEnvironmentService } from '../environment/application-environment.js';
 import { ApplicationMode } from '../environment/environment-policy.js';
@@ -28,6 +29,7 @@ export class SessionOwnershipService {
 
   constructor(
     @Inject(DatabaseService) private readonly database: DatabaseService,
+    @Inject(AdministrationService) private readonly administration: AdministrationService,
     @Inject(ApplicationEnvironmentService)
     private readonly environment: ApplicationEnvironmentService,
   ) {}
@@ -60,8 +62,19 @@ export class SessionOwnershipService {
     return credential.hash;
   }
 
+  isPreview(request: FastifyRequest): boolean {
+    return request.headers[SessionPolicy.PreviewHeader] === SessionPolicy.MutationHeaderValue;
+  }
+
   async verify(request: FastifyRequest): Promise<CredentialVerification> {
-    const cookie = request.cookies[SessionPolicy.CookieName];
+    if (this.isPreview(request)) {
+      await this.administration.authorize(request);
+    }
+
+    const cookie =
+      request.cookies[
+        this.isPreview(request) ? SessionPolicy.PreviewCookieName : SessionPolicy.CookieName
+      ];
     const match = isString(cookie) ? SessionPolicy.CookiePattern.exec(cookie) : null;
 
     if (isNull(match)) {
@@ -99,22 +112,38 @@ export class SessionOwnershipService {
   }
 
   refresh(request: FastifyRequest, reply: FastifyReply, expiresAt: Date): void {
-    const cookie = request.cookies[SessionPolicy.CookieName];
+    const cookie =
+      request.cookies[
+        this.isPreview(request) ? SessionPolicy.PreviewCookieName : SessionPolicy.CookieName
+      ];
 
     if (isString(cookie)) {
-      this.setCookie(reply, cookie, Math.max(0, expiresAt.getTime() - Date.now()));
+      this.setCookie(
+        reply,
+        cookie,
+        Math.max(0, expiresAt.getTime() - Date.now()),
+        this.isPreview(request),
+      );
     }
   }
 
-  async issue(reply: FastifyReply): Promise<void> {
+  async issue(reply: FastifyReply, preview = false): Promise<string> {
     const token = randomBytes(SessionPolicy.TokenBytes).toString(SessionPolicy.BinaryEncoding);
     const payload = `${token}.${Date.now()}`;
     const signature = CredentialSignatures.sign(payload, await this.secret());
-    this.setCookie(reply, `${payload}.${signature}`, SessionPolicy.CookieLifetimeMilliseconds);
+    const credential = `${payload}.${signature}`;
+    this.setCookie(reply, credential, SessionPolicy.CookieLifetimeMilliseconds, preview);
+
+    return CredentialSignatures.hash(credential);
   }
 
-  private setCookie(reply: FastifyReply, value: string, lifetimeMilliseconds: number): void {
-    reply.setCookie(SessionPolicy.CookieName, value, {
+  private setCookie(
+    reply: FastifyReply,
+    value: string,
+    lifetimeMilliseconds: number,
+    preview = false,
+  ): void {
+    reply.setCookie(preview ? SessionPolicy.PreviewCookieName : SessionPolicy.CookieName, value, {
       path: SessionPolicy.CookiePath,
       httpOnly: true,
       sameSite: SessionPolicy.SameSite,

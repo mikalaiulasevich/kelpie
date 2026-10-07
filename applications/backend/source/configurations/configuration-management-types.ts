@@ -5,7 +5,16 @@ import { ConfigurationImportSchemas } from './configuration-import-types.js';
 
 export const ConfigurationListSchema = Type.Object({
   funnel: ManagementSchemas.FunnelReference,
-  items: Type.Array(ConfigurationImportSchemas.VersionMetadata),
+  items: Type.Array(
+    Type.Object({
+      ...ConfigurationImportSchemas.VersionMetadata.properties,
+      importedAt: Type.String(),
+      importedBy: Type.Union([Type.String(), Type.Null()]),
+      description: Type.String(),
+      documentStatus: Type.String(),
+    }),
+  ),
+  total: Type.Integer({ minimum: 0 }),
   nextOffset: Type.Union([Type.Integer(), Type.Null()]),
 });
 

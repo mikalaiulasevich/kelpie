@@ -1,8 +1,11 @@
+import { ConfigurationManagementPolicy } from './configuration-policy';
+import { ConfigurationMessages } from './configuration-messages';
 import { useLocalization } from '../localization/use-localization';
 import { useEffect, useRef, useState } from 'react';
 import { Check, FileJson, LoaderCircle, Upload } from 'lucide-react';
-import { ManagementClient, ManagementError } from '../management/management-client';
-import type { ConfigurationImportResult } from '../management/management-types';
+import { ManagementClient } from '../management/management-client';
+import { ManagementError } from '../management/management-error';
+import type { ConfigurationImportResult, ManagementIssue } from '../management/management-types';
 import { Button } from '../components/button';
 import { Input } from '../components/input';
 import { Field, FieldGroup, FieldLabel } from '../components/field';
@@ -38,10 +41,10 @@ export function ConfigurationImportDialog({
   onImported,
   onUnauthorized,
 }: ConfigurationImportDialogProperties): UIElement {
-  const { t } = useLocalization();
+  const { t: translate } = useLocalization();
   const [selected, setSelected] = useState<Optional<SelectedConfiguration>>();
   const [message, setMessage] = useState('');
-  const [issues, setIssues] = useState<readonly { path: string; message: string }[]>([]);
+  const [issues, setIssues] = useState<readonly ManagementIssue[]>([]);
   const [pending, setPending] = useState(false);
   const [reading, setReading] = useState(false);
   const [result, setResult] = useState<Optional<ConfigurationImportResult>>();
@@ -104,7 +107,7 @@ export function ConfigurationImportDialog({
         }
 
         setMessage(
-          error instanceof ManagementError ? error.message : ConfigurationContent.ImportFailure,
+          error instanceof ManagementError ? error.message : ConfigurationMessages.ImportFailure,
         );
         setIssues(error instanceof ManagementError ? error.issues : []);
       }
@@ -148,9 +151,9 @@ export function ConfigurationImportDialog({
       >
         <DialogHeader className="gap-3 text-left">
           <DialogTitle className="text-2xl tracking-tight">
-            {t(ConfigurationContent.ImportTitle)}
+            {translate(ConfigurationContent.ImportTitle)}
           </DialogTitle>
-          <DialogDescription>{t(ConfigurationContent.ImportDescription)}</DialogDescription>
+          <DialogDescription>{translate(ConfigurationContent.ImportDescription)}</DialogDescription>
         </DialogHeader>
         <FieldGroup aria-busy={pending || reading}>
           <Field
@@ -167,10 +170,10 @@ export function ConfigurationImportDialog({
               </span>
               <div className="flex flex-col items-center gap-2">
                 <FieldLabel htmlFor="configuration-file" className="text-base font-medium">
-                  {t(ConfigurationContent.File)}
+                  {translate(ConfigurationContent.File)}
                 </FieldLabel>
                 <p id="configuration-file-requirements" className="text-sm text-muted-foreground">
-                  {t(ConfigurationContent.FileRequirements)}
+                  {translate(ConfigurationContent.FileRequirements)}
                 </p>
               </div>
               <Button
@@ -180,8 +183,8 @@ export function ConfigurationImportDialog({
                 onClick={() => fileInputReference.current?.click()}
               >
                 {selected
-                  ? t(ConfigurationContent.ReplaceFile)
-                  : t(ConfigurationContent.ChooseFile)}
+                  ? translate(ConfigurationContent.ReplaceFile)
+                  : translate(ConfigurationContent.ChooseFile)}
               </Button>
             </div>
             <Input
@@ -200,8 +203,8 @@ export function ConfigurationImportDialog({
           </Field>
         </FieldGroup>
         <p className="text-sm text-muted-foreground empty:hidden" role="status" aria-atomic="true">
-          {reading && t(ConfigurationContent.ReadingFile)}
-          {pending && t(ConfigurationContent.ImportPending)}
+          {reading && translate(ConfigurationContent.ReadingFile)}
+          {pending && translate(ConfigurationContent.ImportPending)}
         </p>
         {selected && (
           <div className="form-feedback flex items-center gap-4 rounded-xl border bg-card p-5">
@@ -211,25 +214,28 @@ export function ConfigurationImportDialog({
             <div className="flex min-w-0 flex-col gap-1">
               <p className="break-all text-sm font-medium">{selected.filename}</p>
               <p className="text-xs text-muted-foreground">
-                {Math.ceil(selected.bytes / 1024)} {t('KiB · JSON')}
+                {Math.ceil(selected.bytes / ConfigurationManagementPolicy.BytesPerKibibyte)}{' '}
+                {translate(ConfigurationContent.JsonSizeSuffix)}
               </p>
               {!pending && !result && !message && issues.length === 0 && (
-                <p className="text-xs text-muted-foreground">{t(ConfigurationContent.FileReady)}</p>
+                <p className="text-xs text-muted-foreground">
+                  {translate(ConfigurationContent.FileReady)}
+                </p>
               )}
             </div>
           </div>
         )}
         {message && (
           <Alert variant="destructive" className="form-feedback">
-            <AlertTitle>{t(ConfigurationContent.ImportFailure)}</AlertTitle>
+            <AlertTitle>{translate(ConfigurationMessages.ImportFailure)}</AlertTitle>
             <AlertDescription>
-              {t(message)}
+              {translate(message)}
               {issues.length > 0 && (
                 <ul className="mt-3 flex max-h-48 flex-col gap-2 overflow-auto">
                   {issues.map((issue, index) => (
                     <li key={`${issue.path}-${index}`}>
                       <code className="break-all text-xs">{issue.path}</code>
-                      <p>{t(issue.message)}</p>
+                      <p>{translate(issue.message)}</p>
                     </li>
                   ))}
                 </ul>
@@ -242,8 +248,8 @@ export function ConfigurationImportDialog({
             <Check aria-hidden="true" />
             <AlertTitle>
               {result.outcome === 'created'
-                ? t(ConfigurationContent.ImportComplete)
-                : t(ConfigurationContent.ImportExisting)}
+                ? translate(ConfigurationContent.ImportComplete)
+                : translate(ConfigurationContent.ImportExisting)}
             </AlertTitle>
             <AlertDescription>
               {result.version.funnelIdentifier} ·{' '}
@@ -253,7 +259,7 @@ export function ConfigurationImportDialog({
         )}
         <DialogFooter className="gap-3">
           <Button variant="outline" onClick={onClose} disabled={pending}>
-            {t(ConfigurationContent.Close)}
+            {translate(ConfigurationContent.Close)}
           </Button>
           {!result && (
             <Button
@@ -268,8 +274,8 @@ export function ConfigurationImportDialog({
                 <Upload data-icon="inline-start" strokeWidth={1.5} aria-hidden="true" />
               )}
               {pending
-                ? t(ConfigurationContent.ImportPending)
-                : t(ConfigurationContent.ImportAction)}
+                ? translate(ConfigurationContent.ImportPending)
+                : translate(ConfigurationContent.ImportAction)}
             </Button>
           )}
         </DialogFooter>

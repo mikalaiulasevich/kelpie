@@ -1,25 +1,41 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { isError } from 'es-toolkit/predicate';
 import type { StepAnswer } from '@kelpie/contracts';
-import { QuizRequestError, QuizSessionApi, QuizPendingStorage } from './quiz-session-api';
+import { QuizSessionApi } from './quiz-session-api';
+import { QuizPendingStorage } from './quiz-session-storage';
+import { QuizSessionFailures } from './quiz-session-failures';
+import { QuizSessionCommands } from './quiz-session-commands';
+import { useQuizObservations } from './use-quiz-observations';
 import { QuizSessionMessages } from './quiz-session-messages';
-import { QuizSessionPolicy } from './quiz-session-policy';
-import { QuizObservations } from './quiz-observations';
-import { QuizObservationDelivery } from './quiz-observation-delivery';
-import type { QuizPendingCommand, QuizSessionState } from './quiz-session-types';
+import type {
+  QuizPendingCommand,
+  QuizSessionState,
+  QuizNavigationDirection,
+  QuizSessionController,
+} from './quiz-session-types';
 
-export function useQuizSession() {
+export function useQuizSession(): QuizSessionController {
   const [state, setState] = useState<QuizSessionState | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [expired, setExpired] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [deliveryError, setDeliveryError] = useState<string | null>(null);
+  const { deliveryError, setDeliveryError, recordResultAction } = useQuizObservations(state);
   const pending = useRef<QuizPendingCommand | null>(null);
   const running = useRef(false);
-  const observed = useRef<QuizObservationDelivery | null>(null);
+
+  const persistPending = useCallback(
+    (command: QuizPendingCommand | null) => {
+      pending.current = command;
+      try {
+        QuizPendingStorage.write(command);
+      } catch {
+        setDeliveryError(QuizSessionMessages.Storage);
+      }
+    },
+    [setDeliveryError],
+  );
 
   const restore = useCallback(async () => {
     try {
@@ -39,7 +55,7 @@ export function useQuizSession() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [setDeliveryError]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -49,80 +65,6 @@ export function useQuizSession() {
     return () => window.clearTimeout(timer);
   }, [restore]);
 
-  useEffect(() => {
-    if (!state) {
-      return;
-    }
-
-    if (!observed.current?.matches(state)) {
-      observed.current = new QuizObservationDelivery(state);
-    }
-
-    const delivery = observed.current;
-
-    let flushing = false;
-    let stopped = false;
-    let attempts = 0;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const flush = async () => {
-      if (flushing) {
-        return;
-      }
-
-      flushing = true;
-
-      try {
-        await delivery.flush();
-        if (stopped) {
-          return;
-        }
-
-        attempts = 0;
-        setDeliveryError(null);
-      } catch (failure) {
-        if (stopped) {
-          return;
-        }
-
-        attempts += 1;
-        setDeliveryError(
-          isError(failure) && failure.message === QuizSessionMessages.EventRejected
-            ? QuizSessionMessages.EventRejected
-            : QuizSessionMessages.Delivery,
-        );
-      } finally {
-        flushing = false;
-        if (!stopped && attempts < QuizSessionPolicy.MaximumRetryAttempts) {
-          const delay = Math.min(
-            QuizSessionPolicy.MaximumRetryMilliseconds,
-            QuizSessionPolicy.RetryMilliseconds * 2 ** attempts,
-          );
-          timer = setTimeout(
-            () => {
-              void flush();
-            },
-            delay * (1 + Math.random() * QuizSessionPolicy.RetryJitter),
-          );
-        }
-      }
-    };
-
-    void flush();
-    const online = () => {
-      clearTimeout(timer);
-      attempts = 0;
-      void flush();
-    };
-
-    window.addEventListener('online', online);
-
-    return () => {
-      stopped = true;
-      clearTimeout(timer);
-      window.removeEventListener('online', online);
-    };
-  }, [state]);
-
   const execute = useCallback(
     async (command: QuizPendingCommand) => {
       if (running.current) {
@@ -130,12 +72,7 @@ export function useQuizSession() {
       }
 
       running.current = true;
-      pending.current = command;
-      try {
-        QuizPendingStorage.write(command);
-      } catch {
-        setDeliveryError(QuizSessionMessages.Storage);
-      }
+      persistPending(command);
 
       setBusy(true);
       setError(null);
@@ -150,12 +87,7 @@ export function useQuizSession() {
             : updated,
         );
         const current = await QuizSessionApi.current();
-        pending.current = null;
-        try {
-          QuizPendingStorage.write(null);
-        } catch {
-          setDeliveryError(QuizSessionMessages.Storage);
-        }
+        persistPending(null);
 
         setState(current.state);
         setExpired(current.expired);
@@ -168,15 +100,10 @@ export function useQuizSession() {
           }
         }
       } catch (failure) {
-        if (failure instanceof QuizRequestError && failure.status < 500) {
-          pending.current = null;
-          try {
-            QuizPendingStorage.write(null);
-          } catch {
-            setDeliveryError(QuizSessionMessages.Storage);
-          }
+        if (QuizSessionFailures.isRejectedCommand(failure)) {
+          persistPending(null);
 
-          if (failure.status === 409 || failure.status === 401 || failure.status === 410) {
+          if (QuizSessionFailures.requiresRestore(failure)) {
             await restore();
           }
 
@@ -189,7 +116,7 @@ export function useQuizSession() {
         setBusy(false);
       }
     },
-    [restore],
+    [restore, persistPending, setDeliveryError],
   );
 
   const start = useCallback(
@@ -200,20 +127,13 @@ export function useQuizSession() {
         return;
       }
 
-      await execute({
-        path: `${QuizSessionPolicy.Create}${query ? `?${query.replace(/^\?/, '')}` : ''}`,
-        body: {
-          operationIdentifier: crypto.randomUUID(),
-          funnelIdentifier,
-          clientTimestamp: new Date().toISOString(),
-        },
-      });
+      await execute(QuizSessionCommands.create(funnelIdentifier, query));
     },
     [execute],
   );
 
   const navigate = useCallback(
-    async (direction: 'continue' | 'back', answer?: StepAnswer | null) => {
+    async (direction: QuizNavigationDirection, answer?: StepAnswer | null) => {
       if (!state) {
         return;
       }
@@ -224,42 +144,10 @@ export function useQuizSession() {
         return;
       }
 
-      const step = QuizSessionApi.evaluate(state).route.steps.find(
-        (candidate) => candidate.id === state.currentStepIdentifier,
-      );
-      const submit = direction === 'continue' && step?.type !== 'info';
-      const endpoint = submit ? 'answers' : direction;
-      await execute({
-        path: `${QuizSessionPolicy.Current}/${endpoint}`,
-        sessionIdentifier: state.sessionIdentifier,
-        body: {
-          operationIdentifier: crypto.randomUUID(),
-          expectedSessionRevision: state.revision,
-          stepIdentifier: state.currentStepIdentifier,
-          clientTimestamp: new Date().toISOString(),
-          ...(submit ? { answer: answer ?? null } : {}),
-        },
-      });
+      await execute(QuizSessionCommands.navigate(state, direction, answer));
     },
     [execute, state],
   );
-
-  const recordResultAction = useCallback(async () => {
-    if (!state?.result) {
-      return;
-    }
-
-    try {
-      await QuizObservations.resultAction(state);
-      await QuizObservations.flush(state);
-    } catch (failure) {
-      setDeliveryError(
-        isError(failure) && failure.message === QuizSessionMessages.EventRejected
-          ? QuizSessionMessages.EventRejected
-          : QuizSessionMessages.Delivery,
-      );
-    }
-  }, [state]);
 
   return {
     state,

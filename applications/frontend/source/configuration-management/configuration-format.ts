@@ -1,6 +1,7 @@
 import { Localization } from '../localization/localization';
 import type { ConfigurationList } from '../management/management-types';
 import { ConfigurationContent } from './configuration-content';
+import { ConfigurationManagementPolicy } from './configuration-policy';
 
 export const ConfigurationFormat = {
   activeVersion(configurations: ConfigurationList): string {
@@ -20,22 +21,23 @@ export const ConfigurationFormat = {
   },
 
   version(version: number): string {
-    return `v${version}`;
+    return `${ConfigurationManagementPolicy.DefaultVersionPrefix}${version}`;
   },
 
   identifier(identifier: string): string {
-    return `${identifier.slice(0, 8)}…`;
+    return `${identifier.slice(0, ConfigurationManagementPolicy.IdentifierPreviewLength)}…`;
   },
 
   date(value: string): string {
+    return ConfigurationFormat.timestamp(value, { dateStyle: 'medium', timeStyle: 'short' });
+  },
+
+  timestamp(value: string, options: Intl.DateTimeFormatOptions): string {
     const date = new Date(value);
 
     return Number.isNaN(date.getTime())
       ? value
-      : new Intl.DateTimeFormat(Localization.formattingLocale, {
-          dateStyle: 'medium',
-          timeStyle: 'short',
-        }).format(date);
+      : new Intl.DateTimeFormat(Localization.formattingLocale, options).format(date);
   },
 
   action(action: string): string {

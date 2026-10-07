@@ -1,29 +1,19 @@
 'use client';
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useSyncExternalStore,
-  type ReactNode,
-} from 'react';
+import { createContext, useContext, useEffect, useState, useSyncExternalStore } from 'react';
 import { QuizLocaleStore } from './quiz-locale-store';
-import { QuizLocalization, type QuizLocale } from './quiz-localization';
-
-interface QuizLocaleContextValue {
-  readonly locale: QuizLocale;
-  readonly changeLocale: (locale: QuizLocale) => void;
-  readonly storageAvailable: boolean;
-}
+import { QuizLocalization } from './quiz-localization';
+import { QuizLocalizationMessages } from './quiz-localization-messages';
+import { QuizLocalizationPolicy } from './quiz-localization-policy';
+import type { QuizLocale, QuizLocaleContextValue } from './quiz-localization-types';
 
 const QuizLocaleContext = createContext<QuizLocaleContextValue>({
-  locale: 'en',
+  locale: QuizLocalizationPolicy.DefaultLocale,
   changeLocale: () => undefined,
   storageAvailable: true,
 });
 
-export function QuizLocaleProvider({ children }: { readonly children: ReactNode }) {
+export function QuizLocaleProvider({ children }: UIPropertiesWithChildren) {
   const locale = useSyncExternalStore(
     QuizLocaleStore.subscribe,
     QuizLocaleStore.read,
@@ -41,9 +31,7 @@ export function QuizLocaleProvider({ children }: { readonly children: ReactNode 
 
   return (
     <QuizLocaleContext value={{ locale, changeLocale, storageAvailable }}>
-      <title>
-        {locale === 'ru' ? 'Стиль работы команды | Kelpie' : 'Your team, working better | Kelpie'}
-      </title>
+      <title>{QuizLocalizationMessages.Titles[locale]}</title>
       {children}
     </QuizLocaleContext>
   );

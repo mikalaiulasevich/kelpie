@@ -1,3 +1,10 @@
+import { AnalyticsMarketingRibbon } from './analytics-marketing-ribbon';
+import {
+  AnalyticsMetricPercentage,
+  AnalyticsMetricComparison,
+  AnalyticsVariantMetricDetails,
+} from './analytics-marketing-details';
+import { AnalyticsContent } from './analytics-content';
 import { useLocalization } from '../localization/use-localization';
 import { isNull } from 'es-toolkit/predicate';
 import {
@@ -9,203 +16,17 @@ import {
   FlaskConical,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/card';
-import { Progress } from '../components/progress';
 import { Badge } from '../components/badge';
-import type {
-  AnalyticsRatio,
-  AnalyticsVariant,
-  AnalyticsVersion,
-} from '../management/management-types';
+import type { AnalyticsVersion } from '../management/management-types';
 import { AnalyticsFormat } from './analytics-format';
-import { AnalyticsMarketingMetrics } from './analytics-marketing-metrics';
+import { AnalyticsMarketingMetrics, AnalyticsSummaryMetric } from './analytics-marketing-metrics';
 
-function MarketingRibbon({
-  variant,
-  maximum,
-}: {
-  readonly variant: AnalyticsVariant;
-  readonly maximum: number;
-}) {
-  const { t } = useLocalization();
-
-  const counts = [
-    variant.started,
-    variant.resultCompletion.numerator,
-    variant.ctaClickThrough.numerator,
-  ];
-  const tone = variant.variant === 'A' ? 'text-primary' : 'text-violet';
-
-  return (
-    <div className="min-w-0 rounded-2xl bg-background/25 px-3 py-4 sm:px-5">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className={`flex items-center gap-2 text-sm font-medium ${tone}`}>
-          <span className="size-2 rounded-full bg-current" />
-          {t('Variant')} {variant.variant}
-        </span>
-        <span className="text-xs text-muted-foreground">
-          {AnalyticsFormat.ratio(variant.ctaClickThrough)} {t('result → CTA')}
-        </span>
-      </div>
-      <div className={`relative mt-4 ${tone}`}>
-        <svg
-          viewBox="0 0 600 180"
-          preserveAspectRatio="none"
-          className="h-32 w-full sm:h-40"
-          aria-hidden="true"
-        >
-          <path
-            d={AnalyticsMarketingMetrics.ribbon(counts, maximum, 1)}
-            fill="currentColor"
-            opacity="0.16"
-          />
-          <path
-            d={AnalyticsMarketingMetrics.ribbon(counts, maximum, 0.72)}
-            fill="currentColor"
-            opacity="0.28"
-          />
-          <path
-            d={AnalyticsMarketingMetrics.ribbon(counts, maximum, 0.42)}
-            fill="currentColor"
-            opacity="0.9"
-          />
-          <path
-            d="M48 0V180 M300 0V180 M552 0V180"
-            stroke="currentColor"
-            strokeOpacity="0.24"
-            strokeDasharray="3 5"
-          />
-        </svg>
-        <div className="absolute inset-x-0 top-1/2 grid -translate-y-1/2 grid-cols-3 gap-1 text-center">
-          {counts.map((count, index) => (
-            <span
-              key={index}
-              className="mx-auto max-w-full rounded-xl bg-background/95 px-2 py-1 font-mono text-xs text-foreground tabular-nums sm:px-3"
-            >
-              {AnalyticsFormat.count(count)}
-            </span>
-          ))}
-        </div>
-      </div>
-      {variant.started === 0 && (
-        <p className="mt-2 text-xs text-muted-foreground">
-          {t('No started sessions for this variant.')}
-        </p>
-      )}
-    </div>
-  );
-}
-
-interface VariantMetricDetailsProperties {
-  version: AnalyticsVersion;
-  metric: 'started' | 'resultCompletion' | 'ctaConversion';
-}
-
-function MetricPercentage({ ratio }: { readonly ratio: AnalyticsRatio }): UIElement {
-  useLocalization();
-
-  return (
-    <p className="metric-summary-value" aria-label={AnalyticsFormat.ratio(ratio)}>
-      {isNull(ratio.value) ? (
-        '—'
-      ) : (
-        <>
-          <span>{AnalyticsFormat.ratio(ratio).replace('%', '')}</span>
-          <span className="metric-percent-sign">%</span>
-        </>
-      )}
-    </p>
-  );
-}
-
-function MetricComparison({
-  version,
-  metric,
-}: {
+interface AnalyticsMarketingOverviewProperties {
   readonly version: AnalyticsVersion;
-  readonly metric: 'resultCompletion' | 'ctaConversion';
-}): UIElement {
-  const { t } = useLocalization();
-
-  const rateA = version.variants.find((variant) => variant.variant === 'A')?.[metric].value ?? null;
-  const rateB = version.variants.find((variant) => variant.variant === 'B')?.[metric].value ?? null;
-  const difference = isNull(rateA) || isNull(rateB) ? null : (rateB - rateA) * 100;
-
-  return (
-    <p className="metric-comparison-note">
-      {isNull(difference) ? (
-        'A/B comparison needs sessions in both variants.'
-      ) : (
-        <>
-          {t('B vs A')} {t(' ')}
-          <strong style={{ color: AnalyticsMarketingMetrics.differenceColor(difference) }}>
-            {AnalyticsMarketingMetrics.difference(difference)}
-          </strong>
-          <span>{t('Percentage points · significance not tested')}</span>
-        </>
-      )}
-    </p>
-  );
 }
 
-function VariantMetricDetails({ version, metric }: VariantMetricDetailsProperties) {
-  const { t } = useLocalization();
-
-  const totalStarted = version.variants.reduce((total, variant) => total + variant.started, 0);
-
-  return (
-    <dl className="metric-variant-details">
-      {version.variants.map((variant) => {
-        const value = variant[metric];
-
-        return (
-          <div key={variant.variant}>
-            <dt>
-              {t('Variant')} {variant.variant}
-            </dt>
-            <dd>
-              {typeof value === 'number'
-                ? AnalyticsFormat.count(value)
-                : AnalyticsFormat.ratio(value)}
-            </dd>
-            {typeof value === 'number' && (
-              <>
-                <dd className="metric-variant-count">
-                  {AnalyticsFormat.ratio(AnalyticsMarketingMetrics.ratio(value, totalStarted))}{' '}
-                  {t('of starts')}
-                </dd>
-                <Progress
-                  className="mt-2 h-1"
-                  value={100 * (AnalyticsMarketingMetrics.ratio(value, totalStarted).value ?? 0)}
-                  aria-label={t('Variant {variant}: share of starts', { variant: variant.variant })}
-                />
-              </>
-            )}
-            {typeof value !== 'number' && (
-              <>
-                <dd className="metric-variant-count">{AnalyticsFormat.fraction(value)}</dd>
-                {!isNull(value.value) && (
-                  <Progress
-                    className="mt-2 h-1"
-                    value={Math.min(100, value.value * 100)}
-                    aria-label={t('Variant {variant}: {metric}', {
-                      variant: variant.variant,
-                      metric: t(
-                        metric === 'resultCompletion' ? 'Result completion' : 'CTA conversion',
-                      ),
-                    })}
-                  />
-                )}
-              </>
-            )}
-          </div>
-        );
-      })}
-    </dl>
-  );
-}
-
-export function AnalyticsMarketingOverview({ version }: { readonly version: AnalyticsVersion }) {
-  const { t } = useLocalization();
+export function AnalyticsMarketingOverview({ version }: AnalyticsMarketingOverviewProperties) {
+  const { t: translate } = useLocalization();
 
   const metrics = AnalyticsMarketingMetrics.summarize(version);
   const maximum = Math.max(...version.variants.map((variant) => variant.started), 0);
@@ -213,7 +34,7 @@ export function AnalyticsMarketingOverview({ version }: { readonly version: Anal
   return (
     <section
       className="@container/marketing grid min-w-0 gap-5"
-      aria-label={t('Marketing performance overview')}
+      aria-label={translate(AnalyticsContent.MarketingOverview)}
     >
       <div className="grid min-w-0 gap-3 @min-[36rem]/marketing:grid-cols-3">
         <Card className="metric-summary compact-card min-w-0 gap-3">
@@ -222,18 +43,22 @@ export function AnalyticsMarketingOverview({ version }: { readonly version: Anal
               <span className="metric-summary-icon">
                 <Users className="size-4" strokeWidth={1.5} />
               </span>
-              {t('Started sessions')}
+              {translate(AnalyticsContent.StartedSessions)}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <p className="metric-summary-value">{AnalyticsFormat.count(metrics.started)}</p>
             <p className="mt-2 text-xs text-muted-foreground">
-              {t('Version')} {version.funnelVersion} {t('· Across selected variants')}
+              {translate(AnalyticsContent.Version)} {version.funnelVersion}{' '}
+              {translate(AnalyticsContent.AcrossVariants)}
             </p>
-            <VariantMetricDetails version={version} metric="started" />
+            <AnalyticsVariantMetricDetails
+              version={version}
+              metric={AnalyticsSummaryMetric.Started}
+            />
             <p className="metric-comparison-note">
-              {t('Observed session split')}
-              <span>{t('Counts follow the current traffic and campaign filters.')}</span>
+              {translate(AnalyticsContent.ObservedSplit)}
+              <span>{translate(AnalyticsContent.FilterCounts)}</span>
             </p>
           </CardContent>
         </Card>
@@ -243,17 +68,24 @@ export function AnalyticsMarketingOverview({ version }: { readonly version: Anal
               <span className="metric-summary-icon">
                 <CircleCheck className="size-4" strokeWidth={1.5} />
               </span>
-              {t('Result completion')}
+              {translate(AnalyticsContent.ResultCompletion)}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <MetricPercentage ratio={metrics.resultRate} />
+            <AnalyticsMetricPercentage ratio={metrics.resultRate} />
             <p className="mt-2 text-xs text-muted-foreground">
-              {AnalyticsFormat.count(metrics.results)} {t('of')}{' '}
-              {AnalyticsFormat.count(metrics.started)} {t(' ')} {t('starts viewed a result')}
+              {AnalyticsFormat.count(metrics.results)} {translate(AnalyticsContent.Of)}{' '}
+              {AnalyticsFormat.count(metrics.started)}{' '}
+              {translate(AnalyticsContent.StartsViewedResult)}
             </p>
-            <VariantMetricDetails version={version} metric="resultCompletion" />
-            <MetricComparison version={version} metric="resultCompletion" />
+            <AnalyticsVariantMetricDetails
+              version={version}
+              metric={AnalyticsSummaryMetric.ResultCompletion}
+            />
+            <AnalyticsMetricComparison
+              version={version}
+              metric={AnalyticsSummaryMetric.ResultCompletion}
+            />
           </CardContent>
         </Card>
         <Card className="metric-summary compact-card min-w-0 gap-3">
@@ -262,17 +94,24 @@ export function AnalyticsMarketingOverview({ version }: { readonly version: Anal
               <span className="metric-summary-icon">
                 <MousePointer2 className="size-4" strokeWidth={1.5} />
               </span>
-              {t('CTA conversion')}
+              {translate(AnalyticsContent.CallToActionConversion)}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <MetricPercentage ratio={metrics.conversionRate} />
+            <AnalyticsMetricPercentage ratio={metrics.conversionRate} />
             <p className="mt-2 text-xs text-muted-foreground">
-              {AnalyticsFormat.count(metrics.clicks)} {t('of')}{' '}
-              {AnalyticsFormat.count(metrics.started)} {t(' ')} {t('starts clicked a CTA')}
+              {AnalyticsFormat.count(metrics.clicks)} {translate(AnalyticsContent.Of)}{' '}
+              {AnalyticsFormat.count(metrics.started)}{' '}
+              {translate(AnalyticsContent.StartsClickedAction)}
             </p>
-            <VariantMetricDetails version={version} metric="ctaConversion" />
-            <MetricComparison version={version} metric="ctaConversion" />
+            <AnalyticsVariantMetricDetails
+              version={version}
+              metric={AnalyticsSummaryMetric.CallToActionConversion}
+            />
+            <AnalyticsMetricComparison
+              version={version}
+              metric={AnalyticsSummaryMetric.CallToActionConversion}
+            />
           </CardContent>
         </Card>
       </div>
@@ -282,48 +121,48 @@ export function AnalyticsMarketingOverview({ version }: { readonly version: Anal
             <div className="flex flex-wrap items-center justify-between gap-2">
               <CardTitle className="flex items-center gap-2">
                 <ChartNoAxesCombined className="size-4 text-primary" />
-                {t('Session milestones')}
+                {translate(AnalyticsContent.SessionMilestones)}
               </CardTitle>
               <Badge variant="outline">
-                {t('Version')} {version.funnelVersion}
+                {translate(AnalyticsContent.Version)} {version.funnelVersion}
               </Badge>
             </div>
-            <CardDescription>
-              {t('Ribbon width shows session count on a shared scale.')}
-            </CardDescription>
+            <CardDescription>{translate(AnalyticsContent.RibbonDescription)}</CardDescription>
           </CardHeader>
           <CardContent className="flex min-w-0 flex-1 flex-col gap-3">
             <div className="grid grid-cols-3 gap-2 px-3 text-center text-[11px] text-muted-foreground sm:text-xs">
-              <span>{t('Started')}</span>
-              <span>{t('Result viewed')}</span>
-              <span>{t('Result viewers who clicked')}</span>
+              <span>{translate(AnalyticsContent.Started)}</span>
+              <span>{translate(AnalyticsContent.ResultViewed)}</span>
+              <span>{translate(AnalyticsContent.ResultViewersClicked)}</span>
             </div>
             {metrics.started > 0 ? (
               version.variants.map((variant) => (
-                <MarketingRibbon key={variant.variant} variant={variant} maximum={maximum} />
+                <AnalyticsMarketingRibbon
+                  key={variant.variant}
+                  variant={variant}
+                  maximum={maximum}
+                />
               ))
             ) : (
               <div className="flex min-h-48 flex-1 flex-col items-center justify-center gap-3 rounded-2xl bg-muted/30 px-5 py-6 text-center">
                 <ChartNoAxesCombined className="size-7 text-muted-foreground" />
-                <p className="text-sm font-medium">{t('Your funnel will appear here')}</p>
+                <p className="text-sm font-medium">{translate(AnalyticsContent.EmptyMilestones)}</p>
                 <p className="max-w-sm text-xs leading-relaxed text-muted-foreground">
-                  {t(
-                    'No started sessions match the current filters. Milestones appear when traffic reaches this version.',
-                  )}
+                  {translate(AnalyticsContent.EmptyMilestonesDescription)}
                 </p>
               </div>
             )}
             <p className="text-xs leading-relaxed text-muted-foreground">
-              {t('Milestones across all branches. Sessions without a result may still be open.')}
+              {translate(AnalyticsContent.MilestonesDescription)}
             </p>
             <table className="sr-only">
-              <caption>{t('Session milestone counts by variant')}</caption>
+              <caption>{translate(AnalyticsContent.MilestonesCaption)}</caption>
               <thead>
                 <tr>
-                  <th>{t('Variant')}</th>
-                  <th>{t('Started')}</th>
-                  <th>{t('Result viewed')}</th>
-                  <th>{t('Result viewers who clicked')}</th>
+                  <th>{translate(AnalyticsContent.Variant)}</th>
+                  <th>{translate(AnalyticsContent.Started)}</th>
+                  <th>{translate(AnalyticsContent.ResultViewed)}</th>
+                  <th>{translate(AnalyticsContent.ResultViewersClicked)}</th>
                 </tr>
               </thead>
               <tbody>
@@ -343,9 +182,9 @@ export function AnalyticsMarketingOverview({ version }: { readonly version: Anal
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FlaskConical className="size-4 text-primary" />
-              {t('Variant comparison')}
+              {translate(AnalyticsContent.VariantComparison)}
             </CardTitle>
-            <CardDescription>{t('CTA conversion · B minus A')}</CardDescription>
+            <CardDescription>{translate(AnalyticsContent.ConversionDifference)}</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-5">
             <div
@@ -357,9 +196,11 @@ export function AnalyticsMarketingOverview({ version }: { readonly version: Anal
             >
               {isNull(metrics.conversionDifference) ? (
                 <>
-                  <p className="text-sm font-medium">{t('No comparison yet')}</p>
+                  <p className="text-sm font-medium">
+                    {translate(AnalyticsContent.EmptyComparison)}
+                  </p>
                   <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                    {t('Both variants need sessions to compare CTA conversion.')}
+                    {translate(AnalyticsContent.EmptyComparisonDescription)}
                   </p>
                 </>
               ) : (
@@ -375,7 +216,7 @@ export function AnalyticsMarketingOverview({ version }: { readonly version: Anal
                     {AnalyticsMarketingMetrics.difference(metrics.conversionDifference)}
                   </p>
                   <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                    {t('Percentage-point difference. Statistical significance is not tested.')}
+                    {translate(AnalyticsContent.DifferenceDescription)}
                   </p>
                 </>
               )}
@@ -385,7 +226,7 @@ export function AnalyticsMarketingOverview({ version }: { readonly version: Anal
                 <div key={variant.variant} className="grid gap-2">
                   <div className="flex items-center justify-between gap-3 text-sm">
                     <span>
-                      {t('Variant')} {variant.variant}
+                      {translate(AnalyticsContent.Variant)} {variant.variant}
                     </span>
                     <span className="font-medium tabular-nums">
                       {AnalyticsFormat.ratio(variant.ctaConversion)}
@@ -405,16 +246,16 @@ export function AnalyticsMarketingOverview({ version }: { readonly version: Anal
             </div>
             <div className="border-t pt-4">
               <div className="flex items-center justify-between gap-3">
-                <span className="text-sm">{t('Result → CTA')}</span>
+                <span className="text-sm">{translate(AnalyticsContent.ResultToAction)}</span>
                 <ArrowRight className="size-4 text-primary" />
               </div>
               <p className="mt-2 text-2xl font-semibold tabular-nums">
                 {isNull(metrics.clickThrough.value)
-                  ? t('—')
+                  ? '—'
                   : AnalyticsFormat.ratio(metrics.clickThrough)}
               </p>
               <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                {t('CTA clicks / result views, across selected variants.')}
+                {translate(AnalyticsContent.ClickThroughDescription)}
               </p>
             </div>
           </CardContent>

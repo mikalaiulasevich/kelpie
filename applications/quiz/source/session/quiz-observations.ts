@@ -1,4 +1,7 @@
-import { QuizSessionApi, QuizSessionValidators } from './quiz-session-api';
+import { QuizBrowserLocks } from './quiz-browser-locks';
+import { QuizSessionApi } from './quiz-session-api';
+import { QuizSessionValidators } from './quiz-session-types';
+import { QuizSessionEvaluation } from './quiz-session-evaluation';
 import { QuizSessionMessages } from './quiz-session-messages';
 import { QuizSessionPolicy } from './quiz-session-policy';
 import type { QuizObservation, QuizObservationInput, QuizSessionState } from './quiz-session-types';
@@ -30,15 +33,9 @@ export const QuizObservations = {
     state: QuizSessionState,
     observations: readonly QuizObservationInput[],
   ): Promise<void> {
-    if (typeof navigator !== 'undefined' && navigator.locks) {
-      await navigator.locks.request(QuizObservations.key(state), async () =>
-        QuizObservations.append(state, observations),
-      );
-
-      return;
-    }
-
-    QuizObservations.append(state, observations);
+    await QuizBrowserLocks.run(QuizObservations.key(state), () =>
+      QuizObservations.append(state, observations),
+    );
   },
 
   append(state: QuizSessionState, observations: readonly QuizObservationInput[]): void {
@@ -73,7 +70,7 @@ export const QuizObservations = {
   },
 
   async view(state: QuizSessionState): Promise<void> {
-    const evaluation = QuizSessionApi.evaluate(state);
+    const evaluation = QuizSessionEvaluation.evaluate(state);
     const index = evaluation.route.steps.findIndex(
       (step) => step.id === state.currentStepIdentifier,
     );
@@ -136,13 +133,9 @@ export const QuizObservations = {
 
     const identifiers = new Set(response.receipts.map((receipt) => receipt.event_id));
 
-    if (typeof navigator !== 'undefined' && navigator.locks) {
-      await navigator.locks.request(QuizObservations.key(state), async () =>
-        QuizObservations.remove(state, identifiers),
-      );
-    } else {
-      QuizObservations.remove(state, identifiers);
-    }
+    await QuizBrowserLocks.run(QuizObservations.key(state), () =>
+      QuizObservations.remove(state, identifiers),
+    );
 
     if (response.receipts.some((receipt) => receipt.status === 'rejected')) {
       localStorage.setItem(`${QuizObservations.key(state)}.rejected`, 'true');
@@ -157,7 +150,7 @@ export const QuizObservations = {
     }
   },
 
-  remove(state: QuizSessionState, identifiers: ReadonlySet<string | undefined>): void {
+  remove(state: QuizSessionState, identifiers: ReadonlySet<Optional<string>>): void {
     const remaining = QuizObservations.read(state).filter(
       (event) => !identifiers.has(event.event_id),
     );
