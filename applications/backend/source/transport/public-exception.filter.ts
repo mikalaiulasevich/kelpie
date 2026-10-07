@@ -1,3 +1,4 @@
+import { DatabaseErrors } from '../database/database-errors.js';
 import { isError, isString } from 'es-toolkit/predicate';
 import { attempt } from 'es-toolkit/util';
 import {
@@ -31,12 +32,16 @@ export class PublicExceptionFilter implements ExceptionFilter {
       response.raw.getHeader(DiagnosticPolicy.RequestIdentifierHeader) ?? randomUUID();
     response.header(DiagnosticPolicy.RequestIdentifierHeader, requestIdentifier);
 
-    if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
+    if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
       Diagnostics.write({
         event: DiagnosticEvents.RequestFailed,
         status,
         error: ErrorDiagnostics.describe(exception),
       });
+    }
+
+    if (DatabaseErrors.isUnavailable(exception)) {
+      response.header(TransportPolicy.RetryAfterHeader, TransportPolicy.StorageRetryAfterSeconds);
     }
 
     response.status(status).send({
@@ -53,6 +58,10 @@ export class PublicExceptionFilter implements ExceptionFilter {
   private resolvePublicStatus(exception: unknown): number {
     if (exception instanceof HttpException) {
       return exception.getStatus();
+    }
+
+    if (DatabaseErrors.isUnavailable(exception)) {
+      return HttpStatus.SERVICE_UNAVAILABLE;
     }
 
     return this.resolveInputStatus(exception) ?? HttpStatus.INTERNAL_SERVER_ERROR;

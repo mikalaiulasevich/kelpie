@@ -33,7 +33,11 @@ export class AnalyticsService {
         const metadata = {
           generatedAt: now.toISOString(),
           filters: query,
-          pagination: { limit: query.limit, offset: query.offset, hasMore: page.length > query.limit },
+          pagination: {
+            limit: query.limit,
+            offset: query.offset,
+            hasMore: page.length > query.limit,
+          },
         };
         if (versions.length === 0) {
           return { ...metadata, versions: [] };
@@ -56,7 +60,10 @@ export class AnalyticsService {
 
         const aggregates = AnalyticsProjection.group({ summaries, steps, edges });
 
-        return { ...metadata, versions: versions.map((version) => AnalyticsProjection.version(version, aggregates)) };
+        return {
+          ...metadata,
+          versions: versions.map((version) => AnalyticsProjection.version(version, aggregates)),
+        };
       },
       { timeout: AnalyticsPolicy.TransactionTimeout },
     );

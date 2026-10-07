@@ -2,7 +2,7 @@
 
 A TypeScript/NestJS (Fastify)/React foundation for configurable funnels. Implemented: configuration validation, pure funnel evaluation, the initial Prisma/SQLite schema, backend lifecycle and health endpoints, immutable configuration draft imports, administrator authentication, transactional publication/rollback APIs, signed user sessions, revisioned answer/navigation commands and a frontend readiness screen.
 
-**The product is not complete.** The funnel/administration UI, client event ingestion, analytics, synthetic traffic and public deployment remain in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). No public application URL or agreed 48-hour start is recorded.
+**The product is not complete.** The funnel/administration UI, client synthetic traffic and public deployment remain in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). No public application URL or agreed 48-hour start is recorded.
 
 ## Local development
 
@@ -77,9 +77,36 @@ Common command fields are `operationIdentifier` (UUID), `expectedSessionRevision
 
 State contains session/version/funnel identifiers, funnel version, variant, pinned configuration, revision, current step, retained answers with `confirmationRevision`, visible progress and an eligible result or null. Answer values and confirmation are separate: hiding a branch clears confirmation while retaining its values, including explicit null. Unconfirmed values stay inactive until resubmission. Browser drafts are not yet implemented; clients must persist unfinished inputs separately and submit only on explicit Continue.
 
-Retry an uncertain command with the identical body and operation identifier. Ownership and expiry are checked before replay; an identical retry returns its original committed revision. Changed intent returns `operation_conflict`; an outdated revision returns `stale_revision` (409). Fetch current state before replacing newer UI state with an older replay. Invalid answers return 422 without changing state. Answers, revision, navigation transition, authoritative events and the replay response commit atomically. Creation stores an initial snapshot and `session_started`; answer/Back events contain bounded metadata, never raw answers. Information Continue records a forward transition without inventing an answer event. Client views, CTA observations and batch ingestion remain pending.
+Retry an uncertain command with the identical body and operation identifier. Ownership and expiry are checked before replay; an identical retry returns its original committed revision. Changed intent returns `operation_conflict`; an outdated revision returns `stale_revision` (409). Fetch current state before replacing newer UI state with an older replay. Invalid answers return 422 without changing state. Answers, revision, navigation transition, authoritative events and the replay response commit atomically. Creation stores an initial snapshot and `session_started`; answer/Back events contain bounded metadata, never raw answers. Information Continue records a forward transition without inventing an answer event. Client observations use the event batch API below; the browser delivery queue remains pending.
 
 The `kelpie_session` cookie is HttpOnly, SameSite=Strict, scoped to `/api`, and Secure in production. Its HMAC signing key is generated once and persisted in `ApplicationSecret`; storage keeps credential hashes, not plaintext browser cookies. Creation/replay renew the same cookie to the remaining configured session lifetime (72 hours in supplied configurations), without extending server expiry. Preserve the database, including its signing key, in protected backups; losing the key invalidates existing cookies. Backup/restore drills remain pending.
+
+## Event ingestion API
+
+`POST /api/events/batches` accepts `{ "events": [...] }` with 1–50 elements and the same session cookie, exact Origin and `X-Kelpie-Session: 1` as session commands. Each element has `event_id` (UUID), `session_id`, `name`, `client_timestamp` (canonical UTC ISO), `step_id`, `observationRevision` and `properties`. The revision identifies the committed state in which the event was observed, including revision 0 for initial state. An old revision can remain eligible after the user changes branches or a newer configuration is published.
+
+| Client event | Required properties |
+| --- | --- |
+| `step_viewed` | `step_type`, `visible_step_index` (zero-based), `visible_step_count` (all available route screens) |
+| `result_viewed` | `result_id` |
+| `cta_clicked` | `result_id`, `action` |
+| `recommendation_expanded` | `result_id`, `action: "expand_recommendation"`, `source: "primary_cta"`; requires that action and declaration in the pinned version |
+
+The backend checks the exact historical current screen, eligible result and configured action. These checks establish permitted state, not proof of human viewing. Server-owned `session_started`, `answer_submitted`, `step_completed` and `back_clicked` cannot be submitted by clients. Undeclared properties, raw answers and contradictory metadata are rejected. Optional `funnel_id`, `funnel_version`, `experiment_id`, `variant` and the five UTM fields must match the immutable session; omitting them lets the backend derive them. Event storage joins the immutable session/version for this metadata and stores both timestamps and observation revision.
+
+The response is `{ "receipts": [...] }`, preserving each input `position`. Accepted/duplicate receipts contain `event_id`, `status` and the original `server_timestamp`; rejected receipts contain a stable `code` and the identifier only when valid. One invalid element does not discard valid siblings. Identical replay is a duplicate; changed content under the same identifier is a conflict, including cross-owner collisions without disclosing another session. Authentication and expiry are checked before sensitive replay.
+
+Each valid element commits independently. A timeout or server error can therefore mean an earlier prefix committed: retry the unchanged batch with the same identifiers and client timestamps. Only accepted/duplicate receipts acknowledge storage. Ingestion is limited to 60 requests per minute per IP and the shared 256 KiB body limit. Browser queue persistence, backoff and unsent-event recovery remain frontend work.
+
+## Analytics API
+
+`GET /api/administration/analytics?funnelIdentifier=workstyle-planner` requires the administrator cookie. Optional filters: `versionIdentifier`, acquisition `campaign`, `includeForced=true|false` (default false), and `trafficOrigin=production|synthetic|all` (default production). Version pages use `limit` (default 10, maximum 20) and `offset` (maximum 10000); `pagination.hasMore` identifies another page. Both variants appear even when they have no traffic. The endpoint is limited to 30 requests per minute per IP and disables caching.
+
+The response contains `generatedAt`, resolved filters, pagination and separate version/experiment/variant groups. Each group includes `started`, `resultCompletion`, `ctaConversion`, `ctaClickThrough`, ordered `steps` with conditional markers, and historical forward `edges`. Every ratio contains `numerator`, `denominator` and fractional `value`; a zero denominator returns null. Result screens have reach only, with no completion/dropout row.
+
+SQLite counts unique session sets. Starts require the persisted session and authoritative start event. Step completion intersects observed viewers with authoritative forward transitions; information Continue counts as a transition. Noncompletion is split into open sessions and expired dropout. CTA conversion divides clickers by starters; CTA CTR divides sessions with both result and CTA observations by result viewers. Edge metrics distinguish observed source-to-destination conversion, branch share, transition-to-view conversion and open/expired destination nonreach. Repeated views, Back, duplicate identifiers and arrival order do not increase these counts. Branch shares can sum above 100% when a session changes branches. [The plan](IMPLEMENTATION_PLAN.md#analytics-definitions) defines the exact sets and denominators.
+
+The API aggregates in SQLite rather than loading individual event rows into Node.js. It returns bounded version pages; the underlying database still processes matching historical facts. A read transaction provides one consistent snapshot, but its timeout cannot interrupt a synchronous SQLite statement. Query-plan checks exercise the existing session/event/transition indexes. No throughput benchmark, analytics UI or synthetic traffic command is included yet.
 
 ## Repository map
 

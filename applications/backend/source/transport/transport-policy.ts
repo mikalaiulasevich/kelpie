@@ -6,6 +6,8 @@ export const TransportPolicy = {
   PrivateCacheControl: 'no-store',
   RateLimitCacheSize: 10_000,
   MaximumPublicIssues: 30,
+  RetryAfterHeader: 'retry-after',
+  StorageRetryAfterSeconds: 1,
   JsonMediaType: 'application/json',
   InputErrorCodes: {
     FST_ERR_CTP_BODY_TOO_LARGE: HttpStatus.PAYLOAD_TOO_LARGE,

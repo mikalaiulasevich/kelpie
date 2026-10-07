@@ -75,7 +75,11 @@ export const AnalyticsResponseSchemas = {
   Response: Type.Object({
     generatedAt: Type.String(),
     filters: AnalyticsSchemas.ResolvedQuery,
-    pagination: Type.Object({ limit: AnalyticsSchemas.Count, offset: AnalyticsSchemas.Count, hasMore: Type.Boolean() }),
+    pagination: Type.Object({
+      limit: AnalyticsSchemas.Count,
+      offset: AnalyticsSchemas.Count,
+      hasMore: Type.Boolean(),
+    }),
     versions: Type.Array(AnalyticsVersionSchemas.Version),
   }),
 } as const;

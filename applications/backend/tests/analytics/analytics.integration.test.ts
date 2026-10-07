@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { BackendApplicationFixture } from '../fixtures/backend-application.js';
 import { AdministrationFixture } from '../fixtures/administration.js';
 import { AnalyticsFixture } from '../fixtures/analytics-fixture.js';
+import { AnalyticsCases } from '../cases/analytics-cases.js';
 import { AnalyticsService } from '../../source/analytics/analytics.service.js';
 import { AnalyticsQueries } from '../../source/analytics/analytics-queries.js';
 import { AnalyticsInputs } from '../../source/analytics/analytics-inputs.js';
@@ -149,6 +150,7 @@ describe('analytics SQLite session sets', () => {
   it('paginates versions without pooling variants or experiments', async () => {
     const service = backend.getService(AnalyticsService);
     const firstPage = await service.read({ funnelIdentifier: 'workstyle-planner', limit: '1' });
+    expect(firstPage.pagination.hasMore).toBe(true);
     expect(firstPage.versions[0]).toMatchObject({
       versionIdentifier: versions.thirdVersion,
       funnelVersion: 3,
@@ -166,17 +168,59 @@ describe('analytics SQLite session sets', () => {
     expect((await service.read({ funnelIdentifier: 'missing' })).versions).toEqual([]);
   });
 
-  it('uses session and event indexes in the aggregate query plan', async () => {
+  it.each(AnalyticsCases.InvalidQueries)('rejects $name', async ({ query }) => {
+    await expect(backend.getService(AnalyticsService).read(query)).rejects.toMatchObject({
+      status: 400,
+    });
+  });
+
+  it('binds campaign values as data rather than SQL', async () => {
+    const response = await backend
+      .getService(AnalyticsService)
+      .read({ funnelIdentifier: 'workstyle-planner', campaign: "' OR 1=1 --" });
+    expect(
+      response.versions.flatMap((version) => version.variants.map((variant) => variant.started)),
+    ).toEqual([0, 0, 0, 0]);
+  });
+
+  it('recognizes legacy numeric expiration alongside adapter ISO expiration', async () => {
+    await backend.database
+      .$executeRaw`UPDATE "Session" SET "expiresAt" = ${new Date('2020-01-01T00:00:00.000Z').getTime()} WHERE "identifier" = 'expired'`;
+    try {
+      const response = await backend
+        .getService(AnalyticsService)
+        .read({
+          funnelIdentifier: 'workstyle-planner',
+          versionIdentifier: versions.firstVersion,
+          campaign: 'launch',
+        });
+      expect(
+        response.versions[0]?.variants[0]?.steps.find((step) => step.stepIdentifier === 'intro'),
+      ).toMatchObject({ expiredDropout: { numerator: 1, denominator: 2, value: 0.5 } });
+    } finally {
+      await backend.database.session.update({
+        where: { identifier: 'expired' },
+        data: { expiresAt: new Date('2020-01-01T00:00:00.000Z') },
+      });
+    }
+  });
+
+  it('uses indexed source lookups in all aggregate query plans', async () => {
     const query = AnalyticsInputs.query({ funnelIdentifier: 'workstyle-planner' });
     const cohort = AnalyticsQueries.cohort(query, [versions.firstVersion], new Date());
-    const plan = await backend.database.$queryRaw<unknown[]>(
-      Prisma.sql`EXPLAIN QUERY PLAN ${AnalyticsQueries.steps(cohort)}`,
-    );
-    expect(AnalyticsFixture.queryPlan(plan)).toContain(
-      'Event_sessionIdentifier_name_stepIdentifier_idx',
-    );
-    expect(AnalyticsFixture.queryPlan(plan)).toContain(
-      'SessionTransition_sessionIdentifier_fromStepIdentifier_kind_idx',
-    );
+    const statements = {
+      summary: AnalyticsQueries.summary(cohort),
+      steps: AnalyticsQueries.steps(cohort),
+      edges: AnalyticsQueries.edges(cohort),
+    };
+    for (const [name, statement] of Object.entries(statements)) {
+      const rows = await backend.database.$queryRaw<unknown[]>(
+        Prisma.sql`EXPLAIN QUERY PLAN ${statement}`,
+      );
+      const plan = AnalyticsFixture.queryPlan(rows);
+      expect(plan, name).toContain('Event_sessionIdentifier_name_stepIdentifier_idx');
+      expect(plan, name).toContain('SEARCH s USING INDEX');
+      expect(plan, name).not.toMatch(/SCAN [ste]\b/);
+    }
   });
 });
