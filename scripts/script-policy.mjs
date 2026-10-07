@@ -3,6 +3,8 @@ export const DevelopmentPolicy = /** @type {const} */ ({
   Workspaces: Object.freeze(['@kelpie/backend', '@kelpie/frontend']),
   PackageManager: 'npm',
   DevelopmentArguments: ['run', 'development'],
+  BunDevelopmentArguments: ['run', '--filter'],
+  BunDevelopmentScript: 'development:bun',
   StandardStreams: 'inherit',
   // Allow the backend ten-second HTTP drain deadline plus time for database cleanup.
   ShutdownTimeoutMilliseconds: 15_000,

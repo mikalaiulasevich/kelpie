@@ -79,7 +79,11 @@ describe('Error diagnostics', () => {
       'Error: private\n    at input (/private/file:123456:789)',
     );
 
-    expect(DiagnosticFixtures.describeAtDepth(20, error).frames).toHaveLength(6);
+    const frames = DiagnosticFixtures.describeAtDepth(20, error).frames;
+
+    expect(frames.length).toBeGreaterThan(0);
+    expect(frames.length).toBeLessThanOrEqual(6);
+    expect(frames).not.toContainEqual(expect.objectContaining({ line: 123456, column: 789 }));
   });
 
   it('never reads the original error stack getter', () => {

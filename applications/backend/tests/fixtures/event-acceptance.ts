@@ -14,7 +14,7 @@ import {
 } from './session-flow.js';
 
 const EventAcceptanceStatements = {
-  RejectSecond: `CREATE TEMP TRIGGER reject_second_observation BEFORE INSERT ON Event
+  RejectSecond: `CREATE TRIGGER reject_second_observation BEFORE INSERT ON Event
     WHEN NEW.source = 'client' AND (SELECT COUNT(*) FROM Event WHERE source = 'client') >= 1
     BEGIN SELECT RAISE(ABORT, 'forced_observation_failure'); END`,
   Restore: 'DROP TRIGGER IF EXISTS reject_second_observation',

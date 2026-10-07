@@ -48,6 +48,7 @@ describe('Startup process fixture failure preservation', () => {
 
   it('preserves both child process and directory cleanup failures on close', async () => {
     const process = new ChildProcesses.ChildProcess();
+    Object.defineProperties(process, { stdout: { value: null }, stderr: { value: null } });
     const exitError = new Error('Child process failed.');
     const cleanupError = new Error('Directory cleanup failed.');
     vi.mocked(ChildProcesses.spawn).mockReturnValueOnce(process);

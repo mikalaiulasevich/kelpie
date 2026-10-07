@@ -7,7 +7,8 @@
     "development": "vite",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "development:bun": "bun --bun vite"
   },
   "dependencies": {
     "@radix-ui/react-slot": "1.4.0",

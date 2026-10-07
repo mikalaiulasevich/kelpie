@@ -13,7 +13,10 @@
     "database:validate": "prisma validate",
     "test": "vitest run",
     "configurations:import": "tsx source/configurations/import-configuration.ts",
-    "administration:provision": "tsx source/administration/provision-administrator.ts"
+    "administration:provision": "tsx source/administration/provision-administrator.ts",
+    "start:bun": "bun distribution/source/main.js",
+    "development:bun": "npm run build && concurrently --kill-others-on-fail \"tsc --project tsconfig.build.json --watch --preserveWatchOutput\" \"bun --watch distribution/source/main.js\"",
+    "test:bun": "bun --bun ../../node_modules/vitest/vitest.mjs run"
   },
   "dependencies": {
     "@fastify/cookie": "11.1.2",

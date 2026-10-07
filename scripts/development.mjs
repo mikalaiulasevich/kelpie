@@ -13,6 +13,25 @@ let shutdownDeadline;
 let shutdownInspection;
 
 const DevelopmentProcesses = {
+  /** @param {string} workspaceName */
+  command(workspaceName) {
+    if (isUndefined(process.versions.bun)) {
+      return {
+        executable: DevelopmentPolicy.PackageManager,
+        arguments: [...DevelopmentPolicy.DevelopmentArguments, `--workspace=${workspaceName}`],
+      };
+    }
+
+    return {
+      executable: process.execPath,
+      arguments: [
+        ...DevelopmentPolicy.BunDevelopmentArguments,
+        workspaceName,
+        DevelopmentPolicy.BunDevelopmentScript,
+      ],
+    };
+  },
+
   /** @param {number} exitCode */
   stop(exitCode) {
     if (shuttingDown) {
@@ -80,15 +99,12 @@ const DevelopmentProcesses = {
 };
 
 for (const workspaceName of DevelopmentPolicy.Workspaces) {
-  const childProcess = spawn(
-    DevelopmentPolicy.PackageManager,
-    [...DevelopmentPolicy.DevelopmentArguments, `--workspace=${workspaceName}`],
-    {
-      stdio: DevelopmentPolicy.StandardStreams,
-      detached: process.platform !== DevelopmentPolicy.WindowsPlatform,
-      shell: process.platform === DevelopmentPolicy.WindowsPlatform,
-    },
-  );
+  const command = DevelopmentProcesses.command(workspaceName);
+  const childProcess = spawn(command.executable, command.arguments, {
+    stdio: DevelopmentPolicy.StandardStreams,
+    detached: process.platform !== DevelopmentPolicy.WindowsPlatform,
+    shell: process.platform === DevelopmentPolicy.WindowsPlatform,
+  });
   childProcesses.add(childProcess);
   childProcess.on('error', (error) => {
     console.error(DevelopmentMessages.startFailed(workspaceName), error.message);

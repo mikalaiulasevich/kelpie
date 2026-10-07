@@ -27,7 +27,7 @@ export const DatabaseWriterLock = {
   ): Promise<Result> {
     const url = backend.getService(ApplicationEnvironmentService).values.databaseUrl;
     const child = spawn(
-      process.execPath,
+      BackendTestPolicy.NodeExecutable,
       [
         '--input-type=module',
         '-e',

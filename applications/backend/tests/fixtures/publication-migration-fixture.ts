@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
-import { DatabaseSync } from 'node:sqlite';
+import { ReferenceSQLiteFixture } from './reference-sqlite.js';
 
 const PublicationMigrationFiles = {
   Initial: '20261006000100_initial_foundation',
@@ -75,7 +75,7 @@ const PublicationMigrationStatements = {
 } as const;
 
 export class PublicationMigrationFixture {
-  private readonly database = new DatabaseSync(':memory:');
+  private readonly database = new ReferenceSQLiteFixture();
 
   private constructor() {}
 
@@ -85,7 +85,7 @@ export class PublicationMigrationFixture {
     try {
       fixture.apply(PublicationMigrationFiles.Initial);
       fixture.apply(PublicationMigrationFiles.OperationScope);
-      fixture.database.exec(PublicationMigrationStatements.Seed);
+      fixture.database.execute(PublicationMigrationStatements.Seed);
 
       return fixture;
     } catch (error) {
@@ -108,48 +108,47 @@ export class PublicationMigrationFixture {
   }
 
   prepareOtherSession(): void {
-    this.database.exec(SessionMigrationStatements.OtherOwner);
+    this.database.execute(SessionMigrationStatements.OtherOwner);
   }
 
   insertTransition(sessionIdentifier: string, operationIdentifier: string, revision: number): void {
-    this.database
-      .prepare(SessionMigrationStatements.InsertTransition)
-      .run(randomUUID(), sessionIdentifier, operationIdentifier, revision);
+    this.database.write(SessionMigrationStatements.InsertTransition, [
+      randomUUID(),
+      sessionIdentifier,
+      operationIdentifier,
+      revision,
+    ]);
   }
 
   transitions() {
-    return this.database.prepare(SessionMigrationStatements.Transitions).all();
+    return this.database.read(SessionMigrationStatements.Transitions);
   }
 
   historicalRows() {
     return {
-      publications: this.database
-        .prepare(PublicationMigrationStatements.HistoricalPublications)
-        .all(),
-      funnels: this.database.prepare(PublicationMigrationStatements.HistoricalFunnels).all(),
-      versions: this.database.prepare(PublicationMigrationStatements.Versions).all(),
-      sessions: this.database.prepare(PublicationMigrationStatements.Sessions).all(),
-      answers: this.database.prepare(PublicationMigrationStatements.Answers).all(),
-      operations: this.database.prepare(PublicationMigrationStatements.Operations).all(),
-      events: this.database.prepare(PublicationMigrationStatements.Events).all(),
+      publications: this.database.read(PublicationMigrationStatements.HistoricalPublications),
+      funnels: this.database.read(PublicationMigrationStatements.HistoricalFunnels),
+      versions: this.database.read(PublicationMigrationStatements.Versions),
+      sessions: this.database.read(PublicationMigrationStatements.Sessions),
+      answers: this.database.read(PublicationMigrationStatements.Answers),
+      operations: this.database.read(PublicationMigrationStatements.Operations),
+      events: this.database.read(PublicationMigrationStatements.Events),
     };
   }
 
   revisions() {
     return {
-      publications: this.database
-        .prepare(PublicationMigrationStatements.PublicationRevisions)
-        .all(),
-      funnels: this.database.prepare(PublicationMigrationStatements.FunnelRevisions).all(),
+      publications: this.database.read(PublicationMigrationStatements.PublicationRevisions),
+      funnels: this.database.read(PublicationMigrationStatements.FunnelRevisions),
     };
   }
 
   foreignKeyViolations() {
-    return this.database.prepare(PublicationMigrationStatements.ForeignKeys).all();
+    return this.database.read(PublicationMigrationStatements.ForeignKeys);
   }
 
   insertDuplicateRevision(): void {
-    this.database.exec(PublicationMigrationStatements.DuplicateRevision);
+    this.database.execute(PublicationMigrationStatements.DuplicateRevision);
   }
 
   close(): void {
@@ -161,6 +160,6 @@ export class PublicationMigrationFixture {
       `../../prisma/migrations/${directory}/migration.sql`,
       import.meta.url,
     );
-    this.database.exec(readFileSync(migration, 'utf8'));
+    this.database.execute(readFileSync(migration, 'utf8'));
   }
 }

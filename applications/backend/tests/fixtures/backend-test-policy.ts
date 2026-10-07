@@ -5,5 +5,6 @@ export const BackendTestPolicy = {
   Host: '127.0.0.1',
   EphemeralPort: 0,
   PackageManager: 'npm',
+  NodeExecutable: 'node',
   MigrationArguments: ['run', 'database:migrate'],
 } as const;
