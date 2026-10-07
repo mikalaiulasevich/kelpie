@@ -3,10 +3,24 @@ import { Ajv } from 'ajv';
 import { createHash } from 'node:crypto';
 import { PublicRequestError } from '../transport/public-request-error.js';
 import { SessionCommandMessages } from './session-command-messages.js';
-import { SessionCommandErrorCode, SessionCommandKind, SessionCommandPolicy } from './session-command-policy.js';
-import { SessionCommandSchemas, type SessionCommand, type SubmitSessionAnswerRequest, type SessionNavigationRequest } from './session-command-types.js';
+import {
+  SessionCommandErrorCode,
+  SessionCommandKind,
+  SessionCommandPolicy,
+} from './session-command-policy.js';
+import {
+  SessionCommandSchemas,
+  type SessionCommand,
+  type SubmitSessionAnswerRequest,
+  type SessionNavigationRequest,
+} from './session-command-types.js';
 
-const compiler = new Ajv({ strict: true, allErrors: false, coerceTypes: false, ownProperties: true });
+const compiler = new Ajv({
+  strict: true,
+  allErrors: false,
+  coerceTypes: false,
+  ownProperties: true,
+});
 const validators = {
   answer: compiler.compile<SubmitSessionAnswerRequest>(SessionCommandSchemas.Answer),
   navigation: compiler.compile<SessionNavigationRequest>(SessionCommandSchemas.Navigation),
@@ -15,24 +29,43 @@ export const SessionCommandInputs = {
   read(kind: SessionCommandKind, value: unknown): SessionCommand {
     if (kind === SessionCommandKind.Answer && validators.answer(value)) {
       SessionCommandInputs.timestamp(value.clientTimestamp);
-      return { ...value, answer: Array.isArray(value.answer) ? [...value.answer] : value.answer, kind };
+      return {
+        ...value,
+        answer: Array.isArray(value.answer) ? [...value.answer] : value.answer,
+        kind,
+      };
     }
     if (kind !== SessionCommandKind.Answer && validators.navigation(value)) {
       SessionCommandInputs.timestamp(value.clientTimestamp);
       return { ...value, kind };
     }
-    throw new PublicRequestError(HttpStatus.BAD_REQUEST, SessionCommandErrorCode.Invalid, SessionCommandMessages.Invalid);
+    throw new PublicRequestError(
+      HttpStatus.BAD_REQUEST,
+      SessionCommandErrorCode.Invalid,
+      SessionCommandMessages.Invalid,
+    );
   },
   timestamp(value: string): void {
     const date = new Date(value);
     if (!Number.isFinite(date.getTime()) || date.toISOString() !== value) {
-      throw new PublicRequestError(HttpStatus.BAD_REQUEST, SessionCommandErrorCode.Invalid, SessionCommandMessages.Invalid);
+      throw new PublicRequestError(
+        HttpStatus.BAD_REQUEST,
+        SessionCommandErrorCode.Invalid,
+        SessionCommandMessages.Invalid,
+      );
     }
   },
   fingerprint(command: SessionCommand): string {
-    return createHash(SessionCommandPolicy.HashAlgorithm).update(JSON.stringify([
-      command.kind, command.expectedSessionRevision, command.stepIdentifier, command.clientTimestamp,
-      command.kind === SessionCommandKind.Answer ? command.answer : null,
-    ])).digest(SessionCommandPolicy.HashEncoding);
+    return createHash(SessionCommandPolicy.HashAlgorithm)
+      .update(
+        JSON.stringify([
+          command.kind,
+          command.expectedSessionRevision,
+          command.stepIdentifier,
+          command.clientTimestamp,
+          command.kind === SessionCommandKind.Answer ? command.answer : null,
+        ]),
+      )
+      .digest(SessionCommandPolicy.HashEncoding);
   },
 } as const;

@@ -1,3 +1,7 @@
+import { SessionController } from '../sessions/session.controller.js';
+import { SessionService } from '../sessions/session.service.js';
+import { SessionOwnershipService } from '../sessions/session-ownership.service.js';
+import { SessionCommandsService } from '../sessions/session-commands.service.js';
 import { ConfigurationManagementController } from '../configurations/configuration-management.controller.js';
 import { ConfigurationManagementService } from '../configurations/configuration-management.service.js';
 import { PublicationController } from '../publications/publication.controller.js';
@@ -18,6 +22,7 @@ import { HealthController } from '../health/health.controller.js';
 
 @Module({
   controllers: [
+    SessionController,
     HealthController,
     AdministrationController,
     ConfigurationManagementController,
@@ -25,6 +30,9 @@ import { HealthController } from '../health/health.controller.js';
     RollbackController,
   ],
   providers: [
+    SessionService,
+    SessionOwnershipService,
+    SessionCommandsService,
     ConfigurationManagementService,
     PublicationService,
     AdministrationService,

@@ -82,24 +82,32 @@ export class SessionBrowserFixture {
   async create(variant: 'A' | 'B' = 'A'): Promise<SessionFlowState> {
     await this.current();
 
-    return SessionFlowFixture.state(await this.post(
-      `?variant=${variant}&utm_campaign=acceptance&utm_source=fixture`,
-      SessionFlowFixture.creation(),
-    ));
+    return SessionFlowFixture.state(
+      await this.post(
+        `?variant=${variant}&utm_campaign=acceptance&utm_source=fixture`,
+        SessionFlowFixture.creation(),
+      ),
+    );
   }
 
   async continue(state: SessionFlowState): Promise<SessionFlowState> {
-    return SessionFlowFixture.state(await this.post('/current/continue', SessionFlowFixture.command(state)));
+    return SessionFlowFixture.state(
+      await this.post('/current/continue', SessionFlowFixture.command(state)),
+    );
   }
 
   async answer(state: SessionFlowState, answer: unknown): Promise<SessionFlowState> {
-    return SessionFlowFixture.state(await this.post('/current/answers', {
-      ...SessionFlowFixture.command(state),
-      answer,
-    }));
+    return SessionFlowFixture.state(
+      await this.post('/current/answers', {
+        ...SessionFlowFixture.command(state),
+        answer,
+      }),
+    );
   }
 
   async back(state: SessionFlowState): Promise<SessionFlowState> {
-    return SessionFlowFixture.state(await this.post('/current/back', SessionFlowFixture.command(state)));
+    return SessionFlowFixture.state(
+      await this.post('/current/back', SessionFlowFixture.command(state)),
+    );
   }
 }

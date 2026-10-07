@@ -24,7 +24,11 @@ export const SessionPolicy = {
 } as const;
 
 export const SessionErrorCode = {
-  Unauthorized: 'session_unauthorized', Invalid: 'invalid_session_request',
-  Conflict: 'operation_conflict', Bound: 'session_already_exists',
-  Unavailable: 'funnel_unavailable', Corrupted: 'session_corrupted', Forbidden: 'forbidden',
+  Unauthorized: 'session_unauthorized',
+  Invalid: 'invalid_session_request',
+  Conflict: 'operation_conflict',
+  Bound: 'session_already_exists',
+  Unavailable: 'funnel_unavailable',
+  Corrupted: 'session_corrupted',
+  Forbidden: 'forbidden',
 } as const;

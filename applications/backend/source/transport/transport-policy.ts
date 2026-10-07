@@ -1,6 +1,7 @@
 import { HttpStatus } from '@nestjs/common';
 
 export const TransportPolicy = {
+  PrivateRoutePrefixes: ['/api/administration', '/api/sessions', '/api/events'],
   CacheControlHeader: 'cache-control',
   PrivateCacheControl: 'no-store',
   RateLimitCacheSize: 10_000,

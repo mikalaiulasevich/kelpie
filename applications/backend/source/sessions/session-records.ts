@@ -7,10 +7,20 @@ import { SessionMessages } from './session-messages.js';
 import type { OwnedSession } from './session-types.js';
 
 export const SessionRecords = {
-  async requireOwned(transaction: Prisma.TransactionClient, credentialHash: string): Promise<OwnedSession> {
-    const session = await transaction.session.findUnique({ where: { accessTokenHash: credentialHash }, include: SessionPolicy.RecordInclude });
+  async requireOwned(
+    transaction: Prisma.TransactionClient,
+    credentialHash: string,
+  ): Promise<OwnedSession> {
+    const session = await transaction.session.findUnique({
+      where: { accessTokenHash: credentialHash },
+      include: SessionPolicy.RecordInclude,
+    });
     if (isNull(session) || session.expiresAt.getTime() <= Date.now()) {
-      throw new PublicRequestError(HttpStatus.UNAUTHORIZED, SessionErrorCode.Unauthorized, SessionMessages.Unauthorized);
+      throw new PublicRequestError(
+        HttpStatus.UNAUTHORIZED,
+        SessionErrorCode.Unauthorized,
+        SessionMessages.Unauthorized,
+      );
     }
 
     return session;

@@ -7,12 +7,17 @@ export const SessionCommandPolicy = {
   MaximumRevision: 2147483646,
   MaximumAnswerLength: 4000,
   MaximumSelections: 100,
+  AnswerPath: '/answer',
   HashAlgorithm: 'sha256',
   HashEncoding: 'hex',
   UniqueConstraintCode: 'P2002',
 } as const;
 
 export const SessionCommandErrorCode = {
-  Invalid: 'invalid_command', Conflict: 'operation_conflict', StaleRevision: 'stale_revision',
-  InvalidStep: 'invalid_step', InvalidAnswer: 'invalid_answer', UnavailableNavigation: 'unavailable_navigation',
+  Invalid: 'invalid_command',
+  Conflict: 'operation_conflict',
+  StaleRevision: 'stale_revision',
+  InvalidStep: 'invalid_step',
+  InvalidAnswer: 'invalid_answer',
+  UnavailableNavigation: 'unavailable_navigation',
 } as const;

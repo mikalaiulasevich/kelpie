@@ -12,7 +12,9 @@ import type { CredentialVerification } from './session-types.js';
 
 const CredentialSignatures = {
   sign(payload: string, secret: string): string {
-    return createHmac(SessionPolicy.HashAlgorithm, secret).update(payload).digest(SessionPolicy.BinaryEncoding);
+    return createHmac(SessionPolicy.HashAlgorithm, secret)
+      .update(payload)
+      .digest(SessionPolicy.BinaryEncoding);
   },
 
   hash(value: string): string {
@@ -24,18 +26,33 @@ const CredentialSignatures = {
 export class SessionOwnershipService {
   private signingSecret: Optional<Promise<string>>;
 
-  constructor(@Inject(DatabaseService) private readonly database: DatabaseService, @Inject(ApplicationEnvironmentService) private readonly environment: ApplicationEnvironmentService) {}
+  constructor(
+    @Inject(DatabaseService) private readonly database: DatabaseService,
+    @Inject(ApplicationEnvironmentService)
+    private readonly environment: ApplicationEnvironmentService,
+  ) {}
 
   assertMutation(request: FastifyRequest): void {
-    if (request.headers.origin !== this.environment.values.administrationOrigin || request.headers[SessionPolicy.MutationHeader] !== SessionPolicy.MutationHeaderValue) {
-      throw new PublicRequestError(HttpStatus.FORBIDDEN, SessionErrorCode.Forbidden, SessionMessages.Forbidden);
+    if (
+      request.headers.origin !== this.environment.values.administrationOrigin ||
+      request.headers[SessionPolicy.MutationHeader] !== SessionPolicy.MutationHeaderValue
+    ) {
+      throw new PublicRequestError(
+        HttpStatus.FORBIDDEN,
+        SessionErrorCode.Forbidden,
+        SessionMessages.Forbidden,
+      );
     }
   }
 
   async requireCredential(request: FastifyRequest): Promise<string> {
     const credential = await this.verify(request);
     if (isNull(credential.hash)) {
-      throw new PublicRequestError(HttpStatus.UNAUTHORIZED, SessionErrorCode.Unauthorized, SessionMessages.Unauthorized);
+      throw new PublicRequestError(
+        HttpStatus.UNAUTHORIZED,
+        SessionErrorCode.Unauthorized,
+        SessionMessages.Unauthorized,
+      );
     }
 
     return credential.hash;
@@ -44,27 +61,53 @@ export class SessionOwnershipService {
   async verify(request: FastifyRequest): Promise<CredentialVerification> {
     const cookie = request.cookies[SessionPolicy.CookieName];
     const match = isString(cookie) ? SessionPolicy.CookiePattern.exec(cookie) : null;
-    if (isNull(match)) { return { hash: null, expired: false }; }
+    if (isNull(match)) {
+      return { hash: null, expired: false };
+    }
     const [, token = '', timestamp = '', signature = ''] = match;
     const payload = `${token}.${timestamp}`;
     const expected = CredentialSignatures.sign(payload, await this.secret());
     const authentic = timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
-    if (!authentic) { return { hash: null, expired: false }; }
+    if (!authentic) {
+      return { hash: null, expired: false };
+    }
     const age = Date.now() - Number(timestamp);
-    if (age < 0 || age >= SessionPolicy.CookieLifetimeMilliseconds) { return { hash: null, expired: true }; }
+    if (age < 0 || age >= SessionPolicy.CookieLifetimeMilliseconds) {
+      return { hash: null, expired: true };
+    }
 
-    return { hash: CredentialSignatures.hash(cookie), expired: false };
+    return { hash: CredentialSignatures.hash(`${payload}.${signature}`), expired: false };
   }
 
   async issue(reply: FastifyReply): Promise<void> {
     const token = randomBytes(SessionPolicy.TokenBytes).toString(SessionPolicy.BinaryEncoding);
     const payload = `${token}.${Date.now()}`;
     const signature = CredentialSignatures.sign(payload, await this.secret());
-    reply.setCookie(SessionPolicy.CookieName, `${payload}.${signature}`, { path: SessionPolicy.CookiePath, httpOnly: true, sameSite: SessionPolicy.SameSite, secure: this.environment.values.mode === ApplicationMode.Production, maxAge: SessionPolicy.CookieLifetimeMilliseconds / 1000 });
+    reply.setCookie(SessionPolicy.CookieName, `${payload}.${signature}`, {
+      path: SessionPolicy.CookiePath,
+      httpOnly: true,
+      sameSite: SessionPolicy.SameSite,
+      secure: this.environment.values.mode === ApplicationMode.Production,
+      maxAge: SessionPolicy.CookieLifetimeMilliseconds / 1000,
+    });
   }
 
   private async secret(): Promise<string> {
-    this.signingSecret ??= this.database.client.applicationSecret.upsert({ where: { identifier: SessionPolicy.SecretIdentifier }, create: { identifier: SessionPolicy.SecretIdentifier, value: randomBytes(SessionPolicy.SecretBytes).toString(SessionPolicy.BinaryEncoding) }, update: {} }).then((record) => record.value);
-    try { return await this.signingSecret; } catch (error) { this.signingSecret = undefined; throw error; }
+    this.signingSecret ??= this.database.client.applicationSecret
+      .upsert({
+        where: { identifier: SessionPolicy.SecretIdentifier },
+        create: {
+          identifier: SessionPolicy.SecretIdentifier,
+          value: randomBytes(SessionPolicy.SecretBytes).toString(SessionPolicy.BinaryEncoding),
+        },
+        update: {},
+      })
+      .then((record) => record.value);
+    try {
+      return await this.signingSecret;
+    } catch (error) {
+      this.signingSecret = undefined;
+      throw error;
+    }
   }
 }

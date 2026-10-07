@@ -1,10 +1,13 @@
 import type { FastifyReply, FastifyRequest, HookHandlerDoneFunction } from 'fastify';
-import { AdministrationPolicy } from '../administration/administration-policy.js';
 import { TransportPolicy } from './transport-policy.js';
 
 export const RequestCachePolicy = {
+  isPrivate(url: string): boolean {
+    return TransportPolicy.PrivateRoutePrefixes.some((prefix) => url.startsWith(prefix));
+  },
+
   onRequest(request: FastifyRequest, reply: FastifyReply, next: HookHandlerDoneFunction): void {
-    if (request.url.startsWith(AdministrationPolicy.CookiePath)) {
+    if (RequestCachePolicy.isPrivate(request.url)) {
       reply.header(TransportPolicy.CacheControlHeader, TransportPolicy.PrivateCacheControl);
     }
 
