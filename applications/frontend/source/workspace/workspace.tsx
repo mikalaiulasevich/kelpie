@@ -41,7 +41,7 @@ interface WorkspaceProperties {
 }
 
 export function Workspace({ identity, signOut, onUnauthorized }: WorkspaceProperties): UIElement {
-  const { t } = useLocalization();
+  const { t, locale } = useLocalization();
 
   const { page, funnelIdentifier, versionIdentifier } = useWorkspaceNavigation();
   const [revision, setRevision] = useState(0);
@@ -63,8 +63,8 @@ export function Workspace({ identity, signOut, onUnauthorized }: WorkspaceProper
     .exhaustive();
 
   useEffect(() => {
-    document.title = `${title} · Kelpie`;
-  }, [title]);
+    document.title = `${t(title)} · Kelpie`;
+  }, [title, t, locale]);
   useEffect(() => {
     mounted.current = true;
 
@@ -153,12 +153,12 @@ export function Workspace({ identity, signOut, onUnauthorized }: WorkspaceProper
         <header className="workspace-header flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             {page === WorkspacePage.Analytics ? (
-              <h1 className="page-title">{title}</h1>
+              <h1 className="page-title">{t(title)}</h1>
             ) : (
               <Breadcrumb>
                 <BreadcrumbList>
                   <BreadcrumbItem>
-                    <BreadcrumbPage>{title}</BreadcrumbPage>
+                    <BreadcrumbPage>{t(title)}</BreadcrumbPage>
                   </BreadcrumbItem>
                 </BreadcrumbList>
               </Breadcrumb>
@@ -169,7 +169,7 @@ export function Workspace({ identity, signOut, onUnauthorized }: WorkspaceProper
         <main ref={pageContainer} tabIndex={-1} className="workspace-content-area min-w-0 flex-1">
           {message && (
             <Alert variant="destructive" className="mb-6">
-              <AlertDescription>{message}</AlertDescription>
+              <AlertDescription>{t(message)}</AlertDescription>
             </Alert>
           )}
           <div

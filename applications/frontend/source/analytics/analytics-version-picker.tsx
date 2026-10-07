@@ -41,7 +41,9 @@ export function AnalyticsVersionPicker({
   const visibleVersions =
     versions.status === 'ready'
       ? versions.response.items.filter((version) =>
-          `Version ${version.version}`.toLowerCase().includes(search.trim().toLowerCase()),
+          t('Version {version}', { version: version.version })
+            .toLowerCase()
+            .includes(search.trim().toLowerCase()),
         )
       : [];
 
@@ -51,7 +53,7 @@ export function AnalyticsVersionPicker({
         <Button
           variant="outline"
           className="w-full justify-between sm:w-64"
-          aria-label={`Choose version: ${selectedLabel}`}
+          aria-label={t('Choose version: {version}', { version: selectedLabel })}
         >
           <GitBranch data-icon="inline-start" />
           {selectedLabel}
@@ -61,29 +63,38 @@ export function AnalyticsVersionPicker({
       <PopoverContent
         align="start"
         className="w-80 max-w-[calc(100vw-2rem)] p-3"
-        aria-label={t("Choose configuration version")}
+        aria-label={t('Choose configuration version')}
       >
         <div className="flex flex-col gap-3">
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            aria-label={t("Search this page")}
-            placeholder={t("Search this page…")}
+            aria-label={t('Search this page')}
+            placeholder={t('Search this page…')}
           />
-          <p className="text-xs text-muted-foreground">{t("Page")}{Math.floor(offset / AnalyticsPagePolicy.VersionOptionsPerPage) + 1}{t("· up to")}{t(" ")}
-            {AnalyticsPagePolicy.VersionOptionsPerPage}{t("versions. Search covers this page.")}</p>
+          <p className="text-xs text-muted-foreground">
+            {t('Page')} {Math.floor(offset / AnalyticsPagePolicy.VersionOptionsPerPage) + 1}{' '}
+            {t('· up to')} {t(' ')}
+            {AnalyticsPagePolicy.VersionOptionsPerPage} {t('versions. Search covers this page.')}
+          </p>
           <div className="flex max-h-64 flex-col gap-1 overflow-y-auto">
             {versions.status === 'loading' && (
-              <p className="p-3 text-sm text-muted-foreground" role="status">{t("Loading versions…")}</p>
+              <p className="p-3 text-sm text-muted-foreground" role="status">
+                {t('Loading versions…')}
+              </p>
             )}
             {versions.status === 'failed' && (
               <div className="p-3 text-sm">
-                <p>{versions.message}</p>
-                <Button variant="link" onClick={onRefresh}>{t("Retry")}</Button>
+                <p>{t(versions.message)}</p>
+                <Button variant="link" onClick={onRefresh}>
+                  {t('Retry')}
+                </Button>
               </div>
             )}
             {versions.status === 'ready' && visibleVersions.length === 0 && (
-              <p className="p-3 text-sm text-muted-foreground">{t("No matching versions on this page. Try another page or clear the search.")}</p>
+              <p className="p-3 text-sm text-muted-foreground">
+                {t('No matching versions on this page. Try another page or clear the search.')}
+              </p>
             )}
             {visibleVersions.map((version) => (
               <Button
@@ -95,7 +106,8 @@ export function AnalyticsVersionPicker({
                   onSelect(version.identifier, `Version ${version.version}`);
                   setOpen(false);
                 }}
-              >{t("Version")}{version.version}
+              >
+                {t('Version')} {version.version}
                 {selectedIdentifier === version.identifier && <Check data-icon="inline-end" />}
               </Button>
             ))}
@@ -111,7 +123,9 @@ export function AnalyticsVersionPicker({
                 )
               }
             >
-              <ChevronLeft data-icon="inline-start" />{t("Previous")}</Button>
+              <ChevronLeft data-icon="inline-start" />
+              {t('Previous')}
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -129,7 +143,9 @@ export function AnalyticsVersionPicker({
                   setOffset(versions.response.nextOffset);
                 }
               }}
-            >{t("Next")}<ChevronRight data-icon="inline-end" />
+            >
+              {t('Next')}
+              <ChevronRight data-icon="inline-end" />
             </Button>
           </div>
         </div>

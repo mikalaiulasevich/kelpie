@@ -73,6 +73,8 @@ export type QuizSessionState = Omit<
 
 export type QuizObservation = Static<typeof QuizSessionSchemas.Events>[number];
 
+export type QuizObservationInput = Pick<QuizObservation, 'name' | 'properties'>;
+
 export interface QuizPendingCommand {
   readonly path: string;
   readonly sessionIdentifier?: string;

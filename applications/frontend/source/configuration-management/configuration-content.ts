@@ -38,6 +38,7 @@ export const ConfigurationContent = {
   Columns: 'Columns',
   VisibleColumns: 'Visible columns',
   Draft: 'Draft',
+  Inactive: 'Inactive',
   Live: 'Live',
   Publish: 'Publish',
   Rollback: 'Roll back',

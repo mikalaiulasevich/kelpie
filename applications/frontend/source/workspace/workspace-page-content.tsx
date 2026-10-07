@@ -49,7 +49,7 @@ export function WorkspacePageContent({
   onImport,
   onIntent,
 }: WorkspacePageContentProperties): UIElement {
-  const { t } = useLocalization();
+  useLocalization();
 
   return (
     <DeferredView key={page} loading={<SkeletonRows label="Opening workspace page" />}>

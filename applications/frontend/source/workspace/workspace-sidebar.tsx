@@ -46,10 +46,12 @@ function SidebarBrand({
       className="workspace-sidebar-brand brand"
       href={WorkspaceNavigation.href(WorkspacePage.Analytics, funnelIdentifier)}
       onClick={onNavigate}
-      aria-label={t("Kelpie analytics")}
+      aria-label={t('Kelpie analytics')}
     >
       <KelpieMark />
-      <span>{t("kelpie")}<span className="workspace-sidebar-product">{t("Flow analytics")}</span>
+      <span>
+        {t('kelpie')}
+        <span className="workspace-sidebar-product">{t('Flow analytics')}</span>
       </span>
     </a>
   );
@@ -69,14 +71,14 @@ function SidebarLinks({
   return (
     <>
       <div className="workspace-sidebar-context">
-        <span className="workspace-sidebar-section-label">{t("Current funnel")}</span>
+        <span className="workspace-sidebar-section-label">{t('Current funnel')}</span>
         <div>
           <Layers3 aria-hidden="true" />
           <span>{funnelIdentifier}</span>
         </div>
       </div>
-      <nav className="workspace-sidebar-links" aria-label={t("Workspace navigation")}>
-        <span className="workspace-sidebar-section-label">{t("Workspace")}</span>
+      <nav className="workspace-sidebar-links" aria-label={t('Workspace navigation')}>
+        <span className="workspace-sidebar-section-label">{t('Workspace')}</span>
         {WorkspaceShortcutCatalog.Navigation.map((item) => {
           const presentation = navigationPresentation[item.page];
           const Icon = presentation.icon;
@@ -85,7 +87,7 @@ function SidebarLinks({
             <a
               key={item.page}
               href={WorkspaceNavigation.href(item.page, funnelIdentifier)}
-              aria-current={activePage === item.page ? "page" : undefined}
+              aria-current={activePage === item.page ? 'page' : undefined}
               aria-keyshortcuts={`Alt+${item.key}`}
               onClick={onNavigate}
             >
@@ -93,8 +95,8 @@ function SidebarLinks({
                 <Icon strokeWidth={1.5} aria-hidden="true" />
               </span>
               <span className="workspace-sidebar-label">
-                <strong>{item.label}</strong>
-                <small className="sr-only">{presentation.description}</small>
+                <strong>{t(item.label)}</strong>
+                <small className="sr-only">{t(presentation.description)}</small>
               </span>
               <Kbd aria-hidden="true" title={`Alt + ${item.key}`}>
                 ⌥{item.key}
@@ -150,7 +152,7 @@ export function WorkspaceSidebar({
   const [open, setOpen] = useState(false);
 
   return (
-    <aside className="workspace-sidebar-frame" aria-label={t("Kelpie workspace")}>
+    <aside className="workspace-sidebar-frame" aria-label={t('Kelpie workspace')}>
       <div className="workspace-sidebar-panel">
         <SidebarBrand funnelIdentifier={funnelIdentifier} />
         <div className="workspace-sidebar-desktop-content">
@@ -169,14 +171,16 @@ export function WorkspaceSidebar({
               className="workspace-sidebar-mobile-trigger"
               variant="ghost"
               size="icon"
-              aria-label={t("Open navigation")}
+              aria-label={t('Open navigation')}
             >
               <PanelLeft aria-hidden="true" />
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="workspace-sidebar-sheet">
-            <SheetTitle className="sr-only">{t("Workspace navigation")}</SheetTitle>
-            <SheetDescription className="sr-only">{t("Choose a section for your current funnel.")}</SheetDescription>
+            <SheetTitle className="sr-only">{t('Workspace navigation')}</SheetTitle>
+            <SheetDescription className="sr-only">
+              {t('Choose a section for your current funnel.')}
+            </SheetDescription>
             <div className="workspace-sidebar-panel">
               <SidebarBrand funnelIdentifier={funnelIdentifier} onNavigate={() => setOpen(false)} />
               <SidebarLinks

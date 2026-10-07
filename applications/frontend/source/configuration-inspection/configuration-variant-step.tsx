@@ -59,9 +59,12 @@ export function ConfigurationVariantStep({
     )
     .otherwise(() => ({
       icon: displacement < 0 ? ArrowUp : ArrowDown,
-      label: t(displacement < 0 ? '{count} places earlier' : '{count} places later', {
-        count: Math.abs(displacement),
-      }),
+      label:
+        Math.abs(displacement) === 1
+          ? t(displacement < 0 ? '1 place earlier' : '1 place later')
+          : t(displacement < 0 ? '{count} places earlier' : '{count} places later', {
+              count: Math.abs(displacement),
+            }),
       detail: `${otherVariant} #${otherPosition} → ${variant} #${position}`,
     }));
   const ChangeIcon = change.icon;

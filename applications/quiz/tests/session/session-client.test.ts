@@ -5,6 +5,7 @@ import {
   QuizPendingStorage,
 } from '../../source/session/quiz-session-api';
 import { QuizObservations } from '../../source/session/quiz-observations';
+import { QuizObservationDelivery } from '../../source/session/quiz-observation-delivery';
 import { SessionFixtures } from '../fixtures/session-fixtures';
 
 describe('Quiz session browser persistence', () => {
@@ -146,5 +147,60 @@ describe('Quiz session browser persistence', () => {
     expect(QuizObservations.read(state)).toEqual([]);
     await QuizObservations.view(state);
     expect(QuizObservations.read(state)).toHaveLength(1);
+  });
+  it('drains a full observation queue before recording the current view', async () => {
+    const state = SessionFixtures.state();
+    await SessionFixtures.queuedViews(state, 200);
+    const previousIdentifiers = new Set(
+      QuizObservations.read(state).map((event) => event.event_id),
+    );
+    const request = SessionFixtures.acknowledgeEvents(state);
+    const delivery = new QuizObservationDelivery(state);
+
+    await delivery.flush();
+
+    const remaining = QuizObservations.read(state);
+    expect(request).toHaveBeenCalledTimes(2);
+    expect(remaining).toHaveLength(141);
+    expect(remaining.filter((event) => !previousIdentifiers.has(event.event_id))).toHaveLength(1);
+  });
+
+  it('queues the current view while offline and does not duplicate it on delivery retry', async () => {
+    const state = SessionFixtures.state();
+    await SessionFixtures.queuedViews(state, 1);
+    const request = vi
+      .spyOn(QuizSessionApi, 'request')
+      .mockRejectedValueOnce(new TypeError('Offline'));
+    const delivery = new QuizObservationDelivery(state);
+
+    await expect(delivery.flush()).rejects.toThrow('Offline');
+    const queued = QuizObservations.read(state);
+    expect(queued).toHaveLength(2);
+    request.mockResolvedValueOnce({
+      receipts: queued.map((event) => ({ event_id: event.event_id, status: 'accepted' })),
+    });
+
+    await delivery.flush();
+
+    expect(QuizObservations.read(state)).toEqual([]);
+    expect(request).toHaveBeenCalledTimes(2);
+  });
+
+  it('queues result view events atomically when capacity is exhausted', async () => {
+    const state = SessionFixtures.resultState();
+    await SessionFixtures.queuedViews(state, 199);
+    const queued = QuizObservations.read(state);
+
+    await expect(QuizObservations.view(state)).rejects.toThrow('waiting to sync');
+
+    expect(QuizObservations.read(state)).toEqual(queued);
+    SessionFixtures.acknowledgeEvents(state);
+    await QuizObservations.flush(state);
+    await QuizObservations.view(state);
+    expect(
+      QuizObservations.read(state)
+        .slice(-2)
+        .map((event) => event.name),
+    ).toEqual(['step_viewed', 'result_viewed']);
   });
 });

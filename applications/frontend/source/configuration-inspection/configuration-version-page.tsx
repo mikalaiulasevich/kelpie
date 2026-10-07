@@ -98,7 +98,7 @@ export function ConfigurationVersionPage({
                 </div>
                 <div className="flex min-w-0 flex-col gap-1.5">
                   <h1 className="page-title">
-                    {t('Version')}
+                    {t('Version')}{' '}
                     <span className="font-mono">{resource.data.version.version}</span>
                   </h1>
                   <p className="max-w-2xl break-words text-sm leading-relaxed text-muted-foreground">
@@ -128,16 +128,20 @@ export function ConfigurationVersionPage({
                         }
                       >
                         <span className="size-1.5 rounded-full bg-current" aria-hidden="true" />
-                        {resource.data.document.status}
+                        {t(
+                          resource.data.document.status === ConfigurationStatus.Published
+                            ? 'Published'
+                            : 'Draft',
+                        )}
                       </span>
                     ),
                     icon: FileJson2,
                   },
                 ].map((item) => (
-                  <div key={item.label} className="flex min-w-0 flex-col gap-1">
+                  <div key={t(item.label)} className="flex min-w-0 flex-col gap-1">
                     <dt className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <item.icon className="size-3.5" aria-hidden="true" />
-                      {item.label}
+                      {t(item.label)}
                     </dt>
                     <dd className="break-words font-medium">{item.value}</dd>
                   </div>

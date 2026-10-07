@@ -56,7 +56,7 @@ export function ConfigurationStepDetails({
                 {configuration.experiment.variants[variant].stepSequence.length}
               </Badge>
               <span className="inspection-type text-xs font-medium">
-                {ConfigurationInspectionFormat.contentLabel(step.type.replaceAll(/[_-]/g, ' '))}
+                {t(ConfigurationInspectionFormat.contentLabel(step.type.replaceAll(/[_-]/g, ' ')))}
               </span>
               {Object.hasOwn(configuration.experiment.variants[variant].stepOverrides, step.id) && (
                 <Badge variant="info">{t('Content override')}</Badge>
@@ -94,7 +94,7 @@ export function ConfigurationStepDetails({
                           : 'mb-1 text-xs font-medium text-muted-foreground'
                       }
                     >
-                      {ConfigurationInspectionFormat.contentLabel(field)}
+                      {t(ConfigurationInspectionFormat.contentLabel(field))}
                     </dt>
                     <dd
                       className={
@@ -124,7 +124,7 @@ export function ConfigurationStepDetails({
                         ? t('Participants can choose one answer.')
                         : t(
                             'Participants can choose {minimum}–{maximum} answers.',
-                            StepRules.selectionLimits(selectionStep),
+                            { ...StepRules.selectionLimits(selectionStep) },
                           )}{' '}
                       {t('Read-only preview of the configured options.')}
                     </p>

@@ -1,6 +1,8 @@
 import { vi } from 'vitest';
 import configurationDocument from '../../../../configurations/funnel-v1.json';
 import { QuizSessionApi } from '../../source/session/quiz-session-api';
+import { QuizObservations } from '../../source/session/quiz-observations';
+import type { QuizSessionState } from '../../source/session/quiz-session-types';
 
 export const SessionFixtures = {
   state() {
@@ -17,6 +19,36 @@ export const SessionFixtures = {
       progress: { completed: 0, total: 8 },
       result: null,
     });
+  },
+
+  resultState(): QuizSessionState {
+    return {
+      ...SessionFixtures.state(),
+      result: {
+        id: 'result-one',
+        title: 'Result',
+        summary: 'Summary',
+        recommendations: ['Recommendation'],
+        cta: { label: 'Read more', action: 'expand_recommendation' },
+      },
+    };
+  },
+
+  async queuedViews(state: QuizSessionState, count: number): Promise<void> {
+    for (let index = 0; index < count; index += 1) {
+      await QuizObservations.add(state, 'step_viewed', { step_type: 'info' });
+    }
+  },
+
+  acknowledgeEvents(state: QuizSessionState) {
+    return vi.spyOn(QuizSessionApi, 'request').mockImplementation(async () => ({
+      receipts: QuizObservations.read(state)
+        .slice(0, 30)
+        .map((event) => ({
+          event_id: event.event_id,
+          status: 'accepted',
+        })),
+    }));
   },
 
   storage() {

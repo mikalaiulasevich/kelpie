@@ -1,3 +1,4 @@
+import { ConfigurationTranslations } from './configuration-translations';
 import { InterfaceTranslations } from './interface-translations';
 
 export type InterfaceLocale = 'en' | 'ru';
@@ -54,7 +55,10 @@ export const Localization = {
   },
 
   translate(message: string, parameters: Readonly<Record<string, TextOrNumber>> = {}): string {
-    const translated = selectedLocale === 'ru' ? (InterfaceTranslations[message] ?? message) : message;
+    const translated =
+      selectedLocale === 'ru'
+        ? (InterfaceTranslations[message] ?? ConfigurationTranslations[message] ?? message)
+        : message;
 
     return translated.replace(/\{(\w+)\}/g, (placeholder: string, key: string) =>
       Object.hasOwn(parameters, key) ? String(parameters[key]) : placeholder,

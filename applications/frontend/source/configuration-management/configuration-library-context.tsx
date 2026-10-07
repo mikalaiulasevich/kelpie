@@ -30,10 +30,11 @@ import { ClassNames } from '../styling/combine-class-names';
 
 export function ConfigurationStatus({ live }: { live: boolean }): UIElement {
   const { t } = useLocalization();
+
   return (
-    <Badge variant={live ? 'success' : 'warning'} className={live ? undefined : 'bg-warning/5'}>
+    <Badge variant={live ? 'success' : 'secondary'}>
       {live ? <CircleCheck aria-hidden="true" /> : <FilePenLine aria-hidden="true" />}
-      {live ? t(ConfigurationContent.Live) : t(ConfigurationContent.Draft)}
+      {live ? t(ConfigurationContent.Live) : t(ConfigurationContent.Inactive)}
     </Badge>
   );
 }

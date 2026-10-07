@@ -13,3 +13,7 @@ documentation/benchmarks/*.json
 # Next.js generated output
 .next/
 applications/quiz/next-env.d.ts
+
+# Disposable browser evidence follows the same boundary as .gitignore and ESLint.
+test-results/
+playwright-report/

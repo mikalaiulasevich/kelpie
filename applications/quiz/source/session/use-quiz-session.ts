@@ -7,6 +7,7 @@ import { QuizRequestError, QuizSessionApi, QuizPendingStorage } from './quiz-ses
 import { QuizSessionMessages } from './quiz-session-messages';
 import { QuizSessionPolicy } from './quiz-session-policy';
 import { QuizObservations } from './quiz-observations';
+import { QuizObservationDelivery } from './quiz-observation-delivery';
 import type { QuizPendingCommand, QuizSessionState } from './quiz-session-types';
 
 export function useQuizSession() {
@@ -18,7 +19,7 @@ export function useQuizSession() {
   const [deliveryError, setDeliveryError] = useState<string | null>(null);
   const pending = useRef<QuizPendingCommand | null>(null);
   const running = useRef(false);
-  const observed = useRef<string | null>(null);
+  const observed = useRef<QuizObservationDelivery | null>(null);
 
   const restore = useCallback(async () => {
     try {
@@ -53,7 +54,11 @@ export function useQuizSession() {
       return;
     }
 
-    const identity = `${state.sessionIdentifier}:${state.revision}`;
+    if (!observed.current?.matches(state)) {
+      observed.current = new QuizObservationDelivery(state);
+    }
+
+    const delivery = observed.current;
 
     let flushing = false;
     let stopped = false;
@@ -67,16 +72,7 @@ export function useQuizSession() {
       flushing = true;
 
       try {
-        if (observed.current !== identity) {
-          await QuizObservations.view(state);
-          if (stopped) {
-            return;
-          }
-
-          observed.current = identity;
-        }
-
-        await QuizObservations.flush(state);
+        await delivery.flush();
         if (stopped) {
           return;
         }

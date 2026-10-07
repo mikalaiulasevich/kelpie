@@ -1,3 +1,4 @@
+import { Localization } from '../localization/localization';
 import { Type, type Static } from 'typebox';
 import { isNull } from 'es-toolkit/predicate';
 import type { AnalyticsRatio, AnalyticsVersion } from '../management/management-types';
@@ -75,10 +76,10 @@ export const AnalyticsMarketingMetrics = {
 
   difference(value: number | null): string {
     if (isNull(value)) {
-      return 'Not available';
+      return Localization.translate('Not available');
     }
 
-    const formatted = new Intl.NumberFormat('en-US', {
+    const formatted = new Intl.NumberFormat(Localization.formattingLocale, {
       maximumFractionDigits: 1,
       signDisplay: 'exceptZero',
     }).format(value);

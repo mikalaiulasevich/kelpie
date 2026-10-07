@@ -251,7 +251,7 @@ export function ConfigurationVersionsPage({
                           onClick={() =>
                             onIntent({
                               kind: 'rollback',
-                              label: t('Previous activated version'),
+                              label: 'Previous activated version',
                               command: {
                                 operationIdentifier: globalThis.crypto.randomUUID(),
                                 funnelIdentifier,
@@ -290,7 +290,9 @@ export function ConfigurationVersionsPage({
                               {t(ConfigurationContent.AllStatuses)}
                             </SelectItem>
                             <SelectItem value="live">{t(ConfigurationContent.Live)}</SelectItem>
-                            <SelectItem value="draft">{t(ConfigurationContent.Draft)}</SelectItem>
+                            <SelectItem value="inactive">
+                              {t(ConfigurationContent.Inactive)}
+                            </SelectItem>
                           </SelectGroup>
                         </SelectContent>
                       </Select>

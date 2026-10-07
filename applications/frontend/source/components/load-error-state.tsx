@@ -1,3 +1,4 @@
+import { useLocalization } from '../localization/use-localization';
 import { RotateCcw } from 'lucide-react';
 import { Button } from './button';
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from './empty';
@@ -15,6 +16,8 @@ export function LoadErrorState({
   onRetry,
   retryLabel,
 }: LoadErrorStateProperties): UIElement {
+  const { t } = useLocalization();
+
   return (
     <Empty role="alert" className="min-h-80 gap-5 rounded-xl border border-border bg-card/40">
       <svg
@@ -51,12 +54,12 @@ export function LoadErrorState({
         <path d="M101 70h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
       </svg>
       <EmptyHeader className="max-w-md">
-        <EmptyTitle>{title}</EmptyTitle>
-        <EmptyDescription>{message}</EmptyDescription>
+        <EmptyTitle>{t(title)}</EmptyTitle>
+        <EmptyDescription>{t(message)}</EmptyDescription>
       </EmptyHeader>
       <Button variant="outline" onClick={onRetry}>
         <RotateCcw aria-hidden="true" />
-        {retryLabel}
+        {t(retryLabel)}
       </Button>
     </Empty>
   );

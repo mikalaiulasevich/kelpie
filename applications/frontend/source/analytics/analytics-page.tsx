@@ -41,7 +41,7 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
   const selectedVersion = analytics.status === 'ready' ? analytics.response.versions[0] : undefined;
   const pendingVersionLabel =
     appliedFilters.versionIdentifier === AnalyticsFilterSelection.Initial.versionIdentifier
-      ? 'Latest version'
+      ? t('Latest version')
       : appliedFilters.versionLabel;
   const isLoading = analytics.status === 'loading';
 
@@ -74,8 +74,8 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
               <Badge variant="secondary" className="analytics-context-chip">
                 <Shuffle aria-hidden="true" />
                 {appliedFilters.includeForced
-                  ? t("Forced assignments included")
-                  : t("Forced assignments excluded")}
+                  ? t('Forced assignments included')
+                  : t('Forced assignments excluded')}
               </Badge>
               <Badge variant="secondary" className="analytics-context-chip">
                 <Megaphone aria-hidden="true" />
@@ -85,9 +85,11 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
             <div className="flex gap-2">
               <SheetTrigger asChild>
                 <Button variant="outline" aria-keyshortcuts={ActionShortcutCatalog.Filters.aria}>
-                  <SlidersHorizontal data-icon="inline-start" />{t("Filters")}<KbdGroup aria-hidden="true" className="ml-1 hidden sm:inline-flex">
-                    <Kbd>{t("Alt")}</Kbd>
-                    <Kbd>{t("F")}</Kbd>
+                  <SlidersHorizontal data-icon="inline-start" />
+                  {t('Filters')}
+                  <KbdGroup aria-hidden="true" className="ml-1 hidden sm:inline-flex">
+                    <Kbd>{t('Alt')}</Kbd>
+                    <Kbd>{t('F')}</Kbd>
                   </KbdGroup>
                 </Button>
               </SheetTrigger>
@@ -97,15 +99,19 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
                 onClick={refresh}
                 aria-keyshortcuts={ActionShortcutCatalog.Refresh.aria}
               >
-                <RefreshCw data-icon="inline-start" />{t("Refresh")}<KbdGroup aria-hidden="true" className="ml-1 hidden sm:inline-flex">
-                  <Kbd>{t("Alt")}</Kbd>
-                  <Kbd>{t("R")}</Kbd>
+                <RefreshCw data-icon="inline-start" />
+                {t('Refresh')}
+                <KbdGroup aria-hidden="true" className="ml-1 hidden sm:inline-flex">
+                  <Kbd>{t('Alt')}</Kbd>
+                  <Kbd>{t('R')}</Kbd>
                 </KbdGroup>
               </Button>
             </div>
           </div>
           {appliedFilters.trafficOrigin !== 'production' && (
-            <p className="text-xs text-muted-foreground">{t("Includes test sessions. Don’t use these results to choose a winning variant.")}</p>
+            <p className="text-xs text-muted-foreground">
+              {t('Includes test sessions. Don’t use these results to choose a winning variant.')}
+            </p>
           )}
         </div>
         <AnalyticsFiltersSheet
@@ -122,7 +128,9 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
             selectedVersion?.versionIdentifier ?? appliedFilters.versionIdentifier
           }
           selectedLabel={
-            selectedVersion ? `Version ${selectedVersion.funnelVersion}` : pendingVersionLabel
+            selectedVersion
+              ? t('Version {version}', { version: selectedVersion.funnelVersion })
+              : pendingVersionLabel
           }
           onUnauthorized={onUnauthorized}
           onRefresh={refresh}
@@ -131,20 +139,23 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
           }
         />
         {analytics.status === 'ready' && (
-          <span className="text-xs text-muted-foreground">{t("Updated")}{AnalyticsFormat.generatedAt(analytics.response.generatedAt)}
+          <span className="text-xs text-muted-foreground">
+            {t('Updated')} {AnalyticsFormat.generatedAt(analytics.response.generatedAt)}
           </span>
         )}
       </div>
       {analytics.status === 'loading' && (
-        <div aria-label={t("Loading analytics")} aria-busy="true" className="flex flex-col gap-4">
-          <span className="sr-only" role="status">{t("Loading analytics")}</span>
+        <div aria-label={t('Loading analytics')} aria-busy="true" className="flex flex-col gap-4">
+          <span className="sr-only" role="status">
+            {t('Loading analytics')}
+          </span>
           <SkeletonSummary />
           <SkeletonChart />
         </div>
       )}
       {analytics.status === 'failed' && (
         <LoadErrorState
-          title={t("Analytics could not be loaded")}
+          title={t('Analytics could not be loaded')}
           message={analytics.message}
           onRetry={refresh}
           retryLabel="Try again"
@@ -158,11 +169,17 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
                 <EmptyMedia>
                   <JourneyIllustration />
                 </EmptyMedia>
-                <EmptyTitle>{t("No matching versions")}</EmptyTitle>
-                <EmptyDescription>{t("Change the version or campaign filter. If this funnel is new, import a configuration first.")}</EmptyDescription>
+                <EmptyTitle>{t('No matching versions')}</EmptyTitle>
+                <EmptyDescription>
+                  {t(
+                    'Change the version or campaign filter. If this funnel is new, import a configuration first.',
+                  )}
+                </EmptyDescription>
               </EmptyHeader>
               <Button variant="outline" onClick={openFilters}>
-                <SlidersHorizontal data-icon="inline-start" />{t("Adjust filters")}</Button>
+                <SlidersHorizontal data-icon="inline-start" />
+                {t('Adjust filters')}
+              </Button>
             </Empty>
           ) : (
             <div className="flex min-w-0 flex-col gap-5">
@@ -179,14 +196,28 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
       )}
       <Collapsible>
         <CollapsibleTrigger asChild>
-          <Button variant="ghost" size="sm">{t("Metric definitions")}<ChevronDown data-icon="inline-end" />
+          <Button variant="ghost" size="sm">
+            {t('Metric definitions')}
+            <ChevronDown data-icon="inline-end" />
           </Button>
         </CollapsibleTrigger>
         <CollapsibleContent className="pt-3">
           <div className="flex max-w-3xl flex-col gap-2 text-sm text-muted-foreground">
-            <p>{t("CTA conversion measures recommendation opens out of all started sessions. Result completion measures result views out of started sessions. CTA click-through measures recommendation opens out of result viewers.")}</p>
-            <p>{t("Compare A and B within the same version and experiment. Variant B tests whether question order and result wording lead to more recommendation opens. Comparisons across versions show differences, not evidence of an experiment’s effect.")}</p>
-            <p>{t("All counts and rates use the selected filters. Campaigns come from the UTM value recorded at session start. Repeat views count once per session. Exclude forced assignments when comparing A and B.")}</p>
+            <p>
+              {t(
+                'CTA conversion measures recommendation opens out of all started sessions. Result completion measures result views out of started sessions. CTA click-through measures recommendation opens out of result viewers.',
+              )}
+            </p>
+            <p>
+              {t(
+                'Compare A and B within the same version and experiment. Variant B tests whether question order and result wording lead to more recommendation opens. Comparisons across versions show differences, not evidence of an experiment’s effect.',
+              )}
+            </p>
+            <p>
+              {t(
+                'All counts and rates use the selected filters. Campaigns come from the UTM value recorded at session start. Repeat views count once per session. Exclude forced assignments when comparing A and B.',
+              )}
+            </p>
           </div>
         </CollapsibleContent>
       </Collapsible>

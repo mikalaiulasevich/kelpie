@@ -1,27 +1,29 @@
+import { Localization } from '../localization/localization';
 import { isNull } from 'es-toolkit/predicate';
 import type { AnalyticsRatio } from '../management/management-types';
 
-const countFormatter = new Intl.NumberFormat('en-US');
-
-const percentageFormatter = new Intl.NumberFormat('en-US', {
-  style: 'percent',
-  maximumFractionDigits: 1,
-});
-
 export const AnalyticsFormat = {
   count(value: number): string {
-    return countFormatter.format(value);
+    return new Intl.NumberFormat(Localization.formattingLocale).format(value);
   },
 
   ratio(ratio: AnalyticsRatio): string {
-    return isNull(ratio.value) ? 'Not applicable' : percentageFormatter.format(ratio.value);
+    return isNull(ratio.value)
+      ? Localization.translate('Not applicable')
+      : new Intl.NumberFormat(Localization.formattingLocale, {
+          style: 'percent',
+          maximumFractionDigits: 1,
+        }).format(ratio.value);
   },
 
   fraction(ratio: AnalyticsRatio): string {
-    return `${countFormatter.format(ratio.numerator)} / ${countFormatter.format(ratio.denominator)} sessions`;
+    return `${new Intl.NumberFormat(Localization.formattingLocale).format(ratio.numerator)} / ${new Intl.NumberFormat(Localization.formattingLocale).format(ratio.denominator)} ${Localization.translate('sessions')}`;
   },
 
   generatedAt(value: string): string {
-    return new Date(value).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+    return new Date(value).toLocaleString(Localization.formattingLocale, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    });
   },
 } as const;

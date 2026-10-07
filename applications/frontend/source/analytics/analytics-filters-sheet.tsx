@@ -45,14 +45,20 @@ export function AnalyticsFiltersSheet({
     >
       <SheetHeader className="shrink-0 border-b px-6 py-5 pr-12">
         <SheetTitle className="flex items-center gap-2">
-          <SlidersHorizontal className="size-4 text-primary" />{t("Analytics filters")}</SheetTitle>
-        <p className="text-xs leading-relaxed text-muted-foreground">{t("Choose which sessions to include in this report.")}</p>
+          <SlidersHorizontal className="size-4 text-primary" />
+          {t('Analytics filters')}
+        </SheetTitle>
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          {t('Choose which sessions to include in this report.')}
+        </p>
       </SheetHeader>
       <form className="flex min-h-0 flex-1 flex-col" onSubmit={applyFilters}>
         <div className="min-h-0 flex-1 overflow-y-auto p-6">
           <FieldGroup className="gap-6">
-            <section aria-label={t("Quick presets")}>
-              <h3 className="mb-2 text-xs font-medium text-muted-foreground">{t("Quick presets · traffic & assignment")}</h3>
+            <section aria-label={t('Quick presets')}>
+              <h3 className="mb-2 text-xs font-medium text-muted-foreground">
+                {t('Quick presets · traffic & assignment')}
+              </h3>
               <div className="grid grid-cols-3 gap-2">
                 <Button
                   type="button"
@@ -69,7 +75,9 @@ export function AnalyticsFiltersSheet({
                     }))
                   }
                 >
-                  <Radio />{t("Production")}</Button>
+                  <Radio />
+                  {t('Production')}
+                </Button>
                 <Button
                   type="button"
                   variant="outline"
@@ -85,7 +93,9 @@ export function AnalyticsFiltersSheet({
                     }))
                   }
                 >
-                  <FlaskConical />{t("Test traffic")}</Button>
+                  <FlaskConical />
+                  {t('Test traffic')}
+                </Button>
                 <Button
                   type="button"
                   variant="outline"
@@ -99,14 +109,20 @@ export function AnalyticsFiltersSheet({
                     }))
                   }
                 >
-                  <Layers3 />{t("Everything")}</Button>
+                  <Layers3 />
+                  {t('Everything')}
+                </Button>
               </div>
-              <p className="mt-2 text-xs text-muted-foreground">{t("Presets keep your campaign selection.")}</p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {t('Presets keep your campaign selection.')}
+              </p>
             </section>
             <FieldGroup className="gap-4">
               <Field>
                 <FieldLabel htmlFor="analytics-campaign-mode">
-                  <Megaphone className="size-3.5" aria-hidden="true" />{t("Campaign")}</FieldLabel>
+                  <Megaphone className="size-3.5" aria-hidden="true" />
+                  {t('Campaign')}
+                </FieldLabel>
                 <Select
                   value={draftFilters.campaignMode}
                   onValueChange={(campaignMode) => {
@@ -124,20 +140,24 @@ export function AnalyticsFiltersSheet({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="all">{t("All campaigns")}</SelectItem>
-                      <SelectItem value="exact">{t("Specific campaign")}</SelectItem>
-                      <SelectItem value="none">{t("No campaign")}</SelectItem>
+                      <SelectItem value="all">{t('All campaigns')}</SelectItem>
+                      <SelectItem value="exact">{t('Specific campaign')}</SelectItem>
+                      <SelectItem value="none">{t('No campaign')}</SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
-                <p className="text-xs leading-relaxed text-muted-foreground">{t("Filter by the session’s utm_campaign value. “No campaign” includes sessions without this value.")}</p>
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  {t(
+                    'Filter by the session’s utm_campaign value. “No campaign” includes sessions without this value.',
+                  )}
+                </p>
               </Field>
               {draftFilters.campaignMode === 'exact' && (
                 <Field>
-                  <FieldLabel htmlFor="analytics-campaign">{t("Campaign name")}</FieldLabel>
+                  <FieldLabel htmlFor="analytics-campaign">{t('Campaign name')}</FieldLabel>
                   <Input
                     id="analytics-campaign"
-                    placeholder={t("e.g. demo-google-search")}
+                    placeholder={t('e.g. demo-google-search')}
                     required
                     autoComplete="off"
                     maxLength={AnalyticsPagePolicy.MaximumCampaignLength}
@@ -146,15 +166,21 @@ export function AnalyticsFiltersSheet({
                       setDraftFilters((filters) => ({ ...filters, campaign: event.target.value }))
                     }
                   />
-                  <p className="text-xs text-muted-foreground">{t("Use the exact value, including letter case.")}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t('Use the exact value, including letter case.')}
+                  </p>
                 </Field>
               )}
             </FieldGroup>
             <FieldSet className="gap-5">
-              <FieldLegend variant="label" className="mb-0 text-muted-foreground">{t("Sessions")}</FieldLegend>
+              <FieldLegend variant="label" className="mb-0 text-muted-foreground">
+                {t('Sessions')}
+              </FieldLegend>
               <Field>
                 <FieldLabel id="analytics-origin-label">
-                  <Radio className="size-3.5" aria-hidden="true" />{t("Traffic origin")}</FieldLabel>
+                  <Radio className="size-3.5" aria-hidden="true" />
+                  {t('Traffic origin')}
+                </FieldLabel>
                 <ToggleGroup
                   type="single"
                   variant="outline"
@@ -172,25 +198,31 @@ export function AnalyticsFiltersSheet({
                     }
                   }}
                 >
-                  <ToggleGroupItem value="production">{t("Production")}</ToggleGroupItem>
-                  <ToggleGroupItem value="synthetic">{t("Synthetic")}</ToggleGroupItem>
-                  <ToggleGroupItem value="all" aria-label={t("All traffic")}>{t("All")}</ToggleGroupItem>
+                  <ToggleGroupItem value="production">{t('Production')}</ToggleGroupItem>
+                  <ToggleGroupItem value="synthetic">{t('Synthetic')}</ToggleGroupItem>
+                  <ToggleGroupItem value="all" aria-label={t('All traffic')}>
+                    {t('All')}
+                  </ToggleGroupItem>
                 </ToggleGroup>
                 <p className="text-xs leading-relaxed text-muted-foreground">
                   {draftFilters.trafficOrigin === 'production'
-                    ? t("Only sessions marked as production.")
-                    : t("Includes synthetic test sessions. Use this view to inspect tracking, not to pick a winning variant.")}
+                    ? t('Only sessions marked as production.')
+                    : t(
+                        'Includes synthetic test sessions. Use this view to inspect tracking, not to pick a winning variant.',
+                      )}
                 </p>
               </Field>
               <Field>
                 <FieldLabel id="analytics-forced-label">
-                  <Shuffle className="size-3.5" aria-hidden="true" />{t("Forced assignments")}</FieldLabel>
+                  <Shuffle className="size-3.5" aria-hidden="true" />
+                  {t('Forced assignments')}
+                </FieldLabel>
                 <ToggleGroup
                   type="single"
                   variant="outline"
                   spacing={0}
                   className="w-full [&>button]:flex-1"
-                  value={draftFilters.includeForced ? "include" : "exclude"}
+                  value={draftFilters.includeForced ? 'include' : 'exclude'}
                   aria-labelledby="analytics-forced-label"
                   onValueChange={(selection) => {
                     if (selection === 'include' || selection === 'exclude') {
@@ -201,28 +233,34 @@ export function AnalyticsFiltersSheet({
                     }
                   }}
                 >
-                  <ToggleGroupItem value="exclude">{t("Exclude")}</ToggleGroupItem>
-                  <ToggleGroupItem value="include">{t("Include")}</ToggleGroupItem>
+                  <ToggleGroupItem value="exclude">{t('Exclude')}</ToggleGroupItem>
+                  <ToggleGroupItem value="include">{t('Include')}</ToggleGroupItem>
                 </ToggleGroup>
-                <p className="text-xs leading-relaxed text-muted-foreground">{t("Forced sessions select A or B explicitly instead of using random assignment. Exclude them for experiment comparisons.")}</p>
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  {t(
+                    'Forced sessions select A or B explicitly instead of using random assignment. Exclude them for experiment comparisons.',
+                  )}
+                </p>
               </Field>
             </FieldSet>
             <section
               className="filter-selection-summary"
-              aria-label={t("Selected filters")}
+              aria-label={t('Selected filters')}
               aria-live="polite"
             >
-              <h3 className="text-xs font-medium">{t("Report selection")}</h3>
+              <h3 className="text-xs font-medium">{t('Report selection')}</h3>
               <p className="mt-2 text-sm">{AnalyticsFilterSelection.trafficLabel(draftFilters)}</p>
               <p className="mt-1 break-words text-xs text-muted-foreground">
                 {AnalyticsFilterSelection.campaignLabel(draftFilters)}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
                 {draftFilters.includeForced
-                  ? t("Forced assignments included")
-                  : t("Random assignments only")}
+                  ? t('Forced assignments included')
+                  : t('Random assignments only')}
               </p>
-              <p className="mt-3 border-t pt-3 text-xs text-muted-foreground">{t("The report updates when you apply. Your selected version stays the same.")}</p>
+              <p className="mt-3 border-t pt-3 text-xs text-muted-foreground">
+                {t('The report updates when you apply. Your selected version stays the same.')}
+              </p>
             </section>
           </FieldGroup>
         </div>
@@ -233,7 +271,9 @@ export function AnalyticsFiltersSheet({
             size="sm"
             className="mr-auto"
             onClick={() => setDraftFilters({ ...AnalyticsFilterSelection.Initial })}
-          >{t("Reset")}</Button>
+          >
+            {t('Reset')}
+          </Button>
           <Button
             type="button"
             variant="outline"
@@ -242,8 +282,12 @@ export function AnalyticsFiltersSheet({
               setDraftFilters({ ...appliedFilters });
               onCancel();
             }}
-          >{t("Cancel")}</Button>
-          <Button type="submit" size="sm">{t("Apply filters")}</Button>
+          >
+            {t('Cancel')}
+          </Button>
+          <Button type="submit" size="sm">
+            {t('Apply filters')}
+          </Button>
         </SheetFooter>
       </form>
     </SheetContent>

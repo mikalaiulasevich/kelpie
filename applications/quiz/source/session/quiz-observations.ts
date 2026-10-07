@@ -1,7 +1,7 @@
 import { QuizSessionApi, QuizSessionValidators } from './quiz-session-api';
 import { QuizSessionMessages } from './quiz-session-messages';
 import { QuizSessionPolicy } from './quiz-session-policy';
-import type { QuizObservation, QuizSessionState } from './quiz-session-types';
+import type { QuizObservation, QuizObservationInput, QuizSessionState } from './quiz-session-types';
 
 export const QuizObservations = {
   key(state: QuizSessionState): string {
@@ -23,36 +23,47 @@ export const QuizObservations = {
     name: string,
     properties: Record<string, TextOrNumber>,
   ): Promise<void> {
+    await QuizObservations.enqueue(state, [{ name, properties }]);
+  },
+
+  async enqueue(
+    state: QuizSessionState,
+    observations: readonly QuizObservationInput[],
+  ): Promise<void> {
     if (typeof navigator !== 'undefined' && navigator.locks) {
       await navigator.locks.request(QuizObservations.key(state), async () =>
-        QuizObservations.append(state, name, properties),
+        QuizObservations.append(state, observations),
       );
 
       return;
     }
 
-    QuizObservations.append(state, name, properties);
+    QuizObservations.append(state, observations);
   },
 
-  append(state: QuizSessionState, name: string, properties: Record<string, TextOrNumber>): void {
-    if (!state.configuration.events.allowed.some((event) => event.name === name)) {
+  append(state: QuizSessionState, observations: readonly QuizObservationInput[]): void {
+    const allowed = observations.filter((observation) =>
+      state.configuration.events.allowed.some((event) => event.name === observation.name),
+    );
+
+    if (allowed.length === 0) {
       return;
     }
 
     const events = QuizObservations.read(state);
-    const observation: QuizObservation = {
+    const additions: QuizObservation[] = allowed.map((observation) => ({
       event_id: crypto.randomUUID(),
       session_id: state.sessionIdentifier,
-      name,
+      name: observation.name,
       client_timestamp: new Date().toISOString(),
       step_id: state.currentStepIdentifier,
       observationRevision: state.revision,
-      properties,
-    };
-    const serialized = JSON.stringify([...events, observation]);
+      properties: observation.properties,
+    }));
+    const serialized = JSON.stringify([...events, ...additions]);
 
     if (
-      events.length >= QuizSessionPolicy.QueueLimit ||
+      events.length + additions.length > QuizSessionPolicy.QueueLimit ||
       serialized.length > QuizSessionPolicy.QueueBytes
     ) {
       throw new Error(QuizSessionMessages.Delivery);
@@ -72,15 +83,22 @@ export const QuizObservations = {
       return;
     }
 
-    await QuizObservations.add(state, 'step_viewed', {
-      step_type: step.type,
-      visible_step_index: index,
-      visible_step_count: evaluation.route.steps.length,
-    });
+    const observations: QuizObservationInput[] = [
+      {
+        name: 'step_viewed',
+        properties: {
+          step_type: step.type,
+          visible_step_index: index,
+          visible_step_count: evaluation.route.steps.length,
+        },
+      },
+    ];
 
     if (state.result) {
-      await QuizObservations.add(state, 'result_viewed', { result_id: state.result.id });
+      observations.push({ name: 'result_viewed', properties: { result_id: state.result.id } });
     }
+
+    await QuizObservations.enqueue(state, observations);
   },
 
   async flush(state: QuizSessionState): Promise<void> {

@@ -1,4 +1,5 @@
 import { useLocalization } from '../localization/use-localization';
+import { isUndefined } from 'es-toolkit/predicate';
 import { useMemo } from 'react';
 import { ConfigurationInspectionFormat } from './configuration-inspection-format';
 
@@ -56,11 +57,13 @@ export function ConfigurationJson({ value }: { readonly value: unknown }) {
       className="configuration-json max-h-[32rem] min-w-0 overflow-auto rounded-md border p-4 text-xs leading-relaxed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
       <code>
-        {tokens.map((token) => (
-          <span key={token.offset} className={`json-${token.kind}`}>
-            {token.text}
-          </span>
-        ))}
+        {isUndefined(value)
+          ? t('Not declared')
+          : tokens.map((token) => (
+              <span key={token.offset} className={`json-${token.kind}`}>
+                {token.text}
+              </span>
+            ))}
       </code>
     </pre>
   );

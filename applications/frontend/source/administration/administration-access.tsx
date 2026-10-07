@@ -41,7 +41,7 @@ export function AdministrationAccess(): UIElement {
         loading={
           <div
             role="status"
-            aria-label={"Opening workspace"}
+            aria-label={'Opening workspace'}
             className="flex min-h-svh flex-col gap-6 p-8"
           >
             <SkeletonSummary />
@@ -61,7 +61,7 @@ export function AdministrationAccess(): UIElement {
       <div className="flex flex-col gap-6">
         <h1 className="auth-title">{t(AdministrationContent.UnavailableTitle)}</h1>
         <Alert variant="destructive">
-          <AlertDescription>{message}</AlertDescription>
+          <AlertDescription>{t(message)}</AlertDescription>
         </Alert>
         <Button
           variant="outline"

@@ -104,7 +104,7 @@ export function ConfigurationImportDialog({
         }
 
         setMessage(
-          error instanceof ManagementError ? error.message : t(ConfigurationContent.ImportFailure),
+          error instanceof ManagementError ? error.message : ConfigurationContent.ImportFailure,
         );
         setIssues(error instanceof ManagementError ? error.issues : []);
       }
@@ -229,7 +229,7 @@ export function ConfigurationImportDialog({
                   {issues.map((issue, index) => (
                     <li key={`${issue.path}-${index}`}>
                       <code className="break-all text-xs">{issue.path}</code>
-                      <p>{issue.message}</p>
+                      <p>{t(issue.message)}</p>
                     </li>
                   ))}
                 </ul>

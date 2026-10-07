@@ -42,7 +42,7 @@ function PublicationVersionLink({
   funnelIdentifier,
   identifier,
 }: PublicationVersionLinkProperties): UIElement {
-  const { t } = useLocalization();
+  useLocalization();
   const label = ConfigurationFormat.identifier(identifier);
 
   if (

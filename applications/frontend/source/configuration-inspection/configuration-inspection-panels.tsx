@@ -116,7 +116,12 @@ export function ConfigurationStepsPanel({ configuration, variant }: VariantPanel
                   >
                     {stepIdentifier}
                     <span className="inspection-step-kind">
-                      {listedStep?.type.replaceAll('-', ' ')}
+                      {listedStep &&
+                        t(
+                          ConfigurationInspectionFormat.contentLabel(
+                            listedStep.type.replaceAll('-', ' '),
+                          ),
+                        )}
                     </span>
                   </span>
                   {listedStep?.visibleWhen && <Badge variant="outline">{t('If')}</Badge>}
@@ -318,6 +323,7 @@ export function ConfigurationVariantsPanel({ configuration }: ConfigurationPanel
 
 export function ConfigurationResultsPanel({ configuration, variant }: VariantPanelProperties) {
   const { t } = useLocalization();
+
   return (
     <div className="flex min-w-0 flex-col gap-4">
       <Card className="min-w-0">
@@ -444,6 +450,7 @@ export function ConfigurationResultsPanel({ configuration, variant }: VariantPan
 
 export function ConfigurationEventsPanel({ configuration }: ConfigurationPanelProperties) {
   const { t } = useLocalization();
+
   return (
     <div className="inspection-events grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]">
       <Card className="compact-card min-w-0">

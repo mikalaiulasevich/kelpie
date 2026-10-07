@@ -111,7 +111,7 @@ export function PublicationHistoryPage({
               onClick={() =>
                 onIntent({
                   kind: 'rollback',
-                  label: t('Previous activated version'),
+                  label: 'Previous activated version',
                   command: {
                     operationIdentifier: globalThis.crypto.randomUUID(),
                     funnelIdentifier,

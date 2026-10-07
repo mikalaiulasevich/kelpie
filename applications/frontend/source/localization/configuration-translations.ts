@@ -295,4 +295,8 @@ export const ConfigurationTranslations: Readonly<Record<string, string>> = {
   'Single select': 'Один вариант',
   'Multi select': 'Несколько вариантов',
   Number: 'Число',
+  Locale: 'Язык конфигурации',
+  'Document status': 'Статус документа',
+  '1 place earlier': 'На 1 поз. раньше',
+  '1 place later': 'На 1 поз. позже',
 };

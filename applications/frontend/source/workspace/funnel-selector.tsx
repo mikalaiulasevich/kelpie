@@ -57,7 +57,7 @@ export function FunnelSelector({
                 setInvalid(false);
               }}
               aria-invalid={invalid}
-              aria-describedby={invalid ? "workspace-funnel-error" : undefined}
+              aria-describedby={invalid ? 'workspace-funnel-error' : undefined}
             />
             <InputGroupAddon align="inline-end">
               <InputGroupButton

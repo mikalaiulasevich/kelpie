@@ -112,7 +112,7 @@ export function PublicationDialog({
           setRecoveryRetained(!PublicationIntents.clear(ownerIdentifier));
         }
 
-        setError(isError(failure) ? failure : new Error(t(ConfigurationContent.CommandFailure)));
+        setError(isError(failure) ? failure : new Error(ConfigurationContent.CommandFailure));
       }
     } finally {
       requestPending.current = false;
@@ -172,7 +172,7 @@ export function PublicationDialog({
           </div>
           <div className="flex justify-between gap-2">
             <dt className="text-muted-foreground">{t(ConfigurationContent.Version)}</dt>
-            <dd className="font-medium">{intent.label}</dd>
+            <dd className="font-medium">{t(intent.label)}</dd>
           </div>
           <div className="flex justify-between gap-2">
             <dt className="text-muted-foreground">{t(ConfigurationContent.CurrentRevision)}</dt>
@@ -184,7 +184,7 @@ export function PublicationDialog({
             <AlertCircle />
             <AlertTitle>{t(ConfigurationContent.CommandFailure)}</AlertTitle>
             <AlertDescription>
-              {conflict ? t(ConfigurationContent.Conflict) : error.message}
+              {conflict ? t(ConfigurationContent.Conflict) : t(error.message)}
             </AlertDescription>
           </Alert>
         )}

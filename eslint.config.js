@@ -136,6 +136,9 @@ export default typescript.config(
       '**/node_modules/**',
       '**/coverage/**',
       '**/.next/**',
+      // Local browser evidence and disposable probes are not repository source.
+      'test-results/**',
+      'playwright-report/**',
     ],
   },
   javascript.configs.recommended,

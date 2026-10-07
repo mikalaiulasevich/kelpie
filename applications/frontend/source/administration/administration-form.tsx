@@ -119,10 +119,12 @@ export function AdministrationForm({ signIn }: AdministrationFormProperties): UI
                   setMessage('');
                 }}
                 aria-invalid={!!errors.username}
-                aria-describedby={errors.username ? "username-error" : undefined}
+                aria-describedby={errors.username ? 'username-error' : undefined}
               />
             </InputGroup>
-            {errors.username && <FieldError id="username-error">{errors.username}</FieldError>}
+            {errors.username && (
+              <FieldError id="username-error">{errors.username && t(errors.username)}</FieldError>
+            )}
           </Field>
           <Field data-invalid={!!errors.password} data-disabled={pending}>
             <FieldLabel htmlFor="password">{t(AdministrationContent.PasswordLabel)}</FieldLabel>
@@ -131,7 +133,7 @@ export function AdministrationForm({ signIn }: AdministrationFormProperties): UI
                 ref={passwordReference}
                 id="password"
                 name="password"
-                type={visible ? "text" : "password"}
+                type={visible ? 'text' : 'password'}
                 autoComplete="current-password"
                 placeholder={t(AdministrationContent.PasswordPlaceholder)}
                 required
@@ -169,7 +171,9 @@ export function AdministrationForm({ signIn }: AdministrationFormProperties): UI
                 </InputGroupButton>
               </InputGroupAddon>
             </InputGroup>
-            {errors.password && <FieldError id="password-error">{errors.password}</FieldError>}
+            {errors.password && (
+              <FieldError id="password-error">{errors.password && t(errors.password)}</FieldError>
+            )}
             {capsLock && (
               <p id="caps-warning" className="text-sm text-muted-foreground" role="status">
                 {t(AdministrationContent.CapsLock)}
@@ -179,7 +183,7 @@ export function AdministrationForm({ signIn }: AdministrationFormProperties): UI
           {message && (
             <Alert variant="destructive" className="form-feedback">
               <AlertTitle>{t(AdministrationContent.SignInFailed)}</AlertTitle>
-              <AlertDescription>{message}</AlertDescription>
+              <AlertDescription>{t(message)}</AlertDescription>
             </Alert>
           )}
           <Field>
