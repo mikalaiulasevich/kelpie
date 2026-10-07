@@ -67,3 +67,8 @@ export type SessionAnswerSource = Readonly<{
     Readonly<{ stepIdentifier: string; value: unknown; confirmationRevision: number | null }>
   >;
 }>;
+
+export type ActiveSessionConfiguration = Readonly<{
+  identifier: string;
+  configuration: FunnelConfiguration;
+}>;

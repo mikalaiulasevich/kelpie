@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BackendApplicationFixture } from '../fixtures/backend-application.js';
 import { PublicationFixtures } from '../fixtures/publication-fixtures.js';
 import { SessionFlowCases } from '../cases/session-flow-cases.js';
@@ -16,6 +16,7 @@ describe('session HTTP acceptance', () => {
   });
 
   afterEach(async () => {
+    vi.restoreAllMocks();
     await backend?.close();
   });
 
@@ -80,6 +81,25 @@ describe('session HTTP acceptance', () => {
     expect(await backend.database.event.count()).toBe(0);
     expect(await (await browser.current()).json()).toEqual({ state: null, expired: false });
     expect(browser.cookie).not.toBe(cookie);
+  });
+
+  it('keeps delayed-bootstrap ownership for the full session lifetime without rotating its credential', async () => {
+    const clock = SessionFlowFixture.clock();
+    await browser.current();
+    const credential = browser.cookie;
+    clock.advanceHours(71);
+    const response = await browser.post('?variant=A', SessionFlowFixture.creation());
+    const state = await SessionFlowFixture.state(response);
+    expect(response.headers.get('set-cookie')?.split(';')[0]).toBe(credential);
+    expect(response.headers.get('set-cookie')).toContain('Max-Age=259200');
+
+    clock.advanceHours(73);
+    expect(await (await browser.current()).json()).toEqual({ state, expired: false });
+    expect(browser.cookie).toBe(credential);
+    clock.advanceHours(143);
+    expect(await (await browser.current()).json()).toEqual({ state: null, expired: true });
+    expect(browser.cookie).not.toBe(credential);
+    expect(await backend.database.session.count()).toBe(1);
   });
 
   it('replays a lost creation response and retains its version and assignment through publish and rollback', async () => {
@@ -220,8 +240,9 @@ describe('session HTTP acceptance', () => {
     state = await browser.answer(state, 2);
     expect(state.currentStepIdentifier).toBe('async_maturity');
 
-    for (let remaining = 4; remaining > 0; remaining -= 1) {
+    for (const expectedStep of SessionFlowCases.BranchReturnSteps) {
       state = await browser.back(state);
+      expect(state.currentStepIdentifier).toBe(expectedStep);
     }
 
     expect(state.currentStepIdentifier).toBe('work_mode');

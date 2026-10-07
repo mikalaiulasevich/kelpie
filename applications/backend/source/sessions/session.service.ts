@@ -24,6 +24,7 @@ import type {
   SessionState,
   CurrentSessionResponse,
   OwnedSession,
+  ActiveSessionConfiguration,
 } from './session-types.js';
 
 const SessionCreation = {
@@ -218,8 +219,43 @@ export class SessionService {
     body: CreateSessionRequest,
     query: SessionQuery,
   ): Promise<SessionState> {
+    const active = await this.activeConfiguration(transaction, body.funnelIdentifier);
+    const { configuration } = active;
+    const fingerprint = SessionCreation.fingerprint(body, query, configuration);
+    const assignment = SessionCreation.assignment(configuration, query);
+    const first = FunnelEvaluation.evaluate(configuration, assignment.variant, {}).route.steps[0];
+    if (!first) {
+      throw new Error(SessionMessages.Corrupted);
+    }
+
+    const acquisitionParameters = SessionInputs.acquisition(query);
+    const session = await transaction.session.create({
+      data: {
+        accessTokenHash: credentialHash,
+        versionIdentifier: active.identifier,
+        experimentIdentifier: configuration.experiment.id,
+        variant: assignment.variant,
+        assignmentSource: assignment.source,
+        trafficOrigin: SessionPolicy.TrafficOrigin,
+        acquisitionParameters,
+        campaign: acquisitionParameters.utm_campaign ?? null,
+        currentStepIdentifier: first.id,
+        expiresAt: new Date(
+          Date.now() + configuration.session.ttlHours * SessionPolicy.MillisecondsPerHour,
+        ),
+      },
+      include: SessionPolicy.RecordInclude,
+    });
+
+    return this.recordCreation(transaction, session, body, fingerprint);
+  }
+
+  private async activeConfiguration(
+    transaction: Prisma.TransactionClient,
+    funnelIdentifier: string,
+  ): Promise<ActiveSessionConfiguration> {
     const funnel = await transaction.funnel.findUnique({
-      where: { identifier: body.funnelIdentifier },
+      where: { identifier: funnelIdentifier },
       include: { activeVersion: true },
     });
     if (!funnel?.activeVersion) {
@@ -236,31 +272,16 @@ export class SessionService {
     }
 
     const configuration = prepared.configuration;
-    const fingerprint = SessionCreation.fingerprint(body, query, configuration);
-    const assignment = SessionCreation.assignment(configuration, query);
-    const first = FunnelEvaluation.evaluate(configuration, assignment.variant, {}).route.steps[0];
-    if (!first) {
-      throw new Error(SessionMessages.Corrupted);
-    }
 
-    const acquisitionParameters = SessionInputs.acquisition(query);
-    const session = await transaction.session.create({
-      data: {
-        accessTokenHash: credentialHash,
-        versionIdentifier: funnel.activeVersion.identifier,
-        experimentIdentifier: configuration.experiment.id,
-        variant: assignment.variant,
-        assignmentSource: assignment.source,
-        trafficOrigin: SessionPolicy.TrafficOrigin,
-        acquisitionParameters,
-        campaign: acquisitionParameters.utm_campaign ?? null,
-        currentStepIdentifier: first.id,
-        expiresAt: new Date(
-          Date.now() + configuration.session.ttlHours * SessionPolicy.MillisecondsPerHour,
-        ),
-      },
-      include: SessionPolicy.RecordInclude,
-    });
+    return { identifier: funnel.activeVersion.identifier, configuration };
+  }
+
+  private async recordCreation(
+    transaction: Prisma.TransactionClient,
+    session: OwnedSession,
+    body: CreateSessionRequest,
+    fingerprint: string,
+  ): Promise<SessionState> {
     const state = SessionProjection.read(session);
     const response = SessionSnapshots.json(state);
     await transaction.session.update({

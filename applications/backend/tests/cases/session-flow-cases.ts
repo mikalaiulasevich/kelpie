@@ -12,6 +12,7 @@ interface SessionFlowCase {
 }
 
 export const SessionFlowCases = {
+  BranchReturnSteps: ['office_days', 'timezone_span', 'priorities', 'work_mode'],
   Complete: [
     {
       name: 'variant A remote branch',

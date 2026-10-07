@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { Ajv } from 'ajv';
+import { vi } from 'vitest';
 import type { Static } from 'typebox';
 import { SessionSchemas } from '../../source/sessions/session-types.js';
 import type { BackendApplicationFixture } from './backend-application.js';
@@ -17,6 +18,18 @@ export const SessionFlowFixture = {
     'content-type': 'application/json',
   },
   Timestamp: '2026-10-07T12:00:00.000Z',
+  MillisecondsPerHour: 60 * 60 * 1000,
+
+  clock() {
+    const startedAt = Date.now();
+    const clock = vi.spyOn(Date, 'now');
+
+    return {
+      advanceHours(hours: number): void {
+        clock.mockReturnValue(startedAt + hours * SessionFlowFixture.MillisecondsPerHour);
+      },
+    };
+  },
 
   async prepare(backend: BackendApplicationFixture) {
     const publication = await PublicationFixtures.prepare(backend);
