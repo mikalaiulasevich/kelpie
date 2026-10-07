@@ -156,17 +156,17 @@ export function ConfigurationVersionsPage({
         </Button>
       </div>
       {resource.status === 'loading' && (
-        <div role="status" aria-label={t("Loading configurations")} className="flex flex-col gap-4">
+        <div role="status" aria-label={t('Loading configurations')} className="flex flex-col gap-4">
           <SkeletonSummary />
           <SkeletonRows />
         </div>
       )}
       {resource.status === 'error' && (
         <LoadErrorState
-          title={t("Configurations could not be loaded")}
-          message={resource.message}
+          title={t('Configurations could not be loaded')}
+          message={t(resource.message)}
           onRetry={reload}
-          retryLabel={t("Try again")}
+          retryLabel={t('Try again')}
         />
       )}
       {resource.status === 'ready' &&
@@ -286,7 +286,9 @@ export function ConfigurationVersionsPage({
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectItem value="all">{t(ConfigurationContent.AllStatuses)}</SelectItem>
+                            <SelectItem value="all">
+                              {t(ConfigurationContent.AllStatuses)}
+                            </SelectItem>
                             <SelectItem value="live">{t(ConfigurationContent.Live)}</SelectItem>
                             <SelectItem value="draft">{t(ConfigurationContent.Draft)}</SelectItem>
                           </SelectGroup>
@@ -363,7 +365,9 @@ export function ConfigurationVersionsPage({
                                 </Button>
                               </TableHead>
                               <TableHead>{t(ConfigurationContent.Status)}</TableHead>
-                              {showSchema && <TableHead>{t(ConfigurationContent.Schema)}</TableHead>}
+                              {showSchema && (
+                                <TableHead>{t(ConfigurationContent.Schema)}</TableHead>
+                              )}
                               {showChecksum && (
                                 <TableHead>{t(ConfigurationContent.Checksum)}</TableHead>
                               )}
@@ -392,7 +396,9 @@ export function ConfigurationVersionsPage({
                                           funnelIdentifier,
                                           version.identifier,
                                         )}
-                                        aria-label={`Details for version ${version.version}`}
+                                        aria-label={t('Details for version {version}', {
+                                          version: version.version,
+                                        })}
                                       >
                                         <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-primary/10 text-primary">
                                           <FileJson className="size-5" />
@@ -453,7 +459,9 @@ export function ConfigurationVersionsPage({
                     <Separator />
                     <CardFooter className="flex flex-wrap items-center justify-between gap-4 pt-5">
                       <p className="text-xs text-muted-foreground" aria-live="polite">
-                        {visibleVersions.length} {t("of")}{configurations.items.length} {t("on this page · Showing")}{offset + (configurations.items.length > 0 ? 1 : 0)}–
+                        {visibleVersions.length} {t('of')} {configurations.items.length}{' '}
+                        {t('on this page · Showing')}{' '}
+                        {offset + (configurations.items.length > 0 ? 1 : 0)}–
                         {offset + configurations.items.length}
                       </p>
                       <div className="flex gap-2">

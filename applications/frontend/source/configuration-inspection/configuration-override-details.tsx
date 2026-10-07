@@ -18,8 +18,11 @@ export function ConfigurationOverrideDetails({
   const itemLabel = identifiers.length === 1 ? kind.slice(0, -1) : kind;
   const description =
     identifiers.length > 0
-      ? `Variant-specific overrides for ${identifiers.length} ${itemLabel}.`
-      : `No overrides. Uses the original ${kind}.`;
+      ? t('Variant-specific overrides for {count} {kind}.', {
+          count: identifiers.length,
+          kind: t(itemLabel),
+        })
+      : t('No overrides. Uses the original {kind}.', { kind: t(kind) });
 
   return (
     <details className="override-disclosure">
@@ -40,7 +43,9 @@ export function ConfigurationOverrideDetails({
         {identifiers.length > 0 ? (
           <>
             <div className="override-disclosure-targets">
-              <span className="text-xs text-muted-foreground">{t("Affected")}{kind}</span>
+              <span className="text-xs text-muted-foreground">
+                {t('Affected')} {t(kind)}
+              </span>
               <ul>
                 {identifiers.map((identifier) => (
                   <li key={identifier}>{identifier}</li>
@@ -51,7 +56,9 @@ export function ConfigurationOverrideDetails({
           </>
         ) : (
           <p className="text-xs leading-relaxed text-muted-foreground">
-            {t("This variant inherits all")}{isSteps ? t('step content') : t('result content')} {t("from the original configuration.")}</p>
+            {t('This variant inherits all')} {isSteps ? t('step content') : t('result content')}{' '}
+            {t('from the original configuration.')}
+          </p>
         )}
       </div>
     </details>

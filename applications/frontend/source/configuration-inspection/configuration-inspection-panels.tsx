@@ -66,7 +66,8 @@ export function ConfigurationStepsPanel({ configuration, variant }: VariantPanel
     <div className="flex min-w-0 flex-col gap-4">
       <div className="min-w-0 lg:hidden">
         <label htmlFor="inspection-step" className="mb-2 block text-sm font-medium">
-          {t("Inspect step")}</label>
+          {t('Inspect step')}
+        </label>
         <Select value={step.id} onValueChange={setSelectedIdentifier}>
           <SelectTrigger id="inspection-step" className="w-full">
             <SelectValue />
@@ -84,13 +85,13 @@ export function ConfigurationStepsPanel({ configuration, variant }: VariantPanel
       </div>
       <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[16rem_minmax(0,1fr)] xl:grid-cols-[18rem_minmax(0,1fr)]">
         <nav
-          aria-label={t("Configuration steps")}
+          aria-label={t('Configuration steps')}
           className="inspection-step-navigation hidden min-w-0 rounded-4xl border bg-card py-5 lg:block"
         >
           <div className="mb-3 flex items-center justify-between px-4">
-            <h2 className="text-sm font-semibold">{t("Steps")}</h2>
+            <h2 className="text-sm font-semibold">{t('Steps')}</h2>
             <span className="text-xs tabular-nums text-muted-foreground">
-              {variantConfiguration.stepSequence.length} {t("· Variant")}{variant}
+              {variantConfiguration.stepSequence.length} {t('· Variant')} {variant}
             </span>
           </div>
           <div className="flex flex-col gap-1 px-2">
@@ -118,7 +119,7 @@ export function ConfigurationStepsPanel({ configuration, variant }: VariantPanel
                       {listedStep?.type.replaceAll('-', ' ')}
                     </span>
                   </span>
-                  {listedStep?.visibleWhen && <Badge variant="outline">{t("If")}</Badge>}
+                  {listedStep?.visibleWhen && <Badge variant="outline">{t('If')}</Badge>}
                 </Button>
               );
             })}
@@ -150,7 +151,7 @@ export function ConfigurationVariantsPanel({ configuration }: ConfigurationPanel
               <FlaskConical className="size-5" aria-hidden="true" />
             </span>
             <div className="min-w-0">
-              <CardTitle>{t("Experiment")}</CardTitle>
+              <CardTitle>{t('Experiment')}</CardTitle>
               <CardDescription className="mt-1 break-all">
                 {configuration.experiment.id}
               </CardDescription>
@@ -158,11 +159,15 @@ export function ConfigurationVariantsPanel({ configuration }: ConfigurationPanel
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-5">
-          <section aria-label={t("Configured traffic allocation")} className="experiment-allocation">
+          <section
+            aria-label={t('Configured traffic allocation')}
+            className="experiment-allocation"
+          >
             <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-              <h3 className="text-sm font-medium">{t("Traffic allocation")}</h3>
+              <h3 className="text-sm font-medium">{t('Traffic allocation')}</h3>
               <span className="text-xs text-muted-foreground">
-                {t("Configured weights · actual traffic may vary")}</span>
+                {t('Configured weights · actual traffic may vary')}
+              </span>
             </div>
             <div className="experiment-allocation-bar" aria-hidden="true">
               {[ExperimentVariant.A, ExperimentVariant.B].map((variant) => (
@@ -181,7 +186,9 @@ export function ConfigurationVariantsPanel({ configuration }: ConfigurationPanel
                     data-variant={variant}
                     aria-hidden="true"
                   />
-                  <span>{t("Variant")}{variant}</span>
+                  <span>
+                    {t('Variant')} {variant}
+                  </span>
                   <strong className="font-medium tabular-nums">
                     {totalWeight > 0
                       ? (
@@ -192,7 +199,8 @@ export function ConfigurationVariantsPanel({ configuration }: ConfigurationPanel
                     %
                   </strong>
                   <span className="ml-auto text-xs text-muted-foreground">
-                    {configuration.experiment.variants[variant].stepSequence.length} {t("steps")}</span>
+                    {configuration.experiment.variants[variant].stepSequence.length} {t('steps')}
+                  </span>
                 </div>
               ))}
             </div>
@@ -201,26 +209,32 @@ export function ConfigurationVariantsPanel({ configuration }: ConfigurationPanel
             <div>
               <dt>
                 <Server aria-hidden="true" />
-                {t("Assignment")}</dt>
+                {t('Assignment')}
+              </dt>
               <dd className="capitalize">{configuration.experiment.assignment}</dd>
               <dd className="experiment-setting-help">
-                {t("The server assigns a variant when a session starts.")}</dd>
+                {t('The server assigns a variant when a session starts.')}
+              </dd>
             </div>
             <div>
               <dt>
                 <LockKeyhole aria-hidden="true" />
-                {t("Sticky variant")}</dt>
+                {t('Sticky variant')}
+              </dt>
               <dd>{configuration.experiment.sticky ? t('Enabled') : t('Disabled')}</dd>
               <dd className="experiment-setting-help">
-                {t("The assigned variant stays with the session.")}</dd>
+                {t('The assigned variant stays with the session.')}
+              </dd>
             </div>
             <div>
               <dt>
                 <Link2 aria-hidden="true" />
-                {t("Override query parameter")}</dt>
+                {t('Override query parameter')}
+              </dt>
               <dd className="break-all">{configuration.experiment.overrideQueryParam}</dd>
               <dd className="experiment-setting-help">
-                {t("Request A or B explicitly with this query parameter.")}</dd>
+                {t('Request A or B explicitly with this query parameter.')}
+              </dd>
             </div>
           </dl>
         </CardContent>
@@ -244,14 +258,14 @@ export function ConfigurationVariantsPanel({ configuration }: ConfigurationPanel
                 <div className="flex items-center justify-between gap-3">
                   <CardTitle className="flex items-center gap-2">
                     <span className="variant-letter">{variant}</span>
-                    {t("Variant")}{variant}
+                    {t('Variant')} {variant}
                   </CardTitle>
                   <span className="variant-share">
-                    {trafficShare.toFixed(0)}% <span>{t("traffic")}</span>
+                    {trafficShare.toFixed(0)}% <span>{t('traffic')}</span>
                   </span>
                 </div>
                 <CardDescription>
-                  {variantConfiguration.stepSequence.length} {t("steps · Weight")}{' '}
+                  {variantConfiguration.stepSequence.length} {t('steps · Weight')}{' '}
                   {variantConfiguration.weight}
                 </CardDescription>
                 <div className="variant-allocation-track" aria-hidden="true">
@@ -260,9 +274,9 @@ export function ConfigurationVariantsPanel({ configuration }: ConfigurationPanel
               </CardHeader>
               <CardContent className="flex min-w-0 flex-col gap-5">
                 <div>
-                  <h3 className="mb-2 text-sm font-medium">{t("Step order")}</h3>
+                  <h3 className="mb-2 text-sm font-medium">{t('Step order')}</h3>
                   <p className="mb-3 text-xs text-muted-foreground">
-                    {t("Position changes are shown relative to variant")}{otherVariant}.
+                    {t('Position changes are shown relative to variant')} {otherVariant}.
                   </p>
                   <ol className="variant-step-list">
                     {variantConfiguration.stepSequence.map((identifier, index) => {
@@ -308,41 +322,45 @@ export function ConfigurationResultsPanel({ configuration, variant }: VariantPan
     <div className="flex min-w-0 flex-col gap-4">
       <Card className="min-w-0">
         <CardHeader>
-          <CardTitle>{t("Result selection")}</CardTitle>
+          <CardTitle>{t('Result selection')}</CardTitle>
           <CardDescription>
-            {t("Rules are evaluated in order. The first matching rule selects the result; otherwise the default applies.")}</CardDescription>
+            {t(
+              'Rules are evaluated in order. The first matching rule selects the result; otherwise the default applies.',
+            )}
+          </CardDescription>
         </CardHeader>
         <CardContent className="flex min-w-0 flex-col gap-4">
           {configuration.resultRules.map((rule, index) => (
             <div key={index} className="min-w-0">
               <div className="result-rule-heading">
                 <span className="result-rule-order">
-                  <span className="sr-only">{t("Rule")}</span>
+                  <span className="sr-only">{t('Rule')}</span>
                   {String(index + 1).padStart(2, '0')}
                 </span>
-                <span className="result-rule-label">{t("Show result")}</span>
+                <span className="result-rule-label">{t('Show result')}</span>
                 <code className="result-rule-target">{rule.resultId}</code>
               </div>
               <ConfigurationJson value={rule.when} />
             </div>
           ))}
           <div className="result-rule-heading result-rule-fallback">
-            <span className="result-rule-label">{t("Otherwise show")}</span>
+            <span className="result-rule-label">{t('Otherwise show')}</span>
             <code className="result-rule-target">{configuration.defaultResultId}</code>
           </div>
         </CardContent>
       </Card>
-      <section className="result-catalog" aria-label={t("Configured results")}>
+      <section className="result-catalog" aria-label={t('Configured results')}>
         <div className="result-catalog-heading">
           <h3 className="flex items-center gap-2 text-sm font-medium">
             <Target className="size-4 text-primary" aria-hidden="true" />
-            {t("Result content")}{' '}
+            {t('Result content')}{' '}
             <span className="text-muted-foreground">
               {Object.keys(configuration.results).length}
             </span>
           </h3>
           <p className="text-xs text-muted-foreground">
-            {t("Preview for variant")}{variant} {t("· Includes content overrides")}</p>
+            {t('Preview for variant')} {variant} {t('· Includes content overrides')}
+          </p>
         </div>
         <div className="result-catalog-grid">
           {Object.values(configuration.results).map((originalResult) => {
@@ -368,12 +386,16 @@ export function ConfigurationResultsPanel({ configuration, variant }: VariantPan
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {result.id === configuration.defaultResultId && (
-                      <span className="result-content-tag">{t("Default result")}</span>
+                      <span className="result-content-tag">{t('Default result')}</span>
                     )}
                     {Object.hasOwn(
                       configuration.experiment.variants[variant].resultOverrides,
                       result.id,
-                    ) && <span className="result-content-tag">{t("Variant")}{variant} {t("override")}</span>}
+                    ) && (
+                      <span className="result-content-tag">
+                        {t('Variant')} {variant} {t('override')}
+                      </span>
+                    )}
                   </div>
                   <CardDescription className="result-content-summary break-words">
                     {result.summary}
@@ -382,7 +404,7 @@ export function ConfigurationResultsPanel({ configuration, variant }: VariantPan
                 <CardContent className="flex min-w-0 flex-1 flex-col gap-3">
                   <h4 className="flex items-center gap-2 text-xs font-medium">
                     <ListChecks className="size-4 text-primary" aria-hidden="true" />
-                    {t("Recommendations")}{' '}
+                    {t('Recommendations')}{' '}
                     <span className="text-muted-foreground">{result.recommendations.length}</span>
                   </h4>
                   <ol className="result-recommendations">
@@ -401,10 +423,12 @@ export function ConfigurationResultsPanel({ configuration, variant }: VariantPan
                       aria-hidden="true"
                     />
                     <div className="min-w-0">
-                      <p className="text-xs text-muted-foreground">{t("Primary action · Preview")}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {t('Primary action · Preview')}
+                      </p>
                       <p className="mt-1 break-words text-sm font-medium">{result.cta.label}</p>
                       <p className="mt-1 break-all text-xs text-muted-foreground">
-                        {t("Action:")}{result.cta.action}
+                        {t('Action:')} {result.cta.action}
                       </p>
                     </div>
                   </div>
@@ -426,13 +450,16 @@ export function ConfigurationEventsPanel({ configuration }: ConfigurationPanelPr
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ShieldCheck className="size-4 text-primary" />
-            {t("Analytics privacy")}</CardTitle>
-          <CardDescription>{t("What this configuration allows in analytics events.")}</CardDescription>
+            {t('Analytics privacy')}
+          </CardTitle>
+          <CardDescription>
+            {t('What this configuration allows in analytics events.')}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <dl className="event-privacy-list">
             <div>
-              <dt>{t("Raw answers")}</dt>
+              <dt>{t('Raw answers')}</dt>
               <dd>
                 {configuration.events.privacy.storeRawAnswers ? (
                   <Check aria-hidden="true" />
@@ -443,7 +470,7 @@ export function ConfigurationEventsPanel({ configuration }: ConfigurationPanelPr
               </dd>
             </div>
             <div>
-              <dt>{t("Answer types")}</dt>
+              <dt>{t('Answer types')}</dt>
               <dd>
                 {configuration.events.privacy.allowAnswerKinds ? (
                   <Check aria-hidden="true" />
@@ -455,9 +482,10 @@ export function ConfigurationEventsPanel({ configuration }: ConfigurationPanelPr
             </div>
           </dl>
           <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-            {t("Session answer storage is configured separately in Settings.")}</p>
+            {t('Session answer storage is configured separately in Settings.')}
+          </p>
           <details className="event-privacy-json">
-            <summary>{t("View declaration")}</summary>
+            <summary>{t('View declaration')}</summary>
             <ConfigurationJson value={configuration.events.privacy} />
           </details>
         </CardContent>
@@ -466,10 +494,10 @@ export function ConfigurationEventsPanel({ configuration }: ConfigurationPanelPr
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Braces className="size-4 text-primary" />
-            {t("Shared properties")}{' '}
+            {t('Shared properties')}{' '}
             <span className="event-count">{configuration.events.baseProperties.length}</span>
           </CardTitle>
-          <CardDescription>{t("Declared for every event below.")}</CardDescription>
+          <CardDescription>{t('Declared for every event below.')}</CardDescription>
         </CardHeader>
         <CardContent>
           <ul className="event-property-grid">
@@ -486,10 +514,14 @@ export function ConfigurationEventsPanel({ configuration }: ConfigurationPanelPr
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Activity className="size-4 text-primary" />
-            {t("Event catalog")}<span className="event-count">{configuration.events.allowed.length}</span>
+            {t('Event catalog')}
+            <span className="event-count">{configuration.events.allowed.length}</span>
           </CardTitle>
           <CardDescription>
-            {t("Configured triggers and additional properties. These describe events, not live activity.")}</CardDescription>
+            {t(
+              'Configured triggers and additional properties. These describe events, not live activity.',
+            )}
+          </CardDescription>
         </CardHeader>
         <CardContent className="min-w-0">
           <ul className="event-catalog">
@@ -505,7 +537,7 @@ export function ConfigurationEventsPanel({ configuration }: ConfigurationPanelPr
                   <p>{event.trigger}</p>
                 </div>
                 <div className="event-catalog-properties">
-                  <span className="event-property-caption">{t("Additional properties")}</span>
+                  <span className="event-property-caption">{t('Additional properties')}</span>
                   {event.properties.length > 0 ? (
                     <ul>
                       {event.properties.map((property) => (
@@ -515,7 +547,9 @@ export function ConfigurationEventsPanel({ configuration }: ConfigurationPanelPr
                       ))}
                     </ul>
                   ) : (
-                    <span className="text-xs text-muted-foreground">{t("Shared properties only")}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {t('Shared properties only')}
+                    </span>
                   )}
                 </div>
               </li>

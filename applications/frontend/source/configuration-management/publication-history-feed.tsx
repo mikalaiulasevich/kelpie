@@ -1,3 +1,4 @@
+import { Localization } from '../localization/localization';
 import { useLocalization } from '../localization/use-localization';
 import { groupBy } from 'es-toolkit';
 import { Check, RotateCcw } from 'lucide-react';
@@ -25,7 +26,7 @@ const PublicationHistoryFormat = {
 
     return Number.isNaN(date.getTime())
       ? value
-      : new Intl.DateTimeFormat('en', { dateStyle: 'long' }).format(date);
+      : new Intl.DateTimeFormat(Localization.formattingLocale, { dateStyle: 'long' }).format(date);
   },
 
   time(value: string): string {
@@ -33,7 +34,7 @@ const PublicationHistoryFormat = {
 
     return Number.isNaN(date.getTime())
       ? value
-      : new Intl.DateTimeFormat('en', { timeStyle: 'short' }).format(date);
+      : new Intl.DateTimeFormat(Localization.formattingLocale, { timeStyle: 'short' }).format(date);
   },
 } as const;
 

@@ -179,7 +179,9 @@ export function ConfigurationImportDialog({
                 disabled={pending}
                 onClick={() => fileInputReference.current?.click()}
               >
-                {selected ? t(ConfigurationContent.ReplaceFile) : t(ConfigurationContent.ChooseFile)}
+                {selected
+                  ? t(ConfigurationContent.ReplaceFile)
+                  : t(ConfigurationContent.ChooseFile)}
               </Button>
             </div>
             <Input
@@ -209,7 +211,8 @@ export function ConfigurationImportDialog({
             <div className="flex min-w-0 flex-col gap-1">
               <p className="break-all text-sm font-medium">{selected.filename}</p>
               <p className="text-xs text-muted-foreground">
-                {Math.ceil(selected.bytes / 1024)} {t("KiB · JSON")}</p>
+                {Math.ceil(selected.bytes / 1024)} {t('KiB · JSON')}
+              </p>
               {!pending && !result && !message && issues.length === 0 && (
                 <p className="text-xs text-muted-foreground">{t(ConfigurationContent.FileReady)}</p>
               )}
@@ -220,7 +223,7 @@ export function ConfigurationImportDialog({
           <Alert variant="destructive" className="form-feedback">
             <AlertTitle>{t(ConfigurationContent.ImportFailure)}</AlertTitle>
             <AlertDescription>
-              {message}
+              {t(message)}
               {issues.length > 0 && (
                 <ul className="mt-3 flex max-h-48 flex-col gap-2 overflow-auto">
                   {issues.map((issue, index) => (
@@ -264,7 +267,9 @@ export function ConfigurationImportDialog({
               ) : (
                 <Upload data-icon="inline-start" strokeWidth={1.5} aria-hidden="true" />
               )}
-              {pending ? t(ConfigurationContent.ImportPending) : t(ConfigurationContent.ImportAction)}
+              {pending
+                ? t(ConfigurationContent.ImportPending)
+                : t(ConfigurationContent.ImportAction)}
             </Button>
           )}
         </DialogFooter>

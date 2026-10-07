@@ -190,7 +190,7 @@ export function AnalyticsFiltersSheet({
                   variant="outline"
                   spacing={0}
                   className="w-full [&>button]:flex-1"
-                  value={draftFilters.includeForced ? t("include") : t("exclude")}
+                  value={draftFilters.includeForced ? "include" : "exclude"}
                   aria-labelledby="analytics-forced-label"
                   onValueChange={(selection) => {
                     if (selection === 'include' || selection === 'exclude') {

@@ -94,13 +94,14 @@ export function ConfigurationHighlights({
             <CardContent>
               <dl className="grid grid-cols-2 gap-3 border-t pt-3 text-xs">
                 <div>
-                  <dt className="mb-1 text-muted-foreground">{t("Schema")}</dt>
+                  <dt className="mb-1 text-muted-foreground">{t('Schema')}</dt>
                   <dd>{version.schemaVersion}</dd>
                 </div>
                 <div className="min-w-0">
                   <dt className="mb-1 flex items-center gap-1 text-muted-foreground">
                     <Fingerprint className="size-3" aria-hidden="true" />
-                    {t("Fingerprint")}</dt>
+                    {t('Fingerprint')}
+                  </dt>
                   <dd className="truncate" title={version.checksum}>
                     {version.checksum.slice(0, 12)}
                   </dd>
@@ -108,10 +109,10 @@ export function ConfigurationHighlights({
               </dl>
             </CardContent>
             <CardFooter className="mt-auto justify-between gap-2 px-5 text-xs text-muted-foreground">
-              <span>{t("View configuration")}</span>
+              <span>{t('View configuration')}</span>
               <Button variant="ghost" size="icon" asChild>
                 <a
-                  aria-label={`Inspect version ${version.version}`}
+                  aria-label={t('Inspect version {version}', { version: version.version })}
                   href={WorkspaceNavigation.href(
                     WorkspacePage.Version,
                     version.funnelIdentifier,
@@ -140,7 +141,10 @@ export function ConfigurationLibraryContext({
   const latest = history.items[0];
 
   return (
-    <aside className="flex min-w-0 flex-col gap-5" aria-label={t(ConfigurationContent.FunnelContext)}>
+    <aside
+      className="flex min-w-0 flex-col gap-5"
+      aria-label={t(ConfigurationContent.FunnelContext)}
+    >
       <Card className="compact-card relative overflow-hidden">
         <CardHeader>
           <div className="flex items-center justify-between gap-2">
@@ -249,7 +253,7 @@ export function ConfigurationLibraryContext({
                     <p className="text-sm font-medium">
                       {ConfigurationFormat.action(publication.action)}{' '}
                       <span className="font-normal text-muted-foreground">
-                        {t("· r")}{publication.revision}
+                        {t('· r')} {publication.revision}
                       </span>
                     </p>
                     <p className="text-xs text-muted-foreground">

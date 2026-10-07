@@ -58,7 +58,7 @@ export function AnalyticsComparisonChart({
                 formatter={(value, name) => (
                   <div className="flex w-full items-center justify-between gap-4">
                     <span className="text-muted-foreground">
-                      {name === 'results' ? t("Result completion") : t("CTA conversion")}
+                      {name === 'results' ? "Result completion" : "CTA conversion"}
                     </span>
                     <span className="font-medium tabular-nums">
                       {typeof value === 'number' ? `${value.toFixed(1)}%` : value}

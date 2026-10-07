@@ -66,7 +66,7 @@ function AnalyticsRatioValue({
   return (
     <div className="flex flex-col gap-1">
       <span
-        data-tone={ratio.numerator > 0 ? tone : t("neutral")}
+        data-tone={ratio.numerator > 0 ? tone : "neutral"}
         className="font-semibold tabular-nums data-[tone=positive]:text-success data-[tone=negative]:text-destructive"
       >
         {AnalyticsFormat.ratio(ratio)}

@@ -37,7 +37,7 @@ export function ConfigurationVersionActions({
           ref={trigger}
           variant="ghost"
           size="icon"
-          aria-label={`${t(ConfigurationContent.Actions)} for version ${version.version}`}
+          aria-label={t('Actions for version {version}', { version: version.version })}
         >
           <Ellipsis aria-hidden="true" />
         </Button>

@@ -118,7 +118,7 @@ export function AnalyticsStepOverview({
                   <TableCell>
                     <div className="flex items-baseline justify-between gap-3 tabular-nums">
                       <span
-                        className={step.reached === 0 ? t("text-muted-foreground") : t("font-medium")}
+                        className={step.reached === 0 ? "text-muted-foreground" : "font-medium"}
                       >
                         {AnalyticsFormat.count(step.reached)}
                       </span>

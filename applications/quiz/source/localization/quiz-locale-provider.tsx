@@ -33,8 +33,6 @@ export function QuizLocaleProvider({ children }: { readonly children: ReactNode 
 
   useEffect(() => {
     document.documentElement.lang = locale;
-    document.title =
-      locale === 'ru' ? 'Стиль работы команды | Kelpie' : 'Your team, working better | Kelpie';
   }, [locale]);
 
   const changeLocale = (value: QuizLocale) => {
@@ -43,6 +41,9 @@ export function QuizLocaleProvider({ children }: { readonly children: ReactNode 
 
   return (
     <QuizLocaleContext value={{ locale, changeLocale, storageAvailable }}>
+      <title>
+        {locale === 'ru' ? 'Стиль работы команды | Kelpie' : 'Your team, working better | Kelpie'}
+      </title>
       {children}
     </QuizLocaleContext>
   );

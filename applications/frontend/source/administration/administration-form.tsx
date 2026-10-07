@@ -119,7 +119,7 @@ export function AdministrationForm({ signIn }: AdministrationFormProperties): UI
                   setMessage('');
                 }}
                 aria-invalid={!!errors.username}
-                aria-describedby={errors.username ? t("username-error") : undefined}
+                aria-describedby={errors.username ? "username-error" : undefined}
               />
             </InputGroup>
             {errors.username && <FieldError id="username-error">{errors.username}</FieldError>}
@@ -131,7 +131,7 @@ export function AdministrationForm({ signIn }: AdministrationFormProperties): UI
                 ref={passwordReference}
                 id="password"
                 name="password"
-                type={visible ? t("text") : t("password")}
+                type={visible ? "text" : "password"}
                 autoComplete="current-password"
                 placeholder={t(AdministrationContent.PasswordPlaceholder)}
                 required

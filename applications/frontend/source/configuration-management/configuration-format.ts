@@ -1,3 +1,4 @@
+import { Localization } from '../localization/localization';
 import type { ConfigurationList } from '../management/management-types';
 import { ConfigurationContent } from './configuration-content';
 
@@ -15,7 +16,7 @@ export const ConfigurationFormat = {
       return this.identifier(configurations.funnel.activeVersionIdentifier);
     }
 
-    return ConfigurationContent.NoActiveVersion;
+    return Localization.translate(ConfigurationContent.NoActiveVersion);
   },
 
   version(version: number): string {
@@ -31,12 +32,17 @@ export const ConfigurationFormat = {
 
     return Number.isNaN(date.getTime())
       ? value
-      : new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeStyle: 'short' }).format(date);
+      : new Intl.DateTimeFormat(Localization.formattingLocale, {
+          dateStyle: 'medium',
+          timeStyle: 'short',
+        }).format(date);
   },
 
   action(action: string): string {
-    return action === 'rollback'
-      ? ConfigurationContent.RollbackAction
-      : ConfigurationContent.Publication;
+    return Localization.translate(
+      action === 'rollback'
+        ? ConfigurationContent.RollbackAction
+        : ConfigurationContent.Publication,
+    );
   },
 } as const;

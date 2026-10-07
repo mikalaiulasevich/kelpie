@@ -85,7 +85,7 @@ function SidebarLinks({
             <a
               key={item.page}
               href={WorkspaceNavigation.href(item.page, funnelIdentifier)}
-              aria-current={activePage === item.page ? t("page") : undefined}
+              aria-current={activePage === item.page ? "page" : undefined}
               aria-keyshortcuts={`Alt+${item.key}`}
               onClick={onNavigate}
             >

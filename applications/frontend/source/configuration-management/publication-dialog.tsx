@@ -29,16 +29,16 @@ interface PublicationDialogProperties {
 const PublicationPresentation = {
   submitLabel(intent: PublicationIntent, pending: boolean, uncertain: boolean): string {
     if (pending) {
-      return t(ConfigurationContent.CommandPending);
+      return ConfigurationContent.CommandPending;
     }
 
     if (uncertain) {
-      return t(ConfigurationContent.RetryCommand);
+      return ConfigurationContent.RetryCommand;
     }
 
     return intent.kind === 'publish'
-      ? t(ConfigurationContent.ConfirmPublish)
-      : t(ConfigurationContent.ConfirmRollback);
+      ? ConfigurationContent.ConfirmPublish
+      : ConfigurationContent.ConfirmRollback;
   },
 } as const;
 
@@ -227,7 +227,7 @@ export function PublicationDialog({
                 ) : (
                   <RotateCcw data-icon="inline-start" />
                 )}
-                {PublicationPresentation.submitLabel(intent, pending, uncertain)}
+                {t(PublicationPresentation.submitLabel(intent, pending, uncertain))}
               </Button>
             ))}
         </DialogFooter>

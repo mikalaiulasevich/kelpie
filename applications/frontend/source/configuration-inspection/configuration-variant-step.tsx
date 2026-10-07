@@ -46,16 +46,22 @@ export function ConfigurationVariantStep({
   const change = match(otherPosition)
     .with(undefined, () => ({
       icon: Plus,
-      label: `Only in ${variant}`,
-      detail: `Not in variant ${otherVariant}`,
+      label: t('Only in {variant}', { variant }),
+      detail: t('Not in variant {variant}', { variant: otherVariant }),
     }))
     .when(
       () => displacement === 0,
-      () => ({ icon: Check, label: t('Same position'), detail: `Both variants · #${position}` }),
+      () => ({
+        icon: Check,
+        label: t('Same position'),
+        detail: t('Both variants · #{position}', { position }),
+      }),
     )
     .otherwise(() => ({
       icon: displacement < 0 ? ArrowUp : ArrowDown,
-      label: `${Math.abs(displacement)} ${Math.abs(displacement) === 1 ? 'place' : 'places'} ${displacement < 0 ? 'earlier' : 'later'}`,
+      label: t(displacement < 0 ? '{count} places earlier' : '{count} places later', {
+        count: Math.abs(displacement),
+      }),
       detail: `${otherVariant} #${otherPosition} → ${variant} #${position}`,
     }));
   const ChangeIcon = change.icon;

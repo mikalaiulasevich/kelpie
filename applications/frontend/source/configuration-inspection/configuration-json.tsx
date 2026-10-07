@@ -52,7 +52,7 @@ export function ConfigurationJson({ value }: { readonly value: unknown }) {
   return (
     <pre
       tabIndex={0}
-      aria-label={t("JSON configuration")}
+      aria-label={t('JSON configuration')}
       className="configuration-json max-h-[32rem] min-w-0 overflow-auto rounded-md border p-4 text-xs leading-relaxed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
       <code>

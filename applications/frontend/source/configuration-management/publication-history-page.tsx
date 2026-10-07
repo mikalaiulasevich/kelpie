@@ -90,19 +90,19 @@ export function PublicationHistoryPage({
       {resource.status === 'loading' && <SkeletonRows label="Loading activation history" />}
       {resource.status === 'error' && (
         <LoadErrorState
-          title={t("Activation history could not be loaded")}
-          message={resource.message}
+          title={t('Activation history could not be loaded')}
+          message={t(resource.message)}
           onRetry={reload}
-          retryLabel={t("Try again")}
+          retryLabel={t('Try again')}
         />
       )}
       {resource.status === 'ready' && (
         <Card className="publication-log w-full gap-0 overflow-hidden">
           <CardHeader className="flex flex-wrap items-center justify-between gap-4 pb-5">
             <div className="flex flex-col gap-1.5">
-              <CardTitle>{t("Activity")}</CardTitle>
+              <CardTitle>{t('Activity')}</CardTitle>
               <CardDescription>
-                {funnelIdentifier} {t("· Current revision")}{resource.data.funnel.revision}
+                {funnelIdentifier} {t('· Current revision')} {resource.data.funnel.revision}
               </CardDescription>
             </div>
             <Button
@@ -148,7 +148,7 @@ export function PublicationHistoryPage({
           <Separator />
           <CardFooter className="flex flex-wrap items-center justify-between gap-4 pt-4">
             <p className="text-xs text-muted-foreground">
-              {t("Showing")}{offset + (resource.data.items.length > 0 ? 1 : 0)}–
+              {t('Showing')} {offset + (resource.data.items.length > 0 ? 1 : 0)}–
               {offset + resource.data.items.length}
             </p>
             <div className="flex gap-2">
