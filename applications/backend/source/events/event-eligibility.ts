@@ -75,40 +75,50 @@ const HistoricalObservations = {
   },
 } as const;
 
+const ObservationMetadata = {
+  matches(session: OwnedSession, event: ObservationEvent): boolean {
+    const acquisition = isPlainObject(session.acquisitionParameters)
+      ? session.acquisitionParameters
+      : {};
+    const metadata = {
+      session_id: session.identifier,
+      funnel_id: session.version.funnelIdentifier,
+      funnel_version: session.version.version,
+      experiment_id: session.experimentIdentifier,
+      variant: session.variant,
+      ...acquisition,
+    };
+    const mismatch = Object.entries(metadata).some(
+      ([key, value]) => Object.hasOwn(event, key) && !isEqual(Reflect.get(event, key), value),
+    );
+    const undeclaredAcquisition = SessionPolicy.AcquisitionFields.some(
+      (key) => Object.hasOwn(event, key) && !Object.hasOwn(acquisition, key),
+    );
+
+    return !mismatch && !undeclaredAcquisition;
+  },
+
+  matchesState(session: OwnedSession, state: SessionState, event: ObservationEvent): boolean {
+    return (
+      state.sessionIdentifier === session.identifier &&
+      state.versionIdentifier === session.versionIdentifier &&
+      state.variant === session.variant &&
+      state.revision === event.observationRevision
+    );
+  },
+} as const;
+
 export const EventEligibility = {
   async rejection(
-    transaction: Prisma.TransactionClient,
+    database: Prisma.TransactionClient,
     session: OwnedSession,
     event: ObservationEvent,
   ): Promise<Optional<ValueOf<typeof EventRejectionCode>>> {
+    if (!ObservationMetadata.matches(session, event)) {
+      return EventRejectionCode.Metadata;
+    }
+
     const configuration = SessionProjection.configuration(session);
-    const metadata = {
-      session_id: session.identifier,
-      funnel_id: configuration.funnelId,
-      funnel_version: configuration.version,
-      experiment_id: session.experimentIdentifier,
-      variant: session.variant,
-      ...(isPlainObject(session.acquisitionParameters) ? session.acquisitionParameters : {}),
-    };
-    if (
-      Object.entries(metadata).some(
-        ([key, value]) => Object.hasOwn(event, key) && !isEqual(Reflect.get(event, key), value),
-      )
-    ) {
-      return EventRejectionCode.Metadata;
-    }
-
-    const acquisition = session.acquisitionParameters;
-    if (
-      SessionPolicy.AcquisitionFields.some(
-        (key) =>
-          Object.hasOwn(event, key) &&
-          (!isPlainObject(acquisition) || !Object.hasOwn(acquisition, key)),
-      )
-    ) {
-      return EventRejectionCode.Metadata;
-    }
-
     const declaration = configuration.events.allowed.find((allowed) => allowed.name === event.name);
     if (
       isUndefined(declaration) ||
@@ -117,18 +127,8 @@ export const EventEligibility = {
       return EventRejectionCode.Invalid;
     }
 
-    const state = await HistoricalObservations.state(
-      transaction,
-      session,
-      event.observationRevision,
-    );
-    if (
-      isUndefined(state) ||
-      state.sessionIdentifier !== session.identifier ||
-      state.versionIdentifier !== session.versionIdentifier ||
-      state.variant !== session.variant ||
-      state.revision !== event.observationRevision
-    ) {
+    const state = await HistoricalObservations.state(database, session, event.observationRevision);
+    if (isUndefined(state) || !ObservationMetadata.matchesState(session, state, event)) {
       return EventRejectionCode.Ineligible;
     }
 

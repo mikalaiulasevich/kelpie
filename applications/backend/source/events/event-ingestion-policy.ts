@@ -15,6 +15,7 @@ export const EventIngestionPolicy = {
   Route: 'events',
   BatchRoute: 'batches',
   MaximumBatchSize: 50,
+  MaximumProperties: 3,
   MaximumRevision: 2_147_483_646,
   MaximumIdentifierLength: 100,
   MaximumTextLength: 200,

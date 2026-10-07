@@ -1,6 +1,7 @@
+import { ExperimentVariant } from '@kelpie/contracts';
 import { Type, type Static } from 'typebox';
 import { SessionPolicy } from '../sessions/session-policy.js';
-import type { EventReceiptStatus, EventRejectionCode } from './event-ingestion-policy.js';
+import { EventReceiptStatus, EventRejectionCode } from './event-ingestion-policy.js';
 import { EventIngestionPolicy, ObservationName } from './event-ingestion-policy.js';
 
 const EventFields = {
@@ -39,7 +40,7 @@ export const EventIngestionSchemas = {
       funnel_id: Type.Optional(EventFields.Identifier),
       funnel_version: Type.Optional(Type.Integer({ minimum: 1 })),
       experiment_id: Type.Optional(EventFields.Identifier),
-      variant: Type.Optional(Type.Union([Type.Literal('A'), Type.Literal('B')])),
+      variant: Type.Optional(Type.Enum(ExperimentVariant)),
       utm_source: Type.Optional(EventFields.Text),
       utm_medium: Type.Optional(EventFields.Text),
       utm_campaign: Type.Optional(EventFields.Text),
@@ -54,16 +55,32 @@ export type ObservationEvent = Readonly<Static<typeof EventIngestionSchemas.Even
 
 export type ObservationBatch = Static<typeof EventIngestionSchemas.Batch>;
 
-export interface EventReceipt {
-  readonly position: number;
-  readonly event_id?: Optional<string>;
-  readonly status: ValueOf<typeof EventReceiptStatus>;
-  readonly server_timestamp?: string;
-  readonly code?: ValueOf<typeof EventRejectionCode>;
-}
+export const EventReceiptSchemas = {
+  Stored: Type.Object({
+    position: Type.Integer({ minimum: 0 }),
+    event_id: EventFields.Uuid,
+    status: Type.Union([
+      Type.Literal(EventReceiptStatus.Accepted),
+      Type.Literal(EventReceiptStatus.Duplicate),
+    ]),
+    server_timestamp: Type.String({ pattern: SessionPolicy.TimestampPattern }),
+  }),
+  Rejected: Type.Object({
+    position: Type.Integer({ minimum: 0 }),
+    event_id: Type.Optional(EventFields.Uuid),
+    status: Type.Literal(EventReceiptStatus.Rejected),
+    code: Type.Enum(EventRejectionCode),
+  }),
+} as const;
+
+export type StoredEventReceipt = Readonly<Static<typeof EventReceiptSchemas.Stored>>;
+
+export type RejectedEventReceipt = Readonly<Static<typeof EventReceiptSchemas.Rejected>>;
+
+export type EventReceipt = StoredEventReceipt | RejectedEventReceipt;
 
 export interface EventBatchResponse {
-  readonly receipts: readonly EventReceipt[];
+  readonly receipts: ReadonlyList<EventReceipt>;
 }
 
 export interface ParsedObservation {

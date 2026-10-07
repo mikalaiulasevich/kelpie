@@ -1,3 +1,4 @@
+import { sortBy } from 'es-toolkit/array';
 import { createHash } from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
 import { isNull, isUndefined } from 'es-toolkit/predicate';
@@ -21,6 +22,7 @@ import type {
   EventBatchResponse,
   ObservationEvent,
   ParsedObservation,
+  StoredEventReceipt,
 } from './event-ingestion-types.js';
 
 const EventRecords = {
@@ -38,17 +40,13 @@ const EventRecords = {
           event.step_id,
           event.client_timestamp,
           event.observationRevision,
-          Object.entries(event.properties).sort(([left], [right]) => left.localeCompare(right)),
+          sortBy(Object.entries(event.properties), [([key]) => key]),
         ]),
       )
       .digest(SessionPolicy.HashEncoding);
   },
 
-  receipt(
-    position: number,
-    record: Event,
-    status: ValueOf<typeof EventReceiptStatus>,
-  ): EventReceipt {
+  receipt(position: number, record: Event, status: StoredEventReceipt['status']): EventReceipt {
     return {
       position,
       event_id: record.identifier,
@@ -62,7 +60,12 @@ const EventRecords = {
     identifier: Optional<string>,
     code: ValueOf<typeof EventRejectionCode>,
   ): EventReceipt {
-    return { position, event_id: identifier, status: EventReceiptStatus.Rejected, code };
+    return {
+      position,
+      ...(isUndefined(identifier) ? {} : { event_id: identifier }),
+      status: EventReceiptStatus.Rejected,
+      code,
+    };
   },
 } as const;
 
@@ -90,9 +93,21 @@ export class EventIngestionService {
     entry: ParsedObservation,
     position: number,
   ): Promise<EventReceipt> {
+    const session = await SessionRecords.requireOwned(this.database.client, credential);
+    const event = entry.event;
+    if (isUndefined(event)) {
+      return EventRecords.rejected(position, entry.identifier, EventRejectionCode.Invalid);
+    }
+
+    const rejection = await EventEligibility.rejection(this.database.client, session, event);
+    if (!isUndefined(rejection)) {
+      return EventRecords.rejected(position, event.event_id, rejection);
+    }
+
+    const fingerprint = EventRecords.fingerprint(session, event);
     try {
       return await this.database.client.$transaction((transaction) =>
-        this.element(transaction, credential, entry, position),
+        this.element(transaction, credential, event, fingerprint, position),
       );
     } catch (error) {
       if (!DatabaseErrors.isUniqueConstraint(error)) {
@@ -100,7 +115,7 @@ export class EventIngestionService {
       }
 
       return this.database.client.$transaction((transaction) =>
-        this.element(transaction, credential, entry, position),
+        this.element(transaction, credential, event, fingerprint, position),
       );
     }
   }
@@ -108,21 +123,11 @@ export class EventIngestionService {
   private async element(
     transaction: Prisma.TransactionClient,
     credential: string,
-    entry: ParsedObservation,
+    event: ObservationEvent,
+    fingerprint: string,
     position: number,
   ): Promise<EventReceipt> {
     const session = await SessionRecords.requireOwned(transaction, credential);
-    const event = entry.event;
-    if (isUndefined(event)) {
-      return EventRecords.rejected(position, entry.identifier, EventRejectionCode.Invalid);
-    }
-
-    const rejection = await EventEligibility.rejection(transaction, session, event);
-    if (!isUndefined(rejection)) {
-      return EventRecords.rejected(position, event.event_id, rejection);
-    }
-
-    const fingerprint = EventRecords.fingerprint(session, event);
     const existing = await transaction.event.findUnique({ where: { identifier: event.event_id } });
     if (!isNull(existing)) {
       if (

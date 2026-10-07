@@ -4,6 +4,8 @@ import { SessionOwnershipService } from '../sessions/session-ownership.service.j
 import { SessionCommandsService } from '../sessions/session-commands.service.js';
 import { EventIngestionController } from '../events/event-ingestion.controller.js';
 import { EventIngestionService } from '../events/event-ingestion.service.js';
+import { AnalyticsController } from '../analytics/analytics.controller.js';
+import { AnalyticsService } from '../analytics/analytics.service.js';
 import { ConfigurationManagementController } from '../configurations/configuration-management.controller.js';
 import { ConfigurationManagementService } from '../configurations/configuration-management.service.js';
 import { PublicationController } from '../publications/publication.controller.js';
@@ -24,6 +26,7 @@ import { HealthController } from '../health/health.controller.js';
 
 @Module({
   controllers: [
+    AnalyticsController,
     EventIngestionController,
     SessionController,
     HealthController,
@@ -33,6 +36,7 @@ import { HealthController } from '../health/health.controller.js';
     RollbackController,
   ],
   providers: [
+    AnalyticsService,
     EventIngestionService,
     SessionService,
     SessionOwnershipService,

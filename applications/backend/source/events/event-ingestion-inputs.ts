@@ -16,12 +16,13 @@ import { EventRejectionCode } from './event-ingestion-policy.js';
 const compiler = new Ajv({ strict: true, ownProperties: true, coerceTypes: false });
 
 const EventValidators = {
+  identifier: new RegExp(SessionPolicy.OperationPattern),
   batch: compiler.compile<ObservationBatch>(EventIngestionSchemas.Batch),
   event: compiler.compile<ObservationEvent>(EventIngestionSchemas.Event),
 } as const;
 
 export const EventIngestionInputs = {
-  batch(value: unknown): readonly ParsedObservation[] {
+  batch(value: unknown): ReadonlyList<ParsedObservation> {
     if (!EventValidators.batch(value)) {
       throw new PublicRequestError(
         HttpStatus.BAD_REQUEST,
@@ -40,7 +41,7 @@ export const EventIngestionInputs = {
     if (
       !isPlainObject(value) ||
       !isString(value.event_id) ||
-      !new RegExp(SessionPolicy.OperationPattern).test(value.event_id)
+      !EventValidators.identifier.test(value.event_id)
     ) {
       return undefined;
     }
