@@ -6,7 +6,10 @@ import { ManagementPolicy } from './management-policy.js';
 import type { FunnelReference, ManagementPage, ManagementQuery } from './management-types.js';
 
 export const ManagementRecords = {
-  async readFunnel(transaction: Prisma.TransactionClient, identifier: string): Promise<FunnelReference> {
+  async readFunnel(
+    transaction: Prisma.TransactionClient,
+    identifier: string,
+  ): Promise<FunnelReference> {
     const funnel = await transaction.funnel.findUnique({
       where: { identifier },
       select: ManagementPolicy.FunnelSelection,

@@ -18,16 +18,22 @@ export const ManagementSchemas = {
     activeVersionIdentifier: Type.Union([Type.String(), Type.Null()]),
     revision: Type.Integer(),
   }),
-  Query: Type.Object({
-    funnelIdentifier: ManagementFields.Identifier,
-    limit: Type.Optional(Type.String({ pattern: ManagementPolicy.PageSizePattern })),
-    offset: Type.Optional(Type.String({ pattern: ManagementPolicy.OffsetPattern })),
-  }, { additionalProperties: false }),
-  ResolvedQuery: Type.Object({
-    funnelIdentifier: ManagementFields.Identifier,
-    limit: ManagementFields.PageSize,
-    offset: ManagementFields.Offset,
-  }, { additionalProperties: false }),
+  Query: Type.Object(
+    {
+      funnelIdentifier: ManagementFields.Identifier,
+      limit: Type.Optional(Type.String({ pattern: ManagementPolicy.PageSizePattern })),
+      offset: Type.Optional(Type.String({ pattern: ManagementPolicy.OffsetPattern })),
+    },
+    { additionalProperties: false },
+  ),
+  ResolvedQuery: Type.Object(
+    {
+      funnelIdentifier: ManagementFields.Identifier,
+      limit: ManagementFields.PageSize,
+      offset: ManagementFields.Offset,
+    },
+    { additionalProperties: false },
+  ),
 } as const;
 
 export type ManagementQuery = Readonly<Static<typeof ManagementSchemas.ResolvedQuery>>;

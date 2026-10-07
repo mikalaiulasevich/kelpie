@@ -24,8 +24,12 @@ export const ConfigurationImportSchemas = {
   }),
 } as const;
 
-export type ConfigurationVersionMetadata = Readonly<Static<typeof ConfigurationImportSchemas.VersionMetadata>>;
-export type ConfigurationImportResult = DeepReadonly<Static<typeof ConfigurationImportSchemas.Result>>;
+export type ConfigurationVersionMetadata = Readonly<
+  Static<typeof ConfigurationImportSchemas.VersionMetadata>
+>;
+export type ConfigurationImportResult = DeepReadonly<
+  Static<typeof ConfigurationImportSchemas.Result>
+>;
 
 export interface PreparedConfigurationImport {
   readonly configuration: FunnelConfiguration;

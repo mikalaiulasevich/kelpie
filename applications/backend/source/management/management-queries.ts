@@ -2,9 +2,18 @@ import { BadRequestException } from '@nestjs/common';
 import { Ajv } from 'ajv';
 import { ManagementMessages } from './management-messages.js';
 import { ManagementPolicy } from './management-policy.js';
-import { ManagementSchemas, type ManagementQuery, type ManagementQueryInput } from './management-types.js';
+import {
+  ManagementSchemas,
+  type ManagementQuery,
+  type ManagementQueryInput,
+} from './management-types.js';
 
-const compiler = new Ajv({ strict: true, allErrors: false, coerceTypes: false, ownProperties: true });
+const compiler = new Ajv({
+  strict: true,
+  allErrors: false,
+  coerceTypes: false,
+  ownProperties: true,
+});
 
 const ManagementValidators = {
   query: compiler.compile<ManagementQueryInput>(ManagementSchemas.Query),

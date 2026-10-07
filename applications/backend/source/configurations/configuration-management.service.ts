@@ -25,8 +25,12 @@ export class ConfigurationManagementService {
         throw error;
       }
 
-
-      throw new PublicRequestError(ConfigurationImportHttpStatus[error.code], error.code, error.message, error.issues);
+      throw new PublicRequestError(
+        ConfigurationImportHttpStatus[error.code],
+        error.code,
+        error.message,
+        error.issues,
+      );
     }
   }
 
