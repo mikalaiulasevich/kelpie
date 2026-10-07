@@ -1,4 +1,5 @@
-import { isUndefined } from 'es-toolkit/predicate';
+import { isNull, isUndefined } from 'es-toolkit/predicate';
+import { attempt } from 'es-toolkit/util';
 import { HttpStatus } from '@nestjs/common';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import type { Writable } from 'node:stream';
@@ -73,7 +74,12 @@ export class DiagnosticSink {
   }
 
   private writeSerialized(serialized: string): void {
-    const ready = this.destination.write(serialized);
+    const [error, ready] = attempt(() => this.destination.write(serialized));
+
+    if (isNull(ready)) {
+      this.failed = true;
+      throw error;
+    }
 
     if (!ready) {
       this.blocked = true;

@@ -1,4 +1,5 @@
 import { once } from 'node:events';
+import { PassThrough } from 'node:stream';
 import { describe, expect, it, vi } from 'vitest';
 import { DiagnosticSink, RequestContext } from '../../source/diagnostics/diagnostics.js';
 import { DiagnosticEvents } from '../../source/diagnostics/diagnostic-policy.js';
@@ -60,7 +61,7 @@ describe('Diagnostic sink', () => {
       expect(stream.chunks[0]).not.toContain('private-log-secret');
       expect(JSON.parse(stream.chunks[0] ?? '')).toMatchObject({
         event: 'application_started',
-        details: { safe: 'retained' },
+        metadata: { safe: 'retained' },
         error: { classification: 'error', fingerprint: 'reporting-site', frames: [] },
       });
       stream.flush();
@@ -96,8 +97,8 @@ describe('Diagnostic sink', () => {
     }
   });
 
-  it('contains a synchronous destination failure and reports its lost record after recovery', () => {
-    const stream = new DiagnosticStream();
+  it('treats a synchronous destination failure as terminal without retrying writes', () => {
+    const stream = new PassThrough();
     const sink = new DiagnosticSink(stream);
     const destination = vi.spyOn(stream, 'write').mockImplementationOnce(() => {
       throw new Error('private destination failure');
@@ -105,16 +106,11 @@ describe('Diagnostic sink', () => {
 
     try {
       expect(() => sink.write({ event: DiagnosticEvents.ApplicationStarted })).not.toThrow();
-      expect(stream.chunks).toHaveLength(0);
-      sink.write({ event: DiagnosticEvents.ApplicationStarted });
-      stream.flush();
+      expect(() => sink.write({ event: DiagnosticEvents.ApplicationStarted })).not.toThrow();
+      expect(() => sink.write({ event: DiagnosticEvents.ApplicationStarted })).not.toThrow();
 
-      expect(JSON.parse(stream.chunks[1] ?? '')).toMatchObject({
-        event: 'records_dropped',
-        droppedRecords: 1,
-      });
-      expect(stream.chunks.join('')).not.toContain('private destination failure');
-      stream.flush();
+      expect(destination).toHaveBeenCalledOnce();
+      expect(stream.read()).toBeNull();
     } finally {
       destination.mockRestore();
       stream.destroy();

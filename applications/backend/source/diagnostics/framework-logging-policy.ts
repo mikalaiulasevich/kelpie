@@ -1,5 +1,5 @@
 export const FrameworkLoggingPolicy = {
-  // Framework contexts are allowlisted because optional logger arguments can contain credentials.
+  // The shared context allowlist must remain unchanged across log calls; other arguments may contain credentials.
   Contexts: Object.freeze([
     'NestFactory',
     'NestApplication',

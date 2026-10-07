@@ -84,6 +84,10 @@ This is a trusted local operator command with database filesystem access. No una
 
 The backend emits structured JSON to stderr. Requests reaching middleware receive a server-generated `x-request-id`; completion records include the registered route template, method, status and duration. Aborted connections are distinguished. Node-level HTTP parser failures occur before this correlation.
 
+Pino writes structured JSON diagnostics to stderr with ISO `time`, string `level`, event and the server-owned request identifier where available. Set `LOG_LEVEL=trace|debug|info|warn|error|fatal` (default `info`); invalid values fail startup without echoing the supplied value. NestJS uses the same logger through `LoggerService`; Fastify request hooks emit one completion/abort event without enabling duplicate raw request logs.
+
+The configuration import command keeps its machine-readable result on stdout; failures use the same Pino sink on stderr. Framework records retain a fixed message, an allowlisted context and sanitized error metadata; arbitrary Nest strings and optional arguments are deliberately excluded. Backend `console.*` calls are rejected by ESLint.
+
 Logs omit bodies, raw URLs, cookies, credentials, arbitrary error messages and absolute paths. Error codes/messages are allowlisted. Diagnostics never read the supplied error stack: they capture a fresh server-owned stack and hash its bounded locations. Frames and fingerprints identify the reporting site within the matching build, not the original throw site.
 
 For a local diagnostic session after build/migration:

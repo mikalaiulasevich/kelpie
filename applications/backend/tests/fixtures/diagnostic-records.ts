@@ -24,7 +24,7 @@ export const DiagnosticRecordsFixture = {
         stack: secret,
         cause: secret,
       },
-      details: { password: secret, token: secret, safe: 'retained' },
+      metadata: { password: secret, token: secret, safe: 'retained' },
     };
   },
 } as const;

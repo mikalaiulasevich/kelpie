@@ -85,7 +85,7 @@ Review every behavior change for:
 4. Algorithmic complexity: time, memory, nesting limits, repeated traversals, and query count.
 5. Performance: query plans, indexes, bounded work, transaction length, frontend updates, and measured behavior.
 6. Failure handling: startup rejection, partial initialization, deadlines, cancellation, resource disposal order, repeated cleanup and preservation of both primary/cleanup errors.
-7. Diagnostics: server-owned correlation identifiers, safe failure categories, no raw payloads/secrets/paths, bounded logging under backpressure and enough context for documented triage. Use the owning diagnostics layer rather than ad hoc logging.
+7. Diagnostics: server-owned correlation identifiers, safe failure categories, no raw payloads/secrets/paths, bounded logging under backpressure and enough context for documented triage. Use the owning Pino diagnostics layer rather than ad hoc logging. Backend console calls are forbidden; CLI result output is a separate stdout contract.
 
 Run meaningful checks appropriate to the change. Distinguish verified behavior from assumptions and untested scenarios. Measure performance on reproducible workloads; do not equate an asymptotic complexity claim with measured speed.
 

@@ -17,11 +17,13 @@ The HTTP foundation now uses NestJS with Fastify, native request hooks and `@fas
 
 Added immutable configuration imports through a trusted local command. The configuration domain owns validation, canonical content identity and transactionally stored drafts. Import does not publish or change existing sessions. Administrator-protected HTTP management, activation and session commands remain pending.
 
+Pino now owns backend diagnostic output, with validated LOG_LEVEL, a Nest LoggerService bridge, request correlation and bounded stream handling. CLI results remain machine-readable stdout; diagnostic records go to stderr.
+
 ## Verification history
 
 The initial foundation was installed and checked locally on Node.js 24 and 26. A frontend readiness check was inspected in desktop/mobile layouts at that milestone. Subsequent refactors were checked on Node.js 24.16.0; they do not constitute new browser or Node.js 26 verification.
 
-The subsequent plan-conformance pass corrected optional-answer progress, scoped operation identifiers to their session, isolated diagnostics from supplied error stacks and aligned development shutdown budgets. That pass was followed by the Fastify migration; the current verification after backend iteration 1 covers 281 tests and the full verification command. The previous toolkit review’s three 79-case benchmark runs and the current verification summary are recorded in [the engineering review](foundation-review.md). Raw reports and CSV history remain in [benchmarks](benchmarks/).
+The subsequent plan-conformance pass corrected optional-answer progress, scoped operation identifiers to their session, isolated diagnostics from supplied error stacks and aligned development shutdown budgets. That pass was followed by the Fastify migration; the current verification after backend iteration 1 covers 318 tests and the full verification command. The previous toolkit review’s three 79-case benchmark runs and the current verification summary are recorded in [the engineering review](foundation-review.md). Raw reports and CSV history remain in [benchmarks](benchmarks/).
 
 A historical GitHub Actions attempt failed before jobs started; this cleanup does not establish current remote CI status. No public deployment has been verified.
 

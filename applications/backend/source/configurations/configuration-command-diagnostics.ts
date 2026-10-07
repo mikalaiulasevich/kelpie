@@ -12,11 +12,15 @@ import { ConfigurationImportError } from './configuration-import-error.js';
 
 const CommandFailureDetails = {
   describe(error: unknown): ConfigurationCommandFailureDetails {
-    if (error instanceof ConfigurationImportError) {
-      return { code: error.code, issues: error.issues };
-    }
+    const [, details] = attempt(() => {
+      if (error instanceof ConfigurationImportError) {
+        return { code: error.code, issues: error.issues };
+      }
 
-    return ErrorDiagnostics.describe(error);
+      return ErrorDiagnostics.describe(error);
+    });
+
+    return details ?? ErrorDiagnostics.describe(error);
   },
 
   message(error: unknown): string {
