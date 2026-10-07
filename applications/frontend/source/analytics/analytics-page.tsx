@@ -50,11 +50,11 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
   const refresh = () => setRefreshSequence((sequence) => sequence + 1);
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-4">
       <div className="flex flex-col gap-1">
         <h1 className="page-title">Analytics</h1>
         <p className="text-sm text-muted-foreground">
-          Explore acquisition, journey completion, and recommendation conversion.
+          See where sessions end and how variants compare.
         </p>
       </div>
       <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
@@ -88,8 +88,7 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
           </div>
           {appliedFilters.trafficOrigin !== 'production' && (
             <p className="text-xs text-muted-foreground">
-              Synthetic sessions are included. These data do not establish experimental
-              effectiveness.
+              Includes test sessions. Don’t use these results to choose a winning variant.
             </p>
           )}
         </div>
@@ -152,10 +151,10 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
                 <EmptyMedia variant="icon">
                   <BarChart3 />
                 </EmptyMedia>
-                <EmptyTitle>No versions in this cohort</EmptyTitle>
+                <EmptyTitle>No matching versions</EmptyTitle>
                 <EmptyDescription>
-                  Try a different version or campaign, or import a configuration to begin measuring
-                  this funnel.
+                  Change the version or campaign filter. If this funnel is new, import a
+                  configuration first.
                 </EmptyDescription>
               </EmptyHeader>
               <Button variant="outline" onClick={openFilters}>
@@ -186,18 +185,19 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
         <CollapsibleContent className="pt-3">
           <div className="flex max-w-3xl flex-col gap-2 text-sm text-muted-foreground">
             <p>
-              CTA conversion is the primary metric. Result completion and CTA click-through are
-              supporting diagnostics. Compare A/B within the same version and experiment;
-              comparisons across versions are descriptive.
+              CTA conversion measures recommendation opens out of all started sessions. Result
+              completion measures result views out of started sessions. CTA click-through measures
+              recommendation opens out of result viewers.
             </p>
             <p>
-              Hypothesis: variant B increases the share of started sessions opening recommendations
-              through question order and result framing.
+              Compare A and B within the same version and experiment. Variant B tests whether
+              question order and result wording lead to more recommendation opens. Comparisons
+              across versions show differences, not evidence of an experiment’s effect.
             </p>
             <p>
-              Filters apply to every numerator and denominator. Campaigns use acquisition UTM
-              captured when a session starts. Counts deduplicate repeated views and Back. Exclude
-              forced assignments for the main A/B comparison.
+              All counts and rates use the selected filters. Campaigns come from the UTM value
+              recorded at session start. Repeat views count once per session. Exclude forced
+              assignments when comparing A and B.
             </p>
           </div>
         </CollapsibleContent>

@@ -56,7 +56,7 @@ describe('publication execution and recovery cleanup', () => {
         PublicationIntentFixture.publish(),
         new AbortController().signal,
       ),
-    ).rejects.toThrow('No change was sent.');
+    ).rejects.toThrow('This attempt was not sent.');
     expect(fetch).not.toHaveBeenCalled();
   });
 

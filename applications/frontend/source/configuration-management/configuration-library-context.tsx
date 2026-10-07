@@ -56,7 +56,7 @@ export function ConfigurationHighlights({
           <Card
             key={version.identifier}
             className={ClassNames.combine(
-              'group min-w-0 gap-4 overflow-hidden pt-0 transition-colors duration-150 hover:border-primary/40 focus-within:border-primary/60',
+              'group min-w-0 gap-3 overflow-hidden pt-0 pb-3 transition-colors duration-150 hover:border-primary/40 focus-within:border-primary/60',
               version.identifier === configurations.funnel.activeVersionIdentifier &&
                 'border-primary/35',
             )}
@@ -64,16 +64,16 @@ export function ConfigurationHighlights({
             <div
               aria-hidden="true"
               className={ClassNames.combine(
-                'relative flex h-24 items-end justify-center overflow-hidden border-b px-6 pt-5 sm:h-40',
+                'relative flex h-24 items-end justify-center overflow-hidden border-b px-5 pt-4 sm:h-28',
                 version.identifier === configurations.funnel.activeVersionIdentifier
                   ? 'bg-gradient-to-br from-primary/15 via-primary/5 to-card'
                   : 'bg-gradient-to-br from-muted/70 to-card',
               )}
             >
-              <div className="absolute bottom-0 h-28 w-36 translate-x-3 rotate-6 rounded-t-xl border border-border/70 bg-background/40" />
+              <div className="absolute bottom-0 h-20 w-32 translate-x-3 rotate-6 rounded-t-xl border border-border/70 bg-background/40" />
               <div
                 className={ClassNames.combine(
-                  'relative flex h-20 w-40 flex-col gap-3 rounded-t-xl border bg-card px-4 pt-4 shadow-lg sm:h-32',
+                  'relative flex h-20 w-36 flex-col gap-2 rounded-t-xl border bg-card px-4 pt-3 shadow-lg sm:h-24',
                   version.identifier === configurations.funnel.activeVersionIdentifier
                     ? 'border-primary/40'
                     : 'border-border',
@@ -106,17 +106,9 @@ export function ConfigurationHighlights({
                 </svg>
               </div>
             </div>
-            <CardHeader className="flex flex-row items-center justify-between gap-2">
-              <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                {ConfigurationContent.Version}
-              </span>
-              <ConfigurationStatus
-                live={version.identifier === configurations.funnel.activeVersionIdentifier}
-              />
-            </CardHeader>
-            <CardContent className="flex min-w-0 flex-col gap-1">
+            <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 px-5">
               <a
-                className="w-fit rounded-sm text-2xl font-semibold tracking-tight underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+                className="w-fit rounded-sm text-lg font-semibold tracking-tight underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
                 href={WorkspaceNavigation.href(
                   WorkspacePage.Version,
                   version.funnelIdentifier,
@@ -125,16 +117,13 @@ export function ConfigurationHighlights({
               >
                 {ConfigurationContent.Version} {version.version}
               </a>
-              <p
-                className="truncate text-sm text-muted-foreground"
-                title={version.funnelIdentifier}
-              >
-                {version.funnelIdentifier}
-              </p>
-            </CardContent>
-            <CardFooter className="mt-auto justify-between gap-2 border-t [.border-t]:pt-3 text-xs text-muted-foreground">
+              <ConfigurationStatus
+                live={version.identifier === configurations.funnel.activeVersionIdentifier}
+              />
+            </CardHeader>
+            <CardFooter className="mt-auto justify-between gap-2 px-5 text-xs text-muted-foreground">
               <span className="min-w-0 break-words">
-                JSON · {ConfigurationContent.Schema} {version.schemaVersion}
+                {ConfigurationContent.Schema} {version.schemaVersion}
               </span>
               <Button variant="ghost" size="icon" asChild>
                 <a
@@ -196,7 +185,7 @@ export function ConfigurationLibraryContext({
           <CardDescription>{ConfigurationContent.ActiveVersionDescription}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-5">
-          <div className="rounded-lg border border-primary/15 bg-primary/5 p-4">
+          <div>
             <p className="break-words text-4xl font-semibold tracking-tight tabular-nums text-primary">
               {ConfigurationFormat.activeVersion(configurations)}
             </p>

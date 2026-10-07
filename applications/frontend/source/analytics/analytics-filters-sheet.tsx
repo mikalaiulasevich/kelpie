@@ -45,8 +45,7 @@ export function AnalyticsFiltersSheet({
       <SheetHeader className="border-b p-6">
         <SheetTitle>Analytics filters</SheetTitle>
         <SheetDescription>
-          Define the cohort used for every count and conversion rate. Changes take effect when you
-          apply.
+          Choose which sessions to include, then apply your filters.
         </SheetDescription>
       </SheetHeader>
       <form className="flex min-h-0 flex-1 flex-col" onSubmit={applyFilters}>
@@ -72,14 +71,14 @@ export function AnalyticsFiltersSheet({
                 <SelectContent>
                   <SelectGroup>
                     <SelectItem value="all">All campaigns</SelectItem>
-                    <SelectItem value="exact">Exact campaign</SelectItem>
-                    <SelectItem value="none">Empty campaign</SelectItem>
+                    <SelectItem value="exact">Specific campaign</SelectItem>
+                    <SelectItem value="none">No campaign</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
             </Field>
             <Field data-disabled={draftFilters.campaignMode !== 'exact'}>
-              <FieldLabel htmlFor="analytics-campaign">Campaign value</FieldLabel>
+              <FieldLabel htmlFor="analytics-campaign">Campaign name</FieldLabel>
               <Input
                 id="analytics-campaign"
                 placeholder="Case-sensitive UTM value"
@@ -157,7 +156,7 @@ export function AnalyticsFiltersSheet({
               variant="ghost"
               onClick={() => setDraftFilters({ ...AnalyticsFilterSelection.Initial })}
             >
-              Reset draft
+              Reset filters
             </Button>
           </div>
         </SheetFooter>

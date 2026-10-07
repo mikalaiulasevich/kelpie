@@ -75,7 +75,7 @@ function AnalyticsRatioValue({
 function AnalyticsVariantSummary({ variant }: { readonly variant: AnalyticsVariant }) {
   return (
     <Card className="analytics-metric gap-4 overflow-hidden py-0" data-variant={variant.variant}>
-      <CardHeader className="flex flex-row items-center justify-between gap-3 pt-5">
+      <CardHeader className="flex flex-row items-center gap-3 pt-4">
         <div className="flex items-center gap-3">
           <span
             className={ClassNames.combine(
@@ -92,7 +92,6 @@ function AnalyticsVariantSummary({ variant }: { readonly variant: AnalyticsVaria
             </CardDescription>
           </div>
         </div>
-        <Badge variant="outline">Experiment</Badge>
       </CardHeader>
       <CardContent className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-5">
         <div className="flex flex-col gap-2">
@@ -103,7 +102,7 @@ function AnalyticsVariantSummary({ variant }: { readonly variant: AnalyticsVaria
           <p
             data-applicable={!isNull(variant.ctaConversion.value)}
             data-positive={variant.ctaConversion.numerator > 0}
-            className="text-[3rem] leading-none font-semibold tracking-tight tabular-nums data-[applicable=false]:text-lg"
+            className="text-[2.5rem] leading-none font-semibold tracking-tight tabular-nums data-[applicable=false]:text-lg"
           >
             {AnalyticsFormat.ratio(variant.ctaConversion)}
           </p>
@@ -129,7 +128,7 @@ function AnalyticsVariantSummary({ variant }: { readonly variant: AnalyticsVaria
           <span className="text-xs text-muted-foreground">sessions</span>
         </div>
       </CardContent>
-      <CardFooter className="grid grid-cols-2 items-start gap-5 border-t py-4 [.border-t]:pt-4">
+      <CardFooter className="grid grid-cols-2 items-start gap-4 border-t py-3 [.border-t]:pt-3">
         <div className="flex flex-col gap-2">
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <CircleCheck
@@ -158,17 +157,16 @@ function AnalyticsSteps({ variant }: { readonly variant: AnalyticsVariant }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Variant {variant.variant} · ordered steps</CardTitle>
+        <CardTitle>Variant {variant.variant} · steps</CardTitle>
         <CardDescription>
-          Reached sessions come from accepted views. A forward transition completes information and
-          interactive steps.
+          See how many sessions reached each step and continued to the next one.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
           <TableCaption>
-            Open noncompletion is pending. Expired dropout uses expired viewers as its denominator.
-            Result steps are terminal and report reach only.
+            Open sessions can still continue. Expired dropout is the share of expired viewers who
+            did not complete the step. Results are the final step, so only views are counted.
           </TableCaption>
           <TableHeader>
             <TableRow>
@@ -257,10 +255,10 @@ function AnalyticsPaths({ variant }: { readonly variant: AnalyticsVariant }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Variant {variant.variant} · committed paths</CardTitle>
+        <CardTitle>Variant {variant.variant} · paths</CardTitle>
         <CardDescription>
-          Historical session reach across each directed edge. Sessions routed to another branch are
-          excluded from destination nonreach.
+          Follow sessions between steps. Sessions sent to another branch aren’t counted as missing
+          the destination.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -287,7 +285,7 @@ function AnalyticsPaths({ variant }: { readonly variant: AnalyticsVariant }) {
                 <TableCell colSpan={7} className="h-28 text-center">
                   <div className="flex flex-col items-center gap-2">
                     <Route className="size-5 text-muted-foreground" />
-                    <span className="font-medium">No committed paths</span>
+                    <span className="font-medium">No paths recorded yet</span>
                     <span className="text-xs text-muted-foreground">
                       Paths appear after a session moves forward between steps.
                     </span>
@@ -348,7 +346,7 @@ export function AnalyticsVersionPanel({
 
   return (
     <section
-      className="@container/analytics-version flex min-w-0 flex-col gap-6"
+      className="@container/analytics-version flex min-w-0 flex-col gap-5"
       aria-label={`Version ${version.funnelVersion} analytics`}
     >
       <div className="grid gap-4 @min-[38rem]/analytics-version:grid-cols-2">
@@ -357,11 +355,13 @@ export function AnalyticsVersionPanel({
         ))}
       </div>
       <div className="grid min-w-0 gap-5 @min-[60rem]/analytics-version:grid-cols-[minmax(0,1fr)_17rem]">
-        <Card className="analytics-chart min-w-0 gap-6 py-6">
+        <Card className="analytics-chart min-w-0 gap-4 py-5">
           <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
             <div className="flex flex-col gap-2">
-              <CardTitle>Conversion performance</CardTitle>
-              <CardDescription>Result reach and recommendation opens, by variant.</CardDescription>
+              <CardTitle>Conversion by variant</CardTitle>
+              <CardDescription>
+                Result views and recommendation opens per started session.
+              </CardDescription>
             </div>
             <Badge variant="outline">Version {version.funnelVersion}</Badge>
           </CardHeader>
@@ -380,9 +380,8 @@ export function AnalyticsVersionPanel({
                   </EmptyMedia>
                   <EmptyTitle>No sessions yet</EmptyTitle>
                   <EmptyDescription>
-                    This cohort has no started sessions. Adjust the traffic filters or start a
-                    funnel session to begin measuring. Ratios remain not applicable until a
-                    denominator exists.
+                    No sessions match these filters. Try another filter or check back after the
+                    funnel receives traffic.
                   </EmptyDescription>
                 </EmptyHeader>
                 {onOpenFilters && (
@@ -398,9 +397,11 @@ export function AnalyticsVersionPanel({
           <CardHeader>
             <div className="flex items-center gap-2">
               <FlaskConical className="size-4 text-primary" />
-              <CardTitle>Experiment context</CardTitle>
+              <CardTitle>Session split</CardTitle>
             </div>
-            <CardDescription className="break-all">{version.experimentIdentifier}</CardDescription>
+            <CardDescription className="break-words">
+              {version.experimentIdentifier}
+            </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-5">
             <div className="flex flex-col gap-2">
@@ -429,8 +430,8 @@ export function AnalyticsVersionPanel({
             <div className="flex gap-2 border-t pt-4 text-xs leading-relaxed text-muted-foreground">
               <Info className="mt-0.5 size-3.5 shrink-0" />
               <p>
-                Both chart rates use started sessions. CTA click-through uses result viewers.
-                Compare variants within this version and experiment.
+                Both chart rates use started sessions. CTA click-through uses only sessions that
+                viewed a result.
               </p>
             </div>
           </CardContent>
@@ -439,9 +440,9 @@ export function AnalyticsVersionPanel({
       <Tabs defaultValue={version.variants[0]?.variant ?? ''} className="min-w-0 gap-4 pt-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-col gap-1">
-            <h3 className="text-base font-semibold">Journey breakdown</h3>
+            <h3 className="text-base font-semibold">Step-by-step results</h3>
             <p className="text-xs text-muted-foreground">
-              Inspect step completion and committed paths for each variant.
+              Choose a variant to review its steps and paths.
             </p>
           </div>
           <TabsList aria-label={`Version ${version.funnelVersion} variants`}>
@@ -472,9 +473,8 @@ export function AnalyticsVersionPanel({
                 <AnalyticsSteps variant={variant} />
                 <Alert>
                   <AlertDescription>
-                    Historical views persist when a visitor goes Back or changes branches. These
-                    counts need not form a single monotone funnel. Unsent events remain
-                    unobservable.
+                    Sessions can go back or switch branches, so counts may rise between steps. Only
+                    events received by the server are included.
                   </AlertDescription>
                 </Alert>
               </TabsContent>

@@ -277,8 +277,8 @@ a:focus-visible {
   text-wrap: balance;
 }
 .analytics-toolbar {
-  padding-block: 16px;
-  border-block: 1px solid var(--border);
+  padding-block: 8px 12px;
+  border-bottom: 1px solid var(--border);
 }
 .analytics-metric {
   --metric-accent: var(--primary);

@@ -69,7 +69,9 @@ describe('pending publication recovery', () => {
 
     expect(() =>
       PublicationIntents.save('administrator-1', PublicationIntentFixture.publish()),
-    ).toThrow('This browser cannot preserve the operation for a safe retry. No change was sent.');
+    ).toThrow(
+      'Your browser could not save this operation for a safe retry. This attempt was not sent.',
+    );
 
     try {
       PublicationIntents.save('administrator-1', PublicationIntentFixture.publish());
