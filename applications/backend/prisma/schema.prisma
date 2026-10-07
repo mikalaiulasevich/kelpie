@@ -109,16 +109,17 @@ model SessionOperation {
 }
 
 model Event {
-  identifier         String   @id
-  contentFingerprint String
-  sessionIdentifier  String
-  name               String
-  source             String
-  clientTimestamp    DateTime
-  serverTimestamp    DateTime @default(now())
-  stepIdentifier     String?
-  properties         Json
-  session            Session  @relation(fields: [sessionIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
+  identifier          String   @id
+  contentFingerprint  String
+  sessionIdentifier   String
+  name                String
+  source              String
+  clientTimestamp     DateTime
+  serverTimestamp     DateTime @default(now())
+  stepIdentifier      String?
+  observationRevision Int?
+  properties          Json
+  session             Session  @relation(fields: [sessionIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
 
   @@index([sessionIdentifier, name, stepIdentifier])
   @@index([name, stepIdentifier, sessionIdentifier])

@@ -7,6 +7,7 @@ const PublicationMigrationFiles = {
   OperationScope: '20261006000200_session_operation_scope',
   Revision: '20261007000100_publication_revision',
   SessionCommands: '20261007000200_session_commands',
+  EventObservations: '20261007000300_event_observation_revision',
 } as const;
 
 const SessionMigrationStatements = {
@@ -100,6 +101,10 @@ export class PublicationMigrationFixture {
   migrateSessions(): void {
     this.migrate();
     this.apply(PublicationMigrationFiles.SessionCommands);
+  }
+
+  migrateEventObservations(): void {
+    this.apply(PublicationMigrationFiles.EventObservations);
   }
 
   prepareOtherSession(): void {
