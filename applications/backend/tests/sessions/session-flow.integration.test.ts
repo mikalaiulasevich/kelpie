@@ -51,6 +51,36 @@ describe('session HTTP acceptance', () => {
     expect(await backend.database.event.count()).toBe(0);
   });
 
+  it.each(SessionFlowCases.InvalidCreation)(
+    'rejects creation with $name without writes',
+    async ({ query, overrides }) => {
+      await browser.current();
+      const response = await browser.post(query, {
+        ...SessionFlowFixture.creation(),
+        ...overrides,
+      });
+
+      expect(response.status).toBe(400);
+      expect(await backend.database.session.count()).toBe(0);
+      expect(await backend.database.sessionOperation.count()).toBe(0);
+      expect(await backend.database.event.count()).toBe(0);
+    },
+  );
+
+  it('rejects normalized command dates without advancing or recording events', async () => {
+    const state = await browser.create();
+    const response = await browser.post('/current/continue', {
+      ...SessionFlowFixture.command(state),
+      clientTimestamp: SessionFlowCases.InvalidTimestamp,
+    });
+
+    expect(response.status).toBe(400);
+    expect(await (await browser.current()).json()).toEqual({ state, expired: false });
+    expect(await backend.database.sessionOperation.count()).toBe(1);
+    expect(await backend.database.event.count()).toBe(1);
+    expect(await backend.database.sessionTransition.count()).toBe(0);
+  });
+
   it('deduplicates simultaneous creation and rejects changed intent under its identifier', async () => {
     await browser.current();
     const creation = SessionFlowFixture.creation();

@@ -11,7 +11,22 @@ interface SessionFlowCase {
   readonly expectedTotal: number;
 }
 
+const invalidTimestamp = '2026-02-30T00:00:00.000Z';
+
 export const SessionFlowCases = {
+  InvalidTimestamp: invalidTimestamp,
+  InvalidCreation: [
+    {
+      name: 'a date that JavaScript would normalize',
+      query: '?variant=A',
+      overrides: { clientTimestamp: invalidTimestamp },
+    },
+    {
+      name: 'an unsupported experiment override',
+      query: '?variant=C',
+      overrides: {},
+    },
+  ],
   BranchReturnSteps: ['office_days', 'timezone_span', 'priorities', 'work_mode'],
   Complete: [
     {

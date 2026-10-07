@@ -32,6 +32,5 @@ export const SessionErrorCode = {
   Conflict: 'operation_conflict',
   Bound: 'session_already_exists',
   Unavailable: 'funnel_unavailable',
-  Corrupted: 'session_corrupted',
   Forbidden: 'forbidden',
 } as const;
