@@ -69,7 +69,7 @@ export const TrafficSeedFiles = {
             await TemporarySeedFile.remove(handle, temporaryPath);
           } catch (cleanupError) {
             throw new AggregateError([error, cleanupError], TrafficSeedMessages.CleanupFailed, {
-              cause: error,
+              cause: cleanupError,
             });
           }
 

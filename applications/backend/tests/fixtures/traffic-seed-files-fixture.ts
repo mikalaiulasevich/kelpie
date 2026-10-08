@@ -10,10 +10,10 @@ export const TrafficSeedFilesFixture = {
     return { directory, destination: resolve(directory, 'checkpoint.json') };
   },
 
-  rejectAfterPartialWrite(failure: Error): void {
-    const open = filesystem.open;
-    vi.spyOn(filesystem, 'open').mockImplementation(async (path, flags, mode) => {
-      const handle = await open(path, flags, mode);
+  async rejectAfterPartialWrite(failure: Error): Promise<void> {
+    const original = await vi.importActual<typeof filesystem>('node:fs/promises');
+    vi.mocked(filesystem.open).mockImplementation(async (path, flags, mode) => {
+      const handle = await original.open(path, flags, mode);
       const writeFile = handle.writeFile.bind(handle);
       vi.spyOn(handle, 'writeFile').mockImplementation(async () => {
         await writeFile('partial-checkpoint');

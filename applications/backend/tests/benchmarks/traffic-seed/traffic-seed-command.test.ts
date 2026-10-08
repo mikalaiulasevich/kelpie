@@ -1,3 +1,5 @@
+import * as filesystem from 'node:fs/promises';
+import { BackendApplicationFixture } from '../../fixtures/backend-application.js';
 import { PrismaClient } from '../../../generated/prisma/client.js';
 import { TrafficSeedTarget } from './traffic-seed-target.js';
 import { readFile, realpath, rm, writeFile } from 'node:fs/promises';
@@ -72,6 +74,40 @@ describe('synthetic seed CLI and durable checkpoint', () => {
       expect(sourceFailure.errors[0]).toBeInstanceOf(Error);
       expect(sourceFailure.errors[0]).not.toBe(sourceCleanup);
       expect(sourceFailure.errors[0]).not.toBe(targetCleanup);
+    } finally {
+      vi.restoreAllMocks();
+      await rm(fixture.output, { recursive: true, force: true });
+    }
+  });
+
+  it('removes an acquired checkpoint directory when setup fails', async () => {
+    const fixture = await TrafficSeedCommandFixture.checkpoint();
+    const primary = new Error('Checkpoint setup failed');
+
+    try {
+      vi.spyOn(filesystem, 'mkdtemp').mockResolvedValueOnce(fixture.output);
+      vi.spyOn(TrafficSeedCommand, 'options').mockImplementationOnce(() => {
+        throw primary;
+      });
+
+      await expect(TrafficSeedCommandFixture.checkpoint()).rejects.toBe(primary);
+      await expect(filesystem.access(fixture.output)).rejects.toMatchObject({ code: 'ENOENT' });
+    } finally {
+      vi.restoreAllMocks();
+      await rm(fixture.output, { recursive: true, force: true });
+    }
+  });
+
+  it('removes the checkpoint when target backend acquisition fails', async () => {
+    const fixture = await TrafficSeedCommandFixture.checkpoint();
+    const primary = new Error('Backend acquisition failed');
+
+    try {
+      vi.spyOn(TrafficSeedCommandFixture, 'checkpoint').mockResolvedValueOnce(fixture);
+      vi.spyOn(BackendApplicationFixture, 'create').mockRejectedValueOnce(primary);
+
+      await expect(TrafficSeedCommandFixture.target()).rejects.toBe(primary);
+      await expect(filesystem.access(fixture.output)).rejects.toMatchObject({ code: 'ENOENT' });
     } finally {
       vi.restoreAllMocks();
       await rm(fixture.output, { recursive: true, force: true });

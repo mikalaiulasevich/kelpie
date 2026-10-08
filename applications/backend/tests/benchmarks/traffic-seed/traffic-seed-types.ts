@@ -67,15 +67,3 @@ export const TrafficSeedReceiptSchema = Type.Object({
 
 export type TrafficSeedReceipt = Static<typeof TrafficSeedReceiptSchema>;
 
-export const TrafficSeedCohortSchema = Type.Object({
-  day: Type.String(),
-  version: Type.Integer(),
-  variant: Type.String(),
-  campaign: Type.String(),
-  started: Type.Integer({ minimum: 0 }),
-  results: Type.Integer({ minimum: 0 }),
-  clicks: Type.Integer({ minimum: 0 }),
-  expired: Type.Integer({ minimum: 0 }),
-});
-
-export type TrafficSeedCohort = Static<typeof TrafficSeedCohortSchema>;

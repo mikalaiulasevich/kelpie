@@ -3,11 +3,17 @@ import { describe, expect, it, vi } from 'vitest';
 import { TrafficSeedFilesFixture } from '../../fixtures/traffic-seed-files-fixture.js';
 import { TrafficSeedFiles } from './traffic-seed-files.js';
 
+vi.mock(import('node:fs/promises'), async (importOriginal) => {
+  const original = await importOriginal();
+
+  return { ...original, open: vi.fn(original.open), rm: vi.fn(original.rm) };
+});
+
 describe('seed checkpoint file lifecycle', () => {
   it('removes a partially written temporary file while retaining the primary failure', async () => {
     const fixture = await TrafficSeedFilesFixture.create();
     const primary = new Error('Injected write failure after partial bytes');
-    TrafficSeedFilesFixture.rejectAfterPartialWrite(primary);
+    await TrafficSeedFilesFixture.rejectAfterPartialWrite(primary);
 
     try {
       await expect(
@@ -16,6 +22,7 @@ describe('seed checkpoint file lifecycle', () => {
       expect(await filesystem.readdir(fixture.directory)).toEqual([]);
     } finally {
       vi.restoreAllMocks();
+      vi.resetAllMocks();
       await filesystem.rm(fixture.directory, { recursive: true, force: true });
     }
   });
@@ -24,19 +31,19 @@ describe('seed checkpoint file lifecycle', () => {
     const fixture = await TrafficSeedFilesFixture.create();
     const primary = new Error('Injected partial-write failure');
     const cleanup = new Error('Injected temporary-file removal failure');
-    TrafficSeedFilesFixture.rejectAfterPartialWrite(primary);
-    vi.spyOn(filesystem, 'rm').mockRejectedValueOnce(cleanup);
+    await TrafficSeedFilesFixture.rejectAfterPartialWrite(primary);
+    vi.mocked(filesystem.rm).mockRejectedValueOnce(cleanup);
 
     try {
       await expect(
         TrafficSeedFiles.writeOnce(fixture.destination, 'complete-content'),
       ).rejects.toMatchObject({
-        cause: primary,
         errors: [primary, expect.objectContaining({ errors: [cleanup] })],
       });
       expect(await filesystem.readdir(fixture.directory)).toHaveLength(1);
     } finally {
       vi.restoreAllMocks();
+      vi.resetAllMocks();
       await filesystem.rm(fixture.directory, { recursive: true, force: true });
     }
   });

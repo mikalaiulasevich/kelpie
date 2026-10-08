@@ -14,6 +14,7 @@ import {
   TrafficSeedOptionsSchema,
   type TrafficSeedOptions,
   type TrafficSeedCohort,
+  type TrafficSeedReceipt,
 } from './traffic-seed-types.js';
 import type { TrafficSeedSessionGraph } from './traffic-seed-import-types.js';
 import { TrafficSeedCheckpoint } from './traffic-seed-checkpoint.js';
