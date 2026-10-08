@@ -58,6 +58,26 @@ const SeedSummary = {
   },
 } as const;
 
+const SeedDatabaseLifetime = {
+  async run(database: PrismaClient, operation: () => Promise<void>): Promise<void> {
+    try {
+      await operation();
+    } catch (error) {
+      try {
+        await database.$disconnect();
+      } catch (cleanupError) {
+        throw new AggregateError([error, cleanupError], TrafficSeedMessages.CleanupFailed, {
+          cause: error,
+        });
+      }
+
+      throw error;
+    }
+
+    await database.$disconnect();
+  },
+} as const;
+
 export const TrafficSeedCommand = {
   options(arguments_: readonly string[] = process.argv.slice(2)): TrafficSeedOptions {
     const values: Record<string, string> = {};
@@ -68,6 +88,7 @@ export const TrafficSeedCommand = {
       assert.ok(
         argument.startsWith('--') &&
           separator > 2 &&
+          argument.slice(separator + 1).length > 0 &&
           ['target', 'run', 'sessions', 'days', 'seed', 'output'].includes(key) &&
           isUndefined(values[key]),
         TrafficSeedMessages.Arguments,
@@ -111,6 +132,7 @@ export const TrafficSeedCommand = {
   },
 
   async run(options: TrafficSeedOptions): Promise<void> {
+    assert.ok(Validators.options(options), TrafficSeedMessages.Arguments);
     const destination = await this.destination(options);
     const checkpoint = await TrafficSeedCheckpoint.read(options);
     const target = new PrismaClient({
@@ -120,14 +142,15 @@ export const TrafficSeedCommand = {
       ),
     });
 
-    try {
+    await SeedDatabaseLifetime.run(target, async () => {
       await TrafficSeedTarget.prepare(target, options);
       const dataset = await TrafficSeedCheckpoint.dataset(options);
       assert.notEqual(destination, `file:${dataset.path}`, TrafficSeedMessages.Target);
       const source = new PrismaClient({ adapter: DatabaseAdapters.create(`file:${dataset.path}`) });
 
-      try {
+      await SeedDatabaseLifetime.run(source, async () => {
         assert.equal(await source.session.count(), options.sessions, TrafficSeedMessages.Source);
+        assert.equal(await source.event.count(), dataset.events, TrafficSeedMessages.Source);
         const sourceIdentifiers = new Set(
           (await source.session.findMany({ select: { identifier: true } })).map(
             (session) => session.identifier,
@@ -175,11 +198,7 @@ export const TrafficSeedCommand = {
           { mode: 0o600 },
         );
         process.stdout.write(`${JSON.stringify(receipt)}\n`);
-      } finally {
-        await source.$disconnect();
-      }
-    } finally {
-      await target.$disconnect();
-    }
+      });
+    });
   },
 } as const;

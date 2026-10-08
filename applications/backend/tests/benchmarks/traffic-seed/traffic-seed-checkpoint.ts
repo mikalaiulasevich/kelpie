@@ -82,6 +82,6 @@ export const TrafficSeedCheckpoint = {
       assert.deepEqual(previous, evidence, TrafficSeedMessages.Source);
     }
 
-    return { path, manifest };
+    return { path, manifest, events: report.database.events };
   },
 } as const;

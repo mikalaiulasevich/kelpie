@@ -7,6 +7,7 @@ export const TrafficSeedMessages = {
     'This run checkpoint does not match the requested workload. Reuse the original arguments or choose another output directory and run identifier.',
   Source: 'The verified generation report or manifest does not match its retained dataset.',
   Timeline: 'The synthetic timeline contains an invalid timestamp or session lifetime.',
+  CleanupFailed: 'Synthetic seed command failed while disconnecting its database.',
   Failed:
     'Synthetic data generation/import failed. Completed batches are retained; retry the same command. No credentials are included in this diagnostic.',
 } as const;

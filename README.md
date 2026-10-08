@@ -259,6 +259,27 @@ npm run storage:compact -- --apply --batch-size=100 --maximum-records=200000
 
 The cap applies separately to operation records and session initial states. Output includes per-phase counts, JSON byte totals and resume cursors. Resume operation processing with the paired `--after-operation-session`/`--after-operation` values, and session processing with `--after-session`. A malformed row rolls back its batch; earlier batches remain committed. Retry is idempotent. Newly inserted identifiers behind a cursor require a later full pass. Run against a protected copy or an appropriately scheduled database; this is not an automatic background migration. Logical compaction frees database pages without reducing the existing file immediately; create a validated standalone snapshot to reclaim physical space.
 
+## Demonstration traffic in local or remote storage
+
+Generate and install **10,000 synthetic sessions** into an existing database, without starting or changing the dashboard:
+
+```sh
+npm run traffic:seed:local -- --run=demo-20261008
+npm run traffic:seed:remote -- --run=demo-20261008
+```
+
+Run from the repository root after the documented dependency/build setup. Local mode defaults to `applications/backend/data/funnel-runtime.sqlite`; `DATABASE_URL=file:/absolute/path/database.sqlite` selects another existing database. Remote mode requires `DATABASE_URL=libsql://...` and `DATABASE_AUTH_TOKEN` in the process environment. Supply existing database-scoped credentials through a protected environment file or secret environment, never command arguments or Git. Modes reject the wrong URL type. The existing `workstyle-planner` funnel must have an active version and at least three valid versions. Each run selects the active version and its two nearest predecessors, using following versions only when needed, and pins their actual documents for retries. It never publishes, overwrites configurations, copies administrator credentials or changes existing participant sessions.
+
+Both modes first generate real local HTTP journeys against those documents and reconcile analytics against an independent action manifest. Only the verified synthetic history is then appended to the destination in bounded atomic batches. The remote mode is a trusted operator database import, not a 10,000-user load test against Render. It uses the same imported records the existing dashboard reads. Imported histories have no participant credential and cannot be resumed as real browser sessions; their historical operation responses stay readable by older builds.
+
+The scenarios cover eight named campaigns plus direct traffic, coherent source/medium pairs, A/B, conditional branches, varied numerical and multi-select answers, early and late abandonment, results without CTA clicks, repeat views, duplicate/retried batches, shuffled observations and Back changes. Campaign-dependent conversion rates and small A/B differences are deliberately simulated, not business evidence. Sessions are spread over the preceding 28 days with more recent traffic weighted higher; event, transition and answer timestamps retain their order within plausible multi-minute journeys. Both mature abandoned sessions and recent unfinished sessions are present.
+
+Select **Synthetic** (or **All**) traffic and the generated version in the existing dashboard. The normal seven-day view shows recent cohorts; use the 28-day period to inspect the full dataset. Forced assignments remain separately filterable. This command does not start a dashboard or change its filters.
+
+Options: `--sessions=10000`, `--days=28` (1–90), `--seed=20261008`, and `--output=directory`. Default artifacts are `test-results/traffic-seed-<run>-local` and `test-results/traffic-seed-<run>-remote`. Each contains pinned configurations, a durable anchor/checkpoint, a verified profile/database snapshot, SHA-256 evidence, and `<target>-seed-receipt.json` with persisted counts and day/version/variant/campaign operands for starts, result viewers, CTA clickers and expired sessions. Existing unrelated synthetic traffic may increase dashboard totals beyond this receipt; date/version/campaign selections must match when comparing.
+
+Retry the **same command and output directory** after interruption. Already committed batches are checked against the complete expected records and are not duplicated. Changing seed, dates, source files or configuration content is rejected. Reusing a run identifier with a newly generated dataset conflicts instead of silently inserting another cohort. Choose a new run identifier only when intentionally adding another dataset. The source snapshot is preserved and cannot also be the destination. Generation checkpoints and snapshots can consume substantial local disk space; remote transfer duration depends on the database connection.
+
 ## Synthetic traffic profiling
 
 Run an isolated Bun workload after installing dependencies:

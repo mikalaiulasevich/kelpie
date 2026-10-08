@@ -1,4 +1,4 @@
-import { readFile, rm, writeFile } from 'node:fs/promises';
+import { readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { TrafficSeedCases } from '../../cases/traffic-seed-cases.js';
@@ -43,7 +43,9 @@ describe('synthetic seed CLI and durable checkpoint', () => {
 
     try {
       expect((await TrafficSeedCheckpoint.dataset(fixture.options)).manifest).toHaveLength(1);
-      expect((await TrafficSeedCheckpoint.dataset(fixture.options)).path).toBe(fixture.path);
+      expect((await TrafficSeedCheckpoint.dataset(fixture.options)).path).toBe(
+        await realpath(fixture.path),
+      );
       await writeFile(fixture.path, 'changed-snapshot');
       await expect(TrafficSeedCheckpoint.dataset(fixture.options)).rejects.toThrow();
     } finally {

@@ -24,6 +24,7 @@ describe('synthetic traffic runner boundaries and recovery', () => {
     expect(() => TrafficRunner.options(['--sessions'])).toThrow();
     expect(() => TrafficRunner.options(['--sessions=2', '--sessions=3'])).toThrow();
     expect(() => TrafficRunner.options(['--seed=1', '--seed=1'])).toThrow();
+    expect(() => TrafficRunner.options(['--seed='])).toThrow();
     expect(TrafficRunner.options(['--sessions=2', '--output=directory=with-equals'])).toMatchObject(
       { sessions: 2, output: 'directory=with-equals' },
     );

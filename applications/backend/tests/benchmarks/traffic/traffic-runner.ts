@@ -427,6 +427,7 @@ export const TrafficRunner = {
       assert.ok(
         argument.startsWith('--') &&
           separator > 2 &&
+          separator < argument.length - 1 &&
           ['sessions', 'concurrency', 'seed', 'output', 'resume', 'database'].includes(key) &&
           !Object.hasOwn(values, key),
         TrafficMessages.InvalidArguments,
