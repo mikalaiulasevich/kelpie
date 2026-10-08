@@ -8,6 +8,15 @@ export type TrafficSeedSessionGraph = Prisma.SessionGetPayload<{
 export interface TrafficSeedImportOptions {
   runIdentifier: string;
   projectSession: (session: TrafficSeedSessionGraph, ordinal: number) => TrafficSeedSessionGraph;
+  prepareGraphs?: (graphs: readonly TrafficSeedSessionGraph[]) => () => Promise<void>;
+}
+
+export interface TrafficSeedPreparedRecords {
+  sessions: Prisma.SessionCreateManyInput[];
+  answers: Prisma.SessionAnswerCreateManyInput[];
+  operations: Prisma.SessionOperationCreateManyInput[];
+  transitions: Prisma.SessionTransitionCreateManyInput[];
+  events: Prisma.EventCreateManyInput[];
 }
 
 export const TrafficSeedImportReceiptSchema = Type.Object({

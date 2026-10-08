@@ -19,6 +19,9 @@ import {
 import type { TrafficSeedSessionGraph } from './traffic-seed-import-types.js';
 import { TrafficSeedCheckpoint } from './traffic-seed-checkpoint.js';
 import { TrafficSeedTarget } from './traffic-seed-target.js';
+import { TrafficSeedLibsqlTransport } from './traffic-seed-libsql-transport.js';
+import { RemoteDatabaseRequests } from '../../../source/database/remote-database-requests.js';
+import { SQLitePolicy } from '../../../source/database/sqlite-policy.js';
 
 const Validators = {
   options: new Ajv().compile<TrafficSeedOptions>(TrafficSeedOptionsSchema),
@@ -128,12 +131,17 @@ export const TrafficSeedCommand = {
     assert.ok(Validators.options(options), TrafficSeedMessages.Arguments);
     const destination = await this.destination(options);
     const checkpoint = await TrafficSeedCheckpoint.read(options);
-    const target = new PrismaClient({
-      adapter: DatabaseAdapters.create(
-        destination,
-        options.target === 'remote' ? process.env['DATABASE_AUTH_TOKEN'] : undefined,
-      ),
-    });
+    const authToken = process.env['DATABASE_AUTH_TOKEN'];
+    const transport =
+      options.target === 'remote'
+        ? new TrafficSeedLibsqlTransport({
+            url: destination,
+            ...(isUndefined(authToken) ? {} : { authToken }),
+            fetch: RemoteDatabaseRequests.fetch,
+            timeout: SQLitePolicy.BusyTimeoutMilliseconds,
+          })
+        : undefined;
+    const target = new PrismaClient({ adapter: transport ?? DatabaseAdapters.create(destination) });
 
     await SeedDatabaseLifetime.run(target, async () => {
       await TrafficSeedTarget.prepare(target, options);
@@ -159,6 +167,12 @@ export const TrafficSeedCommand = {
         );
         const receipt = await TrafficSeedImport.run(source, target, {
           runIdentifier: options.runIdentifier,
+          ...(isUndefined(transport)
+            ? {}
+            : {
+                prepareGraphs: (graphs: readonly TrafficSeedSessionGraph[]) =>
+                  transport.prepareGraphs(graphs),
+              }),
           projectSession(graph, ordinal) {
             const projected = TrafficSeedTimeline.project(graph, ordinal, {
               anchor: checkpoint.anchor,
