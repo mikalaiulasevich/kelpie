@@ -6,10 +6,12 @@ import { Prisma, type PrismaClient } from '../../../generated/prisma/client.js';
 import { SessionSnapshots } from '../../../source/sessions/session-snapshots.js';
 import { TrafficSeedImportMessages } from './traffic-seed-import-messages.js';
 import { TrafficSeedImportPolicy } from './traffic-seed-import-policy.js';
+import { TrafficSeedImportRetry } from './traffic-seed-import-retry.js';
 import type {
   TrafficSeedImportOptions,
   TrafficSeedImportReceipt,
   TrafficSeedSessionGraph,
+  TrafficSeedPreparedRecords,
 } from './traffic-seed-import-types.js';
 
 const ImportIdentity = {
@@ -118,9 +120,12 @@ const ImportIdentity = {
       answers: [...graph.answers].sort((left, right) =>
         left.stepIdentifier.localeCompare(right.stepIdentifier),
       ),
-      operations: [...graph.operations].sort((left, right) =>
-        left.operationIdentifier.localeCompare(right.operationIdentifier),
-      ),
+      operations: graph.operations
+        .map((operation) => ({
+          ...operation,
+          response: SessionSnapshots.read(operation.response, graph),
+        }))
+        .sort((left, right) => left.operationIdentifier.localeCompare(right.operationIdentifier)),
       transitions: [...graph.transitions].sort((left, right) =>
         left.identifier.localeCompare(right.identifier),
       ),
@@ -156,43 +161,80 @@ const ImportStorage = {
     return mapped;
   },
 
-  async insert(transaction: Prisma.TransactionClient, graphs: TrafficSeedSessionGraph[]) {
-    if (graphs.length === 0) {
-      return;
-    }
-
-    await transaction.session.createMany({
-      data: graphs.map((graph) => ({
+  prepare(graphs: TrafficSeedSessionGraph[]): TrafficSeedPreparedRecords {
+    return {
+      sessions: graphs.map((graph) => ({
         ...omit(graph, ['answers', 'operations', 'transitions', 'events', 'version']),
         acquisitionParameters: ImportIdentity.input(graph.acquisitionParameters),
         initialState: Prisma.DbNull,
       })),
-    });
-    await transaction.sessionAnswer.createMany({
-      data: graphs.flatMap((graph) =>
+      answers: graphs.flatMap((graph) =>
         graph.answers.map((answer) => ({ ...answer, value: ImportIdentity.input(answer.value) })),
       ),
-    });
-    await transaction.sessionOperation.createMany({
-      data: graphs.flatMap((graph) =>
+      operations: graphs.flatMap((graph) =>
         graph.operations.map((operation) => ({
           ...operation,
-          response: ImportIdentity.input(operation.response),
+          response: SessionSnapshots.json(SessionSnapshots.read(operation.response, graph)),
         })),
       ),
-    });
-    await transaction.sessionTransition.createMany({
-      data: graphs.flatMap((graph) => graph.transitions),
-    });
-    await transaction.event.createMany({
-      data: graphs.flatMap((graph) =>
+      transitions: graphs.flatMap((graph) => graph.transitions),
+      events: graphs.flatMap((graph) =>
         graph.events.map((event) => ({
           ...event,
           properties: ImportIdentity.input(event.properties),
         })),
       ),
+    };
+  },
+
+  async persist(transaction: Prisma.TransactionClient, records: TrafficSeedPreparedRecords) {
+    await transaction.session.createMany({ data: records.sessions });
+    await transaction.sessionAnswer.createMany({ data: records.answers });
+    await transaction.sessionOperation.createMany({ data: records.operations });
+    await transaction.sessionTransition.createMany({ data: records.transitions });
+    await transaction.event.createMany({ data: records.events });
+  },
+
+  prepareWriter(
+    graphs: TrafficSeedSessionGraph[],
+  ): (transaction: Prisma.TransactionClient) => Promise<void> {
+    const records = ImportStorage.prepare(graphs);
+
+    return (transaction) => ImportStorage.persist(transaction, records);
+  },
+
+  async pending(target: PrismaClient, graphs: TrafficSeedSessionGraph[]) {
+    const identifiers = await target.session.findMany({
+      where: { identifier: { in: graphs.map((graph) => graph.identifier) } },
+      select: { identifier: true },
     });
-    const persisted = await transaction.session.findMany({
+    const existing =
+      identifiers.length === 0
+        ? []
+        : await target.session.findMany({
+            where: { identifier: { in: identifiers.map((record) => record.identifier) } },
+            include: TrafficSeedImportPolicy.Include,
+          });
+    const byIdentifier = new Map(existing.map((graph) => [graph.identifier, graph]));
+    const pending: TrafficSeedSessionGraph[] = [];
+
+    for (const graph of graphs) {
+      const previous = byIdentifier.get(graph.identifier);
+
+      if (isUndefined(previous)) {
+        pending.push(graph);
+      } else if (
+        !isDeepStrictEqual(ImportIdentity.comparable(previous), ImportIdentity.comparable(graph))
+      ) {
+        throw new Error(TrafficSeedImportMessages.Conflict);
+      }
+    }
+
+    return pending;
+  },
+
+  async verify(target: PrismaClient, graphs: TrafficSeedSessionGraph[]) {
+    const persisted = await target.session.findMany({
       where: { identifier: { in: graphs.map((graph) => graph.identifier) } },
       include: TrafficSeedImportPolicy.Include,
     });
@@ -208,6 +250,46 @@ const ImportStorage = {
         throw new Error(TrafficSeedImportMessages.Conflict);
       }
     }
+  },
+
+  async batch(
+    target: PrismaClient,
+    graphs: TrafficSeedSessionGraph[],
+    options: TrafficSeedImportOptions,
+  ): Promise<number> {
+    const pending = await ImportStorage.pending(target, graphs);
+
+    if (pending.length === 0) {
+      return 0;
+    }
+
+    if (!isUndefined(options.prepareGraphs)) {
+      const commit = options.prepareGraphs(pending);
+      await commit();
+    } else {
+      const write = ImportStorage.prepareWriter(pending);
+      await target.$transaction(
+        async (transaction) => {
+          const concurrent = await transaction.session.findFirst({
+            where: { identifier: { in: pending.map((graph) => graph.identifier) } },
+            select: { identifier: true },
+          });
+
+          if (!isNull(concurrent)) {
+            throw new Error(TrafficSeedImportMessages.Conflict);
+          }
+
+          await write(transaction);
+        },
+        { timeout: TrafficSeedImportPolicy.TransactionTimeoutMilliseconds },
+      );
+    }
+
+    // Committed histories are immutable and credential-free. A transient read failure retries
+    // the full preflight, which verifies the committed content instead of inserting it again.
+    await ImportStorage.verify(target, pending);
+
+    return pending.length;
   },
 } as const;
 
@@ -270,35 +352,8 @@ export const TrafficSeedImport = {
           receipt.sessions + ordinal,
         );
       });
-      const inserted = await target.$transaction(
-        async (transaction) => {
-          const existing = await transaction.session.findMany({
-            where: { identifier: { in: graphs.map((graph) => graph.identifier) } },
-            include: TrafficSeedImportPolicy.Include,
-          });
-          const byIdentifier = new Map(existing.map((graph) => [graph.identifier, graph]));
-          const pending: TrafficSeedSessionGraph[] = [];
-
-          for (const graph of graphs) {
-            const previous = byIdentifier.get(graph.identifier);
-
-            if (isUndefined(previous)) {
-              pending.push(graph);
-            } else if (
-              !isDeepStrictEqual(
-                ImportIdentity.comparable(previous),
-                ImportIdentity.comparable(graph),
-              )
-            ) {
-              throw new Error(TrafficSeedImportMessages.Conflict);
-            }
-          }
-
-          await ImportStorage.insert(transaction, pending);
-
-          return pending.length;
-        },
-        { timeout: TrafficSeedImportPolicy.TransactionTimeoutMilliseconds },
+      const inserted = await TrafficSeedImportRetry.run(() =>
+        ImportStorage.batch(target, graphs, options),
       );
       receipt.sessions += graphs.length;
       receipt.inserted += inserted;

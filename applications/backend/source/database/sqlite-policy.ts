@@ -3,5 +3,5 @@ export const SQLitePolicy = {
   FileUrlPrefix: 'file:',
   RemoteUrlPrefix: 'libsql://',
   BusyTimeoutMilliseconds: 5_000,
-  RemoteRequestTimeoutMilliseconds: 30_000,
+  RemoteRequestTimeoutMilliseconds: 180_000,
 } as const;

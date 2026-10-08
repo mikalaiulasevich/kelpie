@@ -69,8 +69,9 @@ export const AnalyticsQueries = {
       );
     }
 
-    // Materialize shared sessions; cohort-first view lookups prevent event-by-cohort scans in filtered plans.
-    return Prisma.sql`WITH cohort AS MATERIALIZED (
+    // Sort candidates before indexed event probes to avoid random UUID page access on remote SQLite.
+    // Materialization keeps the server-start check after this ordering boundary.
+    return Prisma.sql`WITH session_candidates AS MATERIALIZED (
       SELECT s."identifier", s."versionIdentifier", s."variant",
         ${startedAt} AS "startedAt", ${deadline} AS deadline,
         ${conversionDeadline} <= ${now.getTime()} AS "conversionMature",
@@ -82,10 +83,14 @@ export const AnalyticsQueries = {
           ELSE julianday(s."expiresAt") <= julianday(${now.toISOString()}) END OR ${conversionDeadline} <= ${now.getTime()} AS expired
       FROM "Session" s
       WHERE ${Prisma.join(conditions, ' AND ')}
-        AND EXISTS (SELECT 1 FROM "Event" e WHERE e."sessionIdentifier" = s."identifier"
+      ORDER BY s."identifier"
+    ), cohort AS MATERIALIZED (
+      SELECT candidate.* FROM session_candidates candidate
+      WHERE EXISTS (SELECT 1 FROM "Event" e WHERE e."sessionIdentifier" = candidate."identifier"
           AND e."name" = 'session_started' AND e."source" = 'server')
+      ORDER BY candidate."identifier"
     ), eligible_events AS (
-      SELECT e.* FROM "Event" e JOIN cohort c ON c."identifier" = e."sessionIdentifier"
+      SELECT e.* FROM cohort c CROSS JOIN "Event" e ON e."sessionIdentifier" = c."identifier"
       WHERE ${AnalyticsQueries.timestamp(Prisma.sql`e."serverTimestamp"`)} <= c.deadline
     ), view_events AS (
       SELECT e."sessionIdentifier", e."stepIdentifier", e."serverTimestamp"

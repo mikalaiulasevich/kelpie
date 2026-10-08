@@ -91,7 +91,7 @@ export const TrafficSeedTimeline = {
         updatedAt: timeline.projectTime(answer.updatedAt),
       })),
       operations: graph.operations.map((operation) => {
-        // Full historical responses remain readable by the existing public deployment.
+        // Canonical full responses keep import fingerprints stable across replay storage formats.
         const state = SessionSnapshots.read(operation.response, graph);
         const response = TimelineJson.value(state);
 

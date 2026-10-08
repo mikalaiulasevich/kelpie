@@ -5,6 +5,8 @@ import { TrafficSeedReplayCases } from '../../cases/traffic-seed/traffic-seed-re
 import { TrafficSeedImportFixture } from '../../fixtures/traffic-seed-import-fixture.js';
 import { TrafficSeedImport } from './traffic-seed-import.js';
 import { TrafficSeedImportPolicy } from './traffic-seed-import-policy.js';
+import { Prisma } from '../../../generated/prisma/client.js';
+import assert from 'node:assert/strict';
 
 describe('synthetic dataset import', () => {
   it('copies history without credentials, maps identifiers and rejects conflicting retries', async () => {
@@ -86,7 +88,7 @@ describe('synthetic dataset import', () => {
         const response = imported.operations[0]?.response;
         const state = SessionSnapshots.read(response, imported);
 
-        expect(SessionSnapshots.isCompact(response)).toBe(compact);
+        expect(SessionSnapshots.isCompact(response)).toBe(true);
         expect(state.sessionIdentifier).toBe(imported.identifier);
         expect(state.versionIdentifier).toBe(imported.versionIdentifier);
         expect(imported.identifier).not.toBe(original.identifier);
@@ -110,6 +112,61 @@ describe('synthetic dataset import', () => {
       }
     },
   );
+
+  it('retries a run containing legacy full responses and newly compacted responses without changing fingerprints', async () => {
+    const { source, target } = await TrafficSeedImportFixture.create();
+    const options = {
+      runIdentifier: 'mixed-storage',
+      projectSession: TrafficSeedImportFixture.projectSession,
+    };
+
+    try {
+      await source.database.$executeRaw(Prisma.sql`
+        INSERT INTO SessionOperation (operationIdentifier, sessionIdentifier, requestFingerprint, response, createdAt)
+        SELECT 'second-operation', sessionIdentifier, requestFingerprint, response, createdAt FROM SessionOperation
+        WHERE operationIdentifier = 'source-operation'
+      `);
+      await TrafficSeedImport.run(source.database, target.database, options);
+      const imported = await target.database.session.findFirstOrThrow({
+        include: TrafficSeedImportPolicy.Include,
+      });
+      const operations = imported.operations;
+      expect(operations).toHaveLength(2);
+      expect(operations.every((operation) => SessionSnapshots.isCompact(operation.response))).toBe(
+        true,
+      );
+      const legacy = operations.at(0);
+      assert.ok(legacy);
+
+      const fullResponse = SessionSnapshots.read(legacy.response, imported);
+      await target.database.$executeRaw(Prisma.sql`
+        UPDATE SessionOperation SET response = ${JSON.stringify(fullResponse)}
+        WHERE sessionIdentifier = ${imported.identifier} AND operationIdentifier = ${legacy.operationIdentifier}
+      `);
+      expect(await TrafficSeedImport.run(source.database, target.database, options)).toMatchObject({
+        inserted: 0,
+        existing: 1,
+      });
+      const mixed = await target.database.sessionOperation.findMany();
+      expect(
+        mixed.filter((operation) => SessionSnapshots.isCompact(operation.response)),
+      ).toHaveLength(1);
+      expect(mixed.map((operation) => operation.requestFingerprint).sort()).toEqual(
+        operations.map((operation) => operation.requestFingerprint).sort(),
+      );
+
+      await target.database.$executeRaw(Prisma.sql`
+        UPDATE SessionOperation SET response = ${JSON.stringify({ ...fullResponse, currentStepIdentifier: 'work_mode' })}
+        WHERE sessionIdentifier = ${imported.identifier} AND operationIdentifier = ${legacy.operationIdentifier}
+      `);
+      await expect(
+        TrafficSeedImport.run(source.database, target.database, options),
+      ).rejects.toThrow();
+      expect(await target.database.session.count()).toBe(1);
+    } finally {
+      await Promise.all([source.close(), target.close()]);
+    }
+  });
 
   it('rejects malformed replay state before writing any imported records', async () => {
     const { source, target } = await TrafficSeedImportFixture.create();
