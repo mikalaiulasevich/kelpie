@@ -1,90 +1,27 @@
 import assert from 'node:assert/strict';
-import { access, mkdir, readFile, realpath, writeFile } from 'node:fs/promises';
+import { realpath, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { Ajv } from 'ajv';
-import { isEqual, isUndefined } from 'es-toolkit/predicate';
+import { isUndefined } from 'es-toolkit/predicate';
 import { PrismaClient } from '../../../generated/prisma/client.js';
 import { DatabaseAdapters } from '../../../source/database/database-adapters.js';
-import { TrafficRunner } from '../traffic/traffic-runner.js';
 import { TrafficPolicy } from '../traffic/traffic-policy.js';
-import { TrafficOracle } from '../traffic-oracle/traffic-oracle.js';
 import { TrafficSeedImport } from './traffic-seed-import.js';
 import { TrafficSeedTimeline } from './traffic-seed-timeline.js';
 import { TrafficSeedMessages } from './traffic-seed-messages.js';
 import { TrafficSeedPolicy } from './traffic-seed-policy.js';
 import {
   TrafficSeedOptionsSchema,
-  TrafficSeedCheckpointSchema,
   type TrafficSeedOptions,
-  type TrafficSeedCheckpoint,
 } from './traffic-seed-types.js';
 import type { TrafficSeedSessionGraph } from './traffic-seed-import-types.js';
-import { Type } from 'typebox';
+import { TrafficSeedCheckpoint } from './traffic-seed-checkpoint.js';
 
 const Validators = {
   options: new Ajv().compile<TrafficSeedOptions>(TrafficSeedOptionsSchema),
-  checkpoint: new Ajv().compile<TrafficSeedCheckpoint>(TrafficSeedCheckpointSchema),
-  report: new Ajv().compile<{ retainedDatabase: { path: string } }>(
-    Type.Object({ retainedDatabase: Type.Object({ path: Type.String() }) }),
-  ),
+
 } as const;
 
-const SeedCheckpoint = {
-  async read(options: TrafficSeedOptions): Promise<TrafficSeedCheckpoint> {
-    await mkdir(resolve(options.output), { recursive: true });
-    const path = resolve(options.output, TrafficSeedPolicy.CheckpointFilename);
-    const checkpoint = { options, anchor: new Date().toISOString() };
-
-    try {
-      await writeFile(path, JSON.stringify(checkpoint, null, 2), { flag: 'wx', mode: 0o600 });
-
-      return checkpoint;
-    } catch (error) {
-      if (!(error instanceof Error) || !('code' in error) || error.code !== 'EEXIST') {
-        throw error;
-      }
-    }
-
-    const existing: unknown = JSON.parse(await readFile(path, 'utf8'));
-    assert.ok(Validators.checkpoint(existing), TrafficSeedMessages.Checkpoint);
-    // A verified dataset can be installed in both targets without regenerating or moving dates.
-    assert.ok(
-      isEqual({ ...existing.options, target: options.target }, options),
-      TrafficSeedMessages.Checkpoint,
-    );
-
-    return existing;
-  },
-
-  async dataset(options: TrafficSeedOptions) {
-    const directory = resolve(options.output, 'profile');
-    const reportPath = resolve(directory, 'report.json');
-
-    try {
-      await access(reportPath);
-    } catch (error) {
-      if (!(error instanceof Error) || !('code' in error) || error.code !== 'ENOENT') {
-        throw error;
-      }
-
-      await TrafficRunner.run({
-        sessions: options.sessions,
-        concurrency: TrafficPolicy.Concurrency,
-        seed: options.seed,
-        output: directory,
-      });
-    }
-
-    const report: unknown = JSON.parse(await readFile(reportPath, 'utf8'));
-    assert.ok(Validators.report(report), TrafficSeedMessages.Source);
-    const manifest = TrafficOracle.validate(
-      JSON.parse(await readFile(resolve(directory, 'manifest.json'), 'utf8')),
-    );
-    assert.equal(manifest.length, options.sessions, TrafficSeedMessages.Source);
-
-    return { path: await realpath(report.retainedDatabase.path), manifest };
-  },
-} as const;
 
 const SeedSummary = {
   add(
@@ -177,8 +114,8 @@ export const TrafficSeedCommand = {
 
   async run(options: TrafficSeedOptions): Promise<void> {
     const destination = await this.destination(options);
-    const checkpoint = await SeedCheckpoint.read(options);
-    const dataset = await SeedCheckpoint.dataset(options);
+    const checkpoint = await TrafficSeedCheckpoint.read(options);
+    const dataset = await TrafficSeedCheckpoint.dataset(options);
     assert.notEqual(destination, `file:${dataset.path}`, TrafficSeedMessages.Target);
     const source = new PrismaClient({ adapter: DatabaseAdapters.create(`file:${dataset.path}`) });
 

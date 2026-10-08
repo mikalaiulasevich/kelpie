@@ -7,6 +7,7 @@ export const TrafficOptionsSchema = Type.Object({
   output: Type.String({ minLength: 1 }),
   resume: Type.Optional(Type.String({ minLength: 1 })),
   database: Type.Optional(Type.String({ minLength: 1 })),
+  configurationDirectory: Type.Optional(Type.String({ minLength: 1 })),
 });
 
 export type TrafficOptions = Static<typeof TrafficOptionsSchema>;

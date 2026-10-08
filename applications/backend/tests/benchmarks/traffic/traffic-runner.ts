@@ -166,7 +166,11 @@ export class TrafficProfile {
     for (const version of [1, 2, 3]) {
       const document: unknown = JSON.parse(
         await readFile(
-          resolve(applicationDirectory, `../../configurations/funnel-v${version}.json`),
+          resolve(
+            this.options.configurationDirectory ??
+              resolve(applicationDirectory, '../../configurations'),
+            `funnel-v${version}.json`,
+          ),
           'utf8',
         ),
       );

@@ -198,6 +198,19 @@ const ImportStorage = {
         })),
       ),
     });
+    const persisted = await transaction.session.findMany({
+      where: { identifier: { in: graphs.map((graph) => graph.identifier) } },
+      include: TrafficSeedImportPolicy.Include,
+    });
+    const byIdentifier = new Map(persisted.map((graph) => [graph.identifier, graph]));
+
+    for (const graph of graphs) {
+      const stored = byIdentifier.get(graph.identifier);
+
+      if (isUndefined(stored) || !isDeepStrictEqual(ImportIdentity.comparable(stored), ImportIdentity.comparable(graph))) {
+        throw new Error(TrafficSeedImportMessages.Conflict);
+      }
+    }
   },
 } as const;
 

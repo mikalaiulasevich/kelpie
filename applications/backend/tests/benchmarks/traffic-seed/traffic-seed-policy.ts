@@ -1,5 +1,7 @@
 export const TrafficSeedPolicy = {
   Days: 28,
+  SessionSeedStride: 104729,
+  RecentWeight: 1.35,
   MaximumDays: 90,
   DayMilliseconds: 86_400_000,
   MinimumJourneyMilliseconds: 90_000,

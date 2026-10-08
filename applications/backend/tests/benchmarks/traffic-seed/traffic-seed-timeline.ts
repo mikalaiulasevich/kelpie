@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { isBoolean, isNull, isPlainObject, isString, isUndefined } from 'es-toolkit/predicate';
 import type { Prisma } from '../../../generated/prisma/client.js';
 import { SessionSnapshots } from '../../../source/sessions/session-snapshots.js';
 import { TrafficSession } from '../../fixtures/traffic/traffic-session.js';
@@ -7,17 +8,39 @@ import type { TrafficSeedTimelineOptions } from './traffic-seed-types.js';
 import { TrafficSeedPolicy } from './traffic-seed-policy.js';
 import { TrafficSeedMessages } from './traffic-seed-messages.js';
 
+const TimelineJson = {
+  value(value: unknown): Prisma.JsonValue {
+    if (isNull(value) || isString(value) || isBoolean(value)) {
+      return value;
+    }
+
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (Array.isArray(value)) {
+      return value.map(TimelineJson.value);
+    }
+
+    if (isPlainObject(value)) {
+      return Object.fromEntries(Object.entries(value).filter(([, child]) => !isUndefined(child)).map(([key, child]) => [key, TimelineJson.value(child)]));
+    }
+
+    throw new Error(TrafficSeedMessages.Timeline);
+  },
+} as const;
+
 export const TrafficSeedTimeline = {
   project(
     graph: TrafficSeedSessionGraph,
     ordinal: number,
     options: TrafficSeedTimelineOptions,
   ): TrafficSeedSessionGraph {
-    const random = TrafficSession.random(options.seed + ordinal * 104729);
+    const random = TrafficSession.random(options.seed + ordinal * TrafficSeedPolicy.SessionSeedStride);
     const anchor = Date.parse(options.anchor);
     assert.ok(Number.isFinite(anchor), TrafficSeedMessages.Timeline);
-    // Recent cohorts are larger, with a weekly rhythm; this is deliberately synthetic history.
-    const age = Math.pow(random(), 1.35) * options.days * TrafficSeedPolicy.DayMilliseconds;
+    // Recent cohorts are larger; this is deliberately synthetic history.
+    const age = Math.pow(random(), TrafficSeedPolicy.RecentWeight) * options.days * TrafficSeedPolicy.DayMilliseconds;
     const createdAt = new Date(anchor - TrafficSeedPolicy.RecentSafetyMilliseconds - age);
     const duration =
       TrafficSeedPolicy.MinimumJourneyMilliseconds +
@@ -35,7 +58,7 @@ export const TrafficSeedTimeline = {
       ]),
     ].sort((left, right) => left - right);
     const positions = new Map(timestamps.map((timestamp, index) => [timestamp, index]));
-    const projectTime = (date: Date) => {
+    const timeline = { projectTime(date: Date) {
       const position = positions.get(date.getTime());
       assert.notEqual(position, undefined, TrafficSeedMessages.Timeline);
 
@@ -43,7 +66,7 @@ export const TrafficSeedTimeline = {
         createdAt.getTime() +
           Math.round(((position ?? 0) / Math.max(1, timestamps.length - 1)) * duration),
       );
-    };
+    } };
 
     const lifetime = graph.expiresAt.getTime() - graph.createdAt.getTime();
     assert.ok(lifetime > duration, TrafficSeedMessages.Timeline);
@@ -54,23 +77,23 @@ export const TrafficSeedTimeline = {
       expiresAt: new Date(createdAt.getTime() + lifetime),
       answers: graph.answers.map((answer) => ({
         ...answer,
-        updatedAt: projectTime(answer.updatedAt),
+        updatedAt: timeline.projectTime(answer.updatedAt),
       })),
       operations: graph.operations.map((operation) => {
         // Full historical responses remain readable by the existing public deployment.
         const state = SessionSnapshots.read(operation.response, graph);
-        const response: Prisma.JsonValue = JSON.parse(JSON.stringify(state));
+        const response = TimelineJson.value(state);
 
-        return { ...operation, response, createdAt: projectTime(operation.createdAt) };
+        return { ...operation, response, createdAt: timeline.projectTime(operation.createdAt) };
       }),
       transitions: graph.transitions.map((transition) => ({
         ...transition,
-        createdAt: projectTime(transition.createdAt),
+        createdAt: timeline.projectTime(transition.createdAt),
       })),
       events: graph.events.map((event) => ({
         ...event,
-        clientTimestamp: projectTime(event.clientTimestamp),
-        serverTimestamp: projectTime(event.serverTimestamp),
+        clientTimestamp: timeline.projectTime(event.clientTimestamp),
+        serverTimestamp: timeline.projectTime(event.serverTimestamp),
       })),
     };
   },
