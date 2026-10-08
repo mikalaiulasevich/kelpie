@@ -212,3 +212,7 @@ Added two real HTTP lost-ack acceptance scenarios and tested quiz Retry/reload/A
 Final integrated npm run verify:bun passed 868 Node tests and 442 Bun backend tests, static checks and production builds. After rebuild, browser observation delivery recovered automatically from a dropped acknowledgement with valid real backend receipts, the warning cleared and the session revision remained unchanged. No new public deployment is implied.
 
 Parallel traffic-seed tooling changes appeared after this completed verification gate and were preserved without inclusion in its acceptance claim.
+
+### October 8 — Refactoring and synthetic seed failure handling
+
+Extracted receipt validation, paired compaction rows with prevalidated measurements and corrected the seed importer so identifier remapping cannot alter answer/configuration/metadata strings. Tightened duplicate/empty CLI arguments and cohort contract ownership. Database/file cleanup now preserves both operation and disposal errors; acquired fixtures release resources after setup rejection. Added real SQLite/filesystem stage regressions alongside isolated injected failures and completed independent second-pass review. Verification and hosted/browser limits are recorded in the engineering review.

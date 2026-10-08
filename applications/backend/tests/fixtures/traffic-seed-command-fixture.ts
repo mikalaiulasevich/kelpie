@@ -6,13 +6,14 @@ import { TrafficOracleFixture } from './traffic-oracle/traffic-oracle-fixture.js
 import { BackendApplicationFixture } from './backend-application.js';
 import { SessionBrowserFixture, SessionFlowFixture } from './session-flow.js';
 import { TrafficSeedImportPolicy } from '../benchmarks/traffic-seed/traffic-seed-import-policy.js';
+import { TrafficSeedMessages } from '../benchmarks/traffic-seed/traffic-seed-messages.js';
 
 const SeedFixtureCleanup = {
   async reject(error: unknown, release: () => Promise<void>): Promise<never> {
     try {
       await release();
     } catch (cleanupError) {
-      throw new AggregateError([error, cleanupError], 'Seed fixture cleanup failed.', {
+      throw new AggregateError([error, cleanupError], TrafficSeedMessages.FixtureCleanupFailed, {
         cause: cleanupError,
       });
     }
@@ -96,7 +97,7 @@ export const TrafficSeedCommandFixture = {
         );
 
         if (errors.length > 0) {
-          throw new AggregateError(errors, 'Seed target fixture cleanup failed.');
+          throw new AggregateError(errors, TrafficSeedMessages.TargetFixtureCleanupFailed);
         }
       },
     };

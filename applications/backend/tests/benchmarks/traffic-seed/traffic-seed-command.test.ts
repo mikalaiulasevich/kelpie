@@ -11,12 +11,6 @@ import { TrafficSeedCommand } from './traffic-seed-command.js';
 import { TrafficSeedCheckpoint } from './traffic-seed-checkpoint.js';
 import { TrafficSeedFiles } from './traffic-seed-files.js';
 
-vi.mock(import('node:fs/promises'), async (importOriginal) => {
-  const original = await importOriginal();
-
-  return { ...original, mkdtemp: vi.fn(original.mkdtemp) };
-});
-
 describe('synthetic seed CLI and durable checkpoint', () => {
   it.each(TrafficSeedCases.InvalidArguments)(
     'rejects invalid arguments $arguments',
@@ -91,7 +85,7 @@ describe('synthetic seed CLI and durable checkpoint', () => {
     const primary = new Error('Checkpoint setup failed');
 
     try {
-      vi.mocked(filesystem.mkdtemp).mockResolvedValueOnce(fixture.output);
+      const before = await filesystem.readdir(fixture.output);
       vi.spyOn(TrafficSeedCommand, 'options').mockImplementationOnce(() => {
         throw primary;
       });

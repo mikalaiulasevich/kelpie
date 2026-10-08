@@ -9,6 +9,8 @@ export const TrafficSeedMessages = {
   Timeline: 'The synthetic timeline contains an invalid timestamp or session lifetime.',
   CleanupFailed: 'Synthetic seed command failed while disconnecting its database.',
   FileCleanupFailed: 'Synthetic seed checkpoint failed while releasing its temporary file.',
+  FixtureCleanupFailed: 'Seed fixture cleanup failed.',
+  TargetFixtureCleanupFailed: 'Seed target fixture cleanup failed.',
   Failed:
     'Synthetic data generation/import failed. Completed batches are retained; retry the same command. No credentials are included in this diagnostic.',
 } as const;
