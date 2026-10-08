@@ -18,7 +18,7 @@ export class TrafficHttp {
     const started = performance.now();
     const response = await (async () => {
       try {
-        return await this.backend.request(path, {
+        const received = await this.backend.request(path, {
           method: isUndefined(body) ? 'GET' : 'POST',
           headers: {
             origin: TrafficPolicy.Origin,
@@ -32,13 +32,15 @@ export class TrafficHttp {
           ...(isUndefined(body) ? {} : { body: JSON.stringify(body) }),
           signal: AbortSignal.timeout(TrafficPolicy.RequestTimeoutMilliseconds),
         });
+        // Include response transfer failures, not only connection failures.
+        await received.clone().arrayBuffer();
+
+        return received;
       } catch (error) {
         this.networkFailures += 1;
         throw error;
       }
     })();
-    // Include response transfer, not only time to response headers.
-    await response.clone().arrayBuffer();
     const key =
       path
         .replace(/configurations\/[^/]+\/preview/, 'configurations/:version/preview')

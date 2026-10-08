@@ -2,7 +2,7 @@ import type { Type } from '@nestjs/common';
 import { isNull, isString, isUndefined } from 'es-toolkit/predicate';
 import 'reflect-metadata';
 import { execFile } from 'node:child_process';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { copyFile, mkdtemp, rm } from 'node:fs/promises';
 import { Server } from 'node:http';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
@@ -34,6 +34,16 @@ export class BackendApplicationFixture {
   ): Promise<BackendApplicationFixture> {
     const fixture = new BackendApplicationFixture();
     await fixture.start(environmentValues);
+
+    return fixture;
+  }
+
+  static async createFromSnapshot(
+    snapshotPath: string,
+    environmentValues: ReadonlyDictionary<string, Optional<string>> = {},
+  ): Promise<BackendApplicationFixture> {
+    const fixture = new BackendApplicationFixture();
+    await fixture.start(environmentValues, snapshotPath);
 
     return fixture;
   }
@@ -105,6 +115,7 @@ export class BackendApplicationFixture {
 
   private async start(
     environmentValues: ReadonlyDictionary<string, Optional<string>>,
+    snapshotPath?: string,
   ): Promise<void> {
     this.temporaryDirectory = await mkdtemp(
       resolve(tmpdir(), BackendTestPolicy.TemporaryDirectoryPrefix),
@@ -112,19 +123,27 @@ export class BackendApplicationFixture {
     const databaseUrl = `${SQLitePolicy.FileUrlPrefix}${resolve(this.temporaryDirectory, BackendTestPolicy.DatabaseFilename)}`;
 
     try {
-      await Processes.execute(
-        BackendTestPolicy.PackageManager,
-        [...BackendTestPolicy.MigrationArguments],
-        {
-          cwd: applicationDirectory,
-          env: {
-            ...process.env,
-            [EnvironmentFields.DatabaseUrl]: databaseUrl,
-            [EnvironmentFields.Mode]: ApplicationMode.Test,
+      if (isUndefined(snapshotPath)) {
+        await Processes.execute(
+          BackendTestPolicy.PackageManager,
+          [...BackendTestPolicy.MigrationArguments],
+          {
+            cwd: applicationDirectory,
+            env: {
+              ...process.env,
+              [EnvironmentFields.DatabaseUrl]: databaseUrl,
+              [EnvironmentFields.Mode]: ApplicationMode.Test,
+            },
+            timeout: BackendTestPolicy.TimeoutMilliseconds,
           },
-          timeout: BackendTestPolicy.TimeoutMilliseconds,
-        },
-      );
+        );
+      } else {
+        await copyFile(
+          snapshotPath,
+          resolve(this.temporaryDirectory, BackendTestPolicy.DatabaseFilename),
+        );
+      }
+
       this.application = await this.createApplication(databaseUrl, environmentValues);
       await this.application.listen(BackendTestPolicy.EphemeralPort, BackendTestPolicy.Host);
       this.baseUrl = this.resolveAddress();

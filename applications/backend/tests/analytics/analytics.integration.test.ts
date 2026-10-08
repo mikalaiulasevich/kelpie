@@ -225,7 +225,9 @@ describe('analytics SQLite session sets', () => {
       const plan = AnalyticsFixture.queryPlan(rows);
       expect(plan, name).toContain('Event_sessionIdentifier_name_stepIdentifier_idx');
       expect(plan, name).toContain('SEARCH s USING INDEX');
-      expect(plan, name).not.toMatch(/SCAN [ste]\b/);
+      // A single transition-index scan is bounded; repeated unindexed base-table scans are not.
+      expect(plan, name).not.toMatch(/SCAN [ste]\b(?! USING (?:COVERING )?INDEX)/);
+      expect(plan, name).toContain('MATERIALIZE cohort');
     }
   });
 });

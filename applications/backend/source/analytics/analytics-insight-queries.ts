@@ -13,20 +13,29 @@ export const AnalyticsInsightQueries = {
       GROUP BY o.kind ORDER BY o.kind`;
   },
 
+  outcomes(cohort: Prisma.Sql): Prisma.Sql {
+    return Prisma.sql`${cohort}, outcomes AS (
+      SELECT c.*,
+        EXISTS (SELECT 1 FROM eligible_events e WHERE e."sessionIdentifier" = c."identifier" AND e."name" = 'result_viewed' AND e."source" = 'client') AS result,
+        EXISTS (SELECT 1 FROM eligible_events e WHERE e."sessionIdentifier" = c."identifier" AND e."name" = 'cta_clicked' AND e."source" = 'client') AS clicked
+      FROM cohort c
+    )`;
+  },
+
   totals(cohort: Prisma.Sql): Prisma.Sql {
-    return Prisma.sql`${AnalyticsQueries.outcomes(cohort)}
+    return Prisma.sql`${AnalyticsInsightQueries.outcomes(cohort)}
       SELECT COUNT(*) AS started, COALESCE(SUM(result), 0) AS results, COALESCE(SUM(clicked), 0) AS clicks FROM outcomes`;
   },
 
   trend(cohort: Prisma.Sql, buckets: Prisma.Sql): Prisma.Sql {
-    return Prisma.sql`${AnalyticsQueries.outcomes(cohort)}, daily AS (
+    return Prisma.sql`${AnalyticsInsightQueries.outcomes(cohort)}, daily AS (
       SELECT ${buckets} AS date, c.result, c.clicked FROM outcomes c
     ) SELECT date, COUNT(*) AS started, SUM(result) AS results, SUM(clicked) AS clicks
       FROM daily WHERE date IS NOT NULL GROUP BY date ORDER BY date`;
   },
 
   acquisition(cohort: Prisma.Sql): Prisma.Sql {
-    return Prisma.sql`${AnalyticsQueries.outcomes(cohort)}
+    return Prisma.sql`${AnalyticsInsightQueries.outcomes(cohort)}
       SELECT source, medium, campaign, COUNT(*) AS started, SUM(result) AS results, SUM(clicked) AS clicks
       FROM outcomes GROUP BY source, medium, campaign ORDER BY started DESC, source, medium, campaign
       LIMIT ${AnalyticsPolicy.MaximumInsightGroups + 1}`;

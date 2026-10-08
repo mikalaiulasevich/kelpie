@@ -8,6 +8,8 @@ import {
 } from '../../../source/analytics/analytics-response.js';
 import { FunnelConfigurations } from '@kelpie/contracts';
 import type { TrafficCoverageSpecification } from '../traffic-oracle/traffic-oracle-types.js';
+import { isUndefined } from 'es-toolkit/predicate';
+import { TrafficGenerationCheckpointSchema, type TrafficGenerationCheckpoint, type TrafficLoadMeasurement } from './traffic-types.js';
 import { Ajv } from 'ajv';
 import assert from 'node:assert/strict';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
@@ -26,13 +28,6 @@ interface TrafficPreparedProfile {
   cookie: string;
   versions: string[];
   specifications: TrafficCoverageSpecification[];
-}
-
-interface TrafficLoadMeasurement {
-  elapsedMilliseconds: number;
-  processorMicroseconds: NodeJS.CpuUsage;
-  peakResidentBytes: number;
-  traffic: ReturnType<TrafficHttp['report']>;
 }
 
 interface TrafficAnalyticsMeasurement {
@@ -57,7 +52,10 @@ export class TrafficProfile {
   async execute(): Promise<void> {
     try {
       const prepared = await this.prepare();
-      const load = await this.generate(prepared);
+      const load = isUndefined(this.options.resume)
+        ? { measurement: await this.generate(prepared), provenance: this.provenance() }
+        : await this.restore(this.options.resume);
+      await this.checkpoint(load);
       this.snapshot = await TrafficProfileDatabase.snapshot(this.backend, this.options.output);
       await this.checkCoverage(prepared.specifications);
       const analytics = await this.measureAnalytics(prepared.cookie);
@@ -68,6 +66,36 @@ export class TrafficProfile {
     }
 
     await this.backend.close();
+  }
+
+  private async checkpoint(load: TrafficGenerationCheckpoint): Promise<void> {
+    const directory = resolve(this.options.output);
+    await mkdir(directory, { recursive: true });
+    await writeFile(resolve(directory, 'manifest.json'), JSON.stringify(this.manifest));
+    await writeFile(resolve(directory, 'generation.json'), JSON.stringify(load, null, 2));
+  }
+
+  private async restore(directory: string): Promise<TrafficGenerationCheckpoint> {
+    const manifest: unknown = JSON.parse(
+      await readFile(resolve(directory, 'manifest.json'), 'utf8'),
+    );
+    this.manifest.push(...TrafficOracle.validate(manifest));
+    assert.equal(this.manifest.length, this.options.sessions, TrafficMessages.InvalidArguments);
+    const load: unknown = JSON.parse(await readFile(resolve(directory, 'generation.json'), 'utf8'));
+
+    const validate = new Ajv().compile<TrafficGenerationCheckpoint>(TrafficGenerationCheckpointSchema);
+    assert.ok(validate(load), TrafficMessages.InvalidArguments);
+
+    const sessions = await this.backend.database.session.findMany({ select: { identifier: true } });
+    const identifiers = new Set(sessions.map((session) => session.identifier));
+    assert.equal(identifiers.size, this.manifest.length, TrafficMessages.InvalidArguments);
+    assert.ok(this.manifest.every((session) => identifiers.has(session.sessionIdentifier)), TrafficMessages.InvalidArguments);
+
+    return load;
+  }
+
+  private provenance() {
+    return { options: this.options, recordedAt: new Date().toISOString(), nodeRuntime: process.version, bunRuntime: process.versions['bun'] ?? null, operatingSystem: `${platform()} ${release()}`, processor: cpus()[0]?.model ?? 'unknown', logicalProcessors: cpus().length, systemMemoryBytes: totalmem() };
   }
 
   private async prepare() {
@@ -237,12 +265,12 @@ export class TrafficProfile {
 
   private async save(
     prepared: TrafficPreparedProfile,
-    load: TrafficLoadMeasurement,
+    generation: TrafficGenerationCheckpoint,
     analytics: TrafficAnalyticsMeasurement,
   ) {
     const { backend, http, manifest, options } = this;
     const { versions } = prepared;
-    const { elapsedMilliseconds, processorMicroseconds, peakResidentBytes, traffic } = load;
+    const { elapsedMilliseconds, processorMicroseconds, peakResidentBytes, traffic } = generation.measurement;
     const { measuredAnalytics } = analytics;
     const directory = resolve(options.output);
     await mkdir(directory, { recursive: true });
@@ -254,7 +282,7 @@ export class TrafficProfile {
       transport:
         'real HTTP on ephemeral loopback port; isolated temporary SQLite; one simulated proxy IP per session',
       memoryScope:
-        'Backend and generator share one process; RSS sampled every 100ms during generation and CPU include both; not isolated backend measurements',
+        'Generation RSS and CPU include backend and generator; RSS sampled every 100ms. Original generation environment is recorded in generationProvenance; current runtime describes this analytics profiling execution.',
       latencyUnit: 'milliseconds',
       coverage: TrafficOracle.coverage(manifest),
       coverageGate: options.sessions >= 10000 ? 'passed' : 'small-sample-not-required',
@@ -265,6 +293,7 @@ export class TrafficProfile {
       systemMemoryBytes: totalmem(),
       elapsedMilliseconds,
       sessionsPerSecond: options.sessions / (elapsedMilliseconds / 1000),
+      generationProvenance: generation.provenance,
       peakResidentBytes,
       processorMicroseconds,
       database: {
@@ -332,7 +361,7 @@ export const TrafficRunner = {
       assert.ok(
         argument.startsWith('--') &&
           separator > 2 &&
-          ['sessions', 'concurrency', 'seed', 'output'].includes(key),
+          ['sessions', 'concurrency', 'seed', 'output', 'resume', 'database'].includes(key),
         TrafficMessages.InvalidArguments,
       );
 
@@ -344,19 +373,26 @@ export const TrafficRunner = {
       concurrency: Number(values['concurrency'] ?? TrafficPolicy.Concurrency),
       seed: Number(values['seed'] ?? TrafficPolicy.Seed),
       output: values['output'] ?? 'test-results/traffic',
+      ...(isUndefined(values['resume']) ? {} : { resume: values['resume'] }),
+      ...(isUndefined(values['database']) ? {} : { database: values['database'] }),
     };
     const validate = new Ajv().compile<TrafficOptions>(TrafficOptionsSchema);
     assert.ok(validate(options), TrafficMessages.InvalidArguments);
+    assert.equal(
+      isUndefined(options.resume),
+      isUndefined(options.database),
+      TrafficMessages.InvalidArguments,
+    );
 
     return options;
   },
 
   async run(options: TrafficOptions): Promise<void> {
     process.env['TSX_TSCONFIG_PATH'] = resolve(applicationDirectory, 'tsconfig.json');
-    const backend = await BackendApplicationFixture.create({
-      TRUST_PROXY_LOOPBACK: 'true',
-      LOG_LEVEL: 'fatal',
-    });
+    const environment = { TRUST_PROXY_LOOPBACK: 'true', LOG_LEVEL: 'fatal' };
+    const backend = isUndefined(options.database)
+      ? await BackendApplicationFixture.create(environment)
+      : await BackendApplicationFixture.createFromSnapshot(resolve(options.database), environment);
     await new TrafficProfile(backend, options).execute();
   },
 } as const;

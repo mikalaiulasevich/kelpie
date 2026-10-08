@@ -69,7 +69,8 @@ export const AnalyticsQueries = {
       );
     }
 
-    return Prisma.sql`WITH cohort AS (
+    // Materialize the shared session set so SQLite can index joins instead of rescanning facts per session.
+    return Prisma.sql`WITH cohort AS MATERIALIZED (
       SELECT s."identifier", s."versionIdentifier", s."variant",
         ${startedAt} AS "startedAt", ${deadline} AS deadline,
         ${conversionDeadline} <= ${now.getTime()} AS "conversionMature",
@@ -99,23 +100,13 @@ export const AnalyticsQueries = {
     )`;
   },
 
-  outcomes(cohort: Prisma.Sql): Prisma.Sql {
-    // Aggregate observations once instead of rescanning materialized events for every session.
-    return Prisma.sql`${cohort}, outcome_events AS (
-      SELECT e."sessionIdentifier",
-        MAX(e."name" = 'result_viewed') AS result,
-        MAX(e."name" = 'cta_clicked') AS clicked
-      FROM eligible_events e
-      WHERE e."source" = 'client' AND e."name" IN ('result_viewed', 'cta_clicked')
-      GROUP BY e."sessionIdentifier"
-    ), outcomes AS (
-      SELECT c.*, COALESCE(e.result, 0) AS result, COALESCE(e.clicked, 0) AS clicked
-      FROM cohort c LEFT JOIN outcome_events e ON e."sessionIdentifier" = c."identifier"
-    )`;
-  },
-
   summary(cohort: Prisma.Sql): Prisma.Sql {
-    return Prisma.sql`${AnalyticsQueries.outcomes(cohort)}
+    return Prisma.sql`${cohort}, outcomes AS (
+      SELECT c.*,
+        EXISTS (SELECT 1 FROM eligible_events e WHERE e."sessionIdentifier" = c."identifier" AND e."name" = 'result_viewed' AND e."source" = 'client') AS result,
+        EXISTS (SELECT 1 FROM eligible_events e WHERE e."sessionIdentifier" = c."identifier" AND e."name" = 'cta_clicked' AND e."source" = 'client') AS clicked
+      FROM cohort c
+    )
     SELECT "versionIdentifier", "variant", COUNT(*) AS started,
       SUM(result) AS results, SUM(clicked) AS clicks, SUM(result AND clicked) AS "resultClicks"
     FROM outcomes GROUP BY "versionIdentifier", "variant"`;
