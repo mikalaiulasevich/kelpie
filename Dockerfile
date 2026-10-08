@@ -1,6 +1,8 @@
 # syntax=docker/dockerfile:1
 FROM oven/bun:1.3.14@sha256:e10577f0db68676a7024391c6e5cb4b879ebd17188ab750cf10024a6d700e5c4 AS bun-runtime
 FROM caddy:2.11.4-alpine@sha256:6aeddd44c3078b0f9a35206472a11420648a79c184603ef95957d0a20044cb2b AS gateway-runtime
+# Render drops Linux capabilities; this gateway only binds unprivileged port 10000.
+RUN setcap -r /usr/bin/caddy && test -z "$(getcap /usr/bin/caddy)"
 FROM node:24.16.0-bookworm-slim@sha256:2c87ef9bd3c6a3bd4b472b4bec2ce9d16354b0c574f736c476489d09f560a203 AS build
 
 WORKDIR /opt/kelpie
