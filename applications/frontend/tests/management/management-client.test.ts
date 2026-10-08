@@ -361,7 +361,7 @@ describe('management backend client', () => {
       ManagementClient.publish(ManagementClientFixture.command(), new AbortController().signal),
     ).rejects.toMatchObject({ status: 0, code: 'timeout', uncertain: true });
 
-    await vi.advanceTimersByTimeAsync(15_000);
+    await vi.advanceTimersByTimeAsync(180_000);
     await expectation;
     expect(vi.getTimerCount()).toBe(0);
   });
@@ -392,7 +392,7 @@ describe('management backend client', () => {
       ManagementClient.publish(ManagementClientFixture.command(), new AbortController().signal),
     ).rejects.toMatchObject({ status: 0, code: 'timeout', uncertain: true });
 
-    await vi.advanceTimersByTimeAsync(15_000);
+    await vi.advanceTimersByTimeAsync(180_000);
     await expectation;
     expect(vi.getTimerCount()).toBe(0);
   });

@@ -5,7 +5,7 @@ export const ManagementPolicy = {
   PublicationsEndpoint: '/api/administration/publications',
   RollbacksEndpoint: '/api/administration/rollbacks',
   AnalyticsEndpoint: '/api/administration/analytics',
-  RequestTimeoutMilliseconds: 15_000,
+  RequestTimeoutMilliseconds: 180_000,
   MaximumIssues: 30,
   MaximumIssuePathLength: 500,
   MaximumIssueMessageLength: 500,

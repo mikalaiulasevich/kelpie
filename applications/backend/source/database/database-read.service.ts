@@ -108,7 +108,10 @@ export class DatabaseReadService implements OnModuleInit, OnApplicationShutdown 
 
         return operation({ transaction, queryMany });
       },
-      { timeout: options.timeout ?? DatabaseReadPolicy.DefaultTimeoutMilliseconds },
+      {
+        timeout: options.timeout ?? DatabaseReadPolicy.DefaultTimeoutMilliseconds,
+        maxWait: DatabaseReadPolicy.AcquisitionTimeoutMilliseconds,
+      },
     );
   }
 

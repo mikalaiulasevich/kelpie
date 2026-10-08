@@ -1,7 +1,8 @@
 export const DatabaseReadPolicy = {
   TransactionMode: 'read',
-  DefaultTimeoutMilliseconds: 5_000,
-  MaximumTimeoutMilliseconds: 10_000,
+  DefaultTimeoutMilliseconds: 120_000,
+  MaximumTimeoutMilliseconds: 120_000,
+  AcquisitionTimeoutMilliseconds: 120_000,
   MaximumStatements: 64,
   // Existing year-long trend queries bind three values per daily bucket.
   MaximumBindingsPerStatement: 2048,
