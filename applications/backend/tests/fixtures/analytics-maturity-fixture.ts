@@ -47,14 +47,14 @@ export const AnalyticsMaturityFixture = {
     backend: BackendApplicationFixture,
     versionIdentifier: string,
     now: string,
-    window?: string,
+    conversionWindowHours?: string,
   ) {
     const query = AnalyticsInputs.query({
       funnelIdentifier: 'workstyle-planner',
       versionIdentifier,
       from: '2026-01-01T00:00:00Z',
       to: '2026-01-02T00:00:00Z',
-      ...(window ? { conversionWindowHours: window } : {}),
+      ...(conversionWindowHours ? { conversionWindowHours } : {}),
     });
     const timestamp = new Date(now);
 

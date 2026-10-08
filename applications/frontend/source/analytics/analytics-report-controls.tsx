@@ -64,7 +64,11 @@ export function AnalyticsReportControls({
 
   const preset = (days: number) => {
     const endDate = AnalyticsReportDates.dateInTimezone(new Date(), draft.timezone);
-    const next = { ...AnalyticsReportDraft.merge(selection, draft), endDate, startDate: AnalyticsReportDates.addDays(endDate, 1 - days) };
+    const next = {
+      ...AnalyticsReportDraft.merge(selection, draft),
+      endDate,
+      startDate: AnalyticsReportDates.addDays(endDate, 1 - days),
+    };
     updateDraft(next);
     onApply(next);
   };

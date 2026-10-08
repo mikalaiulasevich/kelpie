@@ -85,8 +85,8 @@ export const InterfaceTranslations: Readonly<Record<string, string>> = {
   'No campaign': 'Без кампании',
   'No comparison yet': 'Пока нет данных для сравнения',
   'No matching versions': 'Подходящих версий нет',
-  'No matching versions on this page. Try another page or clear the search.':
-    'На этой странице нет подходящих версий. Перейдите на другую или очистите поиск.',
+  'No versions match this search. Try a different value or clear the search.':
+    'Подходящих версий нет. Измените запрос или очистите поиск.',
   'No paths recorded yet': 'Переходов пока нет',
   'No sessions match these filters. Try another filter or check back after the funnel receives traffic.':
     'Сессий по выбранным фильтрам нет. Измените фильтры или дождитесь нового трафика.',
@@ -188,7 +188,8 @@ export const InterfaceTranslations: Readonly<Record<string, string>> = {
   'starts viewed a result': 'начатых сессий с просмотром результата',
   steps: 'шагов',
   'steps ·': 'шагов ·',
-  'versions per page. Search covers all versions.': 'версий на странице. Поиск работает по всем версиям.',
+  'versions per page. Search covers all versions.':
+    'версий на странице. Поиск работает по всем версиям.',
   'where available': 'при наличии',
   '· Across selected variants': '· По выбранным вариантам',
   '· paths': '· переходов',

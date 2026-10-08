@@ -12,6 +12,23 @@ afterEach(() => {
 });
 
 describe('management backend client', () => {
+  it('sends version search to the server with pagination instead of filtering a loaded page', async () => {
+    const body = ManagementClientFixture.configurations();
+    const fetch = ManagementClientFixture.response(body);
+    await expect(
+      ManagementClient.configurations(
+        { funnelIdentifier: 'wellness', search: 'old & archived', offset: 0, limit: 100 },
+        new AbortController().signal,
+      ),
+    ).resolves.toEqual(body);
+    const request = fetch.mock.calls[0]?.[0];
+    assert.ok(request instanceof Request);
+    const query = new URL(request.url).searchParams;
+    expect(query.get('search')).toBe('old & archived');
+    expect(query.get('offset')).toBe('0');
+    expect(query.get('limit')).toBe('100');
+  });
+
   it('reads the supplied v3 document by identifier using a same-origin GET', async () => {
     const body = ManagementClientFixture.configurationDocument();
     const fetch = ManagementClientFixture.response(body);

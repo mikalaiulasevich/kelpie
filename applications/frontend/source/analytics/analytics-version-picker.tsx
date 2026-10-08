@@ -35,7 +35,12 @@ export function AnalyticsVersionPicker({
   const [offset, setOffset] = useState(0);
   const [search, setSearch] = useState('');
   const query = useMemo(
-    () => ({ funnelIdentifier, limit: AnalyticsPagePolicy.VersionOptionsPerPage, offset, search: search.trim() }),
+    () => ({
+      funnelIdentifier,
+      limit: AnalyticsPagePolicy.VersionOptionsPerPage,
+      offset,
+      search: search.trim(),
+    }),
     [funnelIdentifier, offset, search],
   );
   const versions = useAnalyticsVersionOptions(query, refreshSequence, onUnauthorized);
@@ -102,7 +107,10 @@ export function AnalyticsVersionPicker({
                 className="justify-between"
                 aria-pressed={selectedIdentifier === version.identifier}
                 onClick={() => {
-                  onSelect(version.identifier, translate(AnalyticsContent.VersionLabel, { version: version.version }));
+                  onSelect(
+                    version.identifier,
+                    translate(AnalyticsContent.VersionLabel, { version: version.version }),
+                  );
                   setOpen(false);
                 }}
               >
