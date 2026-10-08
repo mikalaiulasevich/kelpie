@@ -52,4 +52,14 @@ describe('Quiz session command boundaries', () => {
   it.each(SessionCommandCases.RestoreStatuses)('refreshes ownership after HTTP %s', (status) => {
     expect(QuizSessionFailures.requiresRestore(new QuizRequestError(status))).toBe(true);
   });
+
+  it.each(SessionCommandCases.Recovery)(
+    'reports $name without disabling a recovered expired-session start',
+    (scenario) => {
+      const restored = SessionFixtures.recoveredEnvelope(scenario.outcome);
+      const failure = new QuizRequestError(scenario.status);
+
+      expect(QuizSessionFailures.recoveryMessage(failure, restored)).toBe(scenario.expected);
+    },
+  );
 });

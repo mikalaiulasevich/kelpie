@@ -1,6 +1,7 @@
-import { isError } from 'es-toolkit/predicate';
+import { isError, isUndefined } from 'es-toolkit/predicate';
 import { QuizSessionMessages } from './quiz-session-messages';
 import { QuizSessionPolicy } from './quiz-session-policy';
+import type { QuizSessionEnvelope } from './quiz-session-types';
 
 export class QuizRequestError extends Error {
   constructor(readonly status: number) {
@@ -21,6 +22,17 @@ export const QuizSessionFailures = {
 
   requiresRestore(failure: QuizRequestError): boolean {
     return QuizSessionPolicy.RestoreStatuses.some((status) => status === failure.status);
+  },
+
+  recoveryMessage(
+    failure: QuizRequestError,
+    restored: Optional<QuizSessionEnvelope>,
+  ): string | null {
+    if (isUndefined(restored)) {
+      return QuizSessionMessages.Network;
+    }
+
+    return restored.expired ? null : failure.message;
   },
 
   deliveryMessage(failure: unknown): string {

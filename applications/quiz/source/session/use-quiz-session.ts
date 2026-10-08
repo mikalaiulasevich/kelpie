@@ -50,8 +50,12 @@ export function useQuizSession(): QuizSessionController {
       setState(current.state);
       setExpired(current.expired);
       setError(null);
+
+      return current;
     } catch {
       setError(QuizSessionMessages.Network);
+
+      return undefined;
     } finally {
       setLoading(false);
     }
@@ -104,10 +108,11 @@ export function useQuizSession(): QuizSessionController {
           persistPending(null);
 
           if (QuizSessionFailures.requiresRestore(failure)) {
-            await restore();
+            const restored = await restore();
+            setError(QuizSessionFailures.recoveryMessage(failure, restored));
+          } else {
+            setError(failure.message);
           }
-
-          setError(failure.message);
         } else {
           setError(QuizSessionMessages.Network);
         }
@@ -160,6 +165,12 @@ export function useQuizSession(): QuizSessionController {
     continueStep: (answer?: StepAnswer | null) => navigate('continue', answer),
     back: () => navigate('back'),
     recordResultAction,
-    retry: () => (pending.current ? execute(pending.current) : restore()),
+    retry: async () => {
+      if (pending.current) {
+        await execute(pending.current);
+      } else {
+        await restore();
+      }
+    },
   };
 }

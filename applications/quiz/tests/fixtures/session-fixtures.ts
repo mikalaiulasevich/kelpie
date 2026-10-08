@@ -6,10 +6,23 @@ import { QuizSessionApi } from '../../source/session/quiz-session-api';
 import { QuizObservations } from '../../source/session/quiz-observations';
 import type {
   QuizSessionController,
+  QuizSessionEnvelope,
   QuizSessionState,
 } from '../../source/session/quiz-session-types';
 
 export const SessionFixtures = {
+  recoveredEnvelope(outcome: 'expired' | 'failed' | 'active'): Optional<QuizSessionEnvelope> {
+    if (outcome === 'failed') {
+      return undefined;
+    }
+
+    if (outcome === 'expired') {
+      return { state: null, expired: true };
+    }
+
+    return { state: SessionFixtures.state(), expired: false };
+  },
+
   controller(state: QuizSessionState | null = null): QuizSessionController {
     return {
       state,
