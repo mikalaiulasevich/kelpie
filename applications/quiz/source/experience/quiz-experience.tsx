@@ -1,5 +1,6 @@
 'use client';
 
+import { QuizPreview } from '../session/quiz-preview';
 import { QuizContent } from './quiz-content';
 
 import { RefreshCw } from 'lucide-react';
@@ -25,6 +26,11 @@ export function QuizExperience() {
       )}
       {!session.loading && (
         <>
+          {QuizPreview.active() && (
+            <p className="delivery-note" role="status">
+              {translate(QuizContent.Shell.Preview)}
+            </p>
+          )}
           {session.error && (
             <div className="quiz-alert" role="alert">
               <div>

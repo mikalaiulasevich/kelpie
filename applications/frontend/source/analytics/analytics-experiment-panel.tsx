@@ -14,7 +14,7 @@ import type {
 
 interface AnalyticsExperimentPanelProperties {
   versionIdentifier: string;
-  evidence?: AnalyticsExperimentEvidence;
+  evidence?: Optional<AnalyticsExperimentEvidence>;
   onUnauthorized: () => void;
   onChanged?: () => void;
 }
@@ -43,6 +43,7 @@ function ExperimentPlanForm({
   const [primaryMetric, setPrimaryMetric] =
     useState<AnalyticsExperimentPlanRequest['primaryMetric']>('recommendation_open');
   const [target, setTarget] = useState('');
+  const [conversionWindow, setConversionWindow] = useState('24');
   const [endDate, setEndDate] = useState('');
   const plan = read.status === 'ready' ? read.data.plan : null;
   const percentage = new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 1 });
@@ -92,6 +93,10 @@ function ExperimentPlanForm({
               <dd>{new Intl.NumberFormat(locale).format(plan.targetSamplePerVariant)}</dd>
             </div>
             <div>
+              <dt className="text-muted-foreground">{t('Conversion window · hours')}</dt>
+              <dd>{plan.conversionWindowHours ?? t('Not registered')}</dd>
+            </div>
+            <div>
               <dt className="text-muted-foreground">{t('Planned end')}</dt>
               <dd>
                 {new Intl.DateTimeFormat(locale, {
@@ -120,6 +125,7 @@ function ExperimentPlanForm({
                   hypothesis,
                   primaryMetric,
                   targetSamplePerVariant: Number(target),
+                  conversionWindowHours: Number(conversionWindow),
                   plannedEndAt: new Date(endDate).toISOString(),
                 },
                 signal,
@@ -180,6 +186,18 @@ function ExperimentPlanForm({
               />
             </label>
             <label className="grid gap-1 text-sm">
+              {t('Conversion window · hours')}
+              <Input
+                type="number"
+                required
+                min={1}
+                max={2160}
+                value={conversionWindow}
+                disabled={command.pending}
+                onChange={(event) => setConversionWindow(event.target.value)}
+              />
+            </label>
+            <label className="grid gap-1 text-sm">
               {t('Planned end · local time')}
               <Input
                 required
@@ -223,6 +241,8 @@ function ExperimentEvidence({ evidence }: { evidence: AnalyticsExperimentEvidenc
   const ready =
     evidence.sampleTargetReached &&
     evidence.plannedEndReached &&
+    evidence.followUpComplete &&
+    evidence.trafficOrigin === 'production' &&
     evidence.sampleRatioMismatch === false;
 
   return (
@@ -266,13 +286,17 @@ function ExperimentEvidence({ evidence }: { evidence: AnalyticsExperimentEvidenc
           · {t(evidence.plannedEndReached ? 'Reached' : 'Not reached')}
         </li>
         <li>
+          {t('Conversion follow-up')}: {t(evidence.followUpComplete ? 'Complete' : 'Incomplete')} ·{' '}
+          {t('Conversion window · hours')}: {evidence.conversionWindowHours ?? t('Not registered')}
+        </li>
+        <li>
           {t('Allocation check')}:{' '}
           {t(ExperimentEvidencePresentation.allocation(evidence.sampleRatioMismatch))}
         </li>
       </ul>
       <p className="text-xs text-muted-foreground">
         {t(
-          'Experiment evidence includes random assignments after plan registration and before its end. Date and acquisition filters do not apply; traffic origin and conversion window still apply.',
+          'Experiment evidence includes random assignments after plan registration and before its end. Date and acquisition filters do not apply; traffic origin still applies; the registered conversion window is fixed.',
         )}
       </p>
       <p className="text-xs text-muted-foreground">

@@ -1,10 +1,18 @@
+import { AnalyticsReportTranslations } from './analytics-report-translations';
+import { AnalyticsGoalTranslations } from '../analytics/analytics-goal-translations';
 import { AdditionalTranslations } from './additional-translations';
 import { ConfigurationTranslations } from './configuration-translations';
 import { InterfaceTranslations } from './interface-translations';
 import { InterfaceLocale, type TranslationParameters } from './localization-types';
 
 // Catalog precedence is explicit; supplied/custom text falls back unchanged.
-const catalogs = [InterfaceTranslations, ConfigurationTranslations, AdditionalTranslations];
+const catalogs = [
+  AnalyticsReportTranslations,
+  AnalyticsGoalTranslations,
+  InterfaceTranslations,
+  ConfigurationTranslations,
+  AdditionalTranslations,
+];
 
 export const LocalizationTranslation = {
   resolve(locale: InterfaceLocale, message: string): string {

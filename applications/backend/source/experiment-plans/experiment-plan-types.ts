@@ -15,6 +15,10 @@ export const ExperimentPlanSchemas = {
         minimum: 1,
         maximum: ExperimentPlanPolicy.MaximumTargetSample,
       }),
+      conversionWindowHours: Type.Integer({
+        minimum: 1,
+        maximum: ExperimentPlanPolicy.MaximumConversionWindowHours,
+      }),
       plannedEndAt: Type.String({
         pattern: '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$',
       }),

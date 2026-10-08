@@ -195,6 +195,7 @@ model ExperimentPlan {
  hypothesis String
  primaryMetric String
  targetSamplePerVariant Int
+ conversionWindowHours Int?
  plannedEndAt DateTime
  administratorIdentifier String
  createdAt DateTime @default(now())

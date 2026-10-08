@@ -8,6 +8,7 @@ export const QuizContent = {
     Print: 'Print',
   },
   Shell: {
+    Preview: 'Administrator preview · synthetic traffic. Your normal session is unchanged.',
     Skip: 'Skip to assessment',
     Home: 'Kelpie workstyle home',
     Context: 'Workstyle check',

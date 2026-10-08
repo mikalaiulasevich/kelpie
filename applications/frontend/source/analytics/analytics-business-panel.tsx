@@ -13,7 +13,7 @@ import type {
 
 interface AnalyticsBusinessPanelProperties {
   funnelIdentifier: string;
-  outcomes?: readonly AnalyticsBusinessOutcomeCount[];
+  outcomes?: Optional<readonly AnalyticsBusinessOutcomeCount[]>;
   sessionIdentifier?: string;
   onUnauthorized: () => void;
   onChanged?: () => void;

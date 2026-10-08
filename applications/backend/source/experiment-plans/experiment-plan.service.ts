@@ -87,6 +87,7 @@ export class ExperimentPlanService {
       existing.hypothesis !== request.hypothesis ||
       existing.primaryMetric !== request.primaryMetric ||
       existing.targetSamplePerVariant !== request.targetSamplePerVariant ||
+      existing.conversionWindowHours !== request.conversionWindowHours ||
       existing.plannedEndAt.toISOString() !== request.plannedEndAt
     ) {
       throw new ConflictException(ExperimentPlanMessages.Locked);

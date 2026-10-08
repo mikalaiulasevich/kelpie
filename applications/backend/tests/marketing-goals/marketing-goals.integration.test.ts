@@ -110,6 +110,7 @@ describe('authenticated business evidence and experiment registration', () => {
       hypothesis: 'Shorter questions increase confirmed leads.',
       primaryMetric: 'lead',
       targetSamplePerVariant: 1000,
+      conversionWindowHours: 24,
       plannedEndAt: '2099-01-01T00:00:00.000Z',
     };
     const options = {

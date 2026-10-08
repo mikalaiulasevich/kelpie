@@ -10,6 +10,7 @@ const plan = Type.Object({
     Type.Literal('purchase'),
   ]),
   targetSamplePerVariant: Type.Integer({ minimum: 1 }),
+  conversionWindowHours: Type.Union([Type.Integer({ minimum: 1, maximum: 2160 }), Type.Null()]),
   plannedEndAt: Type.String(),
   administratorIdentifier: Type.String(),
   createdAt: Type.String(),
@@ -38,6 +39,9 @@ export const AnalyticsGoalSchemas = {
     startedB: Type.Integer(),
     convertedA: Type.Integer(),
     convertedB: Type.Integer(),
+    followUpComplete: Type.Boolean(),
+    trafficOrigin: Type.String(),
+    conversionWindowHours: Type.Union([Type.Integer(), Type.Null()]),
     sampleTargetReached: Type.Boolean(),
     plannedEndReached: Type.Boolean(),
     difference: Type.Union([Type.Number(), Type.Null()]),
@@ -68,12 +72,11 @@ export const AnalyticsGoalSchemas = {
       }),
     ),
   }),
-  PlanRequest: Type.Pick(plan, [
-    'hypothesis',
-    'primaryMetric',
-    'targetSamplePerVariant',
-    'plannedEndAt',
-  ]),
+  PlanRequest: Type.Object({
+    ...Type.Pick(plan, ['hypothesis', 'primaryMetric', 'targetSamplePerVariant', 'plannedEndAt'])
+      .properties,
+    conversionWindowHours: Type.Integer({ minimum: 1, maximum: 2160 }),
+  }),
   OutcomeRequest: Type.Pick(outcome, [
     'externalIdentifier',
     'sessionIdentifier',

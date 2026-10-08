@@ -1,4 +1,6 @@
 export const QuizRussianMessages = {
+  'Administrator preview · synthetic traffic. Your normal session is unchanged.':
+    'Предпросмотр администратора · тестовый трафик. Обычная сессия не изменена.',
   'Page not found': 'Страница не найдена',
   'This link does not lead to an assessment page.': 'Эта ссылка не ведёт на страницу опроса.',
   'Return to assessment': 'Вернуться к опросу',

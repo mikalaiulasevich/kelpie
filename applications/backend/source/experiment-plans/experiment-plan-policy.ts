@@ -9,5 +9,6 @@ export const ExperimentPlanPolicy = {
   Route: 'administration/experiment-plans',
   RateLimit: { max: 30, timeWindow: '1 minute' },
   MaximumHypothesisLength: 2000,
+  MaximumConversionWindowHours: 2160,
   MaximumTargetSample: 10000000,
 } as const;

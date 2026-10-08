@@ -14,7 +14,8 @@ export const AnalyticsReportContent = {
   Incoming: 'Incoming transitions',
   Outgoing: 'Outgoing transitions',
   Duration: 'Mean observed step duration',
-  DurationExplanation: 'Seconds from a recorded view to completion; only paired observations contribute.',
+  DurationExplanation:
+    'Seconds from a recorded view to completion; only paired observations contribute.',
   Sessions: 'Session timeline',
   TimelineExplanation: 'Recorded events only. No answers or participant access tokens are exposed.',
   More: 'Load more sessions',
@@ -39,7 +40,8 @@ export const AnalyticsReportContent = {
   Window: 'Conversion window',
   Hours: '{hours} hours',
   Apply: 'Apply period',
-  PeriodExplanation: 'Sessions are grouped by their start date. Outcomes count only within the conversion window, up to the report time.',
+  PeriodExplanation:
+    'Sessions are grouped by their start date. Outcomes count only within the conversion window, up to the report time.',
   InvalidPeriod: 'Choose a valid date range of no more than 366 days and a supported timezone.',
   Save: 'Save report',
   Saved: 'Saved reports',
@@ -65,18 +67,22 @@ export const AnalyticsReportContent = {
   LastEvent: 'Latest received event',
   NoEvents: 'No events received for this selection.',
   MissingViews: '{count} completions without a recorded view',
-  MissingDescription: 'Server-confirmed completion and browser views are separate signals. Missing views are not treated as zero engagement.',
-  StillObserving: 'Some sessions are still inside the conversion window. Their outcomes may change.',
+  MissingDescription:
+    'Server-confirmed completion and browser views are separate signals. Missing views are not treated as zero engagement.',
+  StillObserving:
+    'Some sessions are still inside the conversion window. Their outcomes may change.',
   TestTraffic: 'Test traffic is included. Do not use it to choose an experiment winner.',
   Trend: 'Conversion over time',
-  TrendDescription: 'Daily cohorts by session start. Publication markers indicate configuration changes, not evidence of their effect.',
+  TrendDescription:
+    'Daily cohorts by session start. Publication markers indicate configuration changes, not evidence of their effect.',
   Segment: 'Acquisition segments',
   Source: 'Source',
   Medium: 'Medium',
   Campaign: 'Campaign',
   All: 'All values',
   Unattributed: 'Not recorded',
-  SegmentsDescription: 'Compare volume and recommendation-open rate. A change in traffic mix can change the overall rate.',
+  SegmentsDescription:
+    'Compare volume and recommendation-open rate. A change in traffic mix can change the overall rate.',
   SelectSegment: 'Filter to this segment',
   ResultsDistribution: 'Result distribution',
   Result: 'Result',
@@ -89,9 +95,11 @@ export const AnalyticsReportContent = {
   Expired: 'Expired',
   Missing: 'Missing views',
   Diagnose: 'Inspect step',
-  StepsDescription: 'Reach is not a sequential drop-off funnel. Conditional branches may skip steps; counts represent sessions, not unique people.',
+  StepsDescription:
+    'Reach is not a sequential drop-off funnel. Conditional branches may skip steps; counts represent sessions, not unique people.',
   NoTraffic: 'No started sessions in this selection.',
-  NoTrafficHelp: 'Check the period, active version and acquisition filters. No traffic alone does not prove tracking is broken.',
+  NoTrafficHelp:
+    'Check the period, active version and acquisition filters. No traffic alone does not prove tracking is broken.',
   Loading: 'Loading report',
   Unavailable: 'The report could not be loaded.',
   Retry: 'Try again',
@@ -99,9 +107,11 @@ export const AnalyticsReportContent = {
   Exploration: 'Exploratory comparison',
   Insufficient: 'Not enough evidence to choose a winner',
   Business: 'Business outcomes',
-  BusinessDescription: 'Only recorded outcomes appear here. A recommendation open is not a lead, qualification or purchase.',
+  BusinessDescription:
+    'Only recorded outcomes appear here. A recommendation open is not a lead, qualification or purchase.',
   Lead: 'Lead',
   Qualified: 'Qualified lead',
   Purchase: 'Purchase',
-  NotConnected: 'No external CRM connection is configured by this application. Server-reported and manually recorded outcomes are identified separately.',
+  NotConnected:
+    'No external CRM connection is configured by this application. Server-reported and manually recorded outcomes are identified separately.',
 } as const;

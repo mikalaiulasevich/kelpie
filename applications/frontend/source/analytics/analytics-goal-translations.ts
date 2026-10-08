@@ -1,5 +1,10 @@
 export const AnalyticsGoalTranslations: Readonly<Record<string, string>> = {
   'All-time outcome records': 'Все записи результатов за всё время',
+  'Conversion window · hours': 'Окно конверсии · часы',
+  'Conversion follow-up': 'Ожидание конверсий',
+  'Not registered': 'Не зарегистрировано',
+  Incomplete: 'Не завершено',
+  Complete: 'Завершено',
   'Decision evidence': 'Данные для принятия решения',
   'Review the evidence · no automatic winner':
     'Оцените данные · победитель не назначается автоматически',
@@ -13,8 +18,8 @@ export const AnalyticsGoalTranslations: Readonly<Record<string, string>> = {
   'Unexpected allocation · investigate before deciding':
     'Неожиданное распределение · проверьте причины до принятия решения',
   'No allocation mismatch detected': 'Перекос распределения не обнаружен',
-  'Experiment evidence includes random assignments after plan registration and before its end. Date and acquisition filters do not apply; traffic origin and conversion window still apply.':
-    'В анализ эксперимента входят случайные назначения после регистрации плана и до его завершения. Фильтры периода и источников привлечения не применяются; тип трафика и окно конверсии учитываются.',
+  'Experiment evidence includes random assignments after plan registration and before its end. Date and acquisition filters do not apply; traffic origin still applies; the registered conversion window is fixed.':
+    'В анализ эксперимента входят случайные назначения после регистрации плана и до его завершения. Фильтры периода и источников привлечения не применяются; тип трафика учитывается; зарегистрированное окно конверсии неизменно.',
   'Conservative 95% joint Wilson interval. Allocation check uses χ² at 0.001. These checks do not guarantee causality or statistical power.':
     'Консервативный совместный 95%-й интервал Уилсона. Распределение проверяется критерием χ² с порогом 0,001. Эти проверки не гарантируют причинность или достаточную мощность.',
   'Selected report cohort': 'Выбранная когорта отчёта',
