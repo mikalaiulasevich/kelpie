@@ -29,7 +29,11 @@ describe('analytics snapshot batch', () => {
       to: '2026-01-03T00:00:00Z',
     });
 
-    expect(observed.statementCounts).toEqual([14]);
+    expect(observed.statementCounts).toEqual([6]);
+    const sharedStatement = observed.statements[0]?.[0];
+    expect(sharedStatement?.match(/WITH cohort AS MATERIALIZED/g)).toHaveLength(1);
+    expect(sharedStatement).toContain("'summaries'");
+    expect(sharedStatement).toContain("'stepTimings'");
     expect(response.insights?.previousPeriod).toMatchObject({
       from: '2025-12-30T00:00:00.000Z',
       to: '2026-01-01T00:00:00.000Z',

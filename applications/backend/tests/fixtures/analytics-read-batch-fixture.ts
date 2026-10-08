@@ -14,6 +14,7 @@ export const AnalyticsReadBatchFixture = {
     const database = backend.getService(DatabaseReadService);
     const read = database.read.bind(database);
     const statementCounts: number[] = [];
+    const statements: string[][] = [];
     const spy = vi
       .spyOn(database, 'read')
       .mockImplementation(
@@ -25,16 +26,17 @@ export const AnalyticsReadBatchFixture = {
             (snapshot) =>
               operation({
                 transaction: snapshot.transaction,
-                queryMany: async (statements) => {
-                  statementCounts.push(statements.length);
+                queryMany: async (queries) => {
+                  statementCounts.push(queries.length);
+                  statements.push(queries.map((query) => query.sql));
 
-                  return transform(await snapshot.queryMany(statements));
+                  return transform(await snapshot.queryMany(queries));
                 },
               }),
             options,
           ),
       );
 
-    return { spy, statementCounts };
+    return { spy, statementCounts, statements };
   },
 } as const;

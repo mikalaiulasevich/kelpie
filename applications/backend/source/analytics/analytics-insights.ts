@@ -1,3 +1,4 @@
+import type { AnalyticsReport } from './analytics-report-types.js';
 import type { AnalyticsResultBatch } from './analytics-result-batch.js';
 import type { AnalyticsInsightsReadPlan } from './analytics-read-types.js';
 import { AnalyticsAcquisitionOptionsRead } from './analytics-acquisition-options.js';
@@ -7,12 +8,6 @@ import { SchemaCompiler } from '../validation/schema-compiler.js';
 import {
   AnalyticsInsightSchemas,
   type AnalyticsInsights,
-  type AnalyticsBusinessOutcomeRow,
-  type AnalyticsTrendRow,
-  type AnalyticsAcquisitionRow,
-  type AnalyticsResultRow,
-  type AnalyticsQualityRow,
-  type AnalyticsStepTimingRow,
   type AnalyticsCounts,
 } from './analytics-insight-types.js';
 import { AnalyticsInsightQueries } from './analytics-insight-queries.js';
@@ -23,16 +18,6 @@ import { AnalyticsPolicy } from './analytics-policy.js';
 import type { AnalyticsQuery, AnalyticsAggregates } from './analytics-types.js';
 
 const Validators = {
-  businessOutcome: SchemaCompiler.compile<AnalyticsBusinessOutcomeRow>(
-    AnalyticsInsightSchemas.BusinessOutcomeRow,
-  ),
-  trend: SchemaCompiler.compile<AnalyticsTrendRow>(AnalyticsInsightSchemas.TrendRow),
-  acquisition: SchemaCompiler.compile<AnalyticsAcquisitionRow>(
-    AnalyticsInsightSchemas.AcquisitionRow,
-  ),
-  result: SchemaCompiler.compile<AnalyticsResultRow>(AnalyticsInsightSchemas.ResultRow),
-  quality: SchemaCompiler.compile<AnalyticsQualityRow>(AnalyticsInsightSchemas.QualityRow),
-  timing: SchemaCompiler.compile<AnalyticsStepTimingRow>(AnalyticsInsightSchemas.StepTimingRow),
   counts: SchemaCompiler.compile<AnalyticsCounts>(AnalyticsInsightSchemas.Counts),
 };
 
@@ -43,15 +28,7 @@ export const AnalyticsInsightsRead = {
     versionIdentifiers: readonly string[],
     now: Date,
   ): Promise<AnalyticsInsightsReadPlan> {
-    const cohort = AnalyticsQueries.cohort(query, versionIdentifiers, now);
-    const statements = [
-      AnalyticsInsightQueries.businessOutcomes(cohort),
-      AnalyticsInsightQueries.trend(cohort, AnalyticsPeriod.buckets(query, now)),
-      AnalyticsInsightQueries.acquisition(cohort),
-      AnalyticsInsightQueries.results(cohort),
-      AnalyticsInsightQueries.quality(cohort),
-      AnalyticsInsightQueries.stepTimings(cohort),
-    ];
+    const statements: Prisma.Sql[] = [];
     const previous = AnalyticsPeriod.previous(query);
 
     if (previous) {
@@ -83,16 +60,13 @@ export const AnalyticsInsightsRead = {
   project(
     plan: AnalyticsInsightsReadPlan,
     aggregates: AnalyticsAggregates,
+    report: AnalyticsReport,
     batch: AnalyticsResultBatch,
   ): AnalyticsInsights {
     const { query, now, previous, publications, experiments } = plan;
-    const businessOutcomes = AnalyticsRows.validate(batch.next(), Validators.businessOutcome);
-    const trend = AnalyticsRows.validate(batch.next(), Validators.trend);
+    const { businessOutcomes, trend, acquisition, results, stepTimings } = report;
     const trendByDate = new Map(trend.map((row) => [row.date, row]));
-    const acquisition = AnalyticsRows.validate(batch.next(), Validators.acquisition);
-    const results = AnalyticsRows.validate(batch.next(), Validators.result);
-    const quality = AnalyticsRows.validate(batch.next(), Validators.quality)[0];
-    const stepTimings = AnalyticsRows.validate(batch.next(), Validators.timing);
+    const quality = report.quality[0];
     const previousCounts = previous
       ? AnalyticsRows.validate(batch.next(), Validators.counts)[0]
       : undefined;

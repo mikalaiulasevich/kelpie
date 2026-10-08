@@ -111,7 +111,7 @@ export const AnalyticsQueries = {
   },
 
   outcomes(cohort: Prisma.Sql): Prisma.Sql {
-    return Prisma.sql`${cohort}, outcomes AS (
+    return Prisma.sql`${cohort}, outcomes AS MATERIALIZED (
       SELECT c.*,
         ${AnalyticsQueries.observedEvent('result_viewed')} AS result,
         ${AnalyticsQueries.observedEvent('cta_clicked')} AS clicked
@@ -120,14 +120,21 @@ export const AnalyticsQueries = {
   },
 
   summary(cohort: Prisma.Sql): Prisma.Sql {
-    return Prisma.sql`${AnalyticsQueries.outcomes(cohort)}
-    SELECT "versionIdentifier", "variant", COUNT(*) AS started,
+    return Prisma.sql`${AnalyticsQueries.outcomes(cohort)} ${AnalyticsQueries.summaryRows()}`;
+  },
+
+  summaryRows(): Prisma.Sql {
+    return Prisma.sql`SELECT "versionIdentifier", "variant", COUNT(*) AS started,
       SUM(result) AS results, SUM(clicked) AS clicks, SUM(result AND clicked) AS "resultClicks"
     FROM outcomes GROUP BY "versionIdentifier", "variant"`;
   },
 
   steps(cohort: Prisma.Sql): Prisma.Sql {
-    return Prisma.sql`${cohort}, step_facts AS (
+    return Prisma.sql`${cohort} SELECT * FROM (${AnalyticsQueries.stepRows()})`;
+  },
+
+  stepRows(): Prisma.Sql {
+    return Prisma.sql`WITH step_facts AS (
       SELECT "sessionIdentifier", "stepIdentifier", 1 AS reached, 0 AS completed FROM views
       UNION ALL SELECT "sessionIdentifier", "fromStepIdentifier", 0, 1 FROM completions
     ), step_sessions AS (
@@ -146,7 +153,11 @@ export const AnalyticsQueries = {
   },
 
   edges(cohort: Prisma.Sql): Prisma.Sql {
-    return Prisma.sql`${cohort}, source_counts AS (
+    return Prisma.sql`${cohort} SELECT * FROM (${AnalyticsQueries.edgeRows()})`;
+  },
+
+  edgeRows(): Prisma.Sql {
+    return Prisma.sql`WITH source_counts AS (
       SELECT c."versionIdentifier", c."variant", f."fromStepIdentifier", COUNT(*) AS completed
       FROM completions f JOIN cohort c ON c."identifier" = f."sessionIdentifier"
       GROUP BY c."versionIdentifier", c."variant", f."fromStepIdentifier"

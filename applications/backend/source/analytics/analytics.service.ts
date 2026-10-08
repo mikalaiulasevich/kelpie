@@ -8,7 +8,8 @@ import type { DatabaseReadSnapshot } from '../database/database-read-types.js';
 import { AnalyticsResultBatch } from './analytics-result-batch.js';
 import { AnalyticsInputs } from './analytics-inputs.js';
 import { AnalyticsQueries } from './analytics-queries.js';
-import { AnalyticsResults } from './analytics-results.js';
+import { AnalyticsReportRead } from './analytics-report.js';
+import { AnalyticsPeriod } from './analytics-period.js';
 import { AnalyticsProjection } from './analytics-projection.js';
 import type { AnalyticsResponse } from './analytics-response.js';
 import { AnalyticsPolicy } from './analytics-policy.js';
@@ -63,19 +64,14 @@ const AnalyticsReadModel = {
       now,
     );
     const statements = [
-      AnalyticsQueries.summary(cohort),
-      AnalyticsQueries.steps(cohort),
-      AnalyticsQueries.edges(cohort),
+      AnalyticsReportRead.query(cohort, AnalyticsPeriod.buckets(query, now)),
       ...plan.statements,
     ];
     const batch = new AnalyticsResultBatch(await snapshot.queryMany(statements), statements.length);
-    const rawAggregates: AnalyticsAggregates = {
-      summaries: AnalyticsResults.summaries(batch.next()),
-      steps: AnalyticsResults.steps(batch.next()),
-      edges: AnalyticsResults.edges(batch.next()),
-    };
+    const report = AnalyticsReportRead.project(batch.next());
+    const rawAggregates: AnalyticsAggregates = report;
     const aggregates = AnalyticsProjection.group(rawAggregates);
-    const insights = AnalyticsInsightsRead.project(plan, rawAggregates, batch);
+    const insights = AnalyticsInsightsRead.project(plan, rawAggregates, report, batch);
 
     return {
       ...metadata,
