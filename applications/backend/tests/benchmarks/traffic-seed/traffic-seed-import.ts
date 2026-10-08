@@ -118,9 +118,12 @@ const ImportIdentity = {
       answers: [...graph.answers].sort((left, right) =>
         left.stepIdentifier.localeCompare(right.stepIdentifier),
       ),
-      operations: [...graph.operations].sort((left, right) =>
-        left.operationIdentifier.localeCompare(right.operationIdentifier),
-      ),
+      operations: graph.operations
+        .map((operation) => ({
+          ...operation,
+          response: SessionSnapshots.read(operation.response, graph),
+        }))
+        .sort((left, right) => left.operationIdentifier.localeCompare(right.operationIdentifier)),
       transitions: [...graph.transitions].sort((left, right) =>
         left.identifier.localeCompare(right.identifier),
       ),
@@ -177,7 +180,7 @@ const ImportStorage = {
       data: graphs.flatMap((graph) =>
         graph.operations.map((operation) => ({
           ...operation,
-          response: ImportIdentity.input(operation.response),
+          response: SessionSnapshots.json(SessionSnapshots.read(operation.response, graph)),
         })),
       ),
     });
