@@ -89,7 +89,7 @@ export const ApplicationFactory = {
     const adapter = new FastifyAdapter({
       bodyLimit: TransportPolicy.JsonBodyLimit,
       logger: false,
-      trustProxy: false,
+      trustProxy: environment.trustProxyLoopback ? 'loopback' : false,
     });
     const [creationError, application] = await attemptAsync(() =>
       NestFactory.create<NestFastifyApplication>(ApplicationModule.register(environment), adapter, {

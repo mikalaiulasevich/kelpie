@@ -15,3 +15,9 @@ export interface SQLiteForeignKeySetting {
 }
 
 export const DatabaseErrorCode = { UniqueConstraint: 'P2002', OperationTimeout: 'P1008' } as const;
+
+export interface RemoteMigrationDocument {
+  readonly name: string;
+  readonly checksum: string;
+  readonly statement: string;
+}

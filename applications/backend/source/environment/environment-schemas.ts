@@ -11,6 +11,7 @@ export const EnvironmentSchemas = {
     maximum: EnvironmentPolicy.MaximumPort,
   }),
   Host: Type.String({ pattern: EnvironmentPolicy.HostPattern }),
+  DatabaseAuthToken: Type.String({ pattern: EnvironmentPolicy.DatabaseAuthTokenPattern }),
   DatabaseUrl: Type.String({ pattern: EnvironmentPolicy.DatabaseUrlPattern }),
 } as const;
 
@@ -22,6 +23,8 @@ export const ApplicationEnvironmentSchema = Type.Object({
   host: EnvironmentSchemas.Host,
   port: EnvironmentSchemas.Port,
   databaseUrl: EnvironmentSchemas.DatabaseUrl,
+  databaseAuthToken: Type.Optional(EnvironmentSchemas.DatabaseAuthToken),
+  trustProxyLoopback: Type.Optional(Type.Boolean()),
 });
 
 export type ApplicationEnvironment = Readonly<Static<typeof ApplicationEnvironmentSchema>>;

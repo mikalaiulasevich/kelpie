@@ -102,7 +102,9 @@ describe('Application environment boundary compatibility', () => {
   it('does not expose rejected values in validation errors', () => {
     expect(() =>
       ApplicationEnvironmentReader.read({ DATABASE_URL: 'https://secret:password@host' }),
-    ).toThrow('DATABASE_URL must identify a local SQLite file without query parameters.');
+    ).toThrow(
+      'DATABASE_URL must identify a local SQLite file or a secure libsql host without credentials or query parameters.',
+    );
   });
 });
 

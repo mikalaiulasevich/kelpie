@@ -1,5 +1,5 @@
 import { attempt } from 'es-toolkit/util';
-import { isNull } from 'es-toolkit/predicate';
+import { isNull, isUndefined } from 'es-toolkit/predicate';
 import { Ajv, type ValidateFunction } from 'ajv';
 import { isAbsolute, resolve } from 'node:path';
 import type { Static } from 'typebox';
@@ -19,6 +19,7 @@ const environmentValidators = {
   portText: schemaCompiler.compile<string>(EnvironmentSchemas.PortText),
   port: schemaCompiler.compile<number>(EnvironmentSchemas.Port),
   host: schemaCompiler.compile<string>(EnvironmentSchemas.Host),
+  databaseAuthToken: schemaCompiler.compile<string>(EnvironmentSchemas.DatabaseAuthToken),
   databaseUrl: schemaCompiler.compile<string>(EnvironmentSchemas.DatabaseUrl),
 } as const;
 
@@ -62,6 +63,10 @@ const EnvironmentValues = {
   },
 
   resolveDatabaseUrl(databaseUrl: string): string {
+    if (databaseUrl.startsWith(SQLitePolicy.RemoteUrlPrefix)) {
+      return databaseUrl;
+    }
+
     const databasePath = databaseUrl.slice(SQLitePolicy.FileUrlPrefix.length);
     const absolutePath = isAbsolute(databasePath)
       ? databasePath
@@ -104,6 +109,24 @@ export const ApplicationEnvironmentReader = {
       EnvironmentMessages.InvalidDatabaseUrl,
     );
 
+    const databaseAuthToken = values[EnvironmentFields.DatabaseAuthToken];
+
+    if (databaseUrl.startsWith(SQLitePolicy.RemoteUrlPrefix)) {
+      EnvironmentValues.validate(
+        environmentValidators.databaseAuthToken,
+        databaseAuthToken,
+        EnvironmentMessages.InvalidDatabaseAuthToken,
+      );
+    } else if (!isUndefined(databaseAuthToken)) {
+      throw new Error(EnvironmentMessages.UnexpectedDatabaseAuthToken);
+    }
+
+    const trustProxyLoopback = values[EnvironmentFields.TrustProxyLoopback] ?? 'false';
+
+    if (trustProxyLoopback !== 'true' && trustProxyLoopback !== 'false') {
+      throw new Error(EnvironmentMessages.InvalidTrustProxyLoopback);
+    }
+
     const administrationOrigin = EnvironmentValues.origin(
       values[EnvironmentFields.AdministrationOrigin],
       EnvironmentPolicy.DefaultAdministrationOrigin,
@@ -120,12 +143,14 @@ export const ApplicationEnvironmentReader = {
 
     return {
       mode,
+      trustProxyLoopback: trustProxyLoopback === 'true',
       administrationOrigin,
       quizOrigin,
       logLevel,
       host,
       port,
       databaseUrl: EnvironmentValues.resolveDatabaseUrl(databaseUrl),
+      ...(isUndefined(databaseAuthToken) ? {} : { databaseAuthToken }),
     };
   },
 } as const;

@@ -20,7 +20,7 @@ export class DatabaseService implements OnModuleInit, OnApplicationShutdown {
   constructor(@Inject(ApplicationEnvironmentService) environment: ApplicationEnvironmentService) {
     this.databaseUrl = environment.values.databaseUrl;
 
-    const adapter = DatabaseAdapters.create(this.databaseUrl);
+    const adapter = DatabaseAdapters.create(this.databaseUrl, environment.values.databaseAuthToken);
     this.client = new PrismaClient({ adapter });
   }
 
@@ -44,8 +44,11 @@ export class DatabaseService implements OnModuleInit, OnApplicationShutdown {
   }
 
   private async configureConnection(): Promise<void> {
-    await this.client.$queryRawUnsafe(SQLiteStatements.EnableWriteAheadLogging);
-    await this.client.$queryRawUnsafe(SQLiteStatements.ConfigureBusyTimeout);
+    if (this.databaseUrl.startsWith(SQLitePolicy.FileUrlPrefix)) {
+      await this.client.$queryRawUnsafe(SQLiteStatements.EnableWriteAheadLogging);
+      await this.client.$queryRawUnsafe(SQLiteStatements.ConfigureBusyTimeout);
+    }
+
     await this.client.$queryRawUnsafe(SQLiteStatements.EnableForeignKeys);
     const settings = await this.client.$queryRawUnsafe<SQLiteForeignKeySetting[]>(
       SQLiteStatements.ReadForeignKeys,

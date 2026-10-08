@@ -1,0 +1,33 @@
+{
+	admin off
+	auto_https off
+}
+
+:{$PORT:10000} {
+	encode zstd gzip
+	header -Server
+
+	# Keep preview cookies on their existing /api scope while forwarding to Nest.
+	handle_path /api/administration/preview/* {
+		rewrite * /api{uri}
+		reverse_proxy 127.0.0.1:3000
+	}
+
+	handle /api/* {
+		reverse_proxy 127.0.0.1:3000
+	}
+
+	redir /administration /administration/ 308
+
+	handle_path /administration/* {
+		root * /opt/kelpie/applications/frontend/distribution
+		@hashedAssets path /assets/*
+		header @hashedAssets Cache-Control "public, max-age=31536000, immutable"
+		# Hash-based navigation needs no fallback that could mask missing assets.
+		file_server
+	}
+
+	handle {
+		reverse_proxy 127.0.0.1:3001
+	}
+}

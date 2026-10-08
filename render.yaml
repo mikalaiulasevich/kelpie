@@ -1,0 +1,27 @@
+# One free runtime; development remains a Git branch, not a second always-on service.
+services:
+  - type: web
+    name: kelpie
+    runtime: docker
+    branch: release
+    region: frankfurt
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    autoDeployTrigger: commit
+    healthCheckPath: /api/health/ready
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: info
+      - key: NEXT_TELEMETRY_DISABLED
+        value: '1'
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_AUTH_TOKEN
+        sync: false
+      - key: ADMINISTRATION_USERNAME
+        sync: false
+      - key: ADMINISTRATION_PASSWORD
+        sync: false

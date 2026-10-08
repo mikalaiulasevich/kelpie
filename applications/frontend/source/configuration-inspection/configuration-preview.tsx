@@ -24,7 +24,8 @@ export function ConfigurationPreview({
   const controller = useRef<AbortController | null>(null);
   useEffect(() => () => controller.current?.abort(), []);
   const quizOrigin =
-    import.meta.env.VITE_QUIZ_ORIGIN ?? (import.meta.env.DEV ? 'http://127.0.0.1:3001' : undefined);
+    import.meta.env.VITE_QUIZ_ORIGIN ??
+    (import.meta.env.DEV ? 'http://127.0.0.1:3001' : window.location.origin);
 
   const start = async () => {
     if (controller.current) {

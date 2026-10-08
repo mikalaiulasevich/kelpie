@@ -6,11 +6,15 @@ import type { DatabaseAdapter } from './database-types.js';
 import { SQLitePolicy } from './sqlite-policy.js';
 
 export const DatabaseAdapters = {
-  create(url: string): DatabaseAdapter {
-    if (isUndefined(process.versions.bun)) {
+  create(url: string, authToken?: string): DatabaseAdapter {
+    if (!url.startsWith(SQLitePolicy.RemoteUrlPrefix) && isUndefined(process.versions.bun)) {
       return new PrismaBetterSqlite3({ url });
     }
 
-    return new PrismaLibSql({ url, timeout: SQLitePolicy.BusyTimeoutMilliseconds });
+    return new PrismaLibSql({
+      url,
+      ...(isUndefined(authToken) ? {} : { authToken }),
+      timeout: SQLitePolicy.BusyTimeoutMilliseconds,
+    });
   },
 } as const;

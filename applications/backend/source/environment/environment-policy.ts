@@ -10,6 +10,8 @@ export const EnvironmentFields = {
   Port: 'PORT',
   Host: 'HOST',
   DatabaseUrl: 'DATABASE_URL',
+  DatabaseAuthToken: 'DATABASE_AUTH_TOKEN',
+  TrustProxyLoopback: 'TRUST_PROXY_LOOPBACK',
 } as const;
 
 export const ApplicationMode = {
@@ -34,7 +36,8 @@ export const EnvironmentPolicy = {
   MaximumPort: 65_535,
   PortPattern: '^\\d{1,5}$',
   HostPattern: '^[a-zA-Z0-9.:-]{1,253}$',
-  DatabaseUrlPattern: `^${SQLitePolicy.FileUrlPrefix}[^?#\\u0000]+$`,
+  DatabaseUrlPattern: `^(?:${SQLitePolicy.FileUrlPrefix}[^?#\\u0000]+|libsql://[a-zA-Z0-9][a-zA-Z0-9.-]*(?![\\s\\S]))$`,
+  DatabaseAuthTokenPattern: '^[A-Za-z0-9._-]{1,8192}(?![\\s\\S])',
 } as const;
 
 export const EnvironmentInjection = {

@@ -26,7 +26,11 @@ export function AdministrationAuthLayout({
         className={connectionUnavailable ? 'auth-main auth-main-connection' : 'auth-main'}
         aria-label={t('Administrator access')}
       >
-        <a href="/" className="brand auth-brand" aria-label={t('Kelpie administration')}>
+        <a
+          href={import.meta.env.BASE_URL}
+          className="brand auth-brand"
+          aria-label={t('Kelpie administration')}
+        >
           <KelpieMark />
           <span>{t('Kelpie')}</span>
         </a>
