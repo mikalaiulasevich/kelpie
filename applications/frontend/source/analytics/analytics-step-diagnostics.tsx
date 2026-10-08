@@ -1,4 +1,5 @@
 import { isNull, isUndefined } from 'es-toolkit/predicate';
+import { AnalyticsReportOperations as Report } from './analytics-report-operations';
 import { useCallback, useState } from 'react';
 import type {
   AnalyticsQuery,
@@ -70,6 +71,18 @@ export function AnalyticsStepDiagnostics({
                     {edge.fromStepIdentifier} → {edge.toStepIdentifier}
                   </span>
                   <span className="ml-2 tabular-nums">{edge.transitions}</span>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {t(Content.TransitionRate, {
+                      numerator: edge.observedConversion.numerator,
+                      denominator: edge.observedConversion.denominator,
+                    })}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {t(Content.DestinationMissing, {
+                      open: edge.destinationNonreach.open,
+                      expired: edge.destinationNonreach.expired,
+                    })}
+                  </p>
                 </li>
               ))}
             </ul>
@@ -93,7 +106,9 @@ export function AnalyticsStepDiagnostics({
       </div>
       <section>
         <h4 className="text-sm font-semibold">{t(Content.Sessions)}</h4>
-        <p className="mt-1 text-xs text-muted-foreground">{t(Content.TimelineExplanation)}</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {t(Content.TimelineExplanation)} {t(Content.FullHistory)}
+        </p>
         {read.status === 'loading' && (
           <p role="status" className="mt-3 text-sm">
             {t(Content.Loading)}
@@ -109,6 +124,51 @@ export function AnalyticsStepDiagnostics({
         )}
         {read.status === 'ready' && (
           <div className="mt-3 space-y-2">
+            {read.data.segments.length > 0 && (
+              <section className="mb-4 overflow-x-auto">
+                <h4 className="mb-2 font-medium">{t(Content.Segment)}</h4>
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr>
+                      {[
+                        Content.Source,
+                        Content.Medium,
+                        Content.Campaign,
+                        Content.Views,
+                        Content.Completed,
+                        Content.Missing,
+                      ].map((label) => (
+                        <th key={label} className="p-2">
+                          {t(label)}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {read.data.segments.map((segment) => (
+                      <tr
+                        key={JSON.stringify([segment.source, segment.medium, segment.campaign])}
+                        className="border-t"
+                      >
+                        <td className="p-2">{segment.source || t(Content.Unattributed)}</td>
+                        <td>{segment.medium || t(Content.Unattributed)}</td>
+                        <td>{segment.campaign || t(Content.Unattributed)}</td>
+                        <td>{segment.reached}</td>
+                        <td>
+                          {Report.percentage(segment.observedCompleted, segment.reached)} ·{' '}
+                          {segment.observedCompleted} / {segment.reached}
+                        </td>
+                        <td>{segment.completed - segment.observedCompleted}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {read.data.segmentsHasMore && (
+                  <p className="mt-2 text-xs text-muted-foreground">{t(Content.Truncated)}</p>
+                )}
+              </section>
+            )}
+
             {read.data.sessions.length === 0 && (
               <p className="text-sm text-muted-foreground">{t(Content.NoSessions)}</p>
             )}
@@ -116,7 +176,8 @@ export function AnalyticsStepDiagnostics({
               <details className="rounded-lg border bg-card p-3" key={session.sessionIdentifier}>
                 <summary className="cursor-pointer text-sm">
                   <span className="font-medium">{session.sessionIdentifier.slice(0, 8)}</span> ·{' '}
-                  {new Date(session.startedAt).toLocaleString()} · {session.variant}
+                  {Report.timestamp(session.startedAt, response.filters.timezone)} ·{' '}
+                  {session.variant}
                 </summary>
                 <div className="mt-3 overflow-x-auto">
                   <table className="w-full text-left text-xs">
@@ -131,7 +192,9 @@ export function AnalyticsStepDiagnostics({
                     <tbody>
                       {session.events.map((event, index) => (
                         <tr key={index} className="border-t">
-                          <td className="py-2">{new Date(event.occurredAt).toLocaleString()}</td>
+                          <td className="py-2">
+                            {Report.timestamp(event.occurredAt, response.filters.timezone)}
+                          </td>
                           <td>{event.name}</td>
                           <td>{event.stepIdentifier ?? '—'}</td>
                           <td>{event.source}</td>
@@ -157,6 +220,7 @@ export function AnalyticsStepDiagnostics({
               <Button
                 size="sm"
                 variant="outline"
+                aria-label={t(Content.PreviousSessions)}
                 disabled={offset === 0}
                 onClick={() => setOffset(Math.max(0, offset - 10))}
               >

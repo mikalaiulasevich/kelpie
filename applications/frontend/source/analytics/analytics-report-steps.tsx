@@ -57,6 +57,7 @@ export function AnalyticsReportSteps({
           {version.variants.map((item) => (
             <Button
               key={item.variant}
+              aria-pressed={item.variant === selectedVariant}
               size="sm"
               variant={item.variant === selectedVariant ? 'secondary' : 'ghost'}
               onClick={() => {
@@ -143,6 +144,7 @@ export function AnalyticsReportSteps({
                       <Button
                         size="sm"
                         variant="ghost"
+                        aria-label={`${t(Content.Diagnose)}: ${title}`}
                         aria-expanded={stepIdentifier === step.stepIdentifier}
                         onClick={() =>
                           setStepIdentifier(

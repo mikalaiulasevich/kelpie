@@ -15,4 +15,3 @@ export type ChartConfiguration = Record<
 export type ChartContextProperties = {
   configuration: ChartConfiguration;
 };
-

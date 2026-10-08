@@ -68,6 +68,7 @@ export const AnalyticsQueries = {
     return Prisma.sql`WITH cohort AS (
       SELECT s."identifier", s."versionIdentifier", s."variant",
         ${startedAt} AS "startedAt", ${deadline} AS deadline,
+        ${conversionDeadline} <= ${now.getTime()} AS "conversionMature",
         COALESCE(json_extract(s."acquisitionParameters", '$.utm_source'), '') AS source,
         COALESCE(json_extract(s."acquisitionParameters", '$.utm_medium'), '') AS medium,
         COALESCE(s."campaign", '') AS campaign,

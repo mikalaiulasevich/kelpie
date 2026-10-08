@@ -70,6 +70,7 @@ export function useAdministrationForm(signIn: AdministrationSignIn) {
     setErrors((previous) => omit(previous, ['username']));
     setMessage('');
   };
+
   const updatePassword = (value: string): void => {
     setPassword(value);
     setErrors((previous) => omit(previous, ['password']));

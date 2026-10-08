@@ -1,4 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useActionShortcuts } from '../workspace/use-action-shortcuts';
+import { ActionShortcutCatalog } from '../workspace/action-shortcuts';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { Button } from '../components/button';
 import { LoadErrorState } from '../components/load-error-state';
@@ -9,6 +11,7 @@ import { useAnalytics } from './use-analytics';
 import { AnalyticsReportState, type ReportSelection } from './analytics-report-state';
 import { AnalyticsReportOperations as Report } from './analytics-report-operations';
 import { AnalyticsReportContent as Content } from './analytics-report-content';
+import { AnalyticsReportDraft } from './analytics-report-draft';
 import { AnalyticsReportControls } from './analytics-report-controls';
 import { AnalyticsReportOverview } from './analytics-report-overview';
 import { AnalyticsReportTrend } from './analytics-report-trend';
@@ -24,9 +27,27 @@ interface AnalyticsPageProperties {
 
 export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPageProperties) {
   const { t } = useLocalization();
+  const periodControls = useRef<HTMLDivElement>(null);
+  const businessPanel = useRef<HTMLDivElement>(null);
   const [selection, setSelection] = useState(() => AnalyticsReportState.fromHash(location.hash));
+  const [restorationSequence, setRestorationSequence] = useState(0);
   const [sequence, setSequence] = useState(0);
   const [sessionIdentifier, setSessionIdentifier] = useState('');
+  useEffect(() => {
+    const restore = () => {
+      setSelection(AnalyticsReportState.fromHash(location.hash));
+      setRestorationSequence((value) => value + 1);
+      setSessionIdentifier('');
+    };
+
+    window.addEventListener('hashchange', restore);
+    window.addEventListener('popstate', restore);
+
+    return () => {
+      window.removeEventListener('hashchange', restore);
+      window.removeEventListener('popstate', restore);
+    };
+  }, []);
   const query = useMemo(
     () => Report.query(funnelIdentifier, selection),
     [funnelIdentifier, selection],
@@ -40,24 +61,43 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
   };
 
   const refresh = () => setSequence((value) => value + 1);
+  useActionShortcuts([
+    {
+      shortcut: ActionShortcutCatalog.Refresh,
+      enabled: analytics.status !== 'loading',
+      activate: refresh,
+    },
+    {
+      shortcut: ActionShortcutCatalog.Filters,
+      enabled: true,
+      activate: () =>
+        periodControls.current?.querySelector<HTMLInputElement>('input[type="date"]')?.focus(),
+    },
+  ]);
 
   return (
     <div className="workspace-page flex min-w-0 flex-col gap-4">
-      <AnalyticsReportControls
-        key={JSON.stringify(selection)}
-        selection={selection}
-        funnelIdentifier={funnelIdentifier}
-        onApply={apply}
-        onExport={
-          analytics.status === 'ready' ? () => Report.download(analytics.response) : undefined
-        }
-      />
+      <div ref={periodControls}>
+        <AnalyticsReportControls
+          key={`${funnelIdentifier}:${restorationSequence}:${AnalyticsReportDraft.periodKey(selection)}`}
+          selection={selection}
+          funnelIdentifier={funnelIdentifier}
+          onApply={apply}
+          onExport={
+            analytics.status === 'ready' ? () => Report.download(analytics.response) : undefined
+          }
+        />
+      </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <AnalyticsVersionPicker
           funnelIdentifier={funnelIdentifier}
           refreshSequence={sequence}
           selectedIdentifier={version?.versionIdentifier ?? selection.versionIdentifier}
-          selectedLabel={version ? `v${version.funnelVersion}` : t(Content.ActiveVersion)}
+          selectedLabel={
+            version
+              ? `v${version.funnelVersion}`
+              : t(selection.versionIdentifier ? Content.SelectedVersion : Content.ActiveVersion)
+          }
           onUnauthorized={onUnauthorized}
           onRefresh={refresh}
           onSelect={(versionIdentifier) => apply({ ...selection, versionIdentifier })}
@@ -125,33 +165,40 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
           />
           {version && (
             <AnalyticsReportSteps
-              key={version.versionIdentifier}
+              key={`steps:${version.versionIdentifier}`}
               response={analytics.response}
               version={version}
               query={query}
               onUnauthorized={onUnauthorized}
-              onSession={setSessionIdentifier}
+              onSession={(identifier) => {
+                setSessionIdentifier(identifier);
+                businessPanel.current?.scrollIntoView({ block: 'start' });
+              }}
             />
           )}
           {version && (
             <AnalyticsExperimentPanel
-              key={version.versionIdentifier}
+              key={`experiment:${version.versionIdentifier}`}
               versionIdentifier={version.versionIdentifier}
-              evidence={analytics.response.insights?.experiments.find((item) => item.versionIdentifier === version.versionIdentifier)}
+              evidence={analytics.response.insights?.experiments.find(
+                (item) => item.versionIdentifier === version.versionIdentifier,
+              )}
               onUnauthorized={onUnauthorized}
               onChanged={refresh}
             />
           )}
-          <AnalyticsBusinessPanel
-            funnelIdentifier={funnelIdentifier}
-            outcomes={analytics.response.insights?.businessOutcomes}
-            sessionIdentifier={sessionIdentifier}
-            onUnauthorized={onUnauthorized}
-            onChanged={refresh}
-          />
+          <div ref={businessPanel}>
+            <AnalyticsBusinessPanel
+              funnelIdentifier={funnelIdentifier}
+              outcomes={analytics.response.insights?.businessOutcomes}
+              sessionIdentifier={sessionIdentifier}
+              onUnauthorized={onUnauthorized}
+              onChanged={refresh}
+            />
+          </div>
           <p className="text-xs text-muted-foreground">
             {t(Content.ExportDescription)} ·{' '}
-            {new Date(analytics.response.generatedAt).toLocaleString()}
+            {Report.timestamp(analytics.response.generatedAt, selection.timezone)}
           </p>
         </>
       )}

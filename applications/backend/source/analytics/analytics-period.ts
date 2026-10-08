@@ -15,11 +15,30 @@ export const AnalyticsPeriod = {
     }
 
     const start = Date.parse(query.from);
-    const duration = Date.parse(query.to) - start;
+    const end = Date.parse(query.to);
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: query.timezone ?? 'UTC',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    const startDate = AnalyticsPeriod.day(start, formatter);
+    const endDate = AnalyticsPeriod.day(end, formatter);
+    const isCalendarRange =
+      AnalyticsPeriod.day(start - 1, formatter) !== startDate &&
+      AnalyticsPeriod.day(end - 1, formatter) !== endDate;
+    const duration = end - start;
+    const calendarDuration = Date.parse(endDate) - Date.parse(startDate);
+    const previousDate = new Date(Date.parse(startDate) - calendarDuration)
+      .toISOString()
+      .slice(0, 10);
+    const previousStart = isCalendarRange
+      ? AnalyticsPeriod.startOfDay(previousDate, formatter)
+      : start - duration;
 
     return {
       ...query,
-      from: new Date(start - duration).toISOString(),
+      from: new Date(previousStart).toISOString(),
       to: new Date(start).toISOString(),
     };
   },
@@ -39,6 +58,25 @@ export const AnalyticsPeriod = {
     return ['year', 'month', 'day']
       .map((type) => parts.find((part) => part.type === type)?.value ?? '')
       .join('-');
+  },
+
+  startOfDay(date: string, formatter: Intl.DateTimeFormat): number {
+    const target = Date.parse(`${date}T00:00:00Z`);
+    let low = target - AnalyticsPolicy.CalendarBoundarySearchMilliseconds;
+    let high = target + AnalyticsPolicy.CalendarBoundarySearchMilliseconds;
+
+    // A date can begin after midnight during a timezone transition.
+    while (low < high) {
+      const middle = Math.floor((low + high) / 2);
+
+      if (AnalyticsPeriod.day(middle, formatter) < date) {
+        low = middle + 1;
+      } else {
+        high = middle;
+      }
+    }
+
+    return low;
   },
 
   days(query: AnalyticsQuery, now: Date): readonly AnalyticsDayRange[] {

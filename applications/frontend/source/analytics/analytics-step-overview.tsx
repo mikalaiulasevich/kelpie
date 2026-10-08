@@ -27,7 +27,7 @@ export function AnalyticsStepOverview({ variant }: AnalyticsStepOverviewProperti
 
   const conditionalSteps = variant.steps.filter((step) => step.conditional).length;
   const hasUnobservedCompletions = variant.steps.some(
-    (step) => step.type !== 'result' && step.completed > step.reached,
+    (step) => step.type !== 'result' && step.completed > step.completion.numerator,
   );
 
   return (

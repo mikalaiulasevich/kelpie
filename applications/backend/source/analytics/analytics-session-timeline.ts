@@ -11,12 +11,14 @@ import { AnalyticsPolicy } from './analytics-policy.js';
 import {
   AnalyticsSessionSchemas,
   type AnalyticsSessionSelection,
+  type AnalyticsSessionSegment,
   type AnalyticsSessionRow,
   type AnalyticsSessionResponse,
 } from './analytics-session-types.js';
 import type { AnalyticsQuery } from './analytics-types.js';
 
 const Validators = {
+  segment: SchemaCompiler.compile<AnalyticsSessionSegment>(AnalyticsSessionSchemas.Segment),
   selection: SchemaCompiler.compile<AnalyticsSessionSelection>(AnalyticsSessionSchemas.Selection),
   row: SchemaCompiler.compile<AnalyticsSessionRow>(AnalyticsSessionSchemas.Row),
 };
@@ -69,7 +71,7 @@ export const AnalyticsSessionTimeline = {
     };
 
     if (!versions.length) {
-      return { ...metadata, sessions: [] };
+      return { ...metadata, segments: [], segmentsHasMore: false, sessions: [] };
     }
 
     const cohort = AnalyticsQueries.cohort(
@@ -92,6 +94,20 @@ export const AnalyticsSessionTimeline = {
         Prisma.sql`(EXISTS (SELECT 1 FROM views v WHERE v."sessionIdentifier" = c.identifier AND v."stepIdentifier" = ${selection.stepIdentifier}) OR EXISTS (SELECT 1 FROM completions f WHERE f."sessionIdentifier" = c.identifier AND f."fromStepIdentifier" = ${selection.stepIdentifier}))`,
       );
     }
+
+    const segments = isUndefined(selection.stepIdentifier)
+      ? []
+      : AnalyticsRows.validate(
+          await transaction.$queryRaw<unknown[]>(Prisma.sql`${cohort}, selected_sessions AS (
+      SELECT c.source, c.medium, c.campaign,
+        EXISTS (SELECT 1 FROM views v WHERE v."sessionIdentifier" = c.identifier AND v."stepIdentifier" = ${selection.stepIdentifier}) AS reached,
+        EXISTS (SELECT 1 FROM completions f WHERE f."sessionIdentifier" = c.identifier AND f."fromStepIdentifier" = ${selection.stepIdentifier}) AS completed
+      FROM cohort c WHERE ${Prisma.join(conditions, ' AND ')}
+    ) SELECT source, medium, campaign, COUNT(*) AS sessions, SUM(reached) AS reached, SUM(completed) AS completed, SUM(reached AND completed) AS "observedCompleted"
+      FROM selected_sessions GROUP BY source, medium, campaign ORDER BY sessions DESC, source, medium, campaign
+      LIMIT ${AnalyticsPolicy.MaximumTimelineSegments + 1}`),
+          Validators.segment,
+        );
 
     const rows = AnalyticsRows.validate(
       await transaction.$queryRaw<unknown[]>(
@@ -118,6 +134,8 @@ export const AnalyticsSessionTimeline = {
 
     return {
       ...metadata,
+      segments: segments.slice(0, AnalyticsPolicy.MaximumTimelineSegments),
+      segmentsHasMore: segments.length > AnalyticsPolicy.MaximumTimelineSegments,
       pagination: { ...metadata.pagination, hasMore: rows.length > query.limit },
       sessions: sessions.map((session) => ({
         sessionIdentifier: session.identifier,

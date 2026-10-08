@@ -2,6 +2,42 @@ import type { BackendApplicationFixture } from './backend-application.js';
 import { AnalyticsFixture } from './analytics-fixture.js';
 
 export const AnalyticsInsightFixture = {
+  async optionSessions(backend: BackendApplicationFixture, versionIdentifier: string) {
+    const identifiers = Array.from(
+      { length: 101 },
+      (_, index) => `option-${String(index).padStart(3, '0')}`,
+    );
+    await backend.database.session.createMany({
+      data: identifiers.map((identifier) => ({
+        identifier,
+        versionIdentifier,
+        experimentIdentifier: 'fixture-experiment',
+        variant: 'A',
+        assignmentSource: 'random',
+        trafficOrigin: 'production',
+        campaign: identifier,
+        acquisitionParameters: { utm_source: 'bulk', utm_medium: 'cpc', utm_campaign: identifier },
+        currentStepIdentifier: 'intro',
+        createdAt: new Date('2026-01-01T12:00:00Z'),
+        expiresAt: new Date('2026-01-02T12:00:00Z'),
+      })),
+    });
+    await backend.database.event.createMany({
+      data: identifiers.map((identifier) => ({
+        identifier: `event-${identifier}`,
+        sessionIdentifier: identifier,
+        contentFingerprint: identifier,
+        name: 'session_started',
+        source: 'server',
+        serverTimestamp: new Date('2026-01-01T12:00:00Z'),
+        clientTimestamp: new Date('2026-01-01T12:00:00Z'),
+        properties: {},
+      })),
+    });
+
+    return identifiers;
+  },
+
   async prepare(backend: BackendApplicationFixture) {
     const versions = await AnalyticsFixture.prepare(backend);
     await backend.database.session.updateMany({
@@ -62,6 +98,7 @@ export const AnalyticsInsightFixture = {
         versionIdentifier: versions.firstVersionIdentifier,
         hypothesis: 'Test recommendation opening',
         primaryMetric: 'recommendation_open',
+        conversionWindowHours: 1,
         targetSamplePerVariant: 10,
         plannedEndAt: new Date('2026-01-02T00:00:00Z'),
         createdAt: new Date('2026-01-01T00:00:00Z'),

@@ -23,14 +23,14 @@ const querySchema = Type.Object(
   { additionalProperties: false },
 );
 
-const selectionSchema = Type.Object({
+export const ConfigurationLibrarySelectionSchema = Type.Object({
   ...ManagementSchemas.ResolvedQuery.properties,
   search: Type.String(),
   status: Type.Enum({ All: 'all', Live: 'live', Inactive: 'inactive' }),
   sort: Type.Enum(ConfigurationLibrarySort),
 });
 
-type ConfigurationLibrarySelection = Static<typeof selectionSchema>;
+type ConfigurationLibrarySelection = Static<typeof ConfigurationLibrarySelectionSchema>;
 
 type ConfigurationLibraryInput = Static<typeof querySchema>;
 

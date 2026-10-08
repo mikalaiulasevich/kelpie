@@ -1,6 +1,8 @@
 export const AnalyticsReportContent = {
+  SelectedVersion: 'Selected version',
   ActiveVersion: 'Active version',
   Publication: 'Publication / rollback',
+  PublicationCount: 'Changes: {count}',
   Rate: 'Recommendation-open rate',
   Date: 'Cohort date',
   ViewData: 'View chart data',
@@ -11,6 +13,10 @@ export const AnalyticsReportContent = {
   AllTraffic: 'All traffic',
   Forced: 'Include forced assignments',
   Truncated: 'Only the first returned groups are shown. Narrow the report to inspect more.',
+  TransitionRate: 'Continued among observed source sessions: {numerator} / {denominator}',
+  DestinationMissing: 'Transition without a destination view: {open} open · {expired} expired',
+  FullHistory:
+    'Full recorded session history; the report period selects sessions by their start date.',
   Incoming: 'Incoming transitions',
   Outgoing: 'Outgoing transitions',
   Duration: 'Mean observed step duration',
@@ -18,6 +24,7 @@ export const AnalyticsReportContent = {
     'Seconds from a recorded view to completion; only paired observations contribute.',
   Sessions: 'Session timeline',
   TimelineExplanation: 'Recorded events only. No answers or participant access tokens are exposed.',
+  PreviousSessions: 'Previous sessions',
   More: 'Load more sessions',
   EventsTruncated: 'This timeline is truncated.',
   NoTransitions: 'No recorded transitions in this selection.',
@@ -40,6 +47,7 @@ export const AnalyticsReportContent = {
   Window: 'Conversion window',
   Hours: '{hours} hours',
   Apply: 'Apply period',
+  PendingPeriod: 'Period changed. Apply it to update the report, links and export.',
   PeriodExplanation:
     'Sessions are grouped by their start date. Outcomes count only within the conversion window, up to the report time.',
   InvalidPeriod: 'Choose a valid date range of no more than 366 days and a supported timezone.',
@@ -55,6 +63,7 @@ export const AnalyticsReportContent = {
   Export: 'Export aggregates',
   ExportDescription: 'CSV uses the exact report filters and contains aggregates only.',
   Started: 'Started sessions',
+  SelectedCohort: 'Sessions matching the report filters',
   Results: 'Viewed a result',
   Opens: 'Opened recommendations',
   Engagement: 'Recommendation opens measure engagement, not leads or sales.',

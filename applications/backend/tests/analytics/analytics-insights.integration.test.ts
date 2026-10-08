@@ -82,6 +82,7 @@ describe('analytics insight cohort boundaries and privacy', () => {
       funnelIdentifier: 'workstyle-planner',
       versionIdentifier: versions.firstVersionIdentifier,
       source: 'nonexistent',
+      conversionWindowHours: '24',
       from: '2026-02-01T00:00:00Z',
       to: '2026-02-02T00:00:00Z',
     });
@@ -91,15 +92,35 @@ describe('analytics insight cohort boundaries and privacy', () => {
       cohortTo: '2026-01-02T00:00:00.000Z',
       startedA: 4,
       startedB: 1,
-      convertedA: 2,
+      convertedA: 1,
       convertedB: 0,
       sampleTargetReached: false,
       plannedEndReached: true,
-      followUpComplete: false,
-      conversionWindowHours: null,
+      followUpComplete: true,
+      conversionWindowHours: 1,
       trafficOrigin: 'production',
       sampleRatioMismatch: null,
     });
+  });
+
+  it('defaults to the active version even when a newer unpublished version exists', async () => {
+    await backend.database.funnel.update({
+      where: { identifier: 'workstyle-planner' },
+      data: { activeVersionIdentifier: versions.firstVersionIdentifier },
+    });
+    const service = backend.getService(AnalyticsService);
+    const response = await service.read({ funnelIdentifier: 'workstyle-planner' });
+    expect(response.versions.map((version) => version.versionIdentifier)).toEqual([
+      versions.firstVersionIdentifier,
+    ]);
+    expect(response.filters.versionIdentifier).toBe(versions.firstVersionIdentifier);
+    const explicit = await service.read({
+      funnelIdentifier: 'workstyle-planner',
+      versionIdentifier: versions.thirdVersionIdentifier,
+    });
+    expect(explicit.versions.map((version) => version.versionIdentifier)).toEqual([
+      versions.thirdVersionIdentifier,
+    ]);
   });
 
   it('requires an explicit version for session history instead of silently truncating version scope', async () => {
@@ -116,6 +137,17 @@ describe('analytics insight cohort boundaries and privacy', () => {
       stepIdentifier: 'intro',
     });
     expect(response.sessions).toHaveLength(1);
+    expect(response.segments).toEqual([
+      {
+        source: '',
+        medium: '',
+        campaign: 'launch',
+        sessions: 1,
+        reached: 1,
+        completed: 1,
+        observedCompleted: 1,
+      },
+    ]);
     expect(response.sessions[0]?.events.length).toBeGreaterThan(0);
     expect(Object.keys(response.sessions[0]?.events[0] ?? {}).sort()).toEqual([
       'name',
@@ -130,5 +162,47 @@ describe('analytics insight cohort boundaries and privacy', () => {
       sessionIdentifier: 'complete',
     });
     expect(other.sessions).toEqual([]);
+  });
+  it('aggregates filter options independently of selected triplets and reports bounded overflow', async () => {
+    const identifiers = await AnalyticsInsightFixture.optionSessions(
+      backend,
+      versions.firstVersionIdentifier,
+    );
+
+    try {
+      const response = await backend.getService(AnalyticsService).read({
+        funnelIdentifier: 'workstyle-planner',
+        versionIdentifier: versions.firstVersionIdentifier,
+        source: 'bulk',
+        campaign: 'option-000',
+      });
+      expect(response.insights?.acquisition).toEqual([
+        {
+          source: 'bulk',
+          medium: 'cpc',
+          campaign: 'option-000',
+          started: 1,
+          results: 0,
+          clicks: 0,
+        },
+      ]);
+      expect(response.insights?.acquisitionOptions.campaigns).toHaveLength(100);
+      expect(response.insights?.acquisitionOptions).toMatchObject({
+        campaignsHasMore: true,
+        sourcesHasMore: false,
+        mediumsHasMore: false,
+        sources: [{ value: 'bulk', sessions: 1 }],
+        mediums: [{ value: 'cpc', sessions: 1 }],
+      });
+      expect(response.insights?.acquisitionOptions.campaigns[99]).toEqual({
+        value: 'option-099',
+        sessions: 1,
+      });
+    } finally {
+      await backend.database.event.deleteMany({
+        where: { sessionIdentifier: { in: identifiers } },
+      });
+      await backend.database.session.deleteMany({ where: { identifier: { in: identifiers } } });
+    }
   });
 });

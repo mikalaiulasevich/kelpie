@@ -5,11 +5,7 @@ import { useLocalization } from '../localization/use-localization';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { isNull } from 'es-toolkit/predicate';
 import type { AnalyticsVariant } from '../management/management-types';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '../components/chart';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../components/chart';
 
 interface AnalyticsComparisonChartProperties {
   readonly variants: readonly AnalyticsVariant[];

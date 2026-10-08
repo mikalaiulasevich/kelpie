@@ -2,7 +2,18 @@ import { Type, type Static } from 'typebox';
 import { ExperimentVariant } from '@kelpie/contracts';
 import { AnalyticsSchemas } from './analytics-types.js';
 
+const Segment = Type.Object({
+  source: Type.String(),
+  medium: Type.String(),
+  campaign: Type.String(),
+  sessions: AnalyticsSchemas.Count,
+  reached: AnalyticsSchemas.Count,
+  completed: AnalyticsSchemas.Count,
+  observedCompleted: AnalyticsSchemas.Count,
+});
+
 export const AnalyticsSessionSchemas = {
+  Segment,
   Selection: Type.Object(
     {
       stepIdentifier: Type.Optional(Type.String({ maxLength: 200 })),
@@ -20,6 +31,8 @@ export const AnalyticsSessionSchemas = {
       offset: AnalyticsSchemas.Count,
       hasMore: Type.Boolean(),
     }),
+    segments: Type.Array(Segment),
+    segmentsHasMore: Type.Boolean(),
     sessions: Type.Array(
       Type.Object({
         sessionIdentifier: Type.String(),
@@ -48,3 +61,5 @@ export type AnalyticsSessionRow = Readonly<Static<typeof AnalyticsSessionSchemas
 export type AnalyticsSessionResponse = DeepReadonly<
   Static<typeof AnalyticsSessionSchemas.Response>
 >;
+
+export type AnalyticsSessionSegment = Static<typeof AnalyticsSessionSchemas.Segment>;

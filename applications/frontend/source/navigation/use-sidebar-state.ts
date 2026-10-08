@@ -4,7 +4,11 @@ import { useIsMobile } from './use-mobile';
 import { SidebarPolicy } from './sidebar-policy';
 import type { SidebarContextProperties, SidebarStateOptions } from './sidebar-context';
 
-export function useSidebarState({defaultOpen = true, open: controlledOpen, onOpenChange}: SidebarStateOptions): SidebarContextProperties {
+export function useSidebarState({
+  defaultOpen = true,
+  open: controlledOpen,
+  onOpenChange,
+}: SidebarStateOptions): SidebarContextProperties {
   const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = React.useState(false);
 

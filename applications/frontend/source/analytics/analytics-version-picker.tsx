@@ -35,18 +35,11 @@ export function AnalyticsVersionPicker({
   const [offset, setOffset] = useState(0);
   const [search, setSearch] = useState('');
   const query = useMemo(
-    () => ({ funnelIdentifier, limit: AnalyticsPagePolicy.VersionOptionsPerPage, offset }),
-    [funnelIdentifier, offset],
+    () => ({ funnelIdentifier, limit: AnalyticsPagePolicy.VersionOptionsPerPage, offset, search: search.trim() }),
+    [funnelIdentifier, offset, search],
   );
   const versions = useAnalyticsVersionOptions(query, refreshSequence, onUnauthorized);
-  const visibleVersions =
-    versions.status === 'ready'
-      ? versions.response.items.filter((version) =>
-          translate(AnalyticsContent.VersionLabel, { version: version.version })
-            .toLowerCase()
-            .includes(search.trim().toLowerCase()),
-        )
-      : [];
+  const visibleVersions = versions.status === 'ready' ? versions.response.items : [];
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -69,15 +62,19 @@ export function AnalyticsVersionPicker({
         <div className="flex flex-col gap-3">
           <Input
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            aria-label={translate(AnalyticsContent.SearchPage)}
+            maxLength={AnalyticsPagePolicy.MaximumVersionSearchLength}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setOffset(0);
+            }}
+            aria-label={translate(AnalyticsContent.SearchVersions)}
             placeholder={translate(AnalyticsContent.SearchPlaceholder)}
           />
           <p className="text-xs text-muted-foreground">
             {translate(AnalyticsContent.Page)}{' '}
             {Math.floor(offset / AnalyticsPagePolicy.VersionOptionsPerPage) + 1}{' '}
             {translate(AnalyticsContent.UpTo)} {AnalyticsPagePolicy.VersionOptionsPerPage}{' '}
-            {translate(AnalyticsContent.PageSearchScope)}
+            {translate(AnalyticsContent.GlobalSearchScope)}
           </p>
           <div className="flex max-h-64 flex-col gap-1 overflow-y-auto">
             {versions.status === 'loading' && (
@@ -105,7 +102,7 @@ export function AnalyticsVersionPicker({
                 className="justify-between"
                 aria-pressed={selectedIdentifier === version.identifier}
                 onClick={() => {
-                  onSelect(version.identifier, AnalyticsContent.versionLabel(version.version));
+                  onSelect(version.identifier, translate(AnalyticsContent.VersionLabel, { version: version.version }));
                   setOpen(false);
                 }}
               >

@@ -17,7 +17,7 @@ describe('analytics cohort periods', () => {
     ]);
   });
 
-  it('creates an adjacent equal elapsed-duration prior period without changing cohort filters', () => {
+  it('compares equal calendar ranges across spring DST without changing cohort filters', () => {
     const query = AnalyticsInputs.query({
       funnelIdentifier: 'example',
       from: '2026-03-08T05:00:00.000Z',
@@ -28,8 +28,57 @@ describe('analytics cohort periods', () => {
     });
     expect(AnalyticsPeriod.previous(query)).toEqual({
       ...query,
-      from: '2026-03-06T06:00:00.000Z',
+      from: '2026-03-06T05:00:00.000Z',
       to: '2026-03-08T05:00:00.000Z',
+    });
+  });
+
+  it('compares the 25-hour autumn day with the complete preceding calendar day', () => {
+    const query = AnalyticsInputs.query({
+      funnelIdentifier: 'example',
+      from: '2026-11-01T04:00:00.000Z',
+      to: '2026-11-02T05:00:00.000Z',
+      timezone: 'America/New_York',
+    });
+    expect(AnalyticsPeriod.previous(query)).toMatchObject({
+      from: '2026-10-31T04:00:00.000Z',
+      to: '2026-11-01T04:00:00.000Z',
+    });
+  });
+
+  it('recognizes a calendar day beginning at 01:00 after a midnight gap', () => {
+    const query = AnalyticsInputs.query({
+      funnelIdentifier: 'example',
+      from: '2026-09-06T04:00:00.000Z',
+      to: '2026-09-07T03:00:00.000Z',
+      timezone: 'America/Santiago',
+    });
+    expect(AnalyticsPeriod.previous(query)).toMatchObject({
+      from: '2026-09-05T04:00:00.000Z',
+      to: '2026-09-06T04:00:00.000Z',
+    });
+    expect(
+      AnalyticsPeriod.previous({
+        ...query,
+        from: '2026-09-07T03:00:00.000Z',
+        to: '2026-09-08T03:00:00.000Z',
+      }),
+    ).toMatchObject({
+      from: '2026-09-06T04:00:00.000Z',
+      to: '2026-09-07T03:00:00.000Z',
+    });
+  });
+
+  it('preserves elapsed-duration comparison for arbitrary API timestamp intervals', () => {
+    const query = AnalyticsInputs.query({
+      funnelIdentifier: 'example',
+      from: '2026-03-08T06:00:00.000Z',
+      to: '2026-03-09T06:00:00.000Z',
+      timezone: 'America/New_York',
+    });
+    expect(AnalyticsPeriod.previous(query)).toMatchObject({
+      from: '2026-03-07T06:00:00.000Z',
+      to: '2026-03-08T06:00:00.000Z',
     });
   });
 

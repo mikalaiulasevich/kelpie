@@ -1,5 +1,15 @@
 export const AnalyticsReportTranslations: Readonly<Record<string, string>> = {
+  'Sessions matching the report filters': 'Сессии по выбранным фильтрам',
+  'Selected version': 'Выбранная версия',
+  'Previous sessions': 'Предыдущие сессии',
+  'Continued among observed source sessions: {numerator} / {denominator}':
+    'Продолжили среди просмотревших исходный шаг: {numerator} / {denominator}',
+  'Transition without a destination view: {open} open · {expired} expired':
+    'Переход без просмотра следующего шага: открыто {open} · истекло {expired}',
+  'Full recorded session history; the report period selects sessions by their start date.':
+    'Полная записанная история сессии. Период отчёта отбирает сессии по дате начала.',
   'Active version': 'Активная версия',
+  'Changes: {count}': 'Изменений: {count}',
   'Publication / rollback': 'Публикация / откат',
   'Recommendation-open rate': 'Доля открытий рекомендаций',
   'Cohort date': 'Дата начала сессии',
@@ -44,6 +54,8 @@ export const AnalyticsReportTranslations: Readonly<Record<string, string>> = {
   'Conversion window': 'Окно конверсии',
   '{hours} hours': 'Часы: {hours}',
   'Apply period': 'Применить период',
+  'Period changed. Apply it to update the report, links and export.':
+    'Период изменён. Примените его, чтобы обновить отчёт, ссылки и экспорт.',
   'Sessions are grouped by their start date. Outcomes count only within the conversion window, up to the report time.':
     'Сессии сгруппированы по дате начала. Результаты учитываются в пределах окна конверсии до момента формирования отчёта.',
   'Choose a valid date range of no more than 366 days and a supported timezone.':

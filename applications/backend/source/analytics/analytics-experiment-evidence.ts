@@ -41,8 +41,8 @@ export const AnalyticsExperimentEvidence = {
           offset: 0,
           from: plan.createdAt.toISOString(),
           to: plan.plannedEndAt.toISOString(),
-          ...(query.conversionWindowHours
-            ? { conversionWindowHours: query.conversionWindowHours }
+          ...(plan.conversionWindowHours
+            ? { conversionWindowHours: plan.conversionWindowHours }
             : {}),
         },
         [plan.versionIdentifier],
@@ -79,13 +79,13 @@ export const AnalyticsExperimentEvidence = {
         sampleTargetReached: Math.min(first.started, second.started) >= plan.targetSamplePerVariant,
         plannedEndReached: now >= plan.plannedEndAt,
         followUpComplete: Boolean(
-          query.conversionWindowHours &&
+          plan.conversionWindowHours &&
           now.getTime() >=
             plan.plannedEndAt.getTime() +
-              query.conversionWindowHours * AnalyticsPolicy.MillisecondsPerHour,
+              plan.conversionWindowHours * AnalyticsPolicy.MillisecondsPerHour,
         ),
         trafficOrigin: query.trafficOrigin,
-        conversionWindowHours: query.conversionWindowHours ?? null,
+        conversionWindowHours: plan.conversionWindowHours ?? null,
         ...AnalyticsExperimentStatistics.evidence(first, second, allocation),
       });
     }

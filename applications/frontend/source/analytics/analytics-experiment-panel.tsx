@@ -255,6 +255,13 @@ function ExperimentEvidence({ evidence }: { evidence: AnalyticsExperimentEvidenc
             : 'Insufficient evidence for a decision',
         )}
       </p>
+      {!isNull(evidence.difference) && (
+        <p
+          className={`text-lg font-medium tabular-nums ${evidence.difference < 0 ? 'text-destructive' : 'text-success'}`}
+        >
+          {t('Observed difference · B − A')}: {number.format(evidence.difference * 100)} PP
+        </p>
+      )}
       <div className="grid gap-3 text-sm sm:grid-cols-3">
         <div>
           <p className="text-muted-foreground">{t('Eligible random sessions')}</p>
@@ -276,14 +283,14 @@ function ExperimentEvidence({ evidence }: { evidence: AnalyticsExperimentEvidenc
       <ul className="space-y-1 text-sm">
         <li>
           {t('Target per variant')}: {evidence.targetSamplePerVariant} ·{' '}
-          {t(evidence.sampleTargetReached ? 'Reached' : 'Not reached')}
+          {t(evidence.sampleTargetReached ? 'Target met' : 'Not reached')}
         </li>
         <li>
           {t('Planned end')}:{' '}
           {new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(
             new Date(evidence.plannedEndAt),
           )}{' '}
-          · {t(evidence.plannedEndReached ? 'Reached' : 'Not reached')}
+          · {t(evidence.plannedEndReached ? 'End date reached' : 'Not reached')}
         </li>
         <li>
           {t('Conversion follow-up')}: {t(evidence.followUpComplete ? 'Complete' : 'Incomplete')} ·{' '}

@@ -1,3 +1,4 @@
+import { isUndefined, isNull } from 'es-toolkit/predicate';
 import { AnalyticsSessionTimeline } from './analytics-session-timeline.js';
 import type { AnalyticsSessionResponse } from './analytics-session-types.js';
 import { AnalyticsInsightsRead } from './analytics-insights.js';
@@ -28,6 +29,26 @@ const AnalyticsReadModel = {
     );
 
     return { summaries, steps, edges };
+  },
+
+  async defaultVersion(
+    transaction: Prisma.TransactionClient,
+    query: AnalyticsQuery,
+  ): Promise<AnalyticsQuery> {
+    if (!isUndefined(query.versionIdentifier)) {
+      return query;
+    }
+
+    const funnel = await transaction.funnel.findUnique({
+      where: { identifier: query.funnelIdentifier },
+      select: { activeVersionIdentifier: true },
+    });
+
+    if (isNull(funnel) || isNull(funnel.activeVersionIdentifier)) {
+      return query;
+    }
+
+    return { ...query, versionIdentifier: funnel.activeVersionIdentifier };
   },
 
   async read(
@@ -84,7 +105,12 @@ export class AnalyticsService {
     const now = new Date();
 
     return this.database.client.$transaction(
-      (transaction) => AnalyticsReadModel.read(transaction, query, now),
+      async (transaction) =>
+        AnalyticsReadModel.read(
+          transaction,
+          await AnalyticsReadModel.defaultVersion(transaction, query),
+          now,
+        ),
       { timeout: AnalyticsPolicy.TransactionTimeout },
     );
   }

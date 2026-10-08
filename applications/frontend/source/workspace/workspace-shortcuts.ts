@@ -75,20 +75,11 @@ export const WorkspaceShortcuts = {
 
   isEditing(target: EventTarget | null): boolean {
     return (
-      target instanceof Element &&
-      Boolean(
-        target.closest(
-          WorkspaceShortcutPolicy.EditingSelector,
-        ),
-      )
+      target instanceof Element && Boolean(target.closest(WorkspaceShortcutPolicy.EditingSelector))
     );
   },
 
   hasOpenOverlay(): boolean {
-    return Boolean(
-      document.querySelector(
-        WorkspaceShortcutPolicy.OverlaySelector,
-      ),
-    );
+    return Boolean(document.querySelector(WorkspaceShortcutPolicy.OverlaySelector));
   },
 } as const;

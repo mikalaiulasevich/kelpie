@@ -9,6 +9,17 @@ const Counts = {
 const Timestamp = Type.Union([Type.String(), Type.Null()]);
 const NullableNumber = Type.Union([Type.Number(), Type.Null()]);
 
+const AcquisitionOption = Type.Object({ value: Type.String(), sessions: AnalyticsSchemas.Count });
+
+const AcquisitionOptions = Type.Object({
+  sources: Type.Array(AcquisitionOption),
+  mediums: Type.Array(AcquisitionOption),
+  campaigns: Type.Array(AcquisitionOption),
+  sourcesHasMore: Type.Boolean(),
+  mediumsHasMore: Type.Boolean(),
+  campaignsHasMore: Type.Boolean(),
+});
+
 const ExperimentRow = Type.Object({
   versionIdentifier: Type.String(),
   primaryMetric: Type.String(),
@@ -34,6 +45,8 @@ const ExperimentRow = Type.Object({
 });
 
 export const AnalyticsInsightSchemas = {
+  AcquisitionOption,
+  AcquisitionOptions,
   ExperimentRow,
   ExperimentCountRow: Type.Object({
     variant: Type.String(),
@@ -72,6 +85,7 @@ export const AnalyticsInsightSchemas = {
     averageSeconds: NullableNumber,
   }),
   Insights: Type.Object({
+    acquisitionOptions: AcquisitionOptions,
     experiments: Type.Array(ExperimentRow),
     businessOutcomes: Type.Array(
       Type.Object({
@@ -157,3 +171,7 @@ export type AnalyticsBusinessOutcomeRow = Static<typeof AnalyticsInsightSchemas.
 export type AnalyticsExperimentRow = Static<typeof AnalyticsInsightSchemas.ExperimentRow>;
 
 export type AnalyticsExperimentCountRow = Static<typeof AnalyticsInsightSchemas.ExperimentCountRow>;
+
+export type AnalyticsAcquisitionOption = Static<typeof AnalyticsInsightSchemas.AcquisitionOption>;
+
+export type AnalyticsAcquisitionOptions = Static<typeof AnalyticsInsightSchemas.AcquisitionOptions>;

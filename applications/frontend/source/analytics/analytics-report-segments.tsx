@@ -19,6 +19,30 @@ export function AnalyticsReportSegments({ response, selection, onApply }: Segmen
     return null;
   }
 
+  const dimensions = [
+    {
+      field: 'source',
+      selected: 'sourceSelected',
+      label: Content.Source,
+      options: insights.acquisitionOptions.sources,
+      hasMore: insights.acquisitionOptions.sourcesHasMore,
+    },
+    {
+      field: 'medium',
+      selected: 'mediumSelected',
+      label: Content.Medium,
+      options: insights.acquisitionOptions.mediums,
+      hasMore: insights.acquisitionOptions.mediumsHasMore,
+    },
+    {
+      field: 'campaign',
+      selected: 'campaignSelected',
+      label: Content.Campaign,
+      options: insights.acquisitionOptions.campaigns,
+      hasMore: insights.acquisitionOptions.campaignsHasMore,
+    },
+  ] as const;
+
   return (
     <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
       <section className="min-w-0 rounded-xl border bg-card p-4">
@@ -43,6 +67,47 @@ export function AnalyticsReportSegments({ response, selection, onApply }: Segmen
           </Button>
         </div>
         <p className="mt-1 text-sm text-muted-foreground">{t(Content.SegmentsDescription)}</p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          {dimensions.map((dimension) => (
+            <label
+              key={dimension.field}
+              className="grid min-w-0 gap-1 text-xs text-muted-foreground"
+            >
+              {t(dimension.label)}
+              <select
+                className="report-select w-full min-w-0"
+                value={
+                  selection[dimension.selected] ? `value:${selection[dimension.field]}` : 'all'
+                }
+                onChange={(event) =>
+                  onApply({
+                    ...selection,
+                    [dimension.selected]: event.target.value !== 'all',
+                    [dimension.field]:
+                      event.target.value === 'all' ? '' : event.target.value.slice(6),
+                  })
+                }
+              >
+                <option value="all">{t(Content.All)}</option>
+                {selection[dimension.selected] &&
+                  !dimension.options.some(
+                    (option) => option.value === selection[dimension.field],
+                  ) && (
+                    <option value={`value:${selection[dimension.field]}`}>
+                      {selection[dimension.field] || t(Content.Unattributed)}
+                    </option>
+                  )}
+                {dimension.options.map((option) => (
+                  <option key={option.value} value={`value:${option.value}`}>
+                    {option.value || t(Content.Unattributed)} · {option.sessions}
+                  </option>
+                ))}
+              </select>
+              {dimension.hasMore && <span>{t(Content.Truncated)}</span>}
+            </label>
+          ))}
+        </div>
+
         <div className="mt-4 overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>

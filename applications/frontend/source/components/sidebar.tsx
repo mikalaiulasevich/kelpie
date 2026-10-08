@@ -381,7 +381,6 @@ function SidebarMenuItem({ className, ...properties }: React.ComponentProps<'li'
   );
 }
 
-
 function SidebarMenuButton({
   asChild = false,
   isActive = false,

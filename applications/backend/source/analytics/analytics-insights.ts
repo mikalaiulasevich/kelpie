@@ -1,3 +1,4 @@
+import { AnalyticsAcquisitionOptionsRead } from './analytics-acquisition-options.js';
 import { AnalyticsExperimentEvidence } from './analytics-experiment-evidence.js';
 import type { Prisma } from '../../generated/prisma/client.js';
 import { SchemaCompiler } from '../validation/schema-compiler.js';
@@ -92,6 +93,12 @@ export const AnalyticsInsightsRead = {
     });
 
     return {
+      acquisitionOptions: await AnalyticsAcquisitionOptionsRead.read(
+        transaction,
+        query,
+        versionIdentifiers,
+        now,
+      ),
       experiments: await AnalyticsExperimentEvidence.read(
         transaction,
         query,

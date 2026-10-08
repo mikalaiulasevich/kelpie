@@ -58,33 +58,31 @@ export const AnalyticsReportDates = {
 
   startOfDay(value: string, timezone: string): string {
     const target = Date.parse(`${value}T00:00:00Z`);
-    let instant = target;
     const formatter = new Intl.DateTimeFormat('en-CA', {
       timeZone: timezone,
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hourCycle: 'h23',
     });
+    let low = target - AnalyticsReportPolicy.CalendarBoundarySearchMilliseconds;
+    let high = target + AnalyticsReportPolicy.CalendarBoundarySearchMilliseconds;
 
-    for (let pass = 0; pass < AnalyticsReportPolicy.TimezoneConversionPasses; pass += 1) {
-      const values = Object.fromEntries(
-        formatter.formatToParts(new Date(instant)).map((part) => [part.type, part.value]),
-      );
-      const observed = Date.parse(
-        `${values.year}-${values.month}-${values.day}T${values.hour}:${values.minute}:${values.second}Z`,
-      );
-      const adjustment = target - observed;
-      instant += adjustment;
-      if (adjustment === 0) {
-        break;
+    // Find the first instant of the local date, even when midnight is skipped or repeated.
+    while (low < high) {
+      const middle = Math.floor((low + high) / 2);
+      const parts = formatter.formatToParts(middle);
+      const observed = ['year', 'month', 'day']
+        .map((type) => parts.find((part) => part.type === type)?.value ?? '')
+        .join('-');
+
+      if (observed < value) {
+        low = middle + 1;
+      } else {
+        high = middle;
       }
     }
 
-    return new Date(instant).toISOString();
+    return new Date(low).toISOString();
   },
 
   period(selection: ReportSelection): { from: string; to: string } | null {
@@ -104,10 +102,10 @@ export const AnalyticsReportDates = {
         return null;
       }
 
-      return {
-        from: this.startOfDay(selection.startDate, selection.timezone),
-        to: this.startOfDay(this.addDays(selection.endDate, 1), selection.timezone),
-      };
+      const from = this.startOfDay(selection.startDate, selection.timezone);
+      const to = this.startOfDay(this.addDays(selection.endDate, 1), selection.timezone);
+
+      return from < to ? { from, to } : null;
     } catch {
       return null;
     }
@@ -183,7 +181,9 @@ export const AnalyticsReportState = {
       storage.getItem(AnalyticsReportPolicy.SavedReportsKey) ?? '[]',
     );
 
-    return validateSaved(value) ? value : [];
+    return validateSaved(value)
+      ? value.filter((report) => AnalyticsReportDates.period(report.selection))
+      : [];
   },
 
   save(storage: Pick<Storage, 'getItem' | 'setItem'>, report: SavedReport): void {

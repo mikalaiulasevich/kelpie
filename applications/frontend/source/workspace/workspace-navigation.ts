@@ -11,7 +11,7 @@ export const WorkspacePage = {
 
 export type WorkspacePage = ValueOf<typeof WorkspacePage>;
 
-const WorkspaceSchemas = {
+export const WorkspaceSchemas = {
   Location: Type.Object({
     page: Type.Enum(WorkspacePage),
     funnelIdentifier: Type.String(),

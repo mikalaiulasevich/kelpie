@@ -21,6 +21,8 @@ export function AnalyticsReportOverview({ response }: { readonly response: Analy
       label: Content.Started,
       count: started,
       icon: Users,
+      tone: 'bg-info/10 text-info',
+      bar: 'bg-info',
       previous: previous?.started,
       rate: false,
     },
@@ -28,6 +30,8 @@ export function AnalyticsReportOverview({ response }: { readonly response: Analy
       label: Content.Results,
       count: results,
       icon: CircleCheck,
+      tone: 'bg-success/10 text-success',
+      bar: 'bg-success',
       previous: previous?.results,
       rate: true,
     },
@@ -35,6 +39,8 @@ export function AnalyticsReportOverview({ response }: { readonly response: Analy
       label: Content.Opens,
       count: opens,
       icon: MousePointer2,
+      tone: 'bg-primary/10 text-primary',
+      bar: 'bg-primary',
       previous: previous?.clicks,
       rate: true,
     },
@@ -55,22 +61,48 @@ export function AnalyticsReportOverview({ response }: { readonly response: Analy
               : null;
 
           return (
-            <section key={metric.label} className="rounded-xl border bg-card p-4">
+            <section key={metric.label} className="flex flex-col rounded-xl border bg-card p-4">
               <h3 className="flex items-center gap-2 text-sm font-medium">
-                <span className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <span
+                  className={`flex size-8 shrink-0 items-center justify-center rounded-full ${metric.tone}`}
+                >
                   <Icon className="size-4" />
                 </span>
                 {t(metric.label)}
               </h3>
               <p className="mt-4 text-4xl leading-none font-medium tracking-tight tabular-nums">
-                {metric.rate ? Report.percentage(metric.count, started) : metric.count}
+                {metric.rate
+                  ? Report.percentageParts(metric.count, started).map((part, index) => (
+                      <span
+                        key={`${part.type}-${index}`}
+                        className={
+                          part.type === 'percentSign'
+                            ? 'ml-0.5 text-xl text-muted-foreground'
+                            : undefined
+                        }
+                      >
+                        {part.value}
+                      </span>
+                    ))
+                  : metric.count}
               </p>
-              <p className="mt-3 text-sm text-muted-foreground">
-                {t(Content.Sample, { numerator: metric.count, denominator: started })}
+              <p className="mt-3 mb-3 text-sm text-muted-foreground">
+                {metric.rate
+                  ? t(Content.Sample, { numerator: metric.count, denominator: started })
+                  : t(Content.SelectedCohort)}
               </p>
+              {metric.rate && (
+                <div className="mb-3 h-1 overflow-hidden rounded-full bg-muted" aria-hidden="true">
+                  <div
+                    className={`h-full rounded-full ${metric.bar}`}
+                    style={{ width: `${Report.rate(metric.count, started) ?? 0}%` }}
+                  />
+                </div>
+              )}
               {!isNull(difference) && (
                 <p
-                  className={`mt-3 border-t pt-3 text-sm tabular-nums ${difference < 0 ? 'text-destructive' : 'text-success'}`}
+                  data-direction={Math.sign(difference)}
+                  className={`mt-auto border-t pt-3 text-sm tabular-nums data-[direction='-1']:text-destructive data-[direction='1']:text-success ${difference === 0 ? 'text-muted-foreground' : ''}`}
                 >
                   {t(Content.Difference, {
                     difference: `${difference > 0 ? '+' : ''}${difference.toFixed(1)}`,
@@ -78,12 +110,12 @@ export function AnalyticsReportOverview({ response }: { readonly response: Analy
                 </p>
               )}
               {!metric.rate && previous && (
-                <p className="mt-3 border-t pt-3 text-sm text-muted-foreground">
+                <p className="mt-auto border-t pt-3 text-sm text-muted-foreground">
                   {t(Content.Previous)}: {previous.started}
                 </p>
               )}
               {metric.rate && isNull(difference) && (
-                <p className="mt-3 border-t pt-3 text-xs text-muted-foreground">
+                <p className="mt-auto border-t pt-3 text-xs text-muted-foreground">
                   {t(Content.NoComparison)}
                 </p>
               )}
@@ -92,7 +124,7 @@ export function AnalyticsReportOverview({ response }: { readonly response: Analy
         })}
       </div>
       <p className="text-sm text-muted-foreground">
-        {t(Content.Engagement)} {t(Content.Observed)}
+        {t(Content.Engagement)} {t(started < 2 ? Content.Insufficient : Content.Observed)}
       </p>
       {started === 0 && (
         <div className="rounded-lg border border-info/30 bg-info/5 p-4">
@@ -111,7 +143,7 @@ export function AnalyticsReportOverview({ response }: { readonly response: Analy
               {t(Content.LastEvent)}
               <span className="mt-1 block text-muted-foreground">
                 {quality.latestEventAt
-                  ? new Date(quality.latestEventAt).toLocaleString()
+                  ? Report.timestamp(quality.latestEventAt, response.filters.timezone)
                   : t(Content.NoEvents)}
               </span>
             </p>

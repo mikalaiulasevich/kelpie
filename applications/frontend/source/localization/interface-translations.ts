@@ -136,8 +136,8 @@ export const InterfaceTranslations: Readonly<Record<string, string>> = {
   Retry: 'Повторить',
   'Ribbon width shows session count on a shared scale.':
     'Ширина полосы показывает число сессий в едином масштабе.',
-  'Search this page': 'Поиск на странице',
-  'Search this page…': 'Поиск на странице…',
+  'Search all versions': 'Поиск по всем версиям',
+  'Version number, schema or checksum…': 'Номер версии, схема или контрольная сумма…',
   'See how many sessions reached each step and continued to the next one.':
     'Число сессий, дошедших до каждого шага и продолживших прохождение.',
   'Selected filters': 'Выбранные фильтры',
@@ -188,7 +188,7 @@ export const InterfaceTranslations: Readonly<Record<string, string>> = {
   'starts viewed a result': 'начатых сессий с просмотром результата',
   steps: 'шагов',
   'steps ·': 'шагов ·',
-  'versions. Search covers this page.': 'версий. Поиск работает на текущей странице.',
+  'versions per page. Search covers all versions.': 'версий на странице. Поиск работает по всем версиям.',
   'where available': 'при наличии',
   '· Across selected variants': '· По выбранным вариантам',
   '· paths': '· переходов',

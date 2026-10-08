@@ -29,7 +29,7 @@ export const SessionFixtures = {
       type: 'number',
       content: { title: 'Numeric answer' },
       input: { name: 'numeric-answer', min: 0, max: 1, step: 0.1 },
-      validation: { required: true },
+      validation: { required: true, messages: {} },
     };
   },
 

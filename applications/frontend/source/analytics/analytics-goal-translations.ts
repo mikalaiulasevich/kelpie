@@ -1,4 +1,7 @@
 export const AnalyticsGoalTranslations: Readonly<Record<string, string>> = {
+  'Target met': 'Цель достигнута',
+  'End date reached': 'Дата наступила',
+  'Observed difference · B − A': 'Наблюдаемая разница · B − A',
   'All-time outcome records': 'Все записи результатов за всё время',
   'Conversion window · hours': 'Окно конверсии · часы',
   'Conversion follow-up': 'Ожидание конверсий',

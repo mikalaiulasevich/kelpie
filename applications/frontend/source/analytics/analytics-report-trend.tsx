@@ -4,7 +4,7 @@ import {
   CartesianGrid,
   ComposedChart,
   Line,
-  ResponsiveContainer,
+  ReferenceLine,
   Tooltip,
   XAxis,
   YAxis,
@@ -23,6 +23,10 @@ export function AnalyticsReportTrend({ response }: { readonly response: Analytic
     return null;
   }
 
+  const publicationsByDay = Report.publicationsByDay(
+    insights.publications,
+    insights.period.timezone,
+  );
   const points = insights.trend.map((point) => ({
     ...point,
     rate: Report.rate(point.clicks, point.started),
@@ -35,71 +39,114 @@ export function AnalyticsReportTrend({ response }: { readonly response: Analytic
       </h3>
       <p className="mt-1 text-sm text-muted-foreground">{t(Content.TrendDescription)}</p>
       <div className="mt-4 h-64 min-w-0" role="img" aria-label={t(Content.Trend)}>
-        <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={points} margin={{ top: 12, right: 10, bottom: 0, left: 0 }}>
-            <CartesianGrid vertical={false} stroke="var(--border)" />
-            <XAxis
-              dataKey="date"
-              tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
-              tickFormatter={(date: string) => date.slice(5)}
-            />
-            <YAxis
+        <ComposedChart
+          responsive
+          width="100%"
+          height="100%"
+          data={points}
+          margin={{ top: 12, right: 10, bottom: 0, left: 0 }}
+        >
+          <CartesianGrid vertical={false} stroke="var(--border)" />
+          <XAxis
+            dataKey="date"
+            tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
+            tickFormatter={(date: string) => date.slice(5)}
+          />
+          <YAxis
+            yAxisId="count"
+            allowDecimals={false}
+            tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
+            width={40}
+          />
+          <YAxis
+            yAxisId="rate"
+            orientation="right"
+            domain={[0, 100]}
+            unit="%"
+            tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
+            width={48}
+          />
+          {Object.entries(publicationsByDay).map(([date, publications]) => (
+            <ReferenceLine
+              key={date}
               yAxisId="count"
-              allowDecimals={false}
-              tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
-              width={40}
-            />
-            <YAxis
-              yAxisId="rate"
-              orientation="right"
-              domain={[0, 100]}
-              unit="%"
-              tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
-              width={48}
-            />
-            <Tooltip
-              contentStyle={{
-                background: 'var(--card)',
-                borderColor: 'var(--border)',
-                borderRadius: 8,
-                color: 'var(--foreground)',
+              x={date}
+              stroke="var(--warning)"
+              strokeDasharray="4 4"
+              label={{
+                value: t(Content.PublicationCount, { count: publications.length }),
+                fill: 'var(--warning)',
+                fontSize: 11,
+                position: 'insideTopRight',
               }}
             />
-            <Bar
-              yAxisId="count"
-              dataKey="started"
-              name={t(Content.Started)}
-              fill="var(--info)"
-              opacity={0.45}
-              maxBarSize={28}
-              radius={[3, 3, 0, 0]}
-            />
-            <Line
-              yAxisId="rate"
-              dataKey="rate"
-              name={t(Content.Rate)}
-              stroke="var(--primary)"
-              strokeWidth={2}
-              dot={{ r: 3 }}
-              connectNulls={false}
-              unit="%"
-            />
-          </ComposedChart>
-        </ResponsiveContainer>
+          ))}
+          <Tooltip
+            labelFormatter={(label) => Report.cohortDate(String(label))}
+            formatter={(value, name, item) => [
+              typeof value === 'number' && item.dataKey === 'rate'
+                ? Report.percentage(value, 100)
+                : value,
+              name,
+            ]}
+            contentStyle={{
+              background: 'var(--card)',
+              borderColor: 'var(--border)',
+              borderRadius: 8,
+              color: 'var(--foreground)',
+            }}
+          />
+          <Bar
+            yAxisId="count"
+            dataKey="started"
+            name={t(Content.Started)}
+            fill="var(--info)"
+            opacity={0.45}
+            maxBarSize={28}
+            radius={[3, 3, 0, 0]}
+          />
+          <Line
+            yAxisId="rate"
+            dataKey="rate"
+            name={t(Content.Rate)}
+            stroke="var(--primary)"
+            strokeWidth={2}
+            dot={{ r: 3 }}
+            connectNulls={false}
+          />
+        </ComposedChart>
       </div>
       <div className="mt-2 flex flex-wrap gap-4 text-xs">
         <span className="text-info">● {t(Content.Started)}</span>
         <span className="text-primary">● {t(Content.Rate)}</span>
       </div>
       {insights.publications.length > 0 && (
-        <ul className="mt-4 flex flex-wrap gap-2 border-t pt-3">
-          {insights.publications.map((publication) => (
-            <li key={publication.revision} className="rounded-md bg-muted px-2 py-1 text-xs">
-              {t(Content.Publication)} · {new Date(publication.occurredAt).toLocaleString()} · r
-              {publication.revision}
-            </li>
+        <div className="mt-4 grid gap-2 border-t pt-3">
+          {Object.entries(publicationsByDay).map(([date, publications]) => (
+            <details key={date} className="rounded-md border bg-muted/30 px-3 py-2 text-sm">
+              <summary className="cursor-pointer">
+                {Report.cohortDate(date)} ·{' '}
+                {t(Content.PublicationCount, { count: publications.length })}
+              </summary>
+              <ul className="mt-2 grid gap-2 border-t pt-2">
+                {publications.map((publication) => (
+                  <li
+                    key={publication.revision}
+                    className="flex flex-wrap justify-between gap-x-3 text-xs"
+                  >
+                    <span>
+                      {t(publication.action === 'rollback' ? 'Rolled back' : 'Published')} · r
+                      {publication.revision}
+                    </span>
+                    <time dateTime={publication.occurredAt} className="text-muted-foreground">
+                      {Report.timestamp(publication.occurredAt, response.filters.timezone)}
+                    </time>
+                  </li>
+                ))}
+              </ul>
+            </details>
           ))}
-        </ul>
+        </div>
       )}
       {insights.publicationsHasMore && (
         <p className="mt-2 text-xs text-muted-foreground">{t(Content.Truncated)}</p>
@@ -124,7 +171,7 @@ export function AnalyticsReportTrend({ response }: { readonly response: Analytic
             <tbody>
               {points.map((point) => (
                 <tr className="border-t" key={point.date}>
-                  <td className="p-2">{point.date}</td>
+                  <td className="p-2">{Report.cohortDate(point.date)}</td>
                   <td>{point.started}</td>
                   <td>{point.results}</td>
                   <td>{point.clicks}</td>

@@ -57,7 +57,7 @@ export const AnalyticsInsightQueries = {
     return Prisma.sql`${cohort}
       SELECT (SELECT MAX(${AnalyticsQueries.timestamp(Prisma.sql`e."serverTimestamp"`)})
         FROM "Event" e JOIN cohort c ON c."identifier" = e."sessionIdentifier") AS "latestEventAt",
-        COALESCE(SUM(NOT expired), 0) AS "openSessions", COALESCE(SUM(expired), 0) AS "matureSessions"
+        COALESCE(SUM(NOT "conversionMature"), 0) AS "openSessions", COALESCE(SUM("conversionMature"), 0) AS "matureSessions"
       FROM cohort`;
   },
 
