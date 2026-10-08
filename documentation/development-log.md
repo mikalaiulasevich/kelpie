@@ -216,3 +216,5 @@ Parallel traffic-seed tooling changes appeared after this completed verification
 ### October 8 — Refactoring and synthetic seed failure handling
 
 Extracted receipt validation, paired compaction rows with prevalidated measurements and corrected the seed importer so identifier remapping cannot alter answer/configuration/metadata strings. Tightened duplicate/empty CLI arguments and cohort contract ownership. Database/file cleanup now preserves both operation and disposal errors; acquired fixtures release resources after setup rejection. Added real SQLite/filesystem stage regressions alongside isolated injected failures and completed independent second-pass review. Verification and hosted/browser limits are recorded in the engineering review.
+
+Final integrated npm run verify:bun passed 906 Node tests and 480 Bun backend tests, lint, formatting, types, production builds, configuration checksums and database schema validation. The bounded-worker rerun preserved all assertions and the existing 15-second test deadline. No new hosted load, deployment or browser acceptance is claimed.
