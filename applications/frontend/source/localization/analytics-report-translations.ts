@@ -1,5 +1,8 @@
 export const AnalyticsReportTranslations: Readonly<Record<string, string>> = {
   'Sessions matching the report filters': 'Сессии по выбранным фильтрам',
+  'Completions without a view': 'Завершения без просмотра',
+  'Window complete': 'Окно завершено',
+  'Still observing': 'Ещё наблюдаем',
   'Selected version': 'Выбранная версия',
   'Previous sessions': 'Предыдущие сессии',
   'Continued among observed source sessions: {numerator} / {denominator}':

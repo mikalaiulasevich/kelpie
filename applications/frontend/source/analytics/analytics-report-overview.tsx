@@ -1,5 +1,13 @@
 import { isNull, isUndefined } from 'es-toolkit/predicate';
-import { Users, CircleCheck, MousePointer2, ShieldCheck, AlertTriangle } from 'lucide-react';
+import {
+  Users,
+  CircleCheck,
+  MousePointer2,
+  ShieldCheck,
+  AlertTriangle,
+  Activity,
+  Clock3,
+} from 'lucide-react';
 import type { AnalyticsResponse } from '../management/management-types';
 import { useLocalization } from '../localization/use-localization';
 import { AnalyticsReportContent as Content } from './analytics-report-content';
@@ -138,34 +146,67 @@ export function AnalyticsReportOverview({ response }: { readonly response: Analy
             <ShieldCheck className="size-4 text-info" />
             {t(Content.Quality)}
           </h3>
-          <div className="mt-3 grid gap-3 text-sm md:grid-cols-3">
-            <p>
-              {t(Content.LastEvent)}
-              <span className="mt-1 block text-muted-foreground">
+          <div className="mt-4 grid gap-4 text-sm md:grid-cols-3">
+            <div className="analytics-accent-card rounded-lg border p-4" data-tone="info">
+              <p className="flex items-center gap-2 text-muted-foreground">
+                <Activity aria-hidden="true" className="size-4 shrink-0 text-info" />
+                {t(Content.LastEvent)}
+              </p>
+              <p className="mt-3 font-medium leading-relaxed">
                 {quality.latestEventAt
                   ? Report.timestamp(quality.latestEventAt, response.filters.timezone)
                   : t(Content.NoEvents)}
-              </span>
-            </p>
-            <p>
-              {t(Content.MissingViews, { count: quality.missingStepViews })}
-              <span className="mt-1 block text-muted-foreground">
+              </p>
+            </div>
+            <div
+              className="analytics-accent-card rounded-lg border p-4"
+              data-tone={quality.missingStepViews > 0 ? 'warning' : 'success'}
+            >
+              <p className="flex items-center gap-2 text-muted-foreground">
+                {quality.missingStepViews > 0 ? (
+                  <AlertTriangle aria-hidden="true" className="size-4 shrink-0 text-warning" />
+                ) : (
+                  <CircleCheck aria-hidden="true" className="size-4 shrink-0 text-success" />
+                )}
+
+                {t(Content.MissingViewsTitle)}
+              </p>
+              <p
+                className={`mt-3 text-2xl font-medium tabular-nums ${quality.missingStepViews > 0 ? 'text-warning' : 'text-success'}`}
+              >
+                {quality.missingStepViews}
+              </p>
+              <p className="mt-3 max-w-prose text-xs leading-relaxed text-muted-foreground">
                 {t(Content.MissingDescription)}
-              </span>
-            </p>
-            <p>
-              {t(Content.QualitySummary, {
-                mature: quality.matureSessions,
-                open: quality.openSessions,
-              })}
-              <span className="mt-1 block text-muted-foreground">
-                {quality.matureSessions < started && t(Content.StillObserving)}
-              </span>
-            </p>
+              </p>
+            </div>
+            <div className="analytics-accent-card rounded-lg border p-4" data-tone="violet">
+              <p className="flex items-center gap-2 text-muted-foreground">
+                <Clock3 aria-hidden="true" className="size-4 shrink-0 text-violet" />
+                {t(Content.Window)}
+              </p>
+              <dl className="mt-3 grid gap-2">
+                <div className="flex items-baseline justify-between gap-3">
+                  <dt>{t(Content.MatureSessions)}</dt>
+                  <dd className="text-xl font-medium tabular-nums">{quality.matureSessions}</dd>
+                </div>
+                <div className="flex items-baseline justify-between gap-3">
+                  <dt>{t(Content.PendingSessions)}</dt>
+                  <dd className="text-xl font-medium tabular-nums text-violet">
+                    {quality.openSessions}
+                  </dd>
+                </div>
+              </dl>
+              {quality.matureSessions < started && (
+                <p className="mt-3 max-w-prose text-xs leading-relaxed text-muted-foreground">
+                  {t(Content.StillObserving)}
+                </p>
+              )}
+            </div>
           </div>
           {response.filters.trafficOrigin !== 'production' && (
-            <p className="mt-3 flex items-center gap-2 text-sm text-warning">
-              <AlertTriangle className="size-4" />
+            <p className="mt-4 flex items-start gap-2 rounded-lg bg-warning/8 px-3 py-2.5 text-sm leading-relaxed text-warning">
+              <AlertTriangle aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
               {t(Content.TestTraffic)}
             </p>
           )}

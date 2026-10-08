@@ -1,5 +1,13 @@
 import { useCallback, useId, useState } from 'react';
-import { BadgeCheck, Unplug } from 'lucide-react';
+import {
+  BadgeCheck,
+  ChevronDown,
+  History,
+  PlusCircle,
+  ShoppingBag,
+  Unplug,
+  UserRound,
+} from 'lucide-react';
 import { Button } from '../components/button';
 import { Input } from '../components/input';
 import { useLocalization } from '../localization/use-localization';
@@ -19,6 +27,65 @@ interface AnalyticsBusinessPanelProperties {
   onChanged?: () => void;
 }
 
+interface OutcomeMetricCardProperties {
+  kind: string;
+  total: number;
+  manual: number;
+  integration: number;
+}
+
+const OutcomePresentation = {
+  lead: { icon: UserRound, tone: 'info', iconClassName: 'text-info bg-info/10' },
+  qualified: { icon: BadgeCheck, tone: 'violet', iconClassName: 'text-violet bg-violet/10' },
+  purchase: { icon: ShoppingBag, tone: 'success', iconClassName: 'text-success bg-success/10' },
+} as const;
+
+function OutcomeMetricCard({
+  kind,
+  total,
+  manual,
+  integration,
+}: OutcomeMetricCardProperties): UIElement {
+  const { t, locale } = useLocalization();
+  const presentation =
+    kind === 'lead' || kind === 'qualified' || kind === 'purchase'
+      ? OutcomePresentation[kind]
+      : { icon: BadgeCheck, tone: 'info', iconClassName: 'text-muted-foreground bg-muted/40' };
+  const Icon = presentation.icon;
+  const numberFormat = new Intl.NumberFormat(locale);
+
+  return (
+    <div
+      className="analytics-accent-card min-w-0 rounded-lg border p-4"
+      data-tone={presentation.tone}
+    >
+      <dt className="flex items-center gap-2.5 text-sm leading-snug">
+        <span
+          className={`flex size-8 shrink-0 items-center justify-center rounded-full ${presentation.iconClassName}`}
+        >
+          <Icon className="size-4" aria-hidden="true" />
+        </span>
+        {t(kind)}
+      </dt>
+      <dd className="mt-3 text-3xl font-medium tracking-tight tabular-nums">
+        {numberFormat.format(total)}
+      </dd>
+      <dd className="mt-3 border-t border-border/70 pt-3">
+        <dl className="grid gap-1.5 text-xs leading-relaxed">
+          <div className="flex items-baseline justify-between gap-3">
+            <dt className="text-muted-foreground">{t('Manual')}</dt>
+            <dd className="font-medium tabular-nums">{numberFormat.format(manual)}</dd>
+          </div>
+          <div className="flex items-baseline justify-between gap-3">
+            <dt className="text-muted-foreground">{t('Integration')}</dt>
+            <dd className="font-medium tabular-nums">{numberFormat.format(integration)}</dd>
+          </div>
+        </dl>
+      </dd>
+    </div>
+  );
+}
+
 export function AnalyticsBusinessPanel(properties: AnalyticsBusinessPanelProperties): UIElement {
   return (
     <BusinessOutcomeForm
@@ -35,7 +102,7 @@ function BusinessOutcomeForm({
   onUnauthorized,
   onChanged,
 }: AnalyticsBusinessPanelProperties): UIElement {
-  const { t, locale } = useLocalization();
+  const { t } = useLocalization();
   const identifier = useId();
   const command = useAnalyticsGoalCommand(onUnauthorized, onChanged);
   const request = useCallback(
@@ -60,15 +127,15 @@ function BusinessOutcomeForm({
           <h3 id={`${identifier}-title`} className="font-semibold">
             {t('Business outcomes')}
           </h3>
-          <p className="text-sm text-muted-foreground">
+          <p className="mt-1 max-w-3xl text-sm leading-relaxed text-muted-foreground">
             {t(
               'Recommendation opens measure engagement. Leads and purchases require separate confirmation.',
             )}
           </p>
         </div>
       </header>
-      <div className="flex gap-2 rounded-lg bg-muted/40 p-3 text-sm">
-        <Unplug className="size-4 shrink-0 mt-0.5" />
+      <div className="flex gap-3 rounded-lg border border-warning/20 bg-warning/5 p-3 text-sm leading-relaxed">
+        <Unplug className="size-4 shrink-0 mt-0.5 text-warning" aria-hidden="true" />
         <p>
           {t(
             'No automated connector is configured. Records below are administrator-reported, not verified sales.',
@@ -78,32 +145,36 @@ function BusinessOutcomeForm({
       {outcomes && (
         <div className="border-t pt-3 space-y-2">
           <h4 className="font-medium">{t('Selected report cohort')}</h4>
-          <p className="text-xs text-muted-foreground">
+          <p className="max-w-3xl text-xs leading-relaxed text-muted-foreground">
             {t(
               'Unique sessions with a confirmed outcome within the selected conversion window. Manual and integration counts may overlap.',
             )}
           </p>
-          <dl className="grid grid-cols-3 gap-3">
+          <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {outcomes.map((outcome) => (
-              <div key={outcome.kind}>
-                <dt className="text-sm text-muted-foreground">{t(outcome.kind)}</dt>
-                <dd className="text-xl tabular-nums">
-                  {new Intl.NumberFormat(locale).format(outcome.sessions)}
-                </dd>
-                <p className="text-xs text-muted-foreground">
-                  {t('Manual')}: {outcome.manualSessions} · {t('Integration')}:{' '}
-                  {outcome.integrationSessions}
-                </p>
-              </div>
+              <OutcomeMetricCard
+                key={outcome.kind}
+                kind={outcome.kind}
+                total={outcome.sessions}
+                manual={outcome.manualSessions}
+                integration={outcome.integrationSessions}
+              />
             ))}
           </dl>
         </div>
       )}
-      <details className="space-y-3 border-t pt-3">
-        <summary className="cursor-pointer text-sm font-medium">
-          {t('All-time outcome records')}
+      <details className="analytics-disclosure space-y-3 border-t pt-3">
+        <summary className="flex cursor-pointer items-center justify-between gap-3 text-sm font-medium">
+          <span className="flex items-center gap-2.5">
+            <History className="size-4 shrink-0 text-info" aria-hidden="true" />
+            {t('All-time outcome records')}
+          </span>
+          <ChevronDown
+            className="analytics-disclosure-chevron size-4 shrink-0"
+            aria-hidden="true"
+          />
         </summary>
-        <p className="text-xs text-muted-foreground">
+        <p className="max-w-3xl text-xs leading-relaxed text-muted-foreground">
           {t(
             'All-time records for this funnel, including synthetic traffic. These are event counts, not unique customers or conversion rates.',
           )}
@@ -115,34 +186,36 @@ function BusinessOutcomeForm({
           </p>
         )}
         {read.status === 'ready' && (
-          <dl className="grid grid-cols-3 gap-3">
+          <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {(['lead', 'qualified', 'purchase'] as const).map((outcome) => (
-              <div key={outcome} className="rounded-lg border p-3">
-                <dt className="text-sm text-muted-foreground">{t(outcome)}</dt>
-                <dd className="text-2xl tabular-nums font-medium">
-                  {new Intl.NumberFormat(locale).format(
-                    read.data.counts
-                      .filter((row) => row.kind === outcome)
-                      .reduce((total, row) => total + row.count, 0),
-                  )}
-                </dd>
-                <p className="text-xs text-muted-foreground">
-                  {t('Manual')}:{' '}
-                  {read.data.counts
-                    .filter((row) => row.kind === outcome && row.provenance === 'manual')
-                    .reduce((total, row) => total + row.count, 0)}{' '}
-                  · {t('Integration')}:{' '}
-                  {read.data.counts
-                    .filter((row) => row.kind === outcome && row.provenance === 'integration')
-                    .reduce((total, row) => total + row.count, 0)}
-                </p>
-              </div>
+              <OutcomeMetricCard
+                key={outcome}
+                kind={outcome}
+                total={read.data.counts
+                  .filter((row) => row.kind === outcome)
+                  .reduce((total, row) => total + row.count, 0)}
+                manual={read.data.counts
+                  .filter((row) => row.kind === outcome && row.provenance === 'manual')
+                  .reduce((total, row) => total + row.count, 0)}
+                integration={read.data.counts
+                  .filter((row) => row.kind === outcome && row.provenance === 'integration')
+                  .reduce((total, row) => total + row.count, 0)}
+              />
             ))}
           </dl>
         )}
       </details>
-      <details className="border-t pt-3" open={!!sessionIdentifier}>
-        <summary className="cursor-pointer font-medium">{t('Record a confirmed outcome')}</summary>
+      <details className="analytics-disclosure border-t pt-3" open={!!sessionIdentifier}>
+        <summary className="flex cursor-pointer items-center justify-between gap-3 text-sm font-medium">
+          <span className="flex items-center gap-2.5">
+            <PlusCircle className="size-4 shrink-0 text-primary" aria-hidden="true" />
+            {t('Record a confirmed outcome')}
+          </span>
+          <ChevronDown
+            className="analytics-disclosure-chevron size-4 shrink-0"
+            aria-hidden="true"
+          />
+        </summary>
         <form
           className="mt-3 space-y-3"
           onSubmit={(event) => {
@@ -224,7 +297,7 @@ function BusinessOutcomeForm({
               />
             </label>
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="max-w-3xl text-xs leading-relaxed text-muted-foreground">
             {t(
               'Use the same source and external identifier when retrying. Do not enter names, email addresses or other personal data.',
             )}

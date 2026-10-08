@@ -157,12 +157,13 @@ export function AnalyticsReportControls({
       </div>
       <form
         onSubmit={apply}
-        className="grid grid-cols-2 items-end gap-3 md:grid-cols-[1fr_1fr_1.2fr_1fr_auto]"
+        className="grid grid-cols-2 items-end gap-3 xl:grid-cols-[1fr_1fr_1.2fr_1fr_auto]"
       >
         <label className="grid min-w-0 gap-1.5 text-sm">
           {t(Content.From)}
           <Input
             type="date"
+            className="h-10"
             required
             value={draft.startDate}
             onChange={(event) => updateDraft({ ...draft, startDate: event.target.value })}
@@ -172,6 +173,7 @@ export function AnalyticsReportControls({
           {t(Content.Through)}
           <Input
             type="date"
+            className="h-10"
             required
             value={draft.endDate}
             onChange={(event) => updateDraft({ ...draft, endDate: event.target.value })}
@@ -207,7 +209,11 @@ export function AnalyticsReportControls({
             )}
           </select>
         </label>
-        <Button type="submit" className="col-span-2 md:col-span-1" disabled={!hasPendingChanges}>
+        <Button
+          type="submit"
+          className="col-span-2 h-10 xl:col-span-1"
+          disabled={!hasPendingChanges}
+        >
           {t(Content.Apply)}
         </Button>
       </form>

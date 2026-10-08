@@ -43,7 +43,7 @@ export function ConfigurationInspection({
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4">
         <section
           aria-label={translate(ConfigurationInspectionContent.VersionInformation)}
           className="min-w-0 flex-1 rounded-lg bg-muted/40 px-4 py-3"
@@ -75,32 +75,34 @@ export function ConfigurationInspection({
             )}
           </div>
         </section>
-        <div className="flex shrink-0 items-center gap-3">
-          <label htmlFor="inspection-variant" className="text-sm text-muted-foreground">
-            {translate(ConfigurationInspectionContent.Preview)}
-          </label>
-          <Select
-            value={variant}
-            onValueChange={(value) => {
-              if (value === ExperimentVariant.A || value === ExperimentVariant.B) {
-                setVariant(value);
-              }
-            }}
-          >
-            <SelectTrigger id="inspection-variant" className="w-36">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value={ExperimentVariant.A}>
-                  {translate(ConfigurationInspectionContent.VariantA)}
-                </SelectItem>
-                <SelectItem value={ExperimentVariant.B}>
-                  {translate(ConfigurationInspectionContent.VariantB)}
-                </SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+        <div className="flex min-w-0 flex-wrap items-start gap-3">
+          <div className="flex h-10 items-center gap-3">
+            <label htmlFor="inspection-variant" className="text-sm text-muted-foreground">
+              {translate(ConfigurationInspectionContent.Preview)}
+            </label>
+            <Select
+              value={variant}
+              onValueChange={(value) => {
+                if (value === ExperimentVariant.A || value === ExperimentVariant.B) {
+                  setVariant(value);
+                }
+              }}
+            >
+              <SelectTrigger id="inspection-variant" className="h-10 w-36 data-[size=default]:h-10">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value={ExperimentVariant.A}>
+                    {translate(ConfigurationInspectionContent.VariantA)}
+                  </SelectItem>
+                  <SelectItem value={ExperimentVariant.B}>
+                    {translate(ConfigurationInspectionContent.VariantB)}
+                  </SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
           {versionIdentifier && (
             <ConfigurationPreview
               key={`${versionIdentifier}:${variant}`}

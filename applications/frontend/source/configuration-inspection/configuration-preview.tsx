@@ -67,12 +67,17 @@ export function ConfigurationPreview({
   };
 
   return (
-    <div className="flex flex-col items-start gap-2">
-      <Button variant="outline" disabled={busy || !quizOrigin} onClick={() => void start()}>
+    <div className="flex min-w-0 flex-col items-start gap-2">
+      <Button
+        className="h-10"
+        variant="outline"
+        disabled={busy || !quizOrigin}
+        onClick={() => void start()}
+      >
         <Play />
         {translate(busy ? 'Preparing preview…' : 'Test this version')}
       </Button>
-      <p className="max-w-sm text-xs text-muted-foreground">
+      <p className="max-w-sm text-xs leading-relaxed text-muted-foreground">
         {translate('Synthetic session. Your normal quiz session is kept separately.')}
       </p>
       {ready && quizOrigin && (

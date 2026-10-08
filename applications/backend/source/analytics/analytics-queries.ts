@@ -37,7 +37,11 @@ export const AnalyticsQueries = {
     }
 
     if (!isUndefined(query.campaign)) {
-      conditions.push(Prisma.sql`s."campaign" = ${query.campaign}`);
+      conditions.push(
+        query.campaign === ''
+          ? Prisma.sql`(s."campaign" IS NULL OR s."campaign" = '')`
+          : Prisma.sql`s."campaign" = ${query.campaign}`,
+      );
     }
 
     for (const [parameter, path] of [

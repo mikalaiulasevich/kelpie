@@ -1,3 +1,4 @@
+import { ChevronDown, History, Table2 } from 'lucide-react';
 import { useId } from 'react';
 import {
   Bar,
@@ -123,10 +124,15 @@ export function AnalyticsReportTrend({ response }: { readonly response: Analytic
       {insights.publications.length > 0 && (
         <div className="mt-4 grid gap-2 border-t pt-3">
           {Object.entries(publicationsByDay).map(([date, publications]) => (
-            <details key={date} className="rounded-md border bg-muted/30 px-3 py-2 text-sm">
-              <summary className="cursor-pointer">
+            <details
+              key={date}
+              className="analytics-disclosure rounded-lg border bg-muted/20 px-2 text-sm"
+            >
+              <summary>
+                <History aria-hidden="true" className="size-4 shrink-0 text-warning" />
                 {Report.cohortDate(date)} ·{' '}
                 {t(Content.PublicationCount, { count: publications.length })}
+                <ChevronDown aria-hidden="true" className="analytics-disclosure-chevron" />
               </summary>
               <ul className="mt-2 grid gap-2 border-t pt-2">
                 {publications.map((publication) => (
@@ -151,9 +157,11 @@ export function AnalyticsReportTrend({ response }: { readonly response: Analytic
       {insights.publicationsHasMore && (
         <p className="mt-2 text-xs text-muted-foreground">{t(Content.Truncated)}</p>
       )}
-      <details className="mt-3">
-        <summary className="cursor-pointer text-sm text-muted-foreground">
+      <details className="analytics-disclosure mt-3 border-t pt-1">
+        <summary className="text-sm text-muted-foreground">
+          <Table2 aria-hidden="true" className="size-4 shrink-0 text-info" />
           {t(Content.ViewData)}
+          <ChevronDown aria-hidden="true" className="analytics-disclosure-chevron" />
         </summary>
         <div className="overflow-x-auto">
           <table className="mt-3 w-full text-left text-sm">
