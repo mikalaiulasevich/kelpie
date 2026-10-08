@@ -3,7 +3,7 @@ import { DatabaseBackupMessages } from './database-backup-messages.js';
 
 try {
   await DatabaseBackupCommand.run(process.argv.slice(2), false);
-} catch {
-  process.stderr.write(`${DatabaseBackupMessages.Failed}\n`);
+} catch (error) {
+  process.stderr.write(`${DatabaseBackupMessages.failure(error)}\n`);
   process.exitCode = 1;
 }

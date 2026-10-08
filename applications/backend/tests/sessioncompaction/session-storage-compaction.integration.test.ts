@@ -102,6 +102,61 @@ describe('operator-controlled historical session snapshot compaction', () => {
     expect(await SessionStorageCompactionFixture.rows(backend)).toEqual(before);
   });
 
+  it('retains earlier committed batches when a later batch fails and safely retries', async () => {
+    const fixture = await SessionStorageCompactionFixture.prepare(backend);
+    const before = await SessionStorageCompactionFixture.rows(backend);
+    const last = before.operations.at(-1);
+
+    if (isUndefined(last)) {
+      throw new Error('Missing test operation');
+    }
+
+    const operationKey = {
+      sessionIdentifier_operationIdentifier: {
+        sessionIdentifier: last.sessionIdentifier,
+        operationIdentifier: last.operationIdentifier,
+      },
+    };
+    await backend.database.sessionOperation.update({
+      where: operationKey,
+      data: { response: { invalid: true } },
+    });
+
+    await expect(
+      SessionStorageCompaction.run(backend.database, {
+        apply: true,
+        batchSize: 1,
+        maximumRecords: 10,
+      }),
+    ).rejects.toThrow();
+
+    const interrupted = await SessionStorageCompactionFixture.rows(backend);
+    expect(SessionSnapshots.isCompact(interrupted.operations[0]?.response)).toBe(true);
+    expect(interrupted.operations.at(-1)?.response).toEqual({ invalid: true });
+    expect(interrupted.sessions).toEqual(before.sessions);
+
+    await backend.database.sessionOperation.update({
+      where: operationKey,
+      data: {
+        response: SessionSnapshots.json(SessionSnapshots.read(last.response, fixture.owner)),
+      },
+    });
+    const resumed = await SessionStorageCompaction.run(backend.database, {
+      apply: true,
+      batchSize: 1,
+      maximumRecords: 10,
+    });
+
+    expect(resumed.operations.converted).toBe(0);
+    expect(resumed.operations.alreadyCompact).toBe(before.operations.length);
+    expect(resumed.sessions.converted).toBe(1);
+    expect(
+      await SessionFlowFixture.state(
+        await fixture.browser.post('/current/continue', fixture.command),
+      ),
+    ).toEqual(fixture.historical);
+  });
+
   it('defaults to dry run and rejects unknown or unbounded command options before startup', () => {
     expect(SessionStorageCompactionCommand.options([]).apply).toBe(false);
     expect(() => SessionStorageCompactionCommand.options(['--batch-size=101'])).toThrow();

@@ -1,15 +1,22 @@
-import { afterEach, describe, expect, it } from 'vitest';
-import { readFile, stat, writeFile, readdir } from 'node:fs/promises';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { readFile, stat, writeFile, readdir, rm } from 'node:fs/promises';
 import { createClient } from '@libsql/client';
 import { pathToFileURL } from 'node:url';
 import { omit } from 'es-toolkit/object';
 import { resolve } from 'node:path';
+import type * as FileOperations from 'node:fs/promises';
 import { DatabaseBackups } from '../../source/database/database-backups.js';
 import { RecoveryFixture, RecoveryCleanup } from '../fixtures/database-recovery.js';
 import { SessionBrowserFixture, SessionFlowFixture } from '../fixtures/session-flow.js';
 import { PublicationFixtures } from '../fixtures/publication-fixtures.js';
 import { ConfigurationImportFixtures } from '../fixtures/configuration-import-fixtures.js';
 import { EventAcceptanceFixture } from '../fixtures/event-acceptance.js';
+
+vi.mock('node:fs/promises', async (importOriginal) => {
+  const original = await importOriginal<typeof FileOperations>();
+
+  return { ...original, rm: vi.fn(original.rm) };
+});
 
 afterEach(RecoveryCleanup.run);
 
@@ -74,12 +81,26 @@ describe('database recovery', () => {
     });
     expect(conflicting.status).toBe(409);
     expect(await conflicting.json()).toMatchObject({ code: 'operation_conflict' });
+    const originalEvent = await restored.database.event.findUniqueOrThrow({
+      where: { identifier: observation.event_id },
+    });
     const eventCount = await restored.database.event.count();
     const duplicate = await EventAcceptanceFixture.post(restored, returning, [observation]);
     expect(await duplicate.json()).toMatchObject({
       receipts: [{ status: 'duplicate', event_id: observation.event_id }],
     });
     expect(await restored.database.event.count()).toBe(eventCount);
+    expect(
+      await restored.database.event.findUniqueOrThrow({
+        where: { identifier: observation.event_id },
+      }),
+    ).toEqual(originalEvent);
+    const conflictingObservation = await EventAcceptanceFixture.post(restored, returning, [
+      { ...observation, client_timestamp: '2026-10-08T12:00:00.000Z' },
+    ]);
+    expect(await conflictingObservation.json()).toMatchObject({
+      receipts: [{ status: 'rejected', event_id: observation.event_id }],
+    });
     const after = await EventAcceptanceFixture.analytics(restored, administratorCookie, query);
     expect(omit(after, ['generatedAt'])).toEqual(omit(before, ['generatedAt']));
     const fresh = new SessionBrowserFixture(restored);
@@ -152,6 +173,70 @@ describe('database recovery', () => {
       }),
     ).rejects.toThrow('validation');
     expect(await readdir(directory)).toEqual([]);
+  });
+
+  it('rejects orphaned records even when the SQLite integrity check succeeds', async () => {
+    const backend = await RecoveryFixture.backend();
+    const directory = await RecoveryFixture.directory();
+    const source = resolve(directory, 'orphan.sqlite');
+    await DatabaseBackups.create({
+      sourcePath: RecoveryFixture.path(backend),
+      destinationPath: source,
+    });
+    const client = createClient({ url: pathToFileURL(source).href });
+
+    try {
+      await client.execute('PRAGMA foreign_keys=OFF');
+      await client.execute(
+        `INSERT INTO Funnel (identifier, activeVersionIdentifier, revision) VALUES ('orphan', 'missing-version', 0)`,
+      );
+      expect((await client.execute('PRAGMA integrity_check')).rows[0]?.[0]).toBe('ok');
+    } finally {
+      client.close();
+    }
+
+    await expect(
+      DatabaseBackups.restore({
+        sourcePath: source,
+        destinationPath: resolve(directory, 'rejected.sqlite'),
+      }),
+    ).rejects.toThrow('validation');
+    expect(await readdir(directory)).toEqual(['orphan.sqlite']);
+  });
+
+  it('preserves the validation error when temporary cleanup also fails', async () => {
+    const directory = await RecoveryFixture.directory();
+    const source = resolve(directory, 'corrupt.sqlite');
+    await writeFile(source, 'invalid');
+    const cleanupError = new Error('injected cleanup failure');
+    vi.mocked(rm).mockRejectedValueOnce(cleanupError);
+    const failure = await DatabaseBackups.restore({
+      sourcePath: source,
+      destinationPath: resolve(directory, 'rejected.sqlite'),
+    }).catch((error: unknown) => error);
+    expect(failure).toBeInstanceOf(AggregateError);
+
+    if (!(failure instanceof AggregateError)) {
+      throw new Error('Expected both recovery failures.');
+    }
+
+    expect(failure.errors).toHaveLength(2);
+    expect(failure.errors[1]).toBe(cleanupError);
+    await expect(stat(resolve(directory, 'rejected.sqlite'))).rejects.toThrow();
+  });
+
+  it('reports cleanup failure after publication without deleting the valid backup', async () => {
+    const backend = await RecoveryFixture.backend();
+    const directory = await RecoveryFixture.directory();
+    const destination = resolve(directory, 'published.sqlite');
+    vi.mocked(rm).mockRejectedValueOnce(new Error('injected cleanup failure'));
+    await expect(
+      DatabaseBackups.create({
+        sourcePath: RecoveryFixture.path(backend),
+        destinationPath: destination,
+      }),
+    ).rejects.toThrow('snapshot was published');
+    expect((await DatabaseBackups.validate(destination)).tables).toHaveLength(14);
   });
 
   it('rejects existing destinations without altering their bytes', async () => {

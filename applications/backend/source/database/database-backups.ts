@@ -159,7 +159,12 @@ export const DatabaseBackups = {
     const temporaryPath = join(directory, DatabaseBackupPolicy.SnapshotFilename);
 
     const report = await this.writeSnapshot(request, temporaryPath, directory);
-    await rm(directory, { recursive: true, force: true });
+
+    try {
+      await rm(directory, { recursive: true, force: true });
+    } catch (error) {
+      throw new Error(DatabaseBackupMessages.PublishedCleanupFailed, { cause: error });
+    }
 
     return report;
   },
