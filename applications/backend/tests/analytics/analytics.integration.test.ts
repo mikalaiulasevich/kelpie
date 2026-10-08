@@ -209,6 +209,35 @@ describe('analytics SQLite session sets', () => {
     }
   });
 
+  it('orders materialized candidates before server-start probes while excluding unstarted sessions', async () => {
+    const query = AnalyticsInputs.query({
+      funnelIdentifier: 'workstyle-planner',
+      campaign: 'launch',
+    });
+    const cohort = AnalyticsQueries.cohort(query, [versions.firstVersionIdentifier], new Date());
+    const statement = Prisma.sql`${cohort} SELECT identifier FROM cohort`;
+    const rows = await backend.database.$queryRaw<unknown[]>(statement);
+    const plan = AnalyticsFixture.queryPlan(
+      await backend.database.$queryRaw<unknown[]>(Prisma.sql`EXPLAIN QUERY PLAN ${statement}`),
+    );
+
+    expect(rows).toEqual([
+      { identifier: 'abandoned' },
+      { identifier: 'complete' },
+      { identifier: 'expired' },
+      { identifier: 'pending' },
+      { identifier: 'unobserved' },
+    ]);
+    expect(plan).toContain('MATERIALIZE session_candidates');
+    expect(plan).toContain('USE TEMP B-TREE FOR ORDER BY');
+    expect(plan.indexOf('SCAN candidate')).toBeGreaterThan(
+      plan.indexOf('MATERIALIZE session_candidates'),
+    );
+    expect(plan).toContain(
+      'USING COVERING INDEX Event_sessionIdentifier_name_source_serverTimestamp_stepIdentifier_idx',
+    );
+  });
+
   it('uses indexed source lookups in all aggregate query plans', async () => {
     const query = AnalyticsInputs.query({ funnelIdentifier: 'workstyle-planner' });
     const cohort = AnalyticsQueries.cohort(query, [versions.firstVersionIdentifier], new Date());

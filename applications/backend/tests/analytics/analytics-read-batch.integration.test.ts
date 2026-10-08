@@ -31,7 +31,7 @@ describe('analytics snapshot batch', () => {
 
     expect(observed.statementCounts).toEqual([6]);
     const sharedStatement = observed.statements[0]?.[0];
-    expect(sharedStatement?.match(/WITH cohort AS MATERIALIZED/g)).toHaveLength(1);
+    expect(sharedStatement?.match(/\bcohort AS MATERIALIZED/g)).toHaveLength(1);
     expect(sharedStatement).toContain("'summaries'");
     expect(sharedStatement).toContain("'stepTimings'");
     expect(response.insights?.previousPeriod).toMatchObject({
