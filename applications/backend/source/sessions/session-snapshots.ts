@@ -7,14 +7,14 @@ import {
   isBoolean,
   isUndefined,
 } from 'es-toolkit/predicate';
-import { FunnelConfigurations } from '@kelpie/contracts';
+import { FunnelConfigurations, type FunnelConfiguration } from '@kelpie/contracts';
 import { SessionProjection } from './session-projection.js';
 import { FunnelEvaluation } from '@kelpie/funnel-runtime';
 import type { Prisma } from '../../generated/prisma/client.js';
 import { SessionSchemas, type SessionState, type OwnedSession } from './session-types.js';
 import type { Static } from 'typebox';
 import { SessionMessages } from './session-messages.js';
-import { SessionReplaySchemas } from './session-replay-types.js';
+import { SessionReplaySchemas, type HistoricalSessionState } from './session-replay-types.js';
 import { SessionReplayPolicy } from './session-replay-policy.js';
 import { omit } from 'es-toolkit/object';
 import { ConfigurationImportDocument } from '../configurations/configuration-import-document.js';
@@ -56,6 +56,48 @@ const SnapshotJson = {
   },
 } as const;
 
+const HistoricalSessionProjection = {
+  restore(
+    state: HistoricalSessionState,
+    configuration: FunnelConfiguration,
+    owner?: OwnedSession,
+  ): SessionState {
+    if (
+      !isUndefined(owner) &&
+      (state.sessionIdentifier !== owner.identifier ||
+        state.versionIdentifier !== owner.versionIdentifier ||
+        state.funnelIdentifier !== owner.version.funnelIdentifier ||
+        state.funnelVersion !== owner.version.version ||
+        state.variant !== owner.variant ||
+        state.revision < 0 ||
+        state.revision > owner.revision)
+    ) {
+      throw new Error(SessionMessages.Corrupted);
+    }
+
+    const confirmedAnswers = SessionProjection.confirmedAnswers(state, configuration);
+    const evaluation = FunnelEvaluation.evaluate(configuration, state.variant, confirmedAnswers);
+    const result = SessionProjection.result(evaluation, state.currentStepIdentifier);
+
+    if (
+      !evaluation.route.steps.some((step) => step.id === state.currentStepIdentifier) ||
+      !isEqual(state.progress, {
+        completed: evaluation.route.completedQuestionCount,
+        total: evaluation.route.questionCount,
+      }) ||
+      state.answers.some(
+        (answer) =>
+          !isNull(answer.confirmationRevision) &&
+          (answer.confirmationRevision < 0 || answer.confirmationRevision > state.revision),
+      )
+    ) {
+      throw new Error(SessionMessages.Corrupted);
+    }
+
+    return { ...state, configuration, result };
+  },
+} as const;
+
 export const SessionSnapshots = {
   json(state: SessionState): Prisma.InputJsonObject {
     const historicalState = omit(state, ['configuration', 'result']);
@@ -79,16 +121,7 @@ export const SessionSnapshots = {
         throw new Error(SessionMessages.Corrupted);
       }
 
-      const configuration = prepared.configuration;
-      const confirmedAnswers = SessionProjection.confirmedAnswers(value.state, configuration);
-      const evaluation = FunnelEvaluation.evaluate(
-        configuration,
-        value.state.variant,
-        confirmedAnswers,
-      );
-      const result = SessionProjection.result(evaluation, value.state.currentStepIdentifier);
-
-      return SessionSnapshots.read({ ...value.state, configuration, result }, owner);
+      return HistoricalSessionProjection.restore(value.state, prepared.configuration, owner);
     }
 
     if (!SessionSnapshotValidators.state(value)) {
@@ -103,39 +136,16 @@ export const SessionSnapshots = {
 
     const configuration = validation.configuration;
 
-    if (
-      !isUndefined(owner) &&
-      (value.sessionIdentifier !== owner.identifier ||
-        value.versionIdentifier !== owner.versionIdentifier ||
-        value.funnelIdentifier !== owner.version.funnelIdentifier ||
-        value.funnelVersion !== owner.version.version ||
-        value.variant !== owner.variant ||
-        value.revision < 0 ||
-        value.revision > owner.revision ||
-        !isEqual(configuration, SessionProjection.configuration(owner)))
-    ) {
-      throw new Error(SessionMessages.Corrupted);
-    }
-    const confirmedAnswers = SessionProjection.confirmedAnswers(value, configuration);
-    const evaluation = FunnelEvaluation.evaluate(configuration, value.variant, confirmedAnswers);
-    const result = SessionProjection.result(evaluation, value.currentStepIdentifier);
-
-    if (
-      !isEqual(result, value.result) ||
-      !evaluation.route.steps.some((step) => step.id === value.currentStepIdentifier) ||
-      !isEqual(value.progress, {
-        completed: evaluation.route.completedQuestionCount,
-        total: evaluation.route.questionCount,
-      }) ||
-      value.answers.some(
-        (answer) =>
-          !isNull(answer.confirmationRevision) &&
-          (answer.confirmationRevision < 0 || answer.confirmationRevision > value.revision),
-      )
-    ) {
+    if (!isUndefined(owner) && !isEqual(configuration, SessionProjection.configuration(owner))) {
       throw new Error(SessionMessages.Corrupted);
     }
 
-    return { ...value, configuration, result };
+    const restored = HistoricalSessionProjection.restore(value, configuration, owner);
+
+    if (!isEqual(restored.result, value.result)) {
+      throw new Error(SessionMessages.Corrupted);
+    }
+
+    return restored;
   },
 } as const;

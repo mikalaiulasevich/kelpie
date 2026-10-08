@@ -1,3 +1,4 @@
+import { EventAcceptanceCases } from '../cases/event-acceptance-cases.js';
 import { PublicationService } from '../../source/publications/publication.service.js';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { BackendApplicationFixture } from '../fixtures/backend-application.js';
@@ -92,6 +93,39 @@ describe('compact and legacy historical session replay', () => {
         where: { identifier: { in: [compactView.event_id, legacyView.event_id] } },
       }),
     ).toBe(2);
+  });
+
+  it('restores compact result content and preserves full legacy result replay after moving back', async () => {
+    const beforeResult = await EventAcceptanceFixture.answerSequence(
+      browser,
+      await browser.continue(await browser.create()),
+      EventAcceptanceCases.RemoteCompletion.slice(0, -1),
+    );
+    const command = { ...SessionFlowFixture.command(beforeResult), answer: 3 };
+    const resultState = await SessionFlowFixture.state(
+      await browser.post('/current/answers', command),
+    );
+    expect(resultState.currentStepIdentifier).toBe('result');
+    expect(resultState.result).not.toBeNull();
+    await browser.back(resultState);
+    expect(await SessionFlowFixture.state(await browser.post('/current/answers', command))).toEqual(
+      resultState,
+    );
+    const operation = await backend.database.sessionOperation.findFirstOrThrow({
+      where: { operationIdentifier: command.operationIdentifier },
+    });
+    await backend.database.sessionOperation.update({
+      where: {
+        sessionIdentifier_operationIdentifier: {
+          sessionIdentifier: operation.sessionIdentifier,
+          operationIdentifier: operation.operationIdentifier,
+        },
+      },
+      data: { response: JSON.parse(JSON.stringify(resultState)) },
+    });
+    expect(await SessionFlowFixture.state(await browser.post('/current/answers', command))).toEqual(
+      resultState,
+    );
   });
 
   it('rejects malformed, foreign and future compact snapshots before replay', async () => {

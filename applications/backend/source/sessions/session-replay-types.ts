@@ -16,3 +16,7 @@ export const SessionReplaySchemas = {
 } as const;
 
 export type CompactSessionReplay = Readonly<Static<typeof SessionReplaySchemas.Compact>>;
+
+export type HistoricalSessionState = DeepReadonly<
+  Static<typeof SessionReplaySchemas.Compact>['state']
+>;

@@ -228,4 +228,22 @@ describe('version library and isolated previews', () => {
       acquisitionParameters: { utm_campaign: 'A' },
     });
   });
+  it('rejects an expired preview retry before changing its access credential', async () => {
+    const preview = await ConfigurationPreviewFixture.prepare(backend);
+    expect((await preview.post(preview.body)).status).toBe(201);
+    const session = await backend.database.session.findFirstOrThrow();
+    await backend.database.session.update({
+      where: { identifier: session.identifier },
+      data: { expiresAt: new Date(0) },
+    });
+
+    const replay = await preview.post(preview.body);
+    expect(replay.status).toBe(401);
+    expect(
+      await backend.database.session.findUniqueOrThrow({
+        where: { identifier: session.identifier },
+      }),
+    ).toMatchObject({ accessTokenHash: session.accessTokenHash });
+    expect(await backend.database.sessionOperation.count()).toBe(1);
+  });
 });
