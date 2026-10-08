@@ -3,6 +3,7 @@ import { PrismaLibSql } from '@prisma/adapter-libsql';
 import { isUndefined } from 'es-toolkit/predicate';
 
 import type { DatabaseAdapter } from './database-types.js';
+import { RemoteDatabaseRequests } from './remote-database-requests.js';
 import { SQLitePolicy } from './sqlite-policy.js';
 
 export const DatabaseAdapters = {
@@ -13,6 +14,9 @@ export const DatabaseAdapters = {
 
     return new PrismaLibSql({
       url,
+      ...(url.startsWith(SQLitePolicy.RemoteUrlPrefix)
+        ? { fetch: RemoteDatabaseRequests.fetch }
+        : {}),
       ...(isUndefined(authToken) ? {} : { authToken }),
       timeout: SQLitePolicy.BusyTimeoutMilliseconds,
     });

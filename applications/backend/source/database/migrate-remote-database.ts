@@ -7,6 +7,7 @@ import { DiagnosticEvents } from '../diagnostics/diagnostic-policy.js';
 import { ErrorDiagnostics } from '../diagnostics/error-diagnostics.js';
 import { ApplicationPolicy } from '../application/application-policy.js';
 import { DatabaseMessages } from './database-messages.js';
+import { RemoteDatabaseRequests } from './remote-database-requests.js';
 import { RemoteMigrations } from './remote-migrations.js';
 import { SQLitePolicy } from './sqlite-policy.js';
 
@@ -20,6 +21,7 @@ const RemoteMigrationCommand = {
 
     const client = createClient({
       url: environment.databaseUrl,
+      fetch: RemoteDatabaseRequests.fetch,
       ...(isUndefined(environment.databaseAuthToken)
         ? {}
         : { authToken: environment.databaseAuthToken }),
