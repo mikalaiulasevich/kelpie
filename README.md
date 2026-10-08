@@ -81,7 +81,7 @@ The deployment gate passed `npm run verify:bun`: 804 tests on Node.js 24.16.0 an
 
 For a reviewer walkthrough, start all three applications using the commands above, provision an administrator, import the three original configurations, and publish v3 in Configurations. Open the quiz, choose Hybrid and Compliance to exercise both conditional questions, reload an unfinished answer, then continue to the result and open its recommendations. Refresh Analytics for v3 to see the received views and CTA. Publish v2 while retaining the v3 browser session; the session must retain its original questions and recommendation. Publication and rollback affect only new sessions.
 
-Public hosting and a reproducible 10,000-session profiling command are available. Remaining acceptance includes hosted Turso backup/restore recovery, the complete version-compatibility sequence, remote CI, and browser expiry, cross-tab, accessibility and device scenarios. Profiling evidence and its local-versus-hosted limits are recorded below and in the engineering review.
+Public hosting and a reproducible 10,000-session profiling command are available. Remaining acceptance includes hosted Turso backup/restore recovery, the complete version-compatibility sequence, and browser expiry, cross-tab, accessibility and device scenarios. Profiling evidence and its local-versus-hosted limits are recorded below and in the engineering review.
 
 ## User-session API
 
@@ -223,7 +223,7 @@ Implemented controls include validated environment input, loopback binding by de
 
 Administrator authentication, origin/header CSRF checks, sign-in throttling and publication command idempotency are implemented. User-session authorization, revision checks and command replay are also implemented. Local SQLite recovery and public hosting have been verified; hosted Turso recovery and outstanding browser coordination scenarios remain pending. SQLite targets one backend instance with persistent storage. Dependency override rationale is in [the engineering review](documentation/foundation-review.md#dependency-decisions); avoid unreviewed `npm audit fix --force` changes.
 
-Local verification is not deployed/browser acceptance. The last documented remote CI attempt failed before jobs started; a current remote CI result has not been established. Follow the implementation plan's acceptance gates before claiming delivery.
+Local verification is not deployed/browser acceptance. GitHub Actions is intentionally disabled at the user's request; the local `npm run verify:bun` command remains the verification gate. Follow the implementation plan's acceptance gates before claiming delivery.
 
 ## Render Free and Turso deployment
 

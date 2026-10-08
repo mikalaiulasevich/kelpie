@@ -117,5 +117,79 @@
     "No isolated compaction throughput or memory claim; verification ran concurrently.",
     "Hosted Turso export/restore and power-loss durability remain unverified.",
     "Older binaries without compact replay support are not safe rollback targets."
-  ]
+  ],
+  "repeatCompaction": {
+    "applied": true,
+    "operations": {
+      "examined": 82999,
+      "converted": 0,
+      "alreadyCompact": 82999,
+      "bytesBefore": 45923829,
+      "bytesAfter": 45923829,
+      "complete": true,
+      "cursor": {
+        "sessionIdentifier": "fffdeef6-a706-4e6f-bd56-5a2c834b30f4",
+        "operationIdentifier": "cfe5dcaf-393f-46cb-a61f-02e1f0fe7327"
+      }
+    },
+    "sessions": {
+      "examined": 10000,
+      "converted": 0,
+      "alreadyCompact": 10000,
+      "bytesBefore": 3310000,
+      "bytesAfter": 3310000,
+      "complete": true,
+      "cursor": "fffdeef6-a706-4e6f-bd56-5a2c834b30f4"
+    }
+  },
+  "analyticsAfterCompaction": {
+    "oracle": {
+      "verified": true,
+      "filteredRequests": {
+        "/api/administration/analytics": {
+          "requests": 9,
+          "statuses": {
+            "200": 9
+          },
+          "p50": 715.7141670000019,
+          "p95": 783.8669579999987,
+          "p99": 783.8669579999987,
+          "maximum": 783.8669579999987
+        }
+      }
+    },
+    "coverageGate": "passed",
+    "database": {
+      "sessions": 10000,
+      "events": 230030
+    },
+    "networkFailures": 0,
+    "runtime": {
+      "node": "v24.3.0",
+      "bun": "1.3.14"
+    },
+    "measurement": {
+      "warmupQueries": 1,
+      "measuredQueries": 5,
+      "requests": {
+        "/api/administration/analytics": {
+          "requests": 5,
+          "statuses": {
+            "200": 5
+          },
+          "p50": 2100.854209000001,
+          "p95": 2171.4182910000004,
+          "p99": 2171.4182910000004,
+          "maximum": 2171.4182910000004
+        }
+      }
+    },
+    "note": "HTTP profile resumed on another isolated copy after repository verification; no new traffic generation or hosted writes."
+  },
+  "verification": {
+    "command": "npm run verify:bun",
+    "nodeTests": 847,
+    "bunBackendTests": 439,
+    "result": "passed"
+  }
 }
