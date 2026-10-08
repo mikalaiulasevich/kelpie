@@ -1,3 +1,4 @@
+import { AnalyticsInsightSchemas } from '../analytics/analytics-insight-types';
 import type { FunnelConfiguration } from '@kelpie/contracts';
 import { Type, type Static } from 'typebox';
 import { ManagementPolicy } from './management-policy';
@@ -37,6 +38,15 @@ const queryProperties = {
 };
 
 const analyticsQueryProperties = {
+  from: Type.Optional(Type.String()),
+  to: Type.Optional(Type.String()),
+  timezone: Type.Optional(Type.String()),
+  conversionWindowHours: Type.Optional(Type.Integer({ minimum: 1, maximum: 2160 })),
+  source: Type.Optional(Type.String({ maxLength: 200 })),
+  medium: Type.Optional(Type.String({ maxLength: 200 })),
+  stepIdentifier: Type.Optional(Type.String({ maxLength: 200 })),
+  sessionIdentifier: Type.Optional(Type.String({ maxLength: 200 })),
+  variant: Type.Optional(ManagementFields.Variant),
   funnelIdentifier: ManagementFields.Identifier,
   versionIdentifier: Type.Optional(ManagementFields.VersionIdentifier),
   campaign: Type.Optional(Type.String({ maxLength: ManagementPolicy.MaximumCampaignLength })),
@@ -140,7 +150,16 @@ export const ManagementSchemas = {
   ),
   ConfigurationList: Type.Object({
     funnel: ManagementFields.Funnel,
-    items: Type.Array(ManagementFields.Version),
+    items: Type.Array(
+      Type.Object({
+        ...ManagementFields.Version.properties,
+        importedAt: Type.Optional(Type.String()),
+        importedBy: Type.Optional(Type.Union([Type.String(), Type.Null()])),
+        description: Type.Optional(Type.String()),
+        documentStatus: Type.Optional(Type.String()),
+      }),
+    ),
+    total: Type.Optional(Type.Integer({ minimum: 0 })),
     nextOffset: Type.Union([Type.Integer(), Type.Null()]),
   }),
   ConfigurationImportResult: Type.Object({
@@ -164,6 +183,7 @@ export const ManagementSchemas = {
   AnalyticsVariant: variant,
   AnalyticsVersion: version,
   AnalyticsResponse: Type.Object({
+    insights: Type.Optional(AnalyticsInsightSchemas.Insights),
     generatedAt: Type.String(),
     filters: Type.Object(
       {

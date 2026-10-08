@@ -1,4 +1,23 @@
 export const ConfigurationTranslations: Readonly<Record<string, string>> = {
+  'Compare with active version': 'Сравнить с активной версией',
+  'Changed sections': 'изменённых разделов',
+  'This version': 'Эта версия',
+
+  'Search, filters and sorting apply across all versions.':
+    'Поиск, фильтры и сортировка применяются ко всем версиям.',
+  'Preparing preview…': 'Подготовка…',
+  'Test this version': 'Протестировать версию',
+  'Synthetic session. Your normal quiz session is kept separately.':
+    'Тестовая сессия. Обычная сессия квиза сохраняется отдельно.',
+  'Open test quiz': 'Открыть тестовый квиз',
+  'Preview could not be started. Please try again.':
+    'Не удалось запустить тест. Попробуйте ещё раз.',
+  'Quiz address is not configured.': 'Адрес квиза не настроен.',
+  'Not used for new sessions': 'Не используется для новых сессий',
+  Imported: 'Импортирована',
+  'Not recorded': 'Не записано',
+  'Importer not recorded': 'Автор импорта не записан',
+
   Configurations: 'Конфигурации',
   'Version highlights': 'Обзор версий',
   'Highest versions on this page': 'Последние версии на этой странице',

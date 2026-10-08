@@ -44,7 +44,10 @@ export const ManagementClient = {
     return { version: body.version, document: validated.configuration };
   },
 
-  configurations(query: ManagementQuery, signal: AbortSignal): Promise<ConfigurationList> {
+  configurations(
+    query: ManagementQuery & { search?: string; status?: string; sort?: string },
+    signal: AbortSignal,
+  ): Promise<ConfigurationList> {
     return ManagementTransport.request({
       path: ManagementPolicy.ConfigurationsEndpoint,
       method: 'GET',

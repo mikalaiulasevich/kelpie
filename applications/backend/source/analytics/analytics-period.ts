@@ -2,6 +2,12 @@ import { Prisma } from '../../generated/prisma/client.js';
 import { AnalyticsPolicy } from './analytics-policy.js';
 import type { AnalyticsQuery } from './analytics-types.js';
 
+interface AnalyticsDayRange {
+  readonly date: string;
+  readonly from: number;
+  readonly to: number;
+}
+
 export const AnalyticsPeriod = {
   previous(query: AnalyticsQuery): Optional<AnalyticsQuery> {
     if (!query.from || !query.to) {
@@ -11,12 +17,18 @@ export const AnalyticsPeriod = {
     const start = Date.parse(query.from);
     const duration = Date.parse(query.to) - start;
 
-    return { ...query, from: new Date(start - duration).toISOString(), to: new Date(start).toISOString() };
+    return {
+      ...query,
+      from: new Date(start - duration).toISOString(),
+      to: new Date(start).toISOString(),
+    };
   },
 
   bounds(query: AnalyticsQuery, now: Date) {
     return {
-      from: query.from ?? new Date(now.getTime() - AnalyticsPolicy.MaximumPeriodMilliseconds).toISOString(),
+      from:
+        query.from ??
+        new Date(now.getTime() - AnalyticsPolicy.MaximumPeriodMilliseconds).toISOString(),
       to: query.to ?? now.toISOString(),
     };
   },
@@ -24,14 +36,21 @@ export const AnalyticsPeriod = {
   day(timestamp: number, formatter: Intl.DateTimeFormat): string {
     const parts = formatter.formatToParts(timestamp);
 
-    return ['year', 'month', 'day'].map((type) => parts.find((part) => part.type === type)?.value ?? '').join('-');
+    return ['year', 'month', 'day']
+      .map((type) => parts.find((part) => part.type === type)?.value ?? '')
+      .join('-');
   },
 
-  buckets(query: AnalyticsQuery, now: Date): Prisma.Sql {
+  days(query: AnalyticsQuery, now: Date): readonly AnalyticsDayRange[] {
     const { from, to } = AnalyticsPeriod.bounds(query, now);
     const end = Date.parse(to);
-    const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: query.timezone ?? 'UTC', year: 'numeric', month: '2-digit', day: '2-digit' });
-    const branches: Prisma.Sql[] = [];
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: query.timezone ?? 'UTC',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    const days: AnalyticsDayRange[] = [];
     let start = Date.parse(from);
 
     // Find each local midnight, including DST and fractional-offset zones, without assuming a 24-hour day.
@@ -50,9 +69,18 @@ export const AnalyticsPeriod = {
         }
       }
 
-      branches.push(Prisma.sql`WHEN c."startedAt" >= ${start} AND c."startedAt" < ${low} THEN ${date}`);
+      days.push({ date, from: start, to: low });
       start = low;
     }
+
+    return days;
+  },
+
+  buckets(query: AnalyticsQuery, now: Date): Prisma.Sql {
+    const branches = AnalyticsPeriod.days(query, now).map(
+      (day) =>
+        Prisma.sql`WHEN c."startedAt" >= ${day.from} AND c."startedAt" < ${day.to} THEN ${day.date}`,
+    );
 
     return Prisma.sql`CASE ${Prisma.join(branches, ' ')} ELSE NULL END`;
   },

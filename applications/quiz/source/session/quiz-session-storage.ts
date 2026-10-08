@@ -1,3 +1,4 @@
+import { QuizPreview } from './quiz-preview';
 import { isNull, isString, isEqual } from 'es-toolkit/predicate';
 import type { StepAnswer } from '@kelpie/contracts';
 import {
@@ -69,13 +70,13 @@ export const QuizPendingStorage = {
 
   read(): QuizPendingCommand | null {
     const value: unknown = JSON.parse(
-      sessionStorage.getItem(`${QuizSessionPolicy.StoragePrefix}pending`) ?? 'null',
+      sessionStorage.getItem(`${QuizPreview.storagePrefix()}pending`) ?? 'null',
     );
 
     return QuizSessionValidators.pending(value) ? value : null;
   },
 
   write(command: QuizPendingCommand | null): void {
-    sessionStorage.setItem(`${QuizSessionPolicy.StoragePrefix}pending`, JSON.stringify(command));
+    sessionStorage.setItem(`${QuizPreview.storagePrefix()}pending`, JSON.stringify(command));
   },
 };

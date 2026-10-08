@@ -1,3 +1,4 @@
+import { QuizPreview } from './quiz-preview';
 import { QuizBrowserLocks } from './quiz-browser-locks';
 import { isNull, isUndefined } from 'es-toolkit/predicate';
 import { FunnelConfigurations } from '@kelpie/contracts';
@@ -19,11 +20,19 @@ export const QuizSessionApi = {
   },
 
   async send(path: string, body?: unknown): Promise<unknown> {
+    if (QuizPreview.active() && path.split('?')[0] === QuizSessionPolicy.Create) {
+      throw new QuizRequestError(403);
+    }
+
     const response = await fetch(path, {
       method: isUndefined(body) ? 'GET' : 'POST',
       credentials: 'same-origin',
       cache: 'no-store',
-      headers: { 'Content-Type': 'application/json', 'X-Kelpie-Session': '1' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Kelpie-Session': '1',
+        ...(QuizPreview.active() ? { 'X-Kelpie-Preview': '1' } : {}),
+      },
       ...(isUndefined(body) ? {} : { body: JSON.stringify(body) }),
       signal: AbortSignal.timeout(QuizSessionPolicy.TimeoutMilliseconds),
     });

@@ -50,7 +50,13 @@ const AnalyticsReadModel = {
     );
     const rawAggregates = await AnalyticsReadModel.aggregates(transaction, cohort);
     const aggregates = AnalyticsProjection.group(rawAggregates);
-    const insights = await AnalyticsInsightsRead.read(transaction, query, versions.map((version) => version.identifier), now, rawAggregates);
+    const insights = await AnalyticsInsightsRead.read(
+      transaction,
+      query,
+      versions.map((version) => version.identifier),
+      now,
+      rawAggregates,
+    );
 
     return {
       ...metadata,
@@ -67,7 +73,10 @@ export class AnalyticsService {
   async sessions(input: unknown): Promise<AnalyticsSessionResponse> {
     const { query, selection } = AnalyticsSessionTimeline.input(input);
 
-    return this.database.client.$transaction((transaction) => AnalyticsSessionTimeline.read(transaction, query, selection, new Date()), { timeout: AnalyticsPolicy.TransactionTimeout });
+    return this.database.client.$transaction(
+      (transaction) => AnalyticsSessionTimeline.read(transaction, query, selection, new Date()),
+      { timeout: AnalyticsPolicy.TransactionTimeout },
+    );
   }
 
   async read(input: unknown): Promise<AnalyticsResponse> {

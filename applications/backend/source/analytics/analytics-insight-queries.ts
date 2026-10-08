@@ -3,6 +3,16 @@ import { AnalyticsQueries } from './analytics-queries.js';
 import { AnalyticsPolicy } from './analytics-policy.js';
 
 export const AnalyticsInsightQueries = {
+  businessOutcomes(cohort: Prisma.Sql): Prisma.Sql {
+    return Prisma.sql`${cohort} SELECT o.kind, COUNT(DISTINCT c.identifier) AS sessions,
+      COUNT(DISTINCT CASE WHEN o.provenance = 'manual' THEN c.identifier END) AS "manualSessions",
+      COUNT(DISTINCT CASE WHEN o.provenance = 'integration' THEN c.identifier END) AS "integrationSessions"
+      FROM "BusinessOutcome" o JOIN cohort c ON c.identifier = o."sessionIdentifier"
+      WHERE ${AnalyticsQueries.timestamp(Prisma.sql`o."occurredAt"`)} >= c."startedAt"
+        AND ${AnalyticsQueries.timestamp(Prisma.sql`o."occurredAt"`)} <= c.deadline
+      GROUP BY o.kind ORDER BY o.kind`;
+  },
+
   outcomes(cohort: Prisma.Sql): Prisma.Sql {
     return Prisma.sql`${cohort}, outcomes AS (
       SELECT c.*,

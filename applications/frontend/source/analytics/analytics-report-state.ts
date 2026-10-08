@@ -8,6 +8,9 @@ const ReportSelectionSchema = Type.Object({
   timezone: Type.String({ minLength: 1, maxLength: 100 }),
   conversionWindowHours: Type.Integer({ minimum: 1, maximum: 2160 }),
   source: Type.String({ maxLength: 200 }),
+  sourceSelected: Type.Boolean(),
+  mediumSelected: Type.Boolean(),
+  campaignSelected: Type.Boolean(),
   medium: Type.String({ maxLength: 200 }),
   campaign: Type.String({ maxLength: 200 }),
   trafficOrigin: Type.Enum({ Production: 'production', Synthetic: 'synthetic', All: 'all' } as const),
@@ -76,13 +79,13 @@ export const AnalyticsReportState = {
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || AnalyticsReportPolicy.DefaultTimezone;
     const endDate = AnalyticsReportDates.dateInTimezone(now, timezone);
 
-    return { startDate: AnalyticsReportDates.addDays(endDate, 1 - AnalyticsReportPolicy.DefaultDays), endDate, timezone, conversionWindowHours: AnalyticsReportPolicy.DefaultWindowHours, source: '', medium: '', campaign: '', trafficOrigin: 'production', includeForced: false, versionIdentifier: '' };
+    return { startDate: AnalyticsReportDates.addDays(endDate, 1 - AnalyticsReportPolicy.DefaultDays), endDate, timezone, conversionWindowHours: AnalyticsReportPolicy.DefaultWindowHours, source: '', medium: '', campaign: '', sourceSelected: false, mediumSelected: false, campaignSelected: false, trafficOrigin: 'production', includeForced: false, versionIdentifier: '' };
   },
 
   fromHash(hash: string, now = new Date()): ReportSelection {
     const initial = this.initial(now);
     const parameters = new URLSearchParams(hash.split('?')[1] ?? '');
-    const candidate = { ...initial, ...Object.fromEntries(['startDate', 'endDate', 'timezone', 'source', 'medium', 'campaign', 'versionIdentifier', 'trafficOrigin'].flatMap((key) => parameters.has(key) ? [[key, parameters.get(key)]] : [])), conversionWindowHours: parameters.has('conversionWindowHours') ? Number(parameters.get('conversionWindowHours')) : initial.conversionWindowHours, includeForced: parameters.get('includeForced') === 'true' };
+    const candidate = { ...initial, ...Object.fromEntries(['startDate', 'endDate', 'timezone', 'source', 'medium', 'campaign', 'versionIdentifier', 'trafficOrigin'].flatMap((key) => parameters.has(key) ? [[key, parameters.get(key)]] : [])), conversionWindowHours: parameters.has('conversionWindowHours') ? Number(parameters.get('conversionWindowHours')) : initial.conversionWindowHours, includeForced: parameters.get('includeForced') === 'true', sourceSelected: parameters.get('sourceSelected') === 'true', mediumSelected: parameters.get('mediumSelected') === 'true', campaignSelected: parameters.get('campaignSelected') === 'true' };
 
     return validateSelection(candidate) && AnalyticsReportDates.period(candidate) ? candidate : initial;
   },

@@ -18,7 +18,7 @@ export const ConfigurationContent = {
   NoMatches: 'No matching versions',
   NoMatchesDescription: 'Try another version, schema or checksum, or clear your filters.',
   ClearFilters: 'Clear filters',
-  PageFilterScope: 'Search, filters and sorting apply only to this page.',
+  PageFilterScope: 'Search, filters and sorting apply across all versions.',
   SortVersions: 'Sort by version',
   Library: 'All versions',
   Description: 'Manage versions and choose which one is live.',

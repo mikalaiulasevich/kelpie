@@ -56,7 +56,6 @@ import {
 } from '../components/dropdown-menu';
 
 import { ConfigurationContent } from './configuration-content';
-import { ConfigurationLibrary } from './configuration-library';
 import { ConfigurationManagementPolicy } from './configuration-policy';
 
 import { PublicationIntents, type PublicationIntent } from './publication-intents';
@@ -80,6 +79,7 @@ export function ConfigurationVersionsPage({
   const [offsets, setOffsets] = useState<readonly number[]>([0]);
   const [refresh, setRefresh] = useState(0);
   const [search, setSearch] = useState('');
+  const [draftSearch, setDraftSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [descending, setDescending] = useState(true);
   const [showSchema, setShowSchema] = useState(true);
@@ -89,7 +89,14 @@ export function ConfigurationVersionsPage({
     async (signal: AbortSignal) => {
       const [configurations, history] = await Promise.all([
         ManagementClient.configurations(
-          { funnelIdentifier, offset, limit: ConfigurationManagementPolicy.PageSize },
+          {
+            funnelIdentifier,
+            offset,
+            limit: ConfigurationManagementPolicy.PageSize,
+            search,
+            status: statusFilter,
+            sort: descending ? 'version-desc' : 'version-asc',
+          },
           signal,
         ),
         ManagementClient.history(
@@ -100,10 +107,10 @@ export function ConfigurationVersionsPage({
 
       return { configurations, history };
     },
-    [funnelIdentifier, offset],
+    [funnelIdentifier, offset, search, statusFilter, descending],
   );
   const resource = useManagementRead(
-    `${funnelIdentifier}:${offset}:${revision}:${refresh}`,
+    `${funnelIdentifier}:${offset}:${revision}:${refresh}:${search}:${statusFilter}:${descending}`,
     request,
     onUnauthorized,
   );
@@ -129,9 +136,7 @@ export function ConfigurationVersionsPage({
   const configurations = resource.status === 'ready' ? resource.data.configurations : undefined;
   const history = resource.status === 'ready' ? resource.data.history : undefined;
   const query = search.trim().toLowerCase();
-  const visibleVersions = configurations
-    ? ConfigurationLibrary.select(configurations, { search, status: statusFilter, descending })
-    : [];
+  const visibleVersions = configurations?.items ?? [];
   const canRollback =
     !!history?.items[0]?.previousVersionIdentifier &&
     history.funnel.revision === configurations?.funnel.revision;
@@ -187,7 +192,7 @@ export function ConfigurationVersionsPage({
                     <CardTitle>
                       {translate(ConfigurationContent.Library)}{' '}
                       <span className="ml-2 text-sm font-normal text-muted-foreground">
-                        {configurations.items.length}
+                        {configurations.total ?? configurations.items.length}
                       </span>
                     </CardTitle>
                     <CardDescription>{funnelIdentifier}</CardDescription>
@@ -259,13 +264,36 @@ export function ConfigurationVersionsPage({
                       <Search />
                     </InputGroupAddon>
                     <InputGroupInput
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') {
+                          setSearch(draftSearch);
+                          setOffsets([0]);
+                        }
+                      }}
                       aria-label={translate(ConfigurationContent.Search)}
                       placeholder={translate(ConfigurationContent.SearchPlaceholder)}
-                      value={search}
-                      onChange={(event) => setSearch(event.target.value)}
+                      value={draftSearch}
+                      onChange={(event) => {
+                        setDraftSearch(event.target.value);
+                      }}
                     />
                   </InputGroup>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSearch(draftSearch);
+                      setOffsets([0]);
+                    }}
+                  >
+                    {translate(ConfigurationContent.Search)}
+                  </Button>
+                  <Select
+                    value={statusFilter}
+                    onValueChange={(value) => {
+                      setStatusFilter(value);
+                      setOffsets([0]);
+                    }}
+                  >
                     <SelectTrigger
                       aria-label={translate(ConfigurationContent.FilterStatus)}
                       className="w-36"
@@ -290,7 +318,9 @@ export function ConfigurationVersionsPage({
                       size="sm"
                       onClick={() => {
                         setSearch('');
+                        setDraftSearch('');
                         setStatusFilter('all');
+                        setOffsets([0]);
                       }}
                     >
                       {translate(ConfigurationContent.ClearFilters)}
@@ -302,7 +332,7 @@ export function ConfigurationVersionsPage({
                 </div>
                 <Separator />
                 <CardContent className="px-0">
-                  {configurations.items.length === 0 && (
+                  {configurations.items.length === 0 && !query && statusFilter === 'all' && (
                     <Empty>
                       <EmptyHeader>
                         <EmptyMedia variant="icon">
@@ -316,7 +346,7 @@ export function ConfigurationVersionsPage({
                       <Button onClick={onImport}>{translate(ConfigurationContent.Import)}</Button>
                     </Empty>
                   )}
-                  {configurations.items.length > 0 && visibleVersions.length === 0 && (
+                  {visibleVersions.length === 0 && (query || statusFilter !== 'all') && (
                     <Empty>
                       <EmptyHeader>
                         <EmptyMedia variant="icon">
@@ -331,7 +361,9 @@ export function ConfigurationVersionsPage({
                         variant="outline"
                         onClick={() => {
                           setSearch('');
+                          setDraftSearch('');
                           setStatusFilter('all');
+                          setOffsets([0]);
                         }}
                       >
                         {translate(ConfigurationContent.ClearFilters)}
@@ -347,7 +379,10 @@ export function ConfigurationVersionsPage({
                       descending={descending}
                       showSchema={showSchema}
                       showChecksum={showChecksum}
-                      onSort={() => setDescending((value) => !value)}
+                      onSort={() => {
+                        setDescending((value) => !value);
+                        setOffsets([0]);
+                      }}
                       onPublish={publish}
                     />
                   )}
@@ -356,7 +391,7 @@ export function ConfigurationVersionsPage({
                 <CardFooter className="flex flex-wrap items-center justify-between gap-4 pt-5">
                   <p className="text-xs text-muted-foreground" aria-live="polite">
                     {visibleVersions.length} {translate(ConfigurationContent.Of)}{' '}
-                    {configurations.items.length}{' '}
+                    {configurations.total ?? configurations.items.length}{' '}
                     {translate(ConfigurationContent.OnThisPageShowing)}{' '}
                     {offset + (configurations.items.length > 0 ? 1 : 0)}–
                     {offset + configurations.items.length}

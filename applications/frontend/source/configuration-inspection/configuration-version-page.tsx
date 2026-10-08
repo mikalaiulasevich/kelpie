@@ -1,3 +1,4 @@
+import { ConfigurationVersionComparison } from './configuration-version-comparison';
 import { ConfigurationInspectionContent } from './configuration-inspection-content';
 import { useLocalization } from '../localization/use-localization';
 import { ConfigurationStatus } from '@kelpie/contracts';
@@ -44,7 +45,16 @@ export function ConfigurationVersionPage({
         throw new ManagementError(ManagementMessages.NotFound, 404, 'not_found');
       }
 
-      return result;
+      const library = await ManagementClient.configurations(
+        { funnelIdentifier, limit: 1, status: 'live' },
+        signal,
+      );
+
+      return {
+        ...result,
+        activeVersionIdentifier: library.funnel.activeVersionIdentifier,
+        live: library.funnel.activeVersionIdentifier === versionIdentifier,
+      };
     },
     [versionIdentifier, funnelIdentifier],
   );
@@ -109,6 +119,10 @@ export function ConfigurationVersionPage({
                 </div>
               </div>
               <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                {translate(
+                  resource.data.live ? 'Used for new sessions' : 'Not used for new sessions',
+                )}{' '}
+                ·
                 <LockKeyhole className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
                 {translate(ConfigurationInspectionContent.ReadOnly)}
               </span>
@@ -192,7 +206,17 @@ export function ConfigurationVersionPage({
               </Collapsible>
             </div>
           </Card>
-          <ConfigurationInspection configuration={resource.data.document} />
+          {!resource.data.live && resource.data.activeVersionIdentifier && (
+            <ConfigurationVersionComparison
+              configuration={resource.data.document}
+              activeVersionIdentifier={resource.data.activeVersionIdentifier}
+              onUnauthorized={onUnauthorized}
+            />
+          )}
+          <ConfigurationInspection
+            configuration={resource.data.document}
+            versionIdentifier={versionIdentifier}
+          />
         </>
       )}
     </div>

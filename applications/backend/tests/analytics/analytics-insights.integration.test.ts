@@ -1,0 +1,110 @@
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import type { BackendApplicationFixture } from '../fixtures/backend-application.js';
+import { AdministrationFixture } from '../fixtures/administration.js';
+import { AnalyticsFixture } from '../fixtures/analytics-fixture.js';
+import { AnalyticsService } from '../../source/analytics/analytics.service.js';
+
+describe('analytics insight cohort boundaries and privacy', () => {
+  let backend: BackendApplicationFixture;
+  let versions: Awaited<ReturnType<typeof AnalyticsFixture.prepare>>;
+
+  beforeAll(async () => {
+    backend = await AdministrationFixture.create();
+    versions = await AnalyticsFixture.prepare(backend);
+    await backend.database.session.updateMany({
+      data: { createdAt: new Date('2026-01-01T12:00:00Z') },
+    });
+    await backend.database.event.updateMany({
+      data: { serverTimestamp: new Date('2026-01-01T12:05:00Z') },
+    });
+    await backend.database.sessionTransition.updateMany({
+      data: { createdAt: new Date('2026-01-01T12:06:00Z') },
+    });
+    await backend.database.session.update({
+      where: { identifier: 'pending' },
+      data: { createdAt: new Date('2026-01-02T00:00:00Z') },
+    });
+    await backend.database.event.updateMany({
+      where: { sessionIdentifier: 'complete', name: 'cta_clicked' },
+      data: { serverTimestamp: new Date('2026-01-01T14:00:00Z') },
+    });
+    await backend.database.event.updateMany({
+      where: { name: 'result_viewed' },
+      data: { properties: { result_id: 'office_core', raw_answer: 'must never reach timeline' } },
+    });
+  });
+
+  afterAll(async () => {
+    await backend?.close();
+  });
+
+  it('filters by session start with exclusive end and clips conversion observations by window', async () => {
+    const response = await backend.getService(AnalyticsService).read({
+      funnelIdentifier: 'workstyle-planner',
+      versionIdentifier: versions.firstVersionIdentifier,
+      campaign: 'launch',
+      from: '2026-01-01T00:00:00Z',
+      to: '2026-01-02T00:00:00Z',
+      conversionWindowHours: '1',
+    });
+    expect(response.versions[0]?.variants[0]).toMatchObject({
+      started: 4,
+      resultCompletion: { numerator: 1 },
+      ctaConversion: { numerator: 1 },
+    });
+    expect(response.insights?.trend).toEqual([
+      { date: '2026-01-01', started: 4, results: 1, clicks: 1 },
+    ]);
+    expect(response.insights?.previousPeriod).toMatchObject({ started: 0, results: 0, clicks: 0 });
+    expect(response.insights?.results).toEqual([
+      { resultIdentifier: 'office_core', sessions: 1, clicks: 0 },
+    ]);
+    expect(response.insights?.quality).toMatchObject({
+      missingStepViews: 1,
+      matureSessions: 4,
+      openSessions: 0,
+    });
+    expect(
+      response.insights?.stepTimings.find((row) => row.stepIdentifier === 'intro'),
+    ).toMatchObject({ averageSeconds: 60 });
+  });
+
+  it('preserves zero days and enforces acquisition filtering', async () => {
+    const response = await backend.getService(AnalyticsService).read({
+      funnelIdentifier: 'workstyle-planner',
+      versionIdentifier: versions.firstVersionIdentifier,
+      source: 'nonexistent',
+      from: '2026-01-01T00:00:00Z',
+      to: '2026-01-03T00:00:00Z',
+    });
+    expect(response.insights?.trend).toEqual([
+      { date: '2026-01-01', started: 0, results: 0, clicks: 0 },
+      { date: '2026-01-02', started: 0, results: 0, clicks: 0 },
+    ]);
+    expect(response.insights?.acquisition).toEqual([]);
+  });
+
+  it('returns filtered session histories without event payloads or credentials', async () => {
+    const response = await backend.getService(AnalyticsService).sessions({
+      funnelIdentifier: 'workstyle-planner',
+      versionIdentifier: versions.firstVersionIdentifier,
+      sessionIdentifier: 'complete',
+      stepIdentifier: 'intro',
+    });
+    expect(response.sessions).toHaveLength(1);
+    expect(response.sessions[0]?.events.length).toBeGreaterThan(0);
+    expect(Object.keys(response.sessions[0]?.events[0] ?? {}).sort()).toEqual([
+      'name',
+      'occurredAt',
+      'source',
+      'stepIdentifier',
+    ]);
+    expect(JSON.stringify(response)).not.toContain('must never reach timeline');
+    const other = await backend.getService(AnalyticsService).sessions({
+      funnelIdentifier: 'workstyle-planner',
+      versionIdentifier: versions.thirdVersionIdentifier,
+      sessionIdentifier: 'complete',
+    });
+    expect(other.sessions).toEqual([]);
+  });
+});

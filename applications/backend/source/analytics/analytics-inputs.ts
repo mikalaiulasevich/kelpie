@@ -22,7 +22,9 @@ export const AnalyticsInputs = {
 
     const query = {
       ...value,
-      ...(isUndefined(value.conversionWindowHours) ? {} : { conversionWindowHours: Number(value.conversionWindowHours) }),
+      ...(isUndefined(value.conversionWindowHours)
+        ? {}
+        : { conversionWindowHours: Number(value.conversionWindowHours) }),
       limit: Number(value.limit ?? AnalyticsPolicy.DefaultLimit),
       offset: Number(value.offset ?? 0),
       includeForced: value.includeForced === 'true',
@@ -41,10 +43,14 @@ export const AnalyticsInputs = {
       const start = Date.parse(query.from);
       const end = Date.parse(query.to);
 
-      if (!Number.isFinite(start) || !Number.isFinite(end) || start >= end ||
+      if (
+        !Number.isFinite(start) ||
+        !Number.isFinite(end) ||
+        start >= end ||
         end - start > AnalyticsPolicy.MaximumPeriodMilliseconds ||
         !/T.*(?:Z|[+-]\d{2}:\d{2})$/.test(query.from) ||
-        !/T.*(?:Z|[+-]\d{2}:\d{2})$/.test(query.to)) {
+        !/T.*(?:Z|[+-]\d{2}:\d{2})$/.test(query.to)
+      ) {
         throw new BadRequestException(AnalyticsMessages.InvalidQuery);
       }
     }

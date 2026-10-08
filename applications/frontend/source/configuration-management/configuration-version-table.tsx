@@ -1,6 +1,9 @@
 import { useLocalization } from '../localization/use-localization';
 import { FileJson, ArrowDownUp } from 'lucide-react';
-import type { ConfigurationVersionMetadata } from '../management/management-types';
+import type {
+  ConfigurationVersionMetadata,
+  ConfigurationList,
+} from '../management/management-types';
 import { Button } from '../components/button';
 import { ConfigurationStatus } from './configuration-library-context';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/table';
@@ -9,7 +12,7 @@ import { ConfigurationVersionActions } from './configuration-version-actions';
 import { ConfigurationContent } from './configuration-content';
 import { ConfigurationFormat } from './configuration-format';
 interface ConfigurationVersionTableProperties {
-  readonly versions: readonly ConfigurationVersionMetadata[];
+  readonly versions: ConfigurationList['items'];
   readonly funnelIdentifier: string;
   readonly activeVersionIdentifier: string | null;
   readonly revision: number;
@@ -87,7 +90,7 @@ export function ConfigurationVersionTable({
                     <span className="flex flex-col gap-1 text-left">
                       <span>{ConfigurationFormat.version(version.version)}</span>
                       <span className="text-xs font-normal text-muted-foreground">
-                        {version.funnelIdentifier}
+                        {version.description ?? version.funnelIdentifier}
                       </span>
                     </span>
                   </a>
@@ -95,6 +98,15 @@ export function ConfigurationVersionTable({
               </TableCell>
               <TableCell>
                 <ConfigurationStatus live={live} />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {translate('Imported')}:{' '}
+                  {version.importedAt
+                    ? ConfigurationFormat.date(version.importedAt)
+                    : translate('Not recorded')}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {version.importedBy ?? translate('Importer not recorded')}
+                </p>
               </TableCell>
               {showSchema && (
                 <TableCell>

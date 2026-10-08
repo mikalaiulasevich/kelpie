@@ -1,3 +1,4 @@
+import { ConfigurationPreview } from './configuration-preview';
 import { ConfigurationInspectionContent } from './configuration-inspection-content';
 import { useLocalization } from '../localization/use-localization';
 import { ConfigurationJson } from './configuration-json';
@@ -30,9 +31,13 @@ import { ConfigurationEventsPanel } from './configuration-events-panel';
 
 interface ConfigurationInspectionProperties {
   readonly configuration: FunnelConfiguration;
+  readonly versionIdentifier?: string;
 }
 
-export function ConfigurationInspection({ configuration }: ConfigurationInspectionProperties) {
+export function ConfigurationInspection({
+  configuration,
+  versionIdentifier,
+}: ConfigurationInspectionProperties) {
   const { t: translate } = useLocalization();
   const [variant, setVariant] = useState<ExperimentVariant>(ExperimentVariant.A);
 
@@ -96,6 +101,13 @@ export function ConfigurationInspection({ configuration }: ConfigurationInspecti
               </SelectGroup>
             </SelectContent>
           </Select>
+          {versionIdentifier && (
+            <ConfigurationPreview
+              key={`${versionIdentifier}:${variant}`}
+              versionIdentifier={versionIdentifier}
+              variant={variant}
+            />
+          )}
         </div>
       </div>
       <Tabs defaultValue="steps" className="min-w-0 gap-5">

@@ -5,6 +5,11 @@ export const AnalyticsTrafficOrigin = {
 } as const;
 
 export const AnalyticsPolicy = {
+  // Bonferroni-adjusted Wilson bounds for two proportions provide conservative 95% joint coverage.
+  SimultaneousIntervalZ: 2.241402727604947,
+  // Chi-square(1) critical value at alpha 0.001; require adequate expected cells.
+  SampleRatioMismatchThreshold: 10.827566170662733,
+  MinimumExpectedAllocation: 5,
   Route: 'administration/analytics',
   SessionsRoute: 'sessions',
   MaximumTimelineEvents: 200,

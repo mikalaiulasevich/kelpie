@@ -5,7 +5,7 @@ import type { AnalyticsQuery } from './analytics-types.js';
 
 export const AnalyticsQueries = {
   timestamp(column: Prisma.Sql): Prisma.Sql {
-    return Prisma.sql`CASE WHEN typeof(${column}) IN ('integer', 'real') THEN ${column} ELSE CAST((julianday(${column}) - 2440587.5) * 86400000 AS INTEGER) END`;
+    return Prisma.sql`CASE WHEN typeof(${column}) IN ('integer', 'real') THEN ${column} ELSE CAST(ROUND((julianday(${column}) - 2440587.5) * 86400000) AS INTEGER) END`;
   },
 
   versions(query: AnalyticsQuery): Prisma.FunnelVersionFindManyArgs {
@@ -40,19 +40,29 @@ export const AnalyticsQueries = {
       conditions.push(Prisma.sql`s."campaign" = ${query.campaign}`);
     }
 
-    for (const [parameter, path] of [[query.source, '$.utm_source'], [query.medium, '$.utm_medium']]) {
+    for (const [parameter, path] of [
+      [query.source, '$.utm_source'],
+      [query.medium, '$.utm_medium'],
+    ]) {
       if (!isUndefined(parameter)) {
-        conditions.push(Prisma.sql`COALESCE(json_extract(s."acquisitionParameters", ${path}), '') = ${parameter}`);
+        conditions.push(
+          Prisma.sql`COALESCE(json_extract(s."acquisitionParameters", ${path}), '') = ${parameter}`,
+        );
       }
     }
 
     const startedAt = AnalyticsQueries.timestamp(Prisma.sql`s."createdAt"`);
-    const deadline = isUndefined(query.conversionWindowHours)
+    conditions.push(Prisma.sql`${startedAt} <= ${now.getTime()}`);
+    const conversionDeadline = isUndefined(query.conversionWindowHours)
       ? Prisma.sql`${Number.MAX_SAFE_INTEGER}`
       : Prisma.sql`${startedAt} + ${query.conversionWindowHours * AnalyticsPolicy.MillisecondsPerHour}`;
 
+    const deadline = Prisma.sql`MIN(${conversionDeadline}, ${now.getTime()})`;
+
     if (query.from && query.to) {
-      conditions.push(Prisma.sql`${startedAt} >= ${Date.parse(query.from)} AND ${startedAt} < ${Date.parse(query.to)}`);
+      conditions.push(
+        Prisma.sql`${startedAt} >= ${Date.parse(query.from)} AND ${startedAt} < ${Date.parse(query.to)}`,
+      );
     }
 
     return Prisma.sql`WITH cohort AS (
@@ -63,7 +73,7 @@ export const AnalyticsQueries = {
         COALESCE(s."campaign", '') AS campaign,
         CASE WHEN typeof(s."expiresAt") IN ('integer', 'real')
           THEN s."expiresAt" <= ${now.getTime()}
-          ELSE julianday(s."expiresAt") <= julianday(${now.toISOString()}) END OR ${deadline} <= ${now.getTime()} AS expired
+          ELSE julianday(s."expiresAt") <= julianday(${now.toISOString()}) END OR ${conversionDeadline} <= ${now.getTime()} AS expired
       FROM "Session" s
       WHERE ${Prisma.join(conditions, ' AND ')}
         AND EXISTS (SELECT 1 FROM "Event" e WHERE e."sessionIdentifier" = s."identifier"
