@@ -10,7 +10,11 @@ import { TrafficSeedImport } from './traffic-seed-import.js';
 import { TrafficSeedTimeline } from './traffic-seed-timeline.js';
 import { TrafficSeedMessages } from './traffic-seed-messages.js';
 import { TrafficSeedPolicy } from './traffic-seed-policy.js';
-import { TrafficSeedOptionsSchema, type TrafficSeedOptions } from './traffic-seed-types.js';
+import {
+  TrafficSeedOptionsSchema,
+  type TrafficSeedOptions,
+  type TrafficSeedCohort,
+} from './traffic-seed-types.js';
 import type { TrafficSeedSessionGraph } from './traffic-seed-import-types.js';
 import { TrafficSeedCheckpoint } from './traffic-seed-checkpoint.js';
 import { TrafficSeedTarget } from './traffic-seed-target.js';
@@ -21,19 +25,7 @@ const Validators = {
 
 const SeedSummary = {
   add(
-    groups: Map<
-      string,
-      {
-        day: string;
-        version: number;
-        variant: string;
-        campaign: string;
-        started: number;
-        results: number;
-        clicks: number;
-        expired: number;
-      }
-    >,
+    groups: Map<string, TrafficSeedCohort>,
     graph: TrafficSeedSessionGraph,
     anchor: string,
   ): void {
@@ -67,7 +59,7 @@ const SeedDatabaseLifetime = {
         await database.$disconnect();
       } catch (cleanupError) {
         throw new AggregateError([error, cleanupError], TrafficSeedMessages.CleanupFailed, {
-          cause: error,
+          cause: cleanupError,
         });
       }
 
@@ -160,7 +152,7 @@ export const TrafficSeedCommand = {
           dataset.manifest.every((session) => sourceIdentifiers.has(session.sessionIdentifier)),
           TrafficSeedMessages.Source,
         );
-        const groups: Parameters<typeof SeedSummary.add>[0] = new Map();
+        const groups = new Map<string, TrafficSeedCohort>();
         process.stdout.write(
           `Installing ${options.sessions} synthetic sessions into ${options.target} storage\n`,
         );
@@ -177,7 +169,7 @@ export const TrafficSeedCommand = {
             return projected;
           },
         });
-        const report = {
+        const report: TrafficSeedReceipt = {
           ...receipt,
           target: options.target,
           anchor: checkpoint.anchor,

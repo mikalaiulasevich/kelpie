@@ -1,4 +1,5 @@
 import { Type, type Static } from 'typebox';
+import { TrafficSeedImportReceiptSchema } from './traffic-seed-import-types.js';
 
 export const TrafficSeedOptionsSchema = Type.Object(
   {
@@ -40,3 +41,41 @@ export const TrafficSeedSourceReportSchema = Type.Object({
 });
 
 export type TrafficSeedSourceReport = Static<typeof TrafficSeedSourceReportSchema>;
+
+export const TrafficSeedCohortSchema = Type.Object({
+  day: Type.String(),
+  version: Type.Integer({ minimum: 1 }),
+  variant: Type.String(),
+  campaign: Type.String(),
+  started: Type.Integer({ minimum: 0 }),
+  results: Type.Integer({ minimum: 0 }),
+  clicks: Type.Integer({ minimum: 0 }),
+  expired: Type.Integer({ minimum: 0 }),
+});
+
+export type TrafficSeedCohort = Static<typeof TrafficSeedCohortSchema>;
+
+export const TrafficSeedReceiptSchema = Type.Object({
+  ...TrafficSeedImportReceiptSchema.properties,
+  target: TrafficSeedOptionsSchema.properties.target,
+  anchor: Type.String(),
+  days: Type.Integer({ minimum: 1 }),
+  trafficOrigin: Type.Literal('synthetic'),
+  resumableParticipants: Type.Literal(false),
+  cohorts: Type.Array(TrafficSeedCohortSchema),
+});
+
+export type TrafficSeedReceipt = Static<typeof TrafficSeedReceiptSchema>;
+
+export const TrafficSeedCohortSchema = Type.Object({
+  day: Type.String(),
+  version: Type.Integer(),
+  variant: Type.String(),
+  campaign: Type.String(),
+  started: Type.Integer({ minimum: 0 }),
+  results: Type.Integer({ minimum: 0 }),
+  clicks: Type.Integer({ minimum: 0 }),
+  expired: Type.Integer({ minimum: 0 }),
+});
+
+export type TrafficSeedCohort = Static<typeof TrafficSeedCohortSchema>;

@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { TrafficSeedCommand } from '../benchmarks/traffic-seed/traffic-seed-command.js';
@@ -7,32 +7,51 @@ import { BackendApplicationFixture } from './backend-application.js';
 import { SessionBrowserFixture, SessionFlowFixture } from './session-flow.js';
 import { TrafficSeedImportPolicy } from '../benchmarks/traffic-seed/traffic-seed-import-policy.js';
 
+const SeedFixtureCleanup = {
+  async reject(error: unknown, release: () => Promise<void>): Promise<never> {
+    try {
+      await release();
+    } catch (cleanupError) {
+      throw new AggregateError([error, cleanupError], 'Seed fixture cleanup failed.', {
+        cause: cleanupError,
+      });
+    }
+
+    throw error;
+  },
+} as const;
+
 export const TrafficSeedCommandFixture = {
   async checkpoint() {
     const output = await mkdtemp(resolve(tmpdir(), 'kelpie-seed-checkpoint-'));
-    const options = TrafficSeedCommand.options([
-      '--target=local',
-      '--run=test-seed',
-      '--sessions=1',
-      `--output=${output}`,
-    ]);
-    const profile = resolve(output, 'profile');
-    await mkdir(profile);
-    const path = resolve(profile, 'source.sqlite');
-    await writeFile(path, 'fixture-bytes');
-    const report = {
-      retainedDatabase: { path },
-      options: { sessions: 1, seed: options.seed },
-      oracle: { verified: true },
-      database: { sessions: 1, events: 4 },
-    };
-    await writeFile(resolve(profile, 'report.json'), JSON.stringify(report));
-    await writeFile(
-      resolve(profile, 'manifest.json'),
-      JSON.stringify([TrafficOracleFixture.session()]),
-    );
 
-    return { output, profile, options, report, path };
+    try {
+      const options = TrafficSeedCommand.options([
+        '--target=local',
+        '--run=test-seed',
+        '--sessions=1',
+        `--output=${output}`,
+      ]);
+      const profile = resolve(output, 'profile');
+      await mkdir(profile);
+      const path = resolve(profile, 'source.sqlite');
+      await writeFile(path, 'fixture-bytes');
+      const report = {
+        retainedDatabase: { path },
+        options: { sessions: 1, seed: options.seed },
+        oracle: { verified: true },
+        database: { sessions: 1, events: 4 },
+      };
+      await writeFile(resolve(profile, 'report.json'), JSON.stringify(report));
+      await writeFile(
+        resolve(profile, 'manifest.json'),
+        JSON.stringify([TrafficOracleFixture.session()]),
+      );
+
+      return { output, profile, options, report, path };
+    } catch (error) {
+      return SeedFixtureCleanup.reject(error, () => rm(output, { recursive: true, force: true }));
+    }
   },
 
   async timeline() {
@@ -52,9 +71,34 @@ export const TrafficSeedCommandFixture = {
 
       return { backend, graph };
     } catch (error) {
-      await backend.close();
-
-      throw error;
+      return SeedFixtureCleanup.reject(error, () => backend.close());
     }
+  },
+
+  async target() {
+    const checkpoint = await TrafficSeedCommandFixture.checkpoint();
+    const timeline = await TrafficSeedCommandFixture.timeline().catch((error: unknown) =>
+      SeedFixtureCleanup.reject(error, () =>
+        rm(checkpoint.output, { recursive: true, force: true }),
+      ),
+    );
+
+    return {
+      ...checkpoint,
+      ...timeline,
+      async close(): Promise<void> {
+        const results = await Promise.allSettled([
+          timeline.backend.close(),
+          rm(checkpoint.output, { recursive: true, force: true }),
+        ]);
+        const errors = results.flatMap((result) =>
+          result.status === 'rejected' ? [result.reason] : [],
+        );
+
+        if (errors.length > 0) {
+          throw new AggregateError(errors, 'Seed target fixture cleanup failed.');
+        }
+      },
+    };
   },
 } as const;

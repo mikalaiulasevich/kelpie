@@ -1,4 +1,4 @@
-import { readFile, rm } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { ConfigurationImportFixtures } from '../../fixtures/configuration-import-fixtures.js';
@@ -7,8 +7,8 @@ import { TrafficSeedTarget } from './traffic-seed-target.js';
 
 describe('seed target configuration checkpoint', () => {
   it('uses target content and retains selected versions when publication changes during a retry', async () => {
-    const fixture = await TrafficSeedCommandFixture.checkpoint();
-    const { backend } = await TrafficSeedCommandFixture.timeline();
+    const fixture = await TrafficSeedCommandFixture.target();
+    const { backend } = fixture;
 
     try {
       await backend.configurationImports.import(ConfigurationImportFixtures.original(2));
@@ -34,8 +34,7 @@ describe('seed target configuration checkpoint', () => {
       ).toBe(later.version.identifier);
       expect(await backend.database.session.count()).toBe(1);
     } finally {
-      await backend.close();
-      await rm(fixture.output, { recursive: true, force: true });
+      await fixture.close();
     }
   });
 });

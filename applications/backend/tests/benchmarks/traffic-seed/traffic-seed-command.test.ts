@@ -1,6 +1,8 @@
+import { PrismaClient } from '../../../generated/prisma/client.js';
+import { TrafficSeedTarget } from './traffic-seed-target.js';
 import { readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { TrafficSeedCases } from '../../cases/traffic-seed-cases.js';
 import { TrafficSeedCommandFixture } from '../../fixtures/traffic-seed-command-fixture.js';
 import { TrafficSeedCommand } from './traffic-seed-command.js';
@@ -21,6 +23,59 @@ describe('synthetic seed CLI and durable checkpoint', () => {
     expect(local.sessions).toBe(10000);
     expect(local.days).toBe(28);
     expect(local.output).not.toBe(remote.output);
+  });
+
+  it('preserves a source query failure and both real client disconnect failures', async () => {
+    const fixture = await TrafficSeedCommandFixture.checkpoint();
+    const destination = resolve(fixture.output, 'target.sqlite');
+    await writeFile(destination, '');
+    const disconnect = PrismaClient.prototype.$disconnect;
+    const sourceCleanup = new Error('Source disconnect failed');
+    const targetCleanup = new Error('Target disconnect failed');
+    const released: PrismaClient[] = [];
+
+    try {
+      vi.spyOn(TrafficSeedCommand, 'destination').mockResolvedValue(`file:${destination}`);
+      vi.spyOn(TrafficSeedTarget, 'prepare').mockImplementation(async (target) => {
+        await target.$connect();
+      });
+      vi.spyOn(PrismaClient.prototype, '$disconnect').mockImplementation(async function (
+        this: PrismaClient,
+      ) {
+        await disconnect.call(this);
+        released.push(this);
+
+        if (released.length === 1) {
+          throw sourceCleanup;
+        }
+
+        throw targetCleanup;
+      });
+      // The source fixture bytes are not a SQLite file: session.count fails inside the real command.
+      const failure: unknown = await TrafficSeedCommand.run(fixture.options).catch(
+        (error: unknown) => error,
+      );
+
+      expect(released).toHaveLength(2);
+      expect(released[0]).not.toBe(released[1]);
+      expect(failure).toBeInstanceOf(AggregateError);
+
+      if (!(failure instanceof AggregateError) || !(failure.errors[0] instanceof AggregateError)) {
+        throw new Error('Missing database cleanup failure evidence');
+      }
+
+      const sourceFailure = failure.errors[0];
+      expect(failure.errors).toEqual([sourceFailure, targetCleanup]);
+      expect(failure.cause).toBe(targetCleanup);
+      expect(sourceFailure.errors).toEqual([sourceFailure.errors[0], sourceCleanup]);
+      expect(sourceFailure.cause).toBe(sourceCleanup);
+      expect(sourceFailure.errors[0]).toBeInstanceOf(Error);
+      expect(sourceFailure.errors[0]).not.toBe(sourceCleanup);
+      expect(sourceFailure.errors[0]).not.toBe(targetCleanup);
+    } finally {
+      vi.restoreAllMocks();
+      await rm(fixture.output, { recursive: true, force: true });
+    }
   });
 
   it('preserves anchor across retries and rejects changed workload or target', async () => {
