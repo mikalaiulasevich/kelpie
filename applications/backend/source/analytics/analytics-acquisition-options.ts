@@ -1,3 +1,4 @@
+import type { AnalyticsResultBatch } from './analytics-result-batch.js';
 import { omit } from 'es-toolkit/object';
 import { Prisma } from '../../generated/prisma/client.js';
 import { SchemaCompiler } from '../validation/schema-compiler.js';
@@ -23,8 +24,7 @@ const Validators = {
 } as const;
 
 export const AnalyticsAcquisitionOptionsRead = {
-  async dimension(
-    transaction: Prisma.TransactionClient,
+  dimension(
     query: AnalyticsQuery,
     versionIdentifiers: readonly string[],
     now: Date,
@@ -33,46 +33,35 @@ export const AnalyticsAcquisitionOptionsRead = {
     // Remove only this dimension's selection so changing it does not require clearing other filters.
     const cohort = AnalyticsQueries.cohort(omit(query, [dimension]), versionIdentifiers, now);
     const column = Columns[dimension];
-    const rows = AnalyticsRows.validate(
-      await transaction.$queryRaw<unknown[]>(
-        Prisma.sql`${cohort} SELECT ${column} AS value, COUNT(*) AS sessions FROM cohort GROUP BY ${column} ORDER BY sessions DESC, value LIMIT ${AnalyticsPolicy.MaximumAcquisitionOptions + 1}`,
-      ),
-      Validators.option,
-    );
+
+    return Prisma.sql`${cohort} SELECT ${column} AS value, COUNT(*) AS sessions FROM cohort GROUP BY ${column} ORDER BY sessions DESC, value LIMIT ${AnalyticsPolicy.MaximumAcquisitionOptions + 1}`;
+  },
+
+  projectDimension(rows: readonly unknown[]) {
+    const options = AnalyticsRows.validate(rows, Validators.option);
 
     return {
-      values: rows.slice(0, AnalyticsPolicy.MaximumAcquisitionOptions),
-      hasMore: rows.length > AnalyticsPolicy.MaximumAcquisitionOptions,
+      values: options.slice(0, AnalyticsPolicy.MaximumAcquisitionOptions),
+      hasMore: options.length > AnalyticsPolicy.MaximumAcquisitionOptions,
     };
   },
 
-  async read(
-    transaction: Prisma.TransactionClient,
+  prepare(
     query: AnalyticsQuery,
     versionIdentifiers: readonly string[],
     now: Date,
-  ): Promise<AnalyticsAcquisitionOptions> {
-    const sources = await AnalyticsAcquisitionOptionsRead.dimension(
-      transaction,
-      query,
-      versionIdentifiers,
-      now,
-      'source',
-    );
-    const mediums = await AnalyticsAcquisitionOptionsRead.dimension(
-      transaction,
-      query,
-      versionIdentifiers,
-      now,
-      'medium',
-    );
-    const campaigns = await AnalyticsAcquisitionOptionsRead.dimension(
-      transaction,
-      query,
-      versionIdentifiers,
-      now,
-      'campaign',
-    );
+  ): readonly Prisma.Sql[] {
+    return [
+      this.dimension(query, versionIdentifiers, now, 'source'),
+      this.dimension(query, versionIdentifiers, now, 'medium'),
+      this.dimension(query, versionIdentifiers, now, 'campaign'),
+    ];
+  },
+
+  project(batch: AnalyticsResultBatch): AnalyticsAcquisitionOptions {
+    const sources = this.projectDimension(batch.next());
+    const mediums = this.projectDimension(batch.next());
+    const campaigns = this.projectDimension(batch.next());
 
     return {
       sources: sources.values,

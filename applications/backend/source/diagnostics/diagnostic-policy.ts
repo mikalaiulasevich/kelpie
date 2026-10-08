@@ -60,6 +60,15 @@ export const ErrorClassification = {
   Unknown: 'unknown',
 } as const;
 
+export const DiagnosticFailureCategory = {
+  DatabaseOperationTimeout: 'database_operation_timeout',
+  DatabaseTransactionExpired: 'database_transaction_expired',
+  DatabaseTransactionAcquisitionTimeout: 'database_transaction_acquisition_timeout',
+  DatabaseTransactionFailure: 'database_transaction_failure',
+  DatabaseTransportTimeout: 'database_transport_timeout',
+  DatabaseTransportClosed: 'database_transport_closed',
+} as const;
+
 export const DiagnosticSeverity = {
   Information: 'info',
   Debug: 'debug',

@@ -1,8 +1,24 @@
 import { isError } from 'es-toolkit/predicate';
 import { createHash } from 'node:crypto';
 import { EnvironmentMessages } from '../environment/environment-messages.js';
-import { DiagnosticPolicy, ErrorClassification } from './diagnostic-policy.js';
+import {
+  DiagnosticPolicy,
+  ErrorClassification,
+  DiagnosticFailureCategory,
+} from './diagnostic-policy.js';
 import type { ErrorDescription, ErrorFrame } from './diagnostics-types.js';
+import { DatabaseErrors } from '../database/database-errors.js';
+import { DatabaseFailureKind } from '../database/database-failure-policy.js';
+
+const databaseCategories = {
+  [DatabaseFailureKind.OperationTimeout]: DiagnosticFailureCategory.DatabaseOperationTimeout,
+  [DatabaseFailureKind.TransactionExpired]: DiagnosticFailureCategory.DatabaseTransactionExpired,
+  [DatabaseFailureKind.TransactionAcquisitionTimeout]:
+    DiagnosticFailureCategory.DatabaseTransactionAcquisitionTimeout,
+  [DatabaseFailureKind.TransactionFailure]: DiagnosticFailureCategory.DatabaseTransactionFailure,
+  [DatabaseFailureKind.TransportTimeout]: DiagnosticFailureCategory.DatabaseTransportTimeout,
+  [DatabaseFailureKind.TransportClosed]: DiagnosticFailureCategory.DatabaseTransportClosed,
+} as const;
 
 const DiagnosticFingerprint = {
   create(value: string): string {
@@ -74,12 +90,16 @@ const ErrorDescriptions = {
 
   known(error: Error, reportingStack: string): ErrorDescription {
     const stackLines = ErrorReportingSite.stackLines(reportingStack);
+    const failure = DatabaseErrors.describe(error);
+    const category = failure ? databaseCategories[failure.kind] : undefined;
+    const code = failure?.code ?? ErrorDetails.code(error);
 
     return {
       classification: ErrorClassification.Error,
+      ...(category ? { category } : {}),
       safeMessage: ErrorDetails.safeMessage(error),
-      code: ErrorDetails.code(error),
-      fingerprint: DiagnosticFingerprint.create(stackLines.join('\n')),
+      code,
+      fingerprint: DiagnosticFingerprint.create(JSON.stringify([category, code, stackLines])),
       frames: stackLines.flatMap(ErrorReportingSite.frame),
     };
   },

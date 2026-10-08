@@ -3,7 +3,9 @@ import { AnalyticsSessionTimeline } from './analytics-session-timeline.js';
 import type { AnalyticsSessionResponse } from './analytics-session-types.js';
 import { AnalyticsInsightsRead } from './analytics-insights.js';
 import { Inject, Injectable } from '@nestjs/common';
-import { DatabaseService } from '../database/database.service.js';
+import { DatabaseReadService } from '../database/database-read.service.js';
+import type { DatabaseReadSnapshot } from '../database/database-read-types.js';
+import { AnalyticsResultBatch } from './analytics-result-batch.js';
 import { AnalyticsInputs } from './analytics-inputs.js';
 import { AnalyticsQueries } from './analytics-queries.js';
 import { AnalyticsResults } from './analytics-results.js';
@@ -14,23 +16,6 @@ import type { Prisma } from '../../generated/prisma/client.js';
 import type { AnalyticsAggregates, AnalyticsQuery } from './analytics-types.js';
 
 const AnalyticsReadModel = {
-  async aggregates(
-    transaction: Prisma.TransactionClient,
-    cohort: Prisma.Sql,
-  ): Promise<AnalyticsAggregates> {
-    const summaries = AnalyticsResults.summaries(
-      await transaction.$queryRaw<unknown[]>(AnalyticsQueries.summary(cohort)),
-    );
-    const steps = AnalyticsResults.steps(
-      await transaction.$queryRaw<unknown[]>(AnalyticsQueries.steps(cohort)),
-    );
-    const edges = AnalyticsResults.edges(
-      await transaction.$queryRaw<unknown[]>(AnalyticsQueries.edges(cohort)),
-    );
-
-    return { summaries, steps, edges };
-  },
-
   async defaultVersion(
     transaction: Prisma.TransactionClient,
     query: AnalyticsQuery,
@@ -52,11 +37,13 @@ const AnalyticsReadModel = {
   },
 
   async read(
-    transaction: Prisma.TransactionClient,
+    snapshot: DatabaseReadSnapshot,
     query: AnalyticsQuery,
     now: Date,
   ): Promise<AnalyticsResponse> {
-    const page = await transaction.funnelVersion.findMany(AnalyticsQueries.versions(query));
+    const page = await snapshot.transaction.funnelVersion.findMany(
+      AnalyticsQueries.versions(query),
+    );
     const versions = page.slice(0, query.limit);
     const metadata = AnalyticsProjection.metadata(query, page.length, now);
 
@@ -69,15 +56,26 @@ const AnalyticsReadModel = {
       versions.map((version) => version.identifier),
       now,
     );
-    const rawAggregates = await AnalyticsReadModel.aggregates(transaction, cohort);
-    const aggregates = AnalyticsProjection.group(rawAggregates);
-    const insights = await AnalyticsInsightsRead.read(
-      transaction,
+    const plan = await AnalyticsInsightsRead.prepare(
+      snapshot.transaction,
       query,
       versions.map((version) => version.identifier),
       now,
-      rawAggregates,
     );
+    const statements = [
+      AnalyticsQueries.summary(cohort),
+      AnalyticsQueries.steps(cohort),
+      AnalyticsQueries.edges(cohort),
+      ...plan.statements,
+    ];
+    const batch = new AnalyticsResultBatch(await snapshot.queryMany(statements), statements.length);
+    const rawAggregates: AnalyticsAggregates = {
+      summaries: AnalyticsResults.summaries(batch.next()),
+      steps: AnalyticsResults.steps(batch.next()),
+      edges: AnalyticsResults.edges(batch.next()),
+    };
+    const aggregates = AnalyticsProjection.group(rawAggregates);
+    const insights = AnalyticsInsightsRead.project(plan, rawAggregates, batch);
 
     return {
       ...metadata,
@@ -89,13 +87,14 @@ const AnalyticsReadModel = {
 
 @Injectable()
 export class AnalyticsService {
-  constructor(@Inject(DatabaseService) private readonly database: DatabaseService) {}
+  constructor(@Inject(DatabaseReadService) private readonly database: DatabaseReadService) {}
 
   async sessions(input: unknown): Promise<AnalyticsSessionResponse> {
     const { query, selection } = AnalyticsSessionTimeline.input(input);
 
-    return this.database.client.$transaction(
-      (transaction) => AnalyticsSessionTimeline.read(transaction, query, selection, new Date()),
+    return this.database.read(
+      (snapshot) =>
+        AnalyticsSessionTimeline.read(snapshot.transaction, query, selection, new Date()),
       { timeout: AnalyticsPolicy.TransactionTimeout },
     );
   }
@@ -104,11 +103,11 @@ export class AnalyticsService {
     const query = AnalyticsInputs.query(input);
     const now = new Date();
 
-    return this.database.client.$transaction(
-      async (transaction) =>
+    return this.database.read(
+      async (snapshot) =>
         AnalyticsReadModel.read(
-          transaction,
-          await AnalyticsReadModel.defaultVersion(transaction, query),
+          snapshot,
+          await AnalyticsReadModel.defaultVersion(snapshot.transaction, query),
           now,
         ),
       { timeout: AnalyticsPolicy.TransactionTimeout },

@@ -1,3 +1,5 @@
+import type { AnalyticsResultBatch } from './analytics-result-batch.js';
+import type { AnalyticsInsightsReadPlan } from './analytics-read-types.js';
 import { AnalyticsAcquisitionOptionsRead } from './analytics-acquisition-options.js';
 import { AnalyticsExperimentEvidence } from './analytics-experiment-evidence.js';
 import type { Prisma } from '../../generated/prisma/client.js';
@@ -35,52 +37,29 @@ const Validators = {
 };
 
 export const AnalyticsInsightsRead = {
-  async read(
+  async prepare(
     transaction: Prisma.TransactionClient,
     query: AnalyticsQuery,
     versionIdentifiers: readonly string[],
     now: Date,
-    aggregates: AnalyticsAggregates,
-  ): Promise<AnalyticsInsights> {
+  ): Promise<AnalyticsInsightsReadPlan> {
     const cohort = AnalyticsQueries.cohort(query, versionIdentifiers, now);
-    const businessOutcomes = AnalyticsRows.validate(
-      await transaction.$queryRaw<unknown[]>(AnalyticsInsightQueries.businessOutcomes(cohort)),
-      Validators.businessOutcome,
-    );
-    const trend = AnalyticsRows.validate(
-      await transaction.$queryRaw<unknown[]>(
-        AnalyticsInsightQueries.trend(cohort, AnalyticsPeriod.buckets(query, now)),
-      ),
-      Validators.trend,
-    );
-    const trendByDate = new Map(trend.map((row) => [row.date, row]));
-    const acquisition = AnalyticsRows.validate(
-      await transaction.$queryRaw<unknown[]>(AnalyticsInsightQueries.acquisition(cohort)),
-      Validators.acquisition,
-    );
-    const results = AnalyticsRows.validate(
-      await transaction.$queryRaw<unknown[]>(AnalyticsInsightQueries.results(cohort)),
-      Validators.result,
-    );
-    const quality = AnalyticsRows.validate(
-      await transaction.$queryRaw<unknown[]>(AnalyticsInsightQueries.quality(cohort)),
-      Validators.quality,
-    )[0];
-    const stepTimings = AnalyticsRows.validate(
-      await transaction.$queryRaw<unknown[]>(AnalyticsInsightQueries.stepTimings(cohort)),
-      Validators.timing,
-    );
+    const statements = [
+      AnalyticsInsightQueries.businessOutcomes(cohort),
+      AnalyticsInsightQueries.trend(cohort, AnalyticsPeriod.buckets(query, now)),
+      AnalyticsInsightQueries.acquisition(cohort),
+      AnalyticsInsightQueries.results(cohort),
+      AnalyticsInsightQueries.quality(cohort),
+      AnalyticsInsightQueries.stepTimings(cohort),
+    ];
     const previous = AnalyticsPeriod.previous(query);
-    const previousCounts = previous
-      ? AnalyticsRows.validate(
-          await transaction.$queryRaw<unknown[]>(
-            AnalyticsInsightQueries.totals(
-              AnalyticsQueries.cohort(previous, versionIdentifiers, now),
-            ),
-          ),
-          Validators.counts,
-        )[0]
-      : undefined;
+
+    if (previous) {
+      statements.push(
+        AnalyticsInsightQueries.totals(AnalyticsQueries.cohort(previous, versionIdentifiers, now)),
+      );
+    }
+
     const bounds = AnalyticsPeriod.bounds(query, now);
     const publications = await transaction.publication.findMany({
       where: {
@@ -92,19 +71,36 @@ export const AnalyticsInsightsRead = {
       take: AnalyticsPolicy.MaximumInsightGroups + 1,
     });
 
+    const experiments = await AnalyticsExperimentEvidence.plans(transaction, versionIdentifiers);
+    statements.push(
+      ...AnalyticsAcquisitionOptionsRead.prepare(query, versionIdentifiers, now),
+      ...AnalyticsExperimentEvidence.prepare(experiments, query, now),
+    );
+
+    return { query, now, previous, publications, experiments, statements };
+  },
+
+  project(
+    plan: AnalyticsInsightsReadPlan,
+    aggregates: AnalyticsAggregates,
+    batch: AnalyticsResultBatch,
+  ): AnalyticsInsights {
+    const { query, now, previous, publications, experiments } = plan;
+    const businessOutcomes = AnalyticsRows.validate(batch.next(), Validators.businessOutcome);
+    const trend = AnalyticsRows.validate(batch.next(), Validators.trend);
+    const trendByDate = new Map(trend.map((row) => [row.date, row]));
+    const acquisition = AnalyticsRows.validate(batch.next(), Validators.acquisition);
+    const results = AnalyticsRows.validate(batch.next(), Validators.result);
+    const quality = AnalyticsRows.validate(batch.next(), Validators.quality)[0];
+    const stepTimings = AnalyticsRows.validate(batch.next(), Validators.timing);
+    const previousCounts = previous
+      ? AnalyticsRows.validate(batch.next(), Validators.counts)[0]
+      : undefined;
+    const bounds = AnalyticsPeriod.bounds(query, now);
+
     return {
-      acquisitionOptions: await AnalyticsAcquisitionOptionsRead.read(
-        transaction,
-        query,
-        versionIdentifiers,
-        now,
-      ),
-      experiments: await AnalyticsExperimentEvidence.read(
-        transaction,
-        query,
-        versionIdentifiers,
-        now,
-      ),
+      acquisitionOptions: AnalyticsAcquisitionOptionsRead.project(batch),
+      experiments: AnalyticsExperimentEvidence.project(experiments, query, now, batch),
       businessOutcomes,
       period: {
         from: query.from ?? null,
