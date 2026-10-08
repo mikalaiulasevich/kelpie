@@ -351,7 +351,6 @@ The 1.257 GB database includes 969 MB in SessionOperation records (about 77%), a
 
 Final integrated verification after both SQL fixes and checkpoint changes: `npm run verify:bun` passed, including formatting, lint, typechecking, configuration integrity, database validation, production builds, 827 Node tests across workspaces and 419 backend tests on Bun. Independent review found no remaining blocking SQL or checkpoint correctness issue. This gate is local evidence, not a refreshed remote CI or public deployment result.
 
-
 ## Local replay storage and recovery — October 8
 
 Session operation responses and initial states now omit duplicate immutable configuration and derived result. The versioned compact format restores historical answers/revisions through the pinned version; legacy full snapshots remain readable. Owner identity, revision, route, confirmation and result checks reject invalid storage. Authorization and expiry precede replay. Exact-version preview now publishes its browser credential only after a successful transaction; expired/conflicting retries preserve the participant cookie and database credential hash. An independent review and Node/Bun HTTP regressions verified these changes.

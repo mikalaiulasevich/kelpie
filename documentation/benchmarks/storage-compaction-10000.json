@@ -1,0 +1,121 @@
+{
+  "recordedAt": "2026-10-08T12:03:34.942897+00:00",
+  "gitRevisionAtReport": "0f9a352d2ae26c95887922d58e1ccc59657de464",
+  "scope": "Local protected copy of the retained 10000-session synthetic SQLite dataset; not hosted capacity or production data.",
+  "database": {
+    "beforeBytes": 1256542208,
+    "afterStandaloneBytes": 247169024,
+    "reductionPercent": 80.329,
+    "rowCounts": {
+      "Administrator": 1,
+      "AdministratorSession": 1,
+      "ApplicationSecret": 1,
+      "BusinessOutcome": 0,
+      "Event": 230030,
+      "ExperimentPlan": 0,
+      "Funnel": 1,
+      "FunnelVersion": 3,
+      "Publication": 0,
+      "Session": 10000,
+      "SessionAnswer": 61674,
+      "SessionOperation": 82999,
+      "SessionTransition": 72999,
+      "_prisma_migrations": 9
+    }
+  },
+  "compaction": {
+    "applied": true,
+    "operations": {
+      "examined": 82999,
+      "converted": 82999,
+      "alreadyCompact": 0,
+      "bytesBefore": 904158999,
+      "bytesAfter": 45923829,
+      "complete": true,
+      "cursor": {
+        "sessionIdentifier": "fffdeef6-a706-4e6f-bd56-5a2c834b30f4",
+        "operationIdentifier": "cfe5dcaf-393f-46cb-a61f-02e1f0fe7327"
+      }
+    },
+    "sessions": {
+      "examined": 10000,
+      "converted": 10000,
+      "alreadyCompact": 0,
+      "bytesBefore": 106011892,
+      "bytesAfter": 3310000,
+      "complete": true,
+      "cursor": "fffdeef6-a706-4e6f-bd56-5a2c834b30f4"
+    }
+  },
+  "preservation": {
+    "sourceUnchanged": true,
+    "tables": {
+      "Administrator": {
+        "rows": 1,
+        "unchangedColumnsSha256": "66b7c38cb45f8fb3f007f84ea5bf08ed39504d842496cb748e8f7bea7f724679"
+      },
+      "AdministratorSession": {
+        "rows": 1,
+        "unchangedColumnsSha256": "c90c2769b527feea3c465445e771221e4785e9241629a60e8e227c09b0c09291"
+      },
+      "ApplicationSecret": {
+        "rows": 1,
+        "unchangedColumnsSha256": "b9e3ec33d913e1d149c31a626ab6fc9c10326a6cd10dfb2ea453401832bcd982"
+      },
+      "BusinessOutcome": {
+        "rows": 0,
+        "unchangedColumnsSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "Event": {
+        "rows": 230030,
+        "unchangedColumnsSha256": "094b346cf710a69f08d01d8fa9fb821c320023696255b5c642972561ac6d71ef"
+      },
+      "ExperimentPlan": {
+        "rows": 0,
+        "unchangedColumnsSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "Funnel": {
+        "rows": 1,
+        "unchangedColumnsSha256": "0d599ff517133a9e4e946e44e437649173d9d84907958142831af8c0541b4bfd"
+      },
+      "FunnelVersion": {
+        "rows": 3,
+        "unchangedColumnsSha256": "48027e71b38ed47c071c6039fd5c7f8604fe4f5875bcdcb50cffad12cb674cfb"
+      },
+      "Publication": {
+        "rows": 0,
+        "unchangedColumnsSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "Session": {
+        "rows": 10000,
+        "unchangedColumnsSha256": "b28db355ce63ab5c22f6c0a8814dcae468b5d00e5ef07412696cbc119a3cfeb8"
+      },
+      "SessionAnswer": {
+        "rows": 61674,
+        "unchangedColumnsSha256": "fda9af74cf58cdbc98165206e0b9c78104e04bd939b5bc7a370adf94ff17a050"
+      },
+      "SessionOperation": {
+        "rows": 82999,
+        "unchangedColumnsSha256": "816a7555926d4a8bef5b82302ec861125cac044b14aeb97a9eb9a02ebc6eb254"
+      },
+      "SessionTransition": {
+        "rows": 72999,
+        "unchangedColumnsSha256": "6db16fed7dd5c08f71bea03e6037bcce93425308f232afbb11e230361577d080"
+      },
+      "_prisma_migrations": {
+        "rows": 9,
+        "unchangedColumnsSha256": "e729226a1afbe045f8a36bbf2679bf805402c2e588d718227114be3df63e03dd"
+      }
+    },
+    "historicalStatesCompared": {
+      "SessionOperation": 82999,
+      "Session": 10000
+    }
+  },
+  "limits": [
+    "Physical shrinking measured via VACUUM INTO snapshot, not in-place row updates.",
+    "No isolated compaction throughput or memory claim; verification ran concurrently.",
+    "Hosted Turso export/restore and power-loss durability remain unverified.",
+    "Older binaries without compact replay support are not safe rollback targets."
+  ]
+}

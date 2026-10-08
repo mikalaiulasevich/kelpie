@@ -197,7 +197,6 @@ Added a reproducible administrator-authorized HTTP workload, independent metric 
 
 Final integrated `npm run verify:bun` passed: 827 Node tests and 419 Bun backend tests, static checks and production builds.
 
-
 ### October 8 — Replay storage and local recovery
 
 Removed repeated immutable configuration/result data from replay storage while retaining legacy reads and exact historical replies. Fixed preview cookie publication before transaction success. Added opt-in bounded compaction and validated local SQLite backup/restore. The copied 10,000-session dataset shrank from 1.257 GB to 247 MB as a standalone snapshot; all 92,999 historical states and unchanged columns across 14 tables matched the original. Real HTTP recovery preserved cookies, pinned versions, retries, events and analytics. Hosted Turso recovery and remote CI remain separate acceptance work.
