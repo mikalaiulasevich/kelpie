@@ -306,7 +306,7 @@ export class TrafficProfile {
       }
     }
 
-    for (const campaign of ['synthetic-0', 'synthetic-1', 'synthetic-2']) {
+    for (const campaign of [...new Set(manifest.map((session) => session.acquisition.campaign))]) {
       process.stdout.write(`Traffic profile: analytics campaign ${campaign}\n`);
       const query = new URLSearchParams({
         funnelIdentifier: 'workstyle-planner',

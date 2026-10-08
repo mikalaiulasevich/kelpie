@@ -204,3 +204,9 @@ Removed repeated immutable configuration/result data from replay storage while r
 ### October 8 — Assignment sequence and browser expiry recovery
 
 Added the complete v1/v2/v3/rollback HTTP acceptance sequence and checked per-version session analytics and v3 action delivery. An isolated two-tab production-build quiz pass verified reload drafts, save-on-Continue, stable assignment, revision conflicts and preserved losing drafts. Found and fixed Start remaining disabled after expired-session recovery, including a shared-cookie bootstrap edge. Rebuilt browser acceptance and the full verify:bun gate passed: 857 Node tests and 440 Bun backend tests. Remote backup is deferred by user decision; no new public deployment is claimed.
+
+### October 8 — Lost responses and observation acknowledgement recovery
+
+Added two real HTTP lost-ack acceptance scenarios and tested quiz Retry/reload/API-outage recovery in an isolated production-build browser. Fixed receipt validation deleting unrelated queued observations and rejection-warning persistence after queue removal. Nine regressions cover invalid receipts, concurrent queue changes and storage failures. Hosted deployment and physical-network/browser-crash behavior are separate from these local checks.
+
+Final integrated npm run verify:bun passed 868 Node tests and 442 Bun backend tests, static checks and production builds. After rebuild, browser observation delivery recovered automatically from a dropped acknowledgement with valid real backend receipts, the warning cleared and the session revision remained unchanged. No new public deployment is implied.
