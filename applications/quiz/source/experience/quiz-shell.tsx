@@ -44,9 +44,10 @@ export function QuizShell({ children }: UIPropertiesWithChildren) {
       <main id="quiz-main">{children}</main>
       <footer className="quiz-footer">
         <span>{translate(QuizContent.Shell.Footer)}</span>
-        <span>
-          Kelpie <span aria-hidden="true">·</span>
-          {translate(QuizContent.Shell.Assessment)}
+        <span className="quiz-footer-identity">
+          <span>Kelpie</span>
+          <span aria-hidden="true">·</span>
+          <span>{translate(QuizContent.Shell.Assessment)}</span>
         </span>
       </footer>
     </div>

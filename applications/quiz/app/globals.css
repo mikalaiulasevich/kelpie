@@ -421,6 +421,11 @@ main {
   color: var(--muted);
   font-size: 11px;
 }
+.quiz-footer-identity {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
 .about-assessment {
   margin: 0 48px 20px;
   padding: 20px 24px;
@@ -663,6 +668,9 @@ main {
   height: 12px;
 }
 .keyboard-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin-left: auto;
 }
 .keyboard-hint kbd {
