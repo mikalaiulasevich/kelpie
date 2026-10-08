@@ -16,6 +16,7 @@ interface AnalyticsBusinessPanelProperties {
   outcomes?: readonly AnalyticsBusinessOutcomeCount[];
   sessionIdentifier?: string;
   onUnauthorized: () => void;
+  onChanged?: () => void;
 }
 
 export function AnalyticsBusinessPanel(properties: AnalyticsBusinessPanelProperties): UIElement {
@@ -32,10 +33,11 @@ function BusinessOutcomeForm({
   outcomes,
   sessionIdentifier = '',
   onUnauthorized,
+  onChanged,
 }: AnalyticsBusinessPanelProperties): UIElement {
   const { t, locale } = useLocalization();
   const identifier = useId();
-  const command = useAnalyticsGoalCommand(onUnauthorized);
+  const command = useAnalyticsGoalCommand(onUnauthorized, onChanged);
   const request = useCallback(
     (signal: AbortSignal) => AnalyticsGoalClient.overview(funnelIdentifier, signal),
     [funnelIdentifier],
@@ -73,43 +75,6 @@ function BusinessOutcomeForm({
           )}
         </p>
       </div>
-      <p className="text-xs text-muted-foreground">
-        {t(
-          'All-time records for this funnel, including synthetic traffic. These are event counts, not unique customers or conversion rates.',
-        )}
-      </p>
-      {read.status === 'loading' && <p role="status">{t('Loading…')}</p>}
-      {read.status === 'error' && (
-        <p role="alert" className="text-destructive">
-          {t(read.message)}
-        </p>
-      )}
-      {read.status === 'ready' && (
-        <dl className="grid grid-cols-3 gap-3">
-          {(['lead', 'qualified', 'purchase'] as const).map((outcome) => (
-            <div key={outcome} className="rounded-lg border p-3">
-              <dt className="text-sm text-muted-foreground">{t(outcome)}</dt>
-              <dd className="text-2xl tabular-nums font-medium">
-                {new Intl.NumberFormat(locale).format(
-                  read.data.counts
-                    .filter((row) => row.kind === outcome)
-                    .reduce((total, row) => total + row.count, 0),
-                )}
-              </dd>
-              <p className="text-xs text-muted-foreground">
-                {t('Manual')}:{' '}
-                {read.data.counts
-                  .filter((row) => row.kind === outcome && row.provenance === 'manual')
-                  .reduce((total, row) => total + row.count, 0)}{' '}
-                · {t('Integration')}:{' '}
-                {read.data.counts
-                  .filter((row) => row.kind === outcome && row.provenance === 'integration')
-                  .reduce((total, row) => total + row.count, 0)}
-              </p>
-            </div>
-          ))}
-        </dl>
-      )}
       {outcomes && (
         <div className="border-t pt-3 space-y-2">
           <h4 className="font-medium">{t('Selected report cohort')}</h4>
@@ -134,6 +99,48 @@ function BusinessOutcomeForm({
           </dl>
         </div>
       )}
+      <details className="space-y-3 border-t pt-3">
+        <summary className="cursor-pointer text-sm font-medium">
+          {t('All-time outcome records')}
+        </summary>
+        <p className="text-xs text-muted-foreground">
+          {t(
+            'All-time records for this funnel, including synthetic traffic. These are event counts, not unique customers or conversion rates.',
+          )}
+        </p>
+        {read.status === 'loading' && <p role="status">{t('Loading…')}</p>}
+        {read.status === 'error' && (
+          <p role="alert" className="text-destructive">
+            {t(read.message)}
+          </p>
+        )}
+        {read.status === 'ready' && (
+          <dl className="grid grid-cols-3 gap-3">
+            {(['lead', 'qualified', 'purchase'] as const).map((outcome) => (
+              <div key={outcome} className="rounded-lg border p-3">
+                <dt className="text-sm text-muted-foreground">{t(outcome)}</dt>
+                <dd className="text-2xl tabular-nums font-medium">
+                  {new Intl.NumberFormat(locale).format(
+                    read.data.counts
+                      .filter((row) => row.kind === outcome)
+                      .reduce((total, row) => total + row.count, 0),
+                  )}
+                </dd>
+                <p className="text-xs text-muted-foreground">
+                  {t('Manual')}:{' '}
+                  {read.data.counts
+                    .filter((row) => row.kind === outcome && row.provenance === 'manual')
+                    .reduce((total, row) => total + row.count, 0)}{' '}
+                  · {t('Integration')}:{' '}
+                  {read.data.counts
+                    .filter((row) => row.kind === outcome && row.provenance === 'integration')
+                    .reduce((total, row) => total + row.count, 0)}
+                </p>
+              </div>
+            ))}
+          </dl>
+        )}
+      </details>
       <details className="border-t pt-3" open={!!sessionIdentifier}>
         <summary className="cursor-pointer font-medium">{t('Record a confirmed outcome')}</summary>
         <form

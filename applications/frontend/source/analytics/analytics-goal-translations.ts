@@ -1,4 +1,5 @@
 export const AnalyticsGoalTranslations: Readonly<Record<string, string>> = {
+  'All-time outcome records': 'Все записи результатов за всё время',
   'Decision evidence': 'Данные для принятия решения',
   'Review the evidence · no automatic winner':
     'Оцените данные · победитель не назначается автоматически',

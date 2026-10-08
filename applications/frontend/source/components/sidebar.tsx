@@ -11,7 +11,6 @@ import { PanelLeftIcon } from 'lucide-react';
 import { Slot } from 'radix-ui';
 
 import { useSidebarState } from '../navigation/use-sidebar-state';
-import { useIsMobile } from '../navigation/use-mobile';
 import { Button } from '@/components/button';
 import { Input } from '@/components/input';
 import { Separator } from '@/components/separator';

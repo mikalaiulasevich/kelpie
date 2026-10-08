@@ -130,4 +130,63 @@ describe('authenticated business evidence and experiment registration', () => {
     const read = await backend.request(path, { headers: { cookie } });
     expect(await read.json()).toMatchObject({ plan: document, expectedAllocationA: 0.5 });
   });
+  it('deduplicates concurrent recording and keeps provenance immutable', async () => {
+    const document = {
+      sessionIdentifier,
+      externalIdentifier: randomUUID(),
+      source: 'crm-race',
+      provenance: 'integration',
+      kind: 'purchase',
+      occurredAt: new Date().toISOString(),
+    };
+    const options = {
+      method: 'POST',
+      headers: { ...AdministrationFixture.Headers, cookie },
+      body: JSON.stringify(document),
+    };
+    const responses = await Promise.all([
+      backend.request('/api/administration/business-outcomes', options),
+      backend.request('/api/administration/business-outcomes', options),
+    ]);
+    expect(responses.map((response) => response.status)).toEqual([200, 200]);
+    expect(await responses[0]?.json()).toEqual(await responses[1]?.json());
+    expect(
+      await backend.database.businessOutcome.count({
+        where: { source: 'crm-race', externalIdentifier: document.externalIdentifier },
+      }),
+    ).toBe(1);
+    const conflict = await backend.request('/api/administration/business-outcomes', {
+      ...options,
+      body: JSON.stringify({ ...document, provenance: 'manual' }),
+    });
+    expect(conflict.status).toBe(409);
+  });
+
+  it('does not accept untrusted experiment mutations', async () => {
+    const path = `/api/administration/experiment-plans/${versionIdentifier}`;
+    expect((await backend.request(path)).status).toBe(401);
+    expect(
+      (
+        await backend.request(path, {
+          method: 'POST',
+          headers: { cookie, 'content-type': 'application/json' },
+          body: '{}',
+        })
+      ).status,
+    ).toBe(403);
+    expect(
+      (
+        await backend.request(path, {
+          method: 'POST',
+          headers: { ...AdministrationFixture.Headers, cookie },
+          body: JSON.stringify({
+            hypothesis: 'Invalid plan',
+            primaryMetric: 'made-up',
+            targetSamplePerVariant: 0,
+            plannedEndAt: 'not-a-date',
+          }),
+        })
+      ).status,
+    ).toBe(400);
+  });
 });

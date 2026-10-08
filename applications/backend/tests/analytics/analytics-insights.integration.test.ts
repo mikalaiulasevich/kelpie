@@ -1,37 +1,16 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { BackendApplicationFixture } from '../fixtures/backend-application.js';
 import { AdministrationFixture } from '../fixtures/administration.js';
-import { AnalyticsFixture } from '../fixtures/analytics-fixture.js';
+import { AnalyticsInsightFixture } from '../fixtures/analytics-insight-fixture.js';
 import { AnalyticsService } from '../../source/analytics/analytics.service.js';
 
 describe('analytics insight cohort boundaries and privacy', () => {
   let backend: BackendApplicationFixture;
-  let versions: Awaited<ReturnType<typeof AnalyticsFixture.prepare>>;
+  let versions: Awaited<ReturnType<typeof AnalyticsInsightFixture.prepare>>;
 
   beforeAll(async () => {
     backend = await AdministrationFixture.create();
-    versions = await AnalyticsFixture.prepare(backend);
-    await backend.database.session.updateMany({
-      data: { createdAt: new Date('2026-01-01T12:00:00Z') },
-    });
-    await backend.database.event.updateMany({
-      data: { serverTimestamp: new Date('2026-01-01T12:05:00Z') },
-    });
-    await backend.database.sessionTransition.updateMany({
-      data: { createdAt: new Date('2026-01-01T12:06:00Z') },
-    });
-    await backend.database.session.update({
-      where: { identifier: 'pending' },
-      data: { createdAt: new Date('2026-01-02T00:00:00Z') },
-    });
-    await backend.database.event.updateMany({
-      where: { sessionIdentifier: 'complete', name: 'cta_clicked' },
-      data: { serverTimestamp: new Date('2026-01-01T14:00:00Z') },
-    });
-    await backend.database.event.updateMany({
-      where: { name: 'result_viewed' },
-      data: { properties: { result_id: 'office_core', raw_answer: 'must never reach timeline' } },
-    });
+    versions = await AnalyticsInsightFixture.prepare(backend);
   });
 
   afterAll(async () => {
@@ -82,6 +61,42 @@ describe('analytics insight cohort boundaries and privacy', () => {
       { date: '2026-01-02', started: 0, results: 0, clicks: 0 },
     ]);
     expect(response.insights?.acquisition).toEqual([]);
+  });
+
+  it('deduplicates goal sessions and separates manual and integration provenance inside the conversion window', async () => {
+    const response = await backend.getService(AnalyticsService).read({
+      funnelIdentifier: 'workstyle-planner',
+      versionIdentifier: versions.firstVersionIdentifier,
+      campaign: 'launch',
+      from: '2026-01-01T00:00:00Z',
+      to: '2026-01-02T00:00:00Z',
+      conversionWindowHours: '1',
+    });
+    expect(response.insights?.businessOutcomes).toEqual([
+      { kind: 'lead', sessions: 1, manualSessions: 1, integrationSessions: 1 },
+    ]);
+  });
+
+  it('uses planned random-assignment cohort for experiment evidence rather than filtered report subset', async () => {
+    const response = await backend.getService(AnalyticsService).read({
+      funnelIdentifier: 'workstyle-planner',
+      versionIdentifier: versions.firstVersionIdentifier,
+      source: 'nonexistent',
+      from: '2026-02-01T00:00:00Z',
+      to: '2026-02-02T00:00:00Z',
+    });
+    expect(response.insights?.experiments[0]).toMatchObject({
+      primaryMetric: 'recommendation_open',
+      cohortFrom: '2026-01-01T00:00:00.000Z',
+      cohortTo: '2026-01-02T00:00:00.000Z',
+      startedA: 4,
+      startedB: 1,
+      convertedA: 2,
+      convertedB: 0,
+      sampleTargetReached: false,
+      plannedEndReached: true,
+      sampleRatioMismatch: null,
+    });
   });
 
   it('returns filtered session histories without event payloads or credentials', async () => {

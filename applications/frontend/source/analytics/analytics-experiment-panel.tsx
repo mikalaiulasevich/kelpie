@@ -16,6 +16,7 @@ interface AnalyticsExperimentPanelProperties {
   versionIdentifier: string;
   evidence?: AnalyticsExperimentEvidence;
   onUnauthorized: () => void;
+  onChanged?: () => void;
 }
 
 export function AnalyticsExperimentPanel(
@@ -28,10 +29,11 @@ function ExperimentPlanForm({
   versionIdentifier,
   evidence,
   onUnauthorized,
+  onChanged,
 }: AnalyticsExperimentPanelProperties): UIElement {
   const { t, locale } = useLocalization();
   const identifier = useId();
-  const command = useAnalyticsGoalCommand(onUnauthorized);
+  const command = useAnalyticsGoalCommand(onUnauthorized, onChanged);
   const request = useCallback(
     (signal: AbortSignal) => AnalyticsGoalClient.plan(versionIdentifier, signal),
     [versionIdentifier],

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { isError } from 'es-toolkit/predicate';
 import { ManagementError } from '../management/management-error';
 
-export function useAnalyticsGoalCommand(onUnauthorized: () => void) {
+export function useAnalyticsGoalCommand(onUnauthorized: () => void, onChanged?: () => void) {
   const controller = useRef(new AbortController());
   const inFlight = useRef(false);
   const [pending, setPending] = useState(false);
@@ -29,6 +29,7 @@ export function useAnalyticsGoalCommand(onUnauthorized: () => void) {
       if (!signal.aborted) {
         setSequence((value) => value + 1);
         setMessage('Saved.');
+        onChanged?.();
       }
     } catch (error) {
       if (!signal.aborted) {
