@@ -45,7 +45,7 @@ Revisit a decision only with a concrete requirement, failing invariant, or measu
 | Administration           | Existing applications/frontend becomes the React/Vite administration application; dashboard is an area within it |
 | Persistence              | Prisma and SQLite                                                                                                |
 | Interface                | Tailwind CSS and shadcn/ui; restrained SaaS presentation                                                         |
-| Language                 | English interfaces and README; configuration locale en-AU                                                        |
+| Language                 | English/Russian interfaces; English documentation; original configuration locale en-AU                           |
 | Architecture             | Modular monolith in one repository                                                                               |
 | Session state            | Backend stores confirmed answers, current step, version, and variant                                             |
 | Draft input              | Browser persistence only; backend saves on Continue                                                              |
@@ -55,7 +55,7 @@ Revisit a decision only with a concrete requirement, failing invariant, or measu
 | Configuration management | JSON upload, validation, draft, explicit publication, publication history, rollback                              |
 | Experiment override      | Assigned only at session creation; excluded from experiment comparison by default                                |
 | Synthetic traffic        | Explicitly marked and separately filterable                                                                      |
-| Hosting                  | Free hosting to be selected later; persistent SQLite storage is required                                         |
+| Hosting                  | Render Free Frankfurt with Turso Ireland; local SQLite for development and isolated tests                        |
 
 Prefer one HTTPS origin with a reverse proxy routing `/api` to NestJS, `/administration` and its assets to the React/Vite administration build, and quiz pages to Next.js. Preserve `/api` when proxying: existing cookies are scoped to that path. Configure the Vite base path and Next.js asset routing explicitly; development uses equivalent local proxies. Next.js recommends a reverse proxy for self-hosting. The Render Docker gateway implements this topology; public browser and persistence acceptance are recorded separately in the engineering review. [Next.js self-hosting guidance](https://nextjs.org/docs/app/guides/self-hosting).
 
@@ -65,8 +65,8 @@ GitHub Pages remains an optional static-hosting constraint, not a selected deplo
 
 ```text
 applications/backend
-applications/quiz       # planned Next.js public quiz
-applications/frontend   # existing React/Vite workspace, planned administration
+applications/quiz       # Next.js public quiz
+applications/frontend   # React/Vite administration
 packages/contracts
 packages/funnel-runtime
 configurations

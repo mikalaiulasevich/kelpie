@@ -32,6 +32,20 @@ export const SessionCommandCases = {
     { name: 'expired answer session', status: 401, outcome: 'expired', expected: null },
     { name: 'expired session response', status: 410, outcome: 'expired', expected: null },
     {
+      name: 'bootstrap after another tab expired',
+      status: 401,
+      outcome: 'bootstrap',
+      expected: null,
+    },
+    { name: 'bootstrap after session removal', status: 410, outcome: 'bootstrap', expected: null },
+    {
+      name: 'bootstrap after conflict',
+      status: 409,
+      outcome: 'bootstrap',
+      expected:
+        'This session changed in another tab. We refreshed your place; your draft is still saved.',
+    },
+    {
       name: 'failed unauthorized-session refresh',
       status: 401,
       outcome: 'failed',

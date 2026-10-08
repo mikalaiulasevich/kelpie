@@ -1,7 +1,15 @@
+const RestoreStatuses = {
+  Conflict: 409,
+  Unauthorized: 401,
+  Gone: 410,
+} as const;
+
 export const QuizSessionPolicy = {
-  ConflictStatus: 409,
+  ConflictStatus: RestoreStatuses.Conflict,
+  UnauthorizedStatus: RestoreStatuses.Unauthorized,
+  GoneStatus: RestoreStatuses.Gone,
   ServerFailureStatus: 500,
-  RestoreStatuses: [409, 401, 410],
+  RestoreStatuses: Object.values(RestoreStatuses),
   SessionLockName: 'kelpie.quiz.session',
   Current: '/api/sessions/current',
   Create: '/api/sessions',

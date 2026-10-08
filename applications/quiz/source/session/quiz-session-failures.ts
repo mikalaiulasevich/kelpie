@@ -1,4 +1,4 @@
-import { isError, isUndefined } from 'es-toolkit/predicate';
+import { isError, isNull, isUndefined } from 'es-toolkit/predicate';
 import { QuizSessionMessages } from './quiz-session-messages';
 import { QuizSessionPolicy } from './quiz-session-policy';
 import type { QuizSessionEnvelope } from './quiz-session-types';
@@ -32,7 +32,11 @@ export const QuizSessionFailures = {
       return QuizSessionMessages.Network;
     }
 
-    return restored.expired ? null : failure.message;
+    const sessionUnavailable =
+      failure.status === QuizSessionPolicy.UnauthorizedStatus ||
+      failure.status === QuizSessionPolicy.GoneStatus;
+
+    return sessionUnavailable && isNull(restored.state) ? null : failure.message;
   },
 
   deliveryMessage(failure: unknown): string {

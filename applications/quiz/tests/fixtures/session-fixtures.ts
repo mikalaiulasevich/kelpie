@@ -11,13 +11,19 @@ import type {
 } from '../../source/session/quiz-session-types';
 
 export const SessionFixtures = {
-  recoveredEnvelope(outcome: 'expired' | 'failed' | 'active'): Optional<QuizSessionEnvelope> {
+  recoveredEnvelope(
+    outcome: 'expired' | 'failed' | 'active' | 'bootstrap',
+  ): Optional<QuizSessionEnvelope> {
     if (outcome === 'failed') {
       return undefined;
     }
 
     if (outcome === 'expired') {
       return { state: null, expired: true };
+    }
+
+    if (outcome === 'bootstrap') {
+      return { state: null, expired: false };
     }
 
     return { state: SessionFixtures.state(), expired: false };
