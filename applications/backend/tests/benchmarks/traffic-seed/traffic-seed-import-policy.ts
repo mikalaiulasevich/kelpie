@@ -6,6 +6,9 @@ export const TrafficSeedImportPolicy = {
   TransactionTimeoutMilliseconds: 60000,
   TransactionAttempts: 3,
   TransactionRetryDelayMilliseconds: 250,
+  RetryableSessionConstraintCode: 'SQLITE_CONSTRAINT',
+  RetryableSessionConstraintMessage:
+    'SQLITE_CONSTRAINT: SQLITE_CONSTRAINT: SQLite error: UNIQUE constraint failed: Session.identifier',
   RetryableTransactionCode: 'TRANSACTION_CLOSED',
   RetryableAbortCode: '23',
   RetryableAbortMessageSuffix: 'The operation was aborted due to timeout',

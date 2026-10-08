@@ -9,10 +9,69 @@ import type { TrafficSeedSessionGraph } from './traffic-seed-import-types.js';
 import { TrafficSeedAbortCases } from '../../cases/traffic-seed/traffic-seed-abort-cases.js';
 import {
   TrafficSeedIdleCases,
+  TrafficSeedLateCommitCases,
   TrafficSeedNonRetryableNativeCases,
 } from '../../cases/traffic-seed/traffic-seed-native-failure-cases.js';
 
 describe('bounded transaction-closure recovery during synthetic import', () => {
+  it.each(TrafficSeedLateCommitCases)(
+    'checks $name after a late commit races with a retry',
+    async ({ conflict }) => {
+      const { source, target, transport, database } = await TrafficSeedTransportFixture.create();
+      const prepare = transport.prepareGraphs.bind(transport);
+      const writes = vi.spyOn(transport, 'prepareGraphs').mockImplementationOnce((graphs) => {
+        const lateCommit = prepare(
+          graphs.map((graph) => (conflict ? { ...graph, campaign: 'competing-content' } : graph)),
+        );
+        const racingWrite = prepare(graphs);
+
+        return async () => {
+          // The earlier timed-out request commits after this invocation's preflight has found no rows.
+          await lateCommit();
+
+          try {
+            await racingWrite();
+          } catch (error) {
+            if (!(error instanceof LibsqlError)) {
+              throw error;
+            }
+
+            expect(error).toBeInstanceOf(LibsqlError);
+            expect(error).toHaveProperty(
+              'message',
+              expect.stringContaining('UNIQUE constraint failed: Session.identifier'),
+            );
+            // The local SQLite adapter and hosted Hrana encode this same constraint differently.
+            throw TrafficSeedRetryFixture.lateCommit(error);
+          }
+        };
+      });
+
+      try {
+        const outcome = TrafficSeedImport.run(source.database, database, {
+          runIdentifier: 'late-commit-race',
+          projectSession: TrafficSeedImportFixture.projectSession,
+          prepareGraphs: (graphs) => transport.prepareGraphs(graphs),
+        });
+
+        if (conflict) {
+          await expect(outcome).rejects.toThrow('conflicts');
+          expect((await database.session.findFirstOrThrow()).campaign).toBe('competing-content');
+        } else {
+          await expect(outcome).resolves.toMatchObject({ sessions: 1, inserted: 0, existing: 1 });
+        }
+
+        expect(writes).toHaveBeenCalledTimes(1);
+        expect(await database.session.count()).toBe(1);
+        expect(await database.event.count()).toBe(1);
+      } finally {
+        vi.restoreAllMocks();
+        await database.$disconnect();
+        await Promise.all([source.close(), target.close()]);
+      }
+    },
+  );
+
   it('retries the actual native TimeoutError category with the exact observed message', async () => {
     const failure = new DOMException('The operation was aborted due to timeout', 'TimeoutError');
     expect(failure.code).toBe(23);

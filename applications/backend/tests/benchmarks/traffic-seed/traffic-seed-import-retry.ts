@@ -9,7 +9,9 @@ const SeedRetryFailure = {
       return (
         error.code === TrafficSeedImportPolicy.RetryableTransactionCode ||
         (error.code === TrafficSeedImportPolicy.RetryableIdleCode &&
-          error.message === TrafficSeedImportPolicy.RetryableIdleMessage)
+          error.message === TrafficSeedImportPolicy.RetryableIdleMessage) ||
+        (error.code === TrafficSeedImportPolicy.RetryableSessionConstraintCode &&
+          error.message === TrafficSeedImportPolicy.RetryableSessionConstraintMessage)
       );
     }
 
@@ -50,7 +52,7 @@ export const TrafficSeedImportRetry = {
           throw error;
         }
 
-        // Retry the complete transaction, including exact-content deduplication. The previous
+        // Retry the complete batch, including exact-content deduplication. The previous
         // commit may have succeeded even when its acknowledgement was lost.
         await setTimeout(TrafficSeedImportPolicy.TransactionRetryDelayMilliseconds * attempt);
       }

@@ -1,4 +1,4 @@
-import { LibsqlError } from '@libsql/client';
+import { LibsqlBatchError, LibsqlError } from '@libsql/client';
 import { Prisma } from '../../generated/prisma/client.js';
 
 export const TrafficSeedRetryFixture = {
@@ -14,6 +14,17 @@ export const TrafficSeedRetryFixture = {
     Object.defineProperty(error, 'code', { value: code });
 
     return error;
+  },
+
+  lateCommit(cause?: Error): LibsqlBatchError {
+    return new LibsqlBatchError(
+      'SQLITE_CONSTRAINT: SQLite error: UNIQUE constraint failed: Session.identifier',
+      0,
+      'SQLITE_CONSTRAINT',
+      undefined,
+      undefined,
+      cause,
+    );
   },
 
   closed(): LibsqlError {

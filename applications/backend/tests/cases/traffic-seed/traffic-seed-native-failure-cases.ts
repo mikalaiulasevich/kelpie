@@ -3,6 +3,22 @@ import { TrafficSeedRetryFixture } from '../../fixtures/traffic-seed-retry-fixtu
 
 export const TrafficSeedNonRetryableNativeCases = [
   {
+    name: 'plain session uniqueness lookalike',
+    create() {
+      return { code: 'SQLITE_CONSTRAINT', message: TrafficSeedRetryFixture.lateCommit().message };
+    },
+  },
+  {
+    name: 'another unique column',
+    create() {
+      return new LibsqlError(
+        'SQLITE_CONSTRAINT: SQLite error: UNIQUE constraint failed: Event.identifier',
+        'SQLITE_CONSTRAINT',
+      );
+    },
+  },
+
+  {
     name: 'manual cancellation',
     create() {
       return new DOMException('The operation was aborted due to timeout', 'AbortError');
@@ -44,4 +60,9 @@ export const TrafficSeedNonRetryableNativeCases = [
 export const TrafficSeedIdleCases = [
   { name: 'libSQL driver', prisma: false },
   { name: 'Prisma wrapper', prisma: true },
+] as const;
+
+export const TrafficSeedLateCommitCases = [
+  { name: 'identical committed history', conflict: false },
+  { name: 'conflicting committed history', conflict: true },
 ] as const;
