@@ -1,6 +1,6 @@
 export const TrafficSeedPolicy = {
   FunnelIdentifier: 'workstyle-planner',
-  Versions: [1, 2, 3],
+  VersionCount: 3,
   Days: 28,
   SessionSeedStride: 104729,
   RecentWeight: 1.35,

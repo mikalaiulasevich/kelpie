@@ -27,6 +27,10 @@ import { TrafficMessages } from './traffic-messages.js';
 import { TrafficOptionsSchema, type TrafficOptions } from './traffic-types.js';
 import type { TrafficSessionManifest } from '../traffic-oracle/traffic-oracle-types.js';
 
+const TrafficInputValidators = {
+  options: new Ajv().compile<TrafficOptions>(TrafficOptionsSchema),
+} as const;
+
 interface TrafficPreparedProfile {
   cookie: string;
   versions: string[];
@@ -414,20 +418,23 @@ export class TrafficProfile {
 }
 
 export const TrafficRunner = {
-  options(arguments_: readonly string[] = process.argv.slice(2)): TrafficOptions {
-    const entries = arguments_.map((argument) => {
+  options(argumentsList: ReadonlyList<string> = process.argv.slice(2)): TrafficOptions {
+    const values: Record<string, string> = {};
+
+    for (const argument of argumentsList) {
       const separator = argument.indexOf('=');
       const key = argument.slice(2, separator);
       assert.ok(
         argument.startsWith('--') &&
           separator > 2 &&
-          ['sessions', 'concurrency', 'seed', 'output', 'resume', 'database'].includes(key),
+          ['sessions', 'concurrency', 'seed', 'output', 'resume', 'database'].includes(key) &&
+          !Object.hasOwn(values, key),
         TrafficMessages.InvalidArguments,
       );
 
-      return [key, argument.slice(separator + 1)];
-    });
-    const values = Object.fromEntries(entries);
+      values[key] = argument.slice(separator + 1);
+    }
+
     const options = {
       sessions: Number(values['sessions'] ?? TrafficPolicy.Sessions),
       concurrency: Number(values['concurrency'] ?? TrafficPolicy.Concurrency),
@@ -436,8 +443,7 @@ export const TrafficRunner = {
       ...(isUndefined(values['resume']) ? {} : { resume: values['resume'] }),
       ...(isUndefined(values['database']) ? {} : { database: values['database'] }),
     };
-    const validate = new Ajv().compile<TrafficOptions>(TrafficOptionsSchema);
-    assert.ok(validate(options), TrafficMessages.InvalidArguments);
+    assert.ok(TrafficInputValidators.options(options), TrafficMessages.InvalidArguments);
     assert.equal(
       isUndefined(options.resume),
       isUndefined(options.database),

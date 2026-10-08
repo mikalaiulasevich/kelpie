@@ -5,14 +5,18 @@ import { TrafficScenarioPolicy } from './traffic-scenario-policy.js';
 
 export const TrafficScenario = {
   campaign(index: number) {
-    const campaign = TrafficScenarioPolicy.Campaigns[index % TrafficScenarioPolicy.Campaigns.length];
+    const campaign =
+      TrafficScenarioPolicy.Campaigns[
+        Math.floor(index / 3) % TrafficScenarioPolicy.Campaigns.length
+      ];
     assert.ok(campaign, TrafficMessages.MissingStep);
 
     return campaign;
   },
 
   dropout(index: number, variant: string, stepCount: number, random: () => number): number {
-    const completion = this.campaign(index).completion +
+    const completion =
+      this.campaign(index).completion +
       (variant === 'B' ? TrafficScenarioPolicy.VariantCompletionUplift : 0);
 
     if (random() < completion) {
@@ -24,18 +28,24 @@ export const TrafficScenario = {
   },
 
   clicks(index: number, variant: string, random: () => number): boolean {
-    return random() < this.campaign(index).click +
-      (variant === 'B' ? TrafficScenarioPolicy.VariantClickUplift : 0);
+    return (
+      random() <
+      this.campaign(index).click + (variant === 'B' ? TrafficScenarioPolicy.VariantClickUplift : 0)
+    );
   },
 
   answer(step: FunnelStep, random: () => number): unknown {
     if (step.type === 'number') {
       const profiles = TrafficScenarioPolicy.NumericAnswers;
       const profile = Object.entries(profiles).find(([identifier]) => identifier === step.id)?.[1];
-      const candidate = profile?.[Math.floor(random() * profile.length)] ??
+      const candidate =
+        profile?.[Math.floor(random() * profile.length)] ??
         step.input.min + random() ** 2 * (step.input.max - step.input.min);
       const maximumSlot = Math.floor((step.input.max - step.input.min) / step.input.step);
-      const slot = Math.max(0, Math.min(maximumSlot, Math.round((candidate - step.input.min) / step.input.step)));
+      const slot = Math.max(
+        0,
+        Math.min(maximumSlot, Math.round((candidate - step.input.min) / step.input.step)),
+      );
 
       return step.input.min + slot * step.input.step;
     }
@@ -49,7 +59,10 @@ export const TrafficScenario = {
 
     if (step.type === 'multi-select') {
       const options = [...step.input.options];
-      const minimum = Math.max(step.validation.required ? 1 : 0, step.validation.minSelections ?? 0);
+      const minimum = Math.max(
+        step.validation.required ? 1 : 0,
+        step.validation.minSelections ?? 0,
+      );
       const maximum = Math.min(options.length, step.validation.maxSelections ?? options.length);
       const count = minimum + Math.floor(random() * (maximum - minimum + 1));
       const selected: string[] = [];

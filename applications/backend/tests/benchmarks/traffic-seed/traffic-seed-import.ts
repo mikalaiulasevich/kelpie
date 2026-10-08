@@ -1,8 +1,9 @@
 import { createHash } from 'node:crypto';
 import { isDeepStrictEqual } from 'node:util';
 import { omit } from 'es-toolkit';
-import { isNull, isString, isUndefined } from 'es-toolkit/predicate';
+import { isNull, isPlainObject, isUndefined } from 'es-toolkit/predicate';
 import { Prisma, type PrismaClient } from '../../../generated/prisma/client.js';
+import { SessionSnapshots } from '../../../source/sessions/session-snapshots.js';
 import { TrafficSeedImportMessages } from './traffic-seed-import-messages.js';
 import { TrafficSeedImportPolicy } from './traffic-seed-import-policy.js';
 import type {
@@ -20,25 +21,30 @@ const ImportIdentity = {
     return `${digest.slice(0, 8)}-${digest.slice(8, 12)}-5${digest.slice(13, 16)}-a${digest.slice(17, 20)}-${digest.slice(20, 32)}`;
   },
 
-  json(value: Prisma.JsonValue, identifiers: ReadonlyMap<string, string>): Prisma.JsonValue {
-    if (isString(value)) {
-      return identifiers.get(value) ?? value;
+  replay(
+    response: Prisma.JsonValue,
+    owner: TrafficSeedSessionGraph,
+    sessionIdentifier: string,
+    versionIdentifier: string,
+  ): Prisma.JsonValue {
+    // Validate the source snapshot against its pinned owner before mapping only owned fields.
+    SessionSnapshots.read(response, owner);
+
+    if (!isPlainObject(response)) {
+      throw new Error(TrafficSeedImportMessages.Conflict);
     }
 
-    if (Array.isArray(value)) {
-      return value.map((child) => ImportIdentity.json(child, identifiers));
+    if (SessionSnapshots.isCompact(response)) {
+      const state = response['state'];
+
+      if (!isPlainObject(state)) {
+        throw new Error(TrafficSeedImportMessages.Conflict);
+      }
+
+      return { ...response, state: { ...state, sessionIdentifier, versionIdentifier } };
     }
 
-    if (!isNull(value) && typeof value === 'object') {
-      return Object.fromEntries(
-        Object.entries(value).map(([key, child]) => [
-          key,
-          isUndefined(child) ? null : ImportIdentity.json(child, identifiers),
-        ]),
-      );
-    }
-
-    return value;
+    return { ...response, sessionIdentifier, versionIdentifier };
   },
 
   input(value: Prisma.JsonValue): Prisma.InputJsonValue | typeof Prisma.JsonNull {
@@ -56,25 +62,6 @@ const ImportIdentity = {
     ordinal: number,
   ): TrafficSeedSessionGraph {
     const identifier = ImportIdentity.identifier(runIdentifier, `session:${ordinal}`);
-    const identifiers = new Map([
-      [graph.identifier, identifier],
-      [graph.versionIdentifier, version.identifier],
-    ]);
-
-    for (const record of [...graph.events, ...graph.transitions]) {
-      identifiers.set(
-        record.identifier,
-        ImportIdentity.identifier(runIdentifier, record.identifier),
-      );
-    }
-
-    for (const operation of graph.operations) {
-      identifiers.set(
-        operation.operationIdentifier,
-        ImportIdentity.identifier(runIdentifier, operation.operationIdentifier),
-      );
-    }
-
     return {
       ...graph,
       identifier,
@@ -84,7 +71,12 @@ const ImportIdentity = {
       initialState: null,
       answers: graph.answers.map((answer) => ({ ...answer, sessionIdentifier: identifier })),
       operations: graph.operations.map((operation) => {
-        const response = ImportIdentity.json(operation.response, identifiers);
+        const response = ImportIdentity.replay(
+          operation.response,
+          graph,
+          identifier,
+          version.identifier,
+        );
 
         return {
           ...operation,
@@ -111,7 +103,7 @@ const ImportIdentity = {
           ...event,
           identifier: ImportIdentity.identifier(runIdentifier, event.identifier),
           sessionIdentifier: identifier,
-          properties: ImportIdentity.json(event.properties, identifiers),
+          properties: event.properties,
         };
 
         return { ...mapped, contentFingerprint: ImportIdentity.fingerprint(mapped) };

@@ -1,3 +1,7 @@
+import { Prisma } from '../../generated/prisma/client.js';
+import { SessionProjection } from '../../source/sessions/session-projection.js';
+import { SessionSnapshots } from '../../source/sessions/session-snapshots.js';
+import { TrafficSeedImportPolicy } from '../benchmarks/traffic-seed/traffic-seed-import-policy.js';
 import { BackendApplicationFixture } from './backend-application.js';
 import { ConfigurationImportFixtures } from './configuration-import-fixtures.js';
 import type { TrafficSeedSessionGraph } from '../benchmarks/traffic-seed/traffic-seed-import-types.js';
@@ -7,6 +11,20 @@ export const TrafficSeedImportFixture = {
     return session;
   },
 
+  async saveReplay(source: BackendApplicationFixture, compact = true): Promise<void> {
+    const graph = await source.database.session.findUniqueOrThrow({
+      where: { identifier: 'source-session' },
+      include: TrafficSeedImportPolicy.Include,
+    });
+    const state = SessionProjection.read(graph);
+    const response = compact ? SessionSnapshots.json(state) : state;
+
+    await source.database.$executeRaw(Prisma.sql`
+      UPDATE SessionOperation SET response = ${JSON.stringify(response)}
+      WHERE sessionIdentifier = ${graph.identifier}
+    `);
+  },
+
   async create() {
     const source = await BackendApplicationFixture.create();
 
@@ -14,7 +32,7 @@ export const TrafficSeedImportFixture = {
       const target = await BackendApplicationFixture.create();
 
       try {
-        const document = ConfigurationImportFixtures.original(1);
+        const document = { ...ConfigurationImportFixtures.original(1), description: 'source-session' };
         const version = await source.configurationImports.import(document);
         await target.configurationImports.import(document);
         const timestamp = new Date('2026-10-01T12:00:00Z');
@@ -29,7 +47,8 @@ export const TrafficSeedImportFixture = {
             trafficOrigin: 'synthetic',
             acquisitionParameters: { utm_source: 'search' },
             campaign: 'autumn',
-            currentStepIdentifier: 'welcome',
+            currentStepIdentifier: 'intro',
+            revision: 1,
             initialState: { secret: 'never-copy-initial' },
             createdAt: timestamp,
             expiresAt: timestamp,
@@ -70,6 +89,8 @@ export const TrafficSeedImportFixture = {
             createdAt: timestamp,
           },
         });
+
+        await TrafficSeedImportFixture.saveReplay(source);
 
         return { source, target };
       } catch (error) {

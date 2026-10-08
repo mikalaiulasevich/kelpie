@@ -1,3 +1,4 @@
+import { SessionSnapshots } from '../../../source/sessions/session-snapshots.js';
 import { describe, expect, it } from 'vitest';
 import { TrafficSeedImportFixture } from '../../fixtures/traffic-seed-import-fixture.js';
 import { TrafficSeedImport } from './traffic-seed-import.js';
@@ -24,7 +25,7 @@ describe('synthetic dataset import', () => {
       expect(graph.accessTokenHash).toBeNull();
       expect(graph.initialState).toBeNull();
       expect(graph.identifier).not.toBe('source-session');
-      expect(graph.operations[0]?.response).toEqual({
+      expect(SessionSnapshots.read(graph.operations[0]?.response, graph)).toMatchObject({
         sessionIdentifier: graph.identifier,
         versionIdentifier: graph.versionIdentifier,
       });

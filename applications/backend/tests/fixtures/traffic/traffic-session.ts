@@ -125,7 +125,12 @@ export const TrafficSession = {
       transitions: [],
     };
     const initialRoute = FunnelEvaluation.evaluate(state.configuration, state.variant, {}).route;
-    const dropout = TrafficScenario.dropout(index, state.variant, initialRoute.steps.length, random);
+    const dropout = TrafficScenario.dropout(
+      index,
+      state.variant,
+      initialRoute.steps.length,
+      random,
+    );
 
     for (let transition = 0; transition < TrafficPolicy.MaximumTransitions; transition += 1) {
       const evaluation = FunnelEvaluation.evaluate(
@@ -195,7 +200,11 @@ export const TrafficSession = {
           );
           manifest.recommendationClicked = true;
 
-          if (state.funnelVersion === 3) {
+          if (
+            state.configuration.events.allowed.some(
+              (event) => event.name === 'recommendation_expanded',
+            )
+          ) {
             resultEvents.push(
               this.event(state, 'recommendation_expanded', {
                 result_id: state.result.id,
