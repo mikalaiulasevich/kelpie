@@ -152,9 +152,8 @@ export function Workspace({ identity, signOut, onUnauthorized }: WorkspaceProper
       <div className="workspace-page">
         <header className="workspace-header flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            {page === WorkspacePage.Analytics ? (
-              <h1 className="page-title">{t(title)}</h1>
-            ) : (
+            {page === WorkspacePage.Analytics && <h1 className="page-title">{t(title)}</h1>}
+            {page === WorkspacePage.Version && (
               <Breadcrumb>
                 <BreadcrumbList>
                   <BreadcrumbItem>

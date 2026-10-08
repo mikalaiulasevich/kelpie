@@ -1,5 +1,15 @@
 import { useState, type FormEvent } from 'react';
-import { CalendarDays, Link, Save, Download, Info, ChevronDown, Clock3 } from 'lucide-react';
+import {
+  CalendarDays,
+  Link,
+  Save,
+  Download,
+  Info,
+  ChevronDown,
+  Clock3,
+  CircleCheck,
+  AlertTriangle,
+} from 'lucide-react';
 import { Button } from '../components/button';
 import { Input } from '../components/input';
 import { useLocalization } from '../localization/use-localization';
@@ -98,6 +108,8 @@ export function AnalyticsReportControls({
       setMessage(Content.CopyFailed);
     }
   };
+
+  const messageFailed = message === Content.StorageFailed || message === Content.CopyFailed;
 
   return (
     <section className="rounded-xl border bg-card p-4" aria-label={t(Content.Period)}>
@@ -255,6 +267,7 @@ export function AnalyticsReportControls({
               <Button
                 key={report.name}
                 variant="secondary"
+                className="h-auto max-w-full whitespace-normal break-words text-left leading-relaxed"
                 onClick={() => {
                   updateDraft(report.selection);
                   onApply(report.selection);
@@ -267,7 +280,15 @@ export function AnalyticsReportControls({
         <p className="mt-2 text-sm text-muted-foreground">{t(Content.LocalReports)}</p>
       </details>
       {message && (
-        <p className="mt-3 text-sm" role="status">
+        <p
+          className={`mt-3 flex items-start gap-2 rounded-md px-3 py-2 text-sm leading-relaxed ${messageFailed ? 'bg-destructive/8 text-destructive' : 'bg-success/8 text-success'}`}
+          role={messageFailed ? 'alert' : 'status'}
+        >
+          {messageFailed ? (
+            <AlertTriangle aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+          ) : (
+            <CircleCheck aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+          )}
           {t(message)}
         </p>
       )}
