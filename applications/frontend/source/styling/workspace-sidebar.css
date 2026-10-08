@@ -326,12 +326,14 @@
     margin: 0 0 0 auto;
     padding: 0;
   }
+  .workspace-sidebar-footer .language-settings-trigger,
   .workspace-sidebar-footer .workspace-shortcut-trigger {
     justify-content: center;
     width: 44px;
     height: 44px;
     padding: 0;
   }
+  .workspace-sidebar-footer .language-settings-trigger span,
   .workspace-shortcut-label,
   .workspace-shortcut-key {
     display: none;

@@ -150,7 +150,7 @@ function ExperimentPlanForm({
             <label className="grid gap-1 text-sm">
               {t('Primary outcome')}
               <select
-                className="h-9 rounded-md border bg-background px-2"
+                className="native-select w-full min-w-0"
                 value={primaryMetric}
                 disabled={command.pending}
                 onChange={(event) => {

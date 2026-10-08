@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { isEqual } from 'es-toolkit/predicate';
 import type { FunnelConfiguration } from '@kelpie/contracts';
-import { GitCompareArrows } from 'lucide-react';
+import { ChevronDown, GitCompareArrows } from 'lucide-react';
 import { ManagementClient } from '../management/management-client';
 import { useManagementRead } from '../management/use-management-read';
 import { useLocalization } from '../localization/use-localization';
@@ -22,9 +22,18 @@ export function ConfigurationVersionComparison(
 
   return (
     <section className="rounded-lg border p-4">
-      <Button variant="ghost" aria-expanded={open} onClick={() => setOpen(!open)}>
+      <Button
+        variant="ghost"
+        className="h-auto min-h-10 w-full justify-start whitespace-normal text-left"
+        aria-expanded={open}
+        onClick={() => setOpen(!open)}
+      >
         <GitCompareArrows />
-        {translate('Compare with active version')}
+        <span>{translate('Compare with active version')}</span>
+        <ChevronDown
+          className={`ml-auto shrink-0 transition-transform motion-reduce:transition-none ${open ? 'rotate-180' : ''}`}
+          aria-hidden="true"
+        />
       </Button>
       {open && <ConfigurationVersionDifference {...properties} />}
     </section>
@@ -63,9 +72,12 @@ function ConfigurationVersionDifference({
         {configuration.version} · {differences.length} {translate('Changed sections')}
       </p>
       {differences.map(([key, value]) => (
-        <details key={key} className="rounded-md border p-3">
-          <summary className="cursor-pointer font-medium">{key}</summary>
-          <div className="mt-3 grid min-w-0 gap-4 lg:grid-cols-2">
+        <details key={key} className="analytics-disclosure rounded-md border px-3 py-1">
+          <summary className="text-sm font-medium">
+            <span className="min-w-0 break-words">{key}</span>
+            <ChevronDown className="analytics-disclosure-chevron" aria-hidden="true" />
+          </summary>
+          <div className="mb-3 mt-2 grid min-w-0 gap-4 lg:grid-cols-2">
             <div className="min-w-0">
               <p className="mb-2 text-xs text-muted-foreground">{translate('Active version')}</p>
               <ConfigurationJson value={Reflect.get(resource.data.document, key) ?? null} />

@@ -18,7 +18,7 @@ export function QuizShell({ children }: UIPropertiesWithChildren) {
       <header className="quiz-header">
         <a className="quiz-brand" href="/" aria-label={translate(QuizContent.Shell.Home)}>
           <KelpieMark />
-          <span>kelpie</span>
+          <span>Kelpie</span>
         </a>
         <span className="header-divider" />
         <span className="header-context">{translate(QuizContent.Shell.Context)}</span>

@@ -2,7 +2,7 @@ import { cva } from 'class-variance-authority';
 
 export const ButtonStyles = {
   variants: cva(
-    'control-button inline-flex min-h-11 sm:min-h-9 items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+    'control-button inline-flex min-h-11 sm:min-h-10 items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
     {
       variants: {
         variant: {
@@ -17,7 +17,7 @@ export const ButtonStyles = {
           default: 'px-4 py-2',
           sm: 'min-h-11 sm:min-h-8 rounded-xl px-3 text-xs',
           lg: 'rounded-xl px-8',
-          icon: 'min-w-11 sm:min-w-9',
+          icon: 'min-w-11 sm:min-w-10',
         },
       },
       defaultVariants: { variant: 'default', size: 'default' },

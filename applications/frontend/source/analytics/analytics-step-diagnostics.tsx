@@ -1,3 +1,4 @@
+import { ChevronDown } from 'lucide-react';
 import { isNull, isUndefined } from 'es-toolkit/predicate';
 import { AnalyticsReportOperations as Report } from './analytics-report-operations';
 import { useCallback, useState } from 'react';
@@ -71,13 +72,13 @@ export function AnalyticsStepDiagnostics({
                     {edge.fromStepIdentifier} → {edge.toStepIdentifier}
                   </span>
                   <span className="ml-2 tabular-nums">{edge.transitions}</span>
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                     {t(Content.TransitionRate, {
                       numerator: edge.observedConversion.numerator,
                       denominator: edge.observedConversion.denominator,
                     })}
                   </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                     {t(Content.DestinationMissing, {
                       open: edge.destinationNonreach.open,
                       expired: edge.destinationNonreach.expired,
@@ -101,12 +102,14 @@ export function AnalyticsStepDiagnostics({
                 })
               : '—'}
           </p>
-          <p className="mt-2 text-xs text-muted-foreground">{t(Content.DurationExplanation)}</p>
+          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+            {t(Content.DurationExplanation)}
+          </p>
         </section>
       </div>
       <section>
         <h4 className="text-sm font-semibold">{t(Content.Sessions)}</h4>
-        <p className="mt-1 text-xs text-muted-foreground">
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
           {t(Content.TimelineExplanation)} {t(Content.FullHistory)}
         </p>
         {read.status === 'loading' && (
@@ -151,20 +154,22 @@ export function AnalyticsStepDiagnostics({
                         className="border-t"
                       >
                         <td className="p-2">{segment.source || t(Content.Unattributed)}</td>
-                        <td>{segment.medium || t(Content.Unattributed)}</td>
-                        <td>{segment.campaign || t(Content.Unattributed)}</td>
-                        <td>{segment.reached}</td>
-                        <td>
+                        <td className="p-2">{segment.medium || t(Content.Unattributed)}</td>
+                        <td className="p-2">{segment.campaign || t(Content.Unattributed)}</td>
+                        <td className="p-2">{segment.reached}</td>
+                        <td className="p-2">
                           {Report.percentage(segment.observedCompleted, segment.reached)} ·{' '}
                           {segment.observedCompleted} / {segment.reached}
                         </td>
-                        <td>{segment.completed - segment.observedCompleted}</td>
+                        <td className="p-2">{segment.completed - segment.observedCompleted}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
                 {read.data.segmentsHasMore && (
-                  <p className="mt-2 text-xs text-muted-foreground">{t(Content.Truncated)}</p>
+                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                    {t(Content.Truncated)}
+                  </p>
                 )}
               </section>
             )}
@@ -173,31 +178,43 @@ export function AnalyticsStepDiagnostics({
               <p className="text-sm text-muted-foreground">{t(Content.NoSessions)}</p>
             )}
             {read.data.sessions.map((session) => (
-              <details className="rounded-lg border bg-card p-3" key={session.sessionIdentifier}>
-                <summary className="cursor-pointer text-sm">
-                  <span className="font-medium">{session.sessionIdentifier.slice(0, 8)}</span> ·{' '}
-                  {Report.timestamp(session.startedAt, response.filters.timezone)} ·{' '}
-                  {session.variant}
+              <details
+                className="analytics-disclosure rounded-lg border bg-card px-3 py-1"
+                key={session.sessionIdentifier}
+              >
+                <summary className="text-sm">
+                  <span className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+                    <span className="font-medium tabular-nums">
+                      {session.sessionIdentifier.slice(0, 8)}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {Report.timestamp(session.startedAt, response.filters.timezone)}
+                    </span>
+                    <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
+                      {session.variant}
+                    </span>
+                  </span>
+                  <ChevronDown className="analytics-disclosure-chevron" aria-hidden="true" />
                 </summary>
                 <div className="mt-3 overflow-x-auto">
                   <table className="w-full text-left text-xs">
                     <thead>
                       <tr>
-                        <th className="py-2">{t(Content.Timestamp)}</th>
-                        <th>{t(Content.Event)}</th>
-                        <th>{t(Content.Step)}</th>
-                        <th>{t(Content.Source)}</th>
+                        <th className="p-2">{t(Content.Timestamp)}</th>
+                        <th className="p-2">{t(Content.Event)}</th>
+                        <th className="p-2">{t(Content.Step)}</th>
+                        <th className="p-2">{t(Content.Source)}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {session.events.map((event, index) => (
                         <tr key={index} className="border-t">
-                          <td className="py-2">
+                          <td className="p-2">
                             {Report.timestamp(event.occurredAt, response.filters.timezone)}
                           </td>
-                          <td>{event.name}</td>
-                          <td>{event.stepIdentifier ?? '—'}</td>
-                          <td>{event.source}</td>
+                          <td className="p-2">{event.name}</td>
+                          <td className="p-2">{event.stepIdentifier ?? '—'}</td>
+                          <td className="p-2">{event.source}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -209,7 +226,7 @@ export function AnalyticsStepDiagnostics({
                 <Button
                   size="sm"
                   variant="outline"
-                  className="mt-3"
+                  className="mb-2 mt-3"
                   onClick={() => onSession(session.sessionIdentifier)}
                 >
                   {t(Content.Business)}

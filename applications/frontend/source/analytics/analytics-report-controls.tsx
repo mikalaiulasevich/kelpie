@@ -182,7 +182,7 @@ export function AnalyticsReportControls({
         <label className="grid min-w-0 gap-1.5 text-sm">
           {t(Content.Timezone)}
           <select
-            className="report-select w-full min-w-0"
+            className="native-select w-full min-w-0"
             value={draft.timezone}
             onChange={(event) => updateDraft({ ...draft, timezone: event.target.value })}
           >
@@ -194,7 +194,7 @@ export function AnalyticsReportControls({
         <label className="grid min-w-0 gap-1.5 text-sm">
           {t(Content.Window)}
           <select
-            className="report-select w-full min-w-0"
+            className="native-select w-full min-w-0"
             value={draft.conversionWindowHours}
             onChange={(event) =>
               updateDraft({ ...draft, conversionWindowHours: Number(event.target.value) })
@@ -227,17 +227,14 @@ export function AnalyticsReportControls({
         <Info aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
         <p>{t(Content.PeriodExplanation)}</p>
       </div>
-      <details className="group mt-3 border-t pt-3">
+      <details className="analytics-disclosure mt-3 border-t pt-1">
         <summary className="flex cursor-pointer list-none items-center gap-2 text-sm [&::-webkit-details-marker]:hidden">
           <Save aria-hidden="true" className="size-4 text-muted-foreground" />
           {t(Content.Saved)}
           <span className="text-xs tabular-nums text-muted-foreground">
             {saved.filter((report) => report.funnelIdentifier === funnelIdentifier).length}
           </span>
-          <ChevronDown
-            aria-hidden="true"
-            className="ml-auto size-4 text-muted-foreground group-open:rotate-180"
-          />
+          <ChevronDown aria-hidden="true" className="analytics-disclosure-chevron" />
         </summary>
         <div className="mt-3 flex flex-wrap gap-2">
           <Input

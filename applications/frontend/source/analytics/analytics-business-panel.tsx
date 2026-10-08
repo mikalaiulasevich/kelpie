@@ -249,7 +249,7 @@ function BusinessOutcomeForm({
             <label className="grid gap-1 text-sm">
               {t('Outcome')}
               <select
-                className="h-9 rounded-md border bg-background px-2"
+                className="native-select w-full min-w-0"
                 value={kind}
                 disabled={command.pending}
                 onChange={(event) => {

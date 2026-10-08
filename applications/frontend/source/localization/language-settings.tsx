@@ -18,9 +18,13 @@ export function LanguageSettings() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" className="justify-start">
+        <Button
+          variant="ghost"
+          className="language-settings-trigger justify-start"
+          aria-label={translate(LocalizationContent.Settings)}
+        >
           <Settings2 aria-hidden="true" />
-          {translate(LocalizationContent.Settings)}
+          <span>{translate(LocalizationContent.Settings)}</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-sm">
@@ -31,7 +35,7 @@ export function LanguageSettings() {
         <label className="flex flex-col gap-2 text-sm">
           {translate(LocalizationContent.Language)}
           <select
-            className="h-11 rounded-md border border-border bg-background px-3"
+            className="native-select w-full"
             value={locale}
             onChange={(event) =>
               setLocale(

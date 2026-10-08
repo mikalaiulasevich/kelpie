@@ -106,7 +106,7 @@ export function AnalyticsPage({ funnelIdentifier, onUnauthorized }: AnalyticsPag
           <label className="flex items-center gap-2 text-sm">
             {t(Content.Traffic)}
             <select
-              className="report-select"
+              className="native-select"
               value={selection.trafficOrigin}
               onChange={(event) => {
                 const value = event.target.value;

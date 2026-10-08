@@ -999,13 +999,13 @@ a:focus-visible {
   }
 }
 
-.report-select {
+.native-select {
   appearance: none;
   height: 40px;
   min-height: 40px;
   max-width: 100%;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 8px;
   background: var(--background);
   color: var(--foreground);
   padding: 8px 36px 8px 12px;
@@ -1015,7 +1015,7 @@ a:focus-visible {
   background-repeat: no-repeat;
   background-position: right 12px center;
 }
-.report-select:focus-visible {
+.native-select:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
@@ -1099,5 +1099,17 @@ a:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   .analytics-disclosure-chevron {
     transition: none;
+  }
+}
+
+.native-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+@media (pointer: coarse) {
+  .native-select,
+  [data-slot='input'],
+  [data-slot='select-trigger'] {
+    min-height: 44px;
   }
 }

@@ -2,7 +2,15 @@ import { ConfigurationInspectionContent } from './configuration-inspection-conte
 import { useLocalization } from '../localization/use-localization';
 import { type FunnelConfiguration } from '@kelpie/contracts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/card';
-import { Activity, Braces, ShieldCheck, Fingerprint, Check, Minus } from 'lucide-react';
+import {
+  Activity,
+  Braces,
+  ShieldCheck,
+  Fingerprint,
+  Check,
+  Minus,
+  ChevronDown,
+} from 'lucide-react';
 import { ConfigurationJson } from './configuration-json';
 
 interface ConfigurationEventsPanelProperties {
@@ -55,8 +63,11 @@ export function ConfigurationEventsPanel({ configuration }: ConfigurationEventsP
           <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
             {translate(ConfigurationInspectionContent.SessionStorageDescription)}
           </p>
-          <details className="event-privacy-json">
-            <summary>{translate(ConfigurationInspectionContent.ViewDeclaration)}</summary>
+          <details className="event-privacy-json analytics-disclosure">
+            <summary>
+              <span>{translate(ConfigurationInspectionContent.ViewDeclaration)}</span>
+              <ChevronDown className="analytics-disclosure-chevron" aria-hidden="true" />
+            </summary>
             <ConfigurationJson value={configuration.events.privacy} />
           </details>
         </CardContent>

@@ -75,7 +75,7 @@ export function AnalyticsReportSegments({ response, selection, onApply }: Segmen
             >
               {t(dimension.label)}
               <select
-                className="report-select w-full min-w-0"
+                className="native-select w-full min-w-0"
                 value={
                   selection[dimension.selected] ? `value:${selection[dimension.field]}` : 'all'
                 }

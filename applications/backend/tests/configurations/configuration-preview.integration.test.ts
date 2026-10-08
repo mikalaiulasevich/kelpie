@@ -55,8 +55,10 @@ describe('version library and isolated previews', () => {
     expect(firstPage.status).toBe(200);
     const firstPageBody = await firstPage.json();
     expect(firstPageBody).toMatchObject({ total: 101, nextOffset: 100 });
-    expect(firstPageBody.items).toHaveLength(100);
-    expect(firstPageBody.items).not.toContainEqual(expect.objectContaining({ version: 1 }));
+    expect(firstPageBody).toHaveProperty('items.length', 100);
+    expect(firstPageBody).not.toMatchObject({
+      items: expect.arrayContaining([expect.objectContaining({ version: 1 })]),
+    });
 
     const searchedPage = await backend.request(
       '/api/administration/configurations?funnelIdentifier=workstyle-planner&search=Historical%20launch%20research&limit=100&offset=0',
