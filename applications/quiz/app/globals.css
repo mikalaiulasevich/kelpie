@@ -230,6 +230,8 @@ main {
 }
 .workstyle-illustration {
   position: relative;
+  overflow: clip;
+  overflow-clip-margin: 16px;
   min-height: 430px;
   display: grid;
   place-items: center;

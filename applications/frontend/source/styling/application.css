@@ -1109,7 +1109,15 @@ a:focus-visible {
 @media (pointer: coarse) {
   .native-select,
   [data-slot='input'],
+  [data-slot='input-group'],
   [data-slot='select-trigger'] {
     min-height: 44px;
+  }
+}
+
+@media (max-width: 639px) {
+  .native-select,
+  [data-slot='select-trigger'] {
+    font-size: 16px;
   }
 }

@@ -43,7 +43,7 @@ export function FunnelSelector({
           <FieldLabel htmlFor="workspace-funnel" className="sr-only">
             {t(WorkspaceContent.Funnel)}
           </FieldLabel>
-          <InputGroup className="h-10 sm:h-9">
+          <InputGroup className="h-10">
             <InputGroupAddon>
               <Layers3 aria-hidden="true" />
             </InputGroupAddon>
