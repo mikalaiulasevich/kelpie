@@ -186,3 +186,7 @@ Improved table header legibility, wrapped long configuration/report names and di
 ### October 8 — Technical integration and failure recovery
 
 Completed independent backend, administration and quiz reviews and corrected invalid analytics dates, saved-write versus refresh-failure handling, and expired-preview recovery. The full verify:bun gate passed 776 Node tests and 368 Bun backend tests; dependency audits reported zero known vulnerabilities. A production-build quiz preview completed through a real isolated backend and reconciled with administration at one start/result/recommendation open. Runtime benchmark results were refreshed. Remote CI startup failure and external release gates remain documented in the foundation review.
+
+## Free public deployment — October 8, 2026
+
+Created release and development branches and configured Render Free auto-deploy from release in Frankfurt. Turso in Ireland stores the migrated database, first administrator and three original configuration versions. The public quiz and administration share one HTTPS origin. Fixed an inherited Caddy file capability after reproducing the Render startup rejection under restricted container privileges. Public administrator sign-in, v3 publication, a complete synthetic quiz and matching analytics passed. cron-job.org runs a credential-free readiness request every five minutes; its first scheduled execution returned 200. Runtime secrets remain outside source control. Exact gate evidence and free-hosting/rollback limits are in the engineering review.
