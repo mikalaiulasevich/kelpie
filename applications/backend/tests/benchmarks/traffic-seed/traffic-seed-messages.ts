@@ -8,6 +8,7 @@ export const TrafficSeedMessages = {
   Source: 'The verified generation report or manifest does not match its retained dataset.',
   Timeline: 'The synthetic timeline contains an invalid timestamp or session lifetime.',
   CleanupFailed: 'Synthetic seed command failed while disconnecting its database.',
+  FileCleanupFailed: 'Synthetic seed checkpoint failed while releasing its temporary file.',
   Failed:
     'Synthetic data generation/import failed. Completed batches are retained; retry the same command. No credentials are included in this diagnostic.',
 } as const;

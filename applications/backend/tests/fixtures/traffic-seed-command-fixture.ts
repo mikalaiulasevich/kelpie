@@ -22,8 +22,8 @@ const SeedFixtureCleanup = {
 } as const;
 
 export const TrafficSeedCommandFixture = {
-  async checkpoint() {
-    const output = await mkdtemp(resolve(tmpdir(), 'kelpie-seed-checkpoint-'));
+  async checkpoint(parentDirectory: string = tmpdir()) {
+    const output = await mkdtemp(resolve(parentDirectory, 'kelpie-seed-checkpoint-'));
 
     try {
       const options = TrafficSeedCommand.options([

@@ -22,7 +22,7 @@ const TemporarySeedFile = {
     }
 
     if (errors.length > 0) {
-      throw new AggregateError(errors, TrafficSeedMessages.CleanupFailed);
+      throw new AggregateError(errors, TrafficSeedMessages.FileCleanupFailed);
     }
   },
 
@@ -68,7 +68,7 @@ export const TrafficSeedFiles = {
           try {
             await TemporarySeedFile.remove(handle, temporaryPath);
           } catch (cleanupError) {
-            throw new AggregateError([error, cleanupError], TrafficSeedMessages.CleanupFailed, {
+            throw new AggregateError([error, cleanupError], TrafficSeedMessages.FileCleanupFailed, {
               cause: cleanupError,
             });
           }

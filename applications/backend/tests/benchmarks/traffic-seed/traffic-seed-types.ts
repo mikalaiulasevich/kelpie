@@ -66,4 +66,3 @@ export const TrafficSeedReceiptSchema = Type.Object({
 });
 
 export type TrafficSeedReceipt = Static<typeof TrafficSeedReceiptSchema>;
-
