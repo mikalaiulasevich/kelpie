@@ -81,7 +81,7 @@ The deployment gate passed `npm run verify:bun`: 804 tests on Node.js 24.16.0 an
 
 For a reviewer walkthrough, start all three applications using the commands above, provision an administrator, import the three original configurations, and publish v3 in Configurations. Open the quiz, choose Hybrid and Compliance to exercise both conditional questions, reload an unfinished answer, then continue to the result and open its recommendations. Refresh Analytics for v3 to see the received views and CTA. Publish v2 while retaining the v3 browser session; the session must retain its original questions and recommendation. Publication and rollback affect only new sessions.
 
-Public hosting and a reproducible 10,000-session profiling command are available. Remaining acceptance includes hosted Turso backup/restore recovery, the complete version-compatibility sequence, and browser expiry, cross-tab, accessibility and device scenarios. Profiling evidence and its local-versus-hosted limits are recorded below and in the engineering review.
+Public hosting and a reproducible 10,000-session profiling command are available. Hosted Turso backup/restore is deferred by user decision. The full v1/v2/v3/rollback compatibility sequence is covered by a real HTTP acceptance test. Outstanding browser, accessibility and device boundaries are recorded in the engineering review. Profiling evidence and its local-versus-hosted limits are recorded below and in the engineering review.
 
 ## User-session API
 

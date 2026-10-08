@@ -415,3 +415,7 @@ Do not mark the assignment complete until v1, v2, and v3 are verified, historica
 ## Marketing report acceptance (local implementation, October 8)
 
 The current administration supports session-start cohorts with timezone and conversion windows, previous-period comparison, publication-marked trends, independent acquisition dimensions, step/session diagnostics, recorded business goals, immutable experiment plans, active-version defaults and global version search. Reports can be saved in browser storage, shared through filter URLs and exported as aggregates. Local verification evidence and statistical/deployment limits are maintained in the engineering review. This completes the local marketer workflow iteration; it does not waive the existing public delivery, persistence and independent traffic-generation acceptance gates above.
+
+### Assignment acceptance priority — October 8
+
+The user deferred hosted Turso backup/restore and requested the remaining assignment acceptance work first. Retain existing local recovery tooling; do not expand backup infrastructure in this pass. The full v1 → v2 → v3 → rollback(v2) HTTP acceptance sequence is now an automated regression, including pinned participants, historical retries, v3-only expansion and per-version distinct-session analytics. Browser draft/conflict/expiry scenarios are verified separately; automated HTTP checks do not establish browser or hosted acceptance.
