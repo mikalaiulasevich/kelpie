@@ -46,14 +46,21 @@ describe('covering analytics event index migration', () => {
       { name: 'stepIdentifier' },
     ]);
     expect(await backend.database.$queryRawUnsafe('PRAGMA foreign_key_check')).toEqual([]);
+    await expect(EventCoveringIndexFixture.migrate(backend.database)).rejects.toThrow(
+      'already exists',
+    );
+    expect(await backend.database.event.findMany({ orderBy: { identifier: 'asc' } })).toEqual(
+      events,
+    );
   });
 
   it('selects covering indexed probes for the actual summary, views, and quality SQL', async () => {
-    const { version } = await EventCoveringIndexFixture.prepare(backend.database);
-    const statements = EventCoveringIndexCases.forVersion(version.identifier);
+    const { version, session } = await EventCoveringIndexFixture.prepare(backend.database);
+    const statements = EventCoveringIndexCases.forVersion(version.identifier, session.identifier);
     const before = await Promise.all(
       statements.map(({ statement }) => backend.database.$queryRaw(statement)),
     );
+    expect(before[0]).toHaveLength(1);
     await EventCoveringIndexFixture.migrate(backend.database);
 
     for (const [index, { name, statement }] of statements.entries()) {

@@ -9,6 +9,10 @@ export const EventCoveringIndexFixture = {
       'DROP INDEX "Event_sessionIdentifier_name_source_serverTimestamp_stepIdentifier_idx"',
     );
     const records = await DatabaseRecords.createSession(database);
+    await database.session.update({
+      where: { identifier: records.session.identifier },
+      data: { createdAt: new Date('2026-01-01T00:00:00.000Z') },
+    });
     await database.event.createMany({
       data: [
         { ...records.eventData, serverTimestamp: new Date('2026-01-01T00:00:01.000Z') },

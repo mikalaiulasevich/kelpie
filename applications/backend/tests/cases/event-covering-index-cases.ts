@@ -4,7 +4,7 @@ import { AnalyticsInsightQueries } from '../../source/analytics/analytics-insigh
 import { AnalyticsInputs } from '../../source/analytics/analytics-inputs.js';
 
 export const EventCoveringIndexCases = {
-  forVersion(versionIdentifier: string) {
+  forVersion(versionIdentifier: string, sessionIdentifier: string) {
     const cohort = AnalyticsQueries.cohort(
       AnalyticsInputs.query({ funnelIdentifier: 'test-funnel' }),
       [versionIdentifier],
@@ -17,7 +17,7 @@ export const EventCoveringIndexCases = {
       { name: 'latest server timestamp', statement: AnalyticsInsightQueries.quality(cohort) },
       {
         name: 'bounded event probe',
-        statement: Prisma.sql`SELECT "stepIdentifier", "serverTimestamp" FROM "Event" WHERE "sessionIdentifier" = ${'test-session'} AND name = ${'step_viewed'} AND source = ${'client'} AND "serverTimestamp" <= ${'2026-10-08T12:00:00.000+00:00'}`,
+        statement: Prisma.sql`SELECT "stepIdentifier", "serverTimestamp" FROM "Event" WHERE "sessionIdentifier" = ${sessionIdentifier} AND name = ${'step_viewed'} AND source = ${'client'} AND "serverTimestamp" <= ${'2026-10-08T12:00:00.000+00:00'}`,
       },
     ];
   },
