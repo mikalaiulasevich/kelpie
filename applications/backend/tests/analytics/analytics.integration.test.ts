@@ -223,7 +223,9 @@ describe('analytics SQLite session sets', () => {
         Prisma.sql`EXPLAIN QUERY PLAN ${statement}`,
       );
       const plan = AnalyticsFixture.queryPlan(rows);
-      expect(plan, name).toContain('Event_sessionIdentifier_name_stepIdentifier_idx');
+      expect(plan, name).toContain(
+        'USING COVERING INDEX Event_sessionIdentifier_name_source_serverTimestamp_stepIdentifier_idx',
+      );
       expect(plan, name).toContain('SEARCH s USING INDEX');
       // A single transition-index scan is bounded; repeated unindexed base-table scans are not.
       expect(plan, name).not.toMatch(/SCAN [ste]\b(?! USING (?:COVERING )?INDEX)/);
