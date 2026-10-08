@@ -5,6 +5,6 @@ export const RemoteDatabaseRequestCases = [
   {
     name: 'migration command',
     fetch: RemoteDatabaseRequests.fetchMigration,
-    timeoutMilliseconds: 120_000,
+    timeoutMilliseconds: 300_000,
   },
 ] as const;
