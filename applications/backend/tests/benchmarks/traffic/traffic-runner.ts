@@ -9,7 +9,10 @@ import {
 import { FunnelConfigurations } from '@kelpie/contracts';
 import type { TrafficCoverageSpecification } from '../traffic-oracle/traffic-oracle-types.js';
 import { isUndefined } from 'es-toolkit/predicate';
-import { TrafficGenerationCheckpointSchema, type TrafficGenerationCheckpoint, type TrafficLoadMeasurement } from './traffic-types.js';
+import {
+  TrafficGenerationCheckpointSchema,
+  type TrafficGenerationCheckpoint,
+} from './traffic-types.js';
 import { Ajv } from 'ajv';
 import assert from 'node:assert/strict';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
@@ -51,14 +54,17 @@ export class TrafficProfile {
 
   async execute(): Promise<void> {
     try {
+      process.stdout.write('Traffic profile: preparing isolated backend\n');
       const prepared = await this.prepare();
       const load = isUndefined(this.options.resume)
         ? { measurement: await this.generate(prepared), provenance: this.provenance() }
         : await this.restore(this.options.resume);
+      process.stdout.write('Traffic profile: saving generation checkpoint\n');
       await this.checkpoint(load);
       this.snapshot = await TrafficProfileDatabase.snapshot(this.backend, this.options.output);
       await this.checkCoverage(prepared.specifications);
       const analytics = await this.measureAnalytics(prepared.cookie);
+      await this.analyticsCheckpoint(analytics);
       await this.verifyFilters(prepared);
       await this.save(prepared, load, analytics);
     } catch (error) {
@@ -75,6 +81,29 @@ export class TrafficProfile {
     await writeFile(resolve(directory, 'generation.json'), JSON.stringify(load, null, 2));
   }
 
+  private async analyticsCheckpoint(analytics: TrafficAnalyticsMeasurement): Promise<void> {
+    assert.ok(analytics.response, TrafficMessages.RequestFailed);
+    const directory = resolve(this.options.output);
+    await Promise.all([
+      writeFile(resolve(directory, 'analytics.json'), JSON.stringify(analytics.response, null, 2)),
+      writeFile(
+        resolve(directory, 'analytics-measurement.json'),
+        JSON.stringify(
+          {
+            recordedAt: new Date().toISOString(),
+            runtime: { node: process.version, bun: process.versions['bun'] ?? null },
+            warmupQueries: 1,
+            measuredQueries: 5,
+            requests: analytics.measuredAnalytics,
+          },
+          null,
+          2,
+        ),
+      ),
+    ]);
+    process.stdout.write('Traffic profile: global analytics checkpoint saved\n');
+  }
+
   private async restore(directory: string): Promise<TrafficGenerationCheckpoint> {
     const manifest: unknown = JSON.parse(
       await readFile(resolve(directory, 'manifest.json'), 'utf8'),
@@ -83,19 +112,44 @@ export class TrafficProfile {
     assert.equal(this.manifest.length, this.options.sessions, TrafficMessages.InvalidArguments);
     const load: unknown = JSON.parse(await readFile(resolve(directory, 'generation.json'), 'utf8'));
 
-    const validate = new Ajv().compile<TrafficGenerationCheckpoint>(TrafficGenerationCheckpointSchema);
+    const validate = new Ajv().compile<TrafficGenerationCheckpoint>(
+      TrafficGenerationCheckpointSchema,
+    );
     assert.ok(validate(load), TrafficMessages.InvalidArguments);
+    assert.equal(
+      load.provenance.options.sessions,
+      this.options.sessions,
+      TrafficMessages.InvalidArguments,
+    );
+    assert.equal(load.provenance.options.seed, this.options.seed, TrafficMessages.InvalidArguments);
+    assert.equal(
+      load.provenance.options.concurrency,
+      this.options.concurrency,
+      TrafficMessages.InvalidArguments,
+    );
 
     const sessions = await this.backend.database.session.findMany({ select: { identifier: true } });
     const identifiers = new Set(sessions.map((session) => session.identifier));
     assert.equal(identifiers.size, this.manifest.length, TrafficMessages.InvalidArguments);
-    assert.ok(this.manifest.every((session) => identifiers.has(session.sessionIdentifier)), TrafficMessages.InvalidArguments);
+    assert.ok(
+      this.manifest.every((session) => identifiers.has(session.sessionIdentifier)),
+      TrafficMessages.InvalidArguments,
+    );
 
     return load;
   }
 
   private provenance() {
-    return { options: this.options, recordedAt: new Date().toISOString(), nodeRuntime: process.version, bunRuntime: process.versions['bun'] ?? null, operatingSystem: `${platform()} ${release()}`, processor: cpus()[0]?.model ?? 'unknown', logicalProcessors: cpus().length, systemMemoryBytes: totalmem() };
+    return {
+      options: this.options,
+      recordedAt: new Date().toISOString(),
+      nodeRuntime: process.version,
+      bunRuntime: process.versions['bun'] ?? null,
+      operatingSystem: `${platform()} ${release()}`,
+      processor: cpus()[0]?.model ?? 'unknown',
+      logicalProcessors: cpus().length,
+      systemMemoryBytes: totalmem(),
+    };
   }
 
   private async prepare() {
@@ -199,6 +253,7 @@ export class TrafficProfile {
     );
 
     for (let repeat = 0; repeat < 6; repeat += 1) {
+      process.stdout.write(`Traffic profile: global analytics query ${repeat + 1}/6\n`);
       const response = await http.request(
         '/api/administration/analytics?funnelIdentifier=workstyle-planner&trafficOrigin=synthetic&includeForced=true',
         undefined,
@@ -230,6 +285,9 @@ export class TrafficProfile {
 
     for (const versionIdentifier of versions) {
       for (const includeForced of [false, true]) {
+        process.stdout.write(
+          `Traffic profile: version ${versions.indexOf(versionIdentifier) + 1} analytics, includeForced=${includeForced}\n`,
+        );
         const query = new URLSearchParams({
           funnelIdentifier: 'workstyle-planner',
           trafficOrigin: 'synthetic',
@@ -249,6 +307,7 @@ export class TrafficProfile {
     }
 
     for (const campaign of ['synthetic-0', 'synthetic-1', 'synthetic-2']) {
+      process.stdout.write(`Traffic profile: analytics campaign ${campaign}\n`);
       const query = new URLSearchParams({
         funnelIdentifier: 'workstyle-planner',
         trafficOrigin: 'synthetic',
@@ -270,7 +329,8 @@ export class TrafficProfile {
   ) {
     const { backend, http, manifest, options } = this;
     const { versions } = prepared;
-    const { elapsedMilliseconds, processorMicroseconds, peakResidentBytes, traffic } = generation.measurement;
+    const { elapsedMilliseconds, processorMicroseconds, peakResidentBytes, traffic } =
+      generation.measurement;
     const { measuredAnalytics } = analytics;
     const directory = resolve(options.output);
     await mkdir(directory, { recursive: true });
@@ -307,10 +367,6 @@ export class TrafficProfile {
       analytics: { warmupQueries: 1, measuredQueries: 5, requests: measuredAnalytics },
     };
     await writeFile(resolve(directory, 'manifest.json'), JSON.stringify(manifest));
-    await writeFile(
-      resolve(directory, 'analytics.json'),
-      JSON.stringify(analytics.response, null, 2),
-    );
     await writeFile(resolve(directory, 'report.json'), JSON.stringify(report, null, 2));
     process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
   }

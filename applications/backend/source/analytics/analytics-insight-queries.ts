@@ -65,7 +65,7 @@ export const AnalyticsInsightQueries = {
   stepTimings(cohort: Prisma.Sql): Prisma.Sql {
     return Prisma.sql`${cohort}, first_views AS (
       SELECT e."sessionIdentifier", e."stepIdentifier", MIN(${AnalyticsQueries.timestamp(Prisma.sql`e."serverTimestamp"`)}) AS viewed
-      FROM eligible_events e WHERE e.name = 'step_viewed' AND e.source = 'client' AND e."stepIdentifier" IS NOT NULL
+      FROM view_events e
       GROUP BY e."sessionIdentifier", e."stepIdentifier"
     ), durations AS (
       SELECT c."versionIdentifier", c.variant, v."sessionIdentifier", v."stepIdentifier",

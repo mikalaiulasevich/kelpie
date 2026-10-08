@@ -69,7 +69,7 @@ export const AnalyticsQueries = {
       );
     }
 
-    // Materialize the shared session set so SQLite can index joins instead of rescanning facts per session.
+    // Materialize shared sessions; cohort-first view lookups prevent event-by-cohort scans in filtered plans.
     return Prisma.sql`WITH cohort AS MATERIALIZED (
       SELECT s."identifier", s."versionIdentifier", s."variant",
         ${startedAt} AS "startedAt", ${deadline} AS deadline,
@@ -87,10 +87,13 @@ export const AnalyticsQueries = {
     ), eligible_events AS (
       SELECT e.* FROM "Event" e JOIN cohort c ON c."identifier" = e."sessionIdentifier"
       WHERE ${AnalyticsQueries.timestamp(Prisma.sql`e."serverTimestamp"`)} <= c.deadline
-    ), views AS (
-      SELECT DISTINCT e."sessionIdentifier", e."stepIdentifier"
-      FROM eligible_events e
+    ), view_events AS (
+      SELECT e."sessionIdentifier", e."stepIdentifier", e."serverTimestamp"
+      FROM cohort c CROSS JOIN "Event" e ON e."sessionIdentifier" = c."identifier"
       WHERE e."name" = 'step_viewed' AND e."source" = 'client' AND e."stepIdentifier" IS NOT NULL
+        AND ${AnalyticsQueries.timestamp(Prisma.sql`e."serverTimestamp"`)} <= c.deadline
+    ), views AS (
+      SELECT DISTINCT "sessionIdentifier", "stepIdentifier" FROM view_events
     ), forwards AS (
       SELECT DISTINCT t."sessionIdentifier", t."fromStepIdentifier", t."toStepIdentifier"
       FROM "SessionTransition" t JOIN cohort c ON c."identifier" = t."sessionIdentifier"

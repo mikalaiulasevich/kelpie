@@ -249,6 +249,14 @@ npm run traffic:profile:bun -- --sessions=10000 --concurrency=8 --seed=20261008 
 
 The seed controls scenario/answer choices. Weighted A/B assignment deliberately retains server randomness; the manifest records actual assignments rather than promising identical metric totals between runs. The independent oracle compares session sets, conversion operands, steps and edges, including repeats and missing views, across version/assignment/campaign selections. It does not independently prove routing: the generator uses the runtime evaluator to choose valid steps. Full-size runs reject incomplete required version, variant, result and branch coverage.
 
-The output directory contains `manifest.json`, `analytics.json`, `report.json`, and a consistently copied `synthetic-dataset-*.sqlite` for subsequent profiling. Only generated test records are stored there. Failure writes `failure.json` and `partial-manifest.json`; snapshots created before a later coverage or analytics failure are retained. Temporary working databases are cleaned up. Outputs are Git-ignored and can be large.
+The output directory contains `manifest.json`, `generation.json`, `analytics.json`, `report.json`, and a consistently copied `synthetic-dataset-*.sqlite` for subsequent profiling. Only generated test records are stored there. Failure writes `failure.json` and `partial-manifest.json`; snapshots created before a later coverage or analytics failure are retained. Temporary working databases are cleaned up. Outputs are Git-ignored and can be large.
+
+The manifest and generation checkpoint are written before snapshot creation and analytical queries. Reprofile a saved dataset after a query change without generating more sessions:
+
+```sh
+npm run traffic:profile:bun -- --sessions=10000 --concurrency=8 --seed=20261008 --resume=test-results/traffic-10000-bun-fixed --database=test-results/traffic-10000-bun-fixed/synthetic-dataset-<identifier>.sqlite --output=test-results/traffic-reprofile
+```
+
+Use the actual snapshot filename. Session count, seed and concurrency must match the checkpoint; resume validates session identifiers, works on a temporary copy and preserves the original generation provenance. The retained database is not modified. A native synchronous database call can block JavaScript timers; the HTTP timeout alone is not a hard process deadline. Early checkpoint files permit recovery after an externally interrupted run.
 
 Reports include per-route response-body latency in milliseconds, p50/p95/p99, request/status counts, network failures, generation throughput, actual dataset counts and SQL query plans. Analytics measurements separate one warmup from five measured requests and additional correctness queries. Five samples are a smoke-level latency estimate, not a reliable tail-latency SLO. RSS and CPU include the backend and generator in one process; RSS is sampled during generation. These local SQLite measurements do not establish isolated backend memory, browser responsiveness, Turso network latency or Render Free capacity.

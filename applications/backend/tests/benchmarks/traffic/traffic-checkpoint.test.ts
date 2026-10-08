@@ -78,7 +78,7 @@ describe('synthetic traffic durable checkpoints', () => {
     }
   });
 
-  it('saves manifest and generation measurements before an analytics HTTP failure', async () => {
+  it('keeps generation and global analytics checkpoints after a filtered analytics HTTP failure', async () => {
     const directory = await mkdtemp(resolve(tmpdir(), 'kelpie-traffic-checkpoint-'));
     directories.push(directory);
     const backend = await BackendApplicationFixture.create({
@@ -93,7 +93,7 @@ describe('synthetic traffic durable checkpoints', () => {
       cookie,
       visitor,
     ) {
-      if (path.startsWith('/api/administration/analytics')) {
+      if (path.startsWith('/api/administration/analytics') && path.includes('versionIdentifier=')) {
         return original.call(this, '/api/nonexistent-profile-endpoint', body, cookie, visitor);
       }
 
@@ -114,10 +114,22 @@ describe('synthetic traffic durable checkpoints', () => {
       );
       expect(
         JSON.parse(await readFile(resolve(directory, 'generation.json'), 'utf8')),
-      ).toMatchObject({ elapsedMilliseconds: expect.any(Number), traffic: expect.any(Object) });
+      ).toMatchObject({
+        measurement: { elapsedMilliseconds: expect.any(Number), traffic: expect.any(Object) },
+        provenance: { options: { sessions: 3 } },
+      });
       expect(JSON.parse(await readFile(resolve(directory, 'failure.json'), 'utf8'))).toMatchObject({
         completedSessions: 3,
         retainedDatabase: { path: expect.any(String) },
+      });
+      expect(
+        JSON.parse(await readFile(resolve(directory, 'analytics.json'), 'utf8')),
+      ).toMatchObject({ versions: expect.any(Array) });
+      expect(
+        JSON.parse(await readFile(resolve(directory, 'analytics-measurement.json'), 'utf8')),
+      ).toMatchObject({
+        measuredQueries: 5,
+        requests: { '/api/administration/analytics': { requests: 5 } },
       });
       expect(() => backend.getApplication()).toThrow();
       vi.restoreAllMocks();
