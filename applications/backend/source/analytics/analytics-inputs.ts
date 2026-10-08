@@ -14,6 +14,20 @@ const AnalyticsValidators = {
   resolved: SchemaCompiler.compile<AnalyticsQuery>(AnalyticsSchemas.ResolvedQuery),
 } as const;
 
+const AnalyticsTimestamps = {
+  isValid(value: string): boolean {
+    const calendarPart = value.slice(0, 19);
+    const calendarDate = new Date(`${calendarPart}Z`);
+
+    // Date.parse normalizes impossible calendar dates; reject them before applying the offset.
+    return (
+      Number.isFinite(Date.parse(value)) &&
+      Number.isFinite(calendarDate.getTime()) &&
+      calendarDate.toISOString().slice(0, 19) === calendarPart
+    );
+  },
+} as const;
+
 export const AnalyticsInputs = {
   query(value: unknown): AnalyticsQuery {
     if (!AnalyticsValidators.query(value)) {
@@ -44,12 +58,10 @@ export const AnalyticsInputs = {
       const end = Date.parse(query.to);
 
       if (
-        !Number.isFinite(start) ||
-        !Number.isFinite(end) ||
+        !AnalyticsTimestamps.isValid(query.from) ||
+        !AnalyticsTimestamps.isValid(query.to) ||
         start >= end ||
-        end - start > AnalyticsPolicy.MaximumPeriodMilliseconds ||
-        !/T.*(?:Z|[+-]\d{2}:\d{2})$/.test(query.from) ||
-        !/T.*(?:Z|[+-]\d{2}:\d{2})$/.test(query.to)
+        end - start > AnalyticsPolicy.MaximumPeriodMilliseconds
       ) {
         throw new BadRequestException(AnalyticsMessages.InvalidQuery);
       }

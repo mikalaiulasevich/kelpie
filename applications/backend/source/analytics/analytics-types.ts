@@ -18,8 +18,8 @@ const AnalyticsQueryFields = {
   campaign: Type.Optional(AnalyticsFields.Campaign),
   source: Type.Optional(AnalyticsFields.Campaign),
   medium: Type.Optional(AnalyticsFields.Campaign),
-  from: Type.Optional(Type.String({ maxLength: 40 })),
-  to: Type.Optional(Type.String({ maxLength: 40 })),
+  from: Type.Optional(Type.String({ maxLength: 40, pattern: AnalyticsPolicy.TimestampPattern })),
+  to: Type.Optional(Type.String({ maxLength: 40, pattern: AnalyticsPolicy.TimestampPattern })),
   timezone: Type.Optional(Type.String({ maxLength: 100 })),
 } as const;
 

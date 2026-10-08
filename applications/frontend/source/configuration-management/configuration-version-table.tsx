@@ -68,10 +68,10 @@ export function ConfigurationVersionTable({
 
           return (
             <TableRow key={version.identifier}>
-              <TableCell>
+              <TableCell className="min-w-56 max-w-md whitespace-normal">
                 <Button
                   variant="link"
-                  className="h-auto justify-start p-0 font-medium text-foreground"
+                  className="h-auto max-w-full justify-start whitespace-normal p-0 font-medium text-foreground"
                   asChild
                 >
                   <a
@@ -87,9 +87,9 @@ export function ConfigurationVersionTable({
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-primary/10 text-primary">
                       <FileJson className="size-5" />
                     </span>
-                    <span className="flex flex-col gap-1 text-left">
+                    <span className="flex min-w-0 flex-col gap-1 text-left">
                       <span>{ConfigurationFormat.version(version.version)}</span>
-                      <span className="text-xs font-normal text-muted-foreground">
+                      <span className="break-words text-xs font-normal leading-relaxed text-muted-foreground">
                         {version.description ?? version.funnelIdentifier}
                       </span>
                     </span>

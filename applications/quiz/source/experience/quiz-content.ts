@@ -9,6 +9,9 @@ export const QuizContent = {
   },
   Shell: {
     Preview: 'Administrator preview · synthetic traffic. Your normal session is unchanged.',
+    PreviewUnavailable: 'This preview is no longer available',
+    PreviewRecovery:
+      'Return to the configuration in administration and choose Test this version to create a new preview. Then reopen it from administration. Your normal quiz session is unchanged.',
     Skip: 'Skip to assessment',
     Home: 'Kelpie workstyle home',
     Context: 'Workstyle check',

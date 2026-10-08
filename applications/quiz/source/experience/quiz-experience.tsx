@@ -47,7 +47,9 @@ export function QuizExperience() {
               </Button>
             </div>
           )}
-          {session.expired && <p className="expiry-note">{translate(QuizContent.Shell.Expired)}</p>}
+          {session.expired && !QuizPreview.active() && (
+            <p className="expiry-note">{translate(QuizContent.Shell.Expired)}</p>
+          )}
           <QuizSessionContent session={session} />
           {session.deliveryError && (
             <div className="delivery-note" role="status">

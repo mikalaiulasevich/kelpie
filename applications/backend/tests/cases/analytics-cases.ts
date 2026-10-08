@@ -100,6 +100,26 @@ export const AnalyticsCases = {
     { sessionIdentifier: 'expired', eventName: 'cta_clicked' },
   ],
   InvalidQueries: [
+    {
+      name: 'empty period boundaries',
+      query: { funnelIdentifier: 'workstyle-planner', from: '', to: '' },
+    },
+    {
+      name: 'normalized impossible calendar date',
+      query: {
+        funnelIdentifier: 'workstyle-planner',
+        from: '2026-02-30T00:00:00Z',
+        to: '2026-03-04T00:00:00Z',
+      },
+    },
+    {
+      name: 'normalized end-of-day timestamp',
+      query: {
+        funnelIdentifier: 'workstyle-planner',
+        from: '2026-01-01T24:00:00Z',
+        to: '2026-01-03T00:00:00Z',
+      },
+    },
     { name: 'missing funnel', query: {} },
     { name: 'empty page', query: { funnelIdentifier: 'workstyle-planner', limit: '0' } },
     { name: 'oversized page', query: { funnelIdentifier: 'workstyle-planner', limit: '21' } },

@@ -4,9 +4,28 @@ import configurationDocument from '../../../../configurations/funnel-v1.json';
 import expansionConfigurationDocument from '../../../../configurations/funnel-v3.json';
 import { QuizSessionApi } from '../../source/session/quiz-session-api';
 import { QuizObservations } from '../../source/session/quiz-observations';
-import type { QuizSessionState } from '../../source/session/quiz-session-types';
+import type {
+  QuizSessionController,
+  QuizSessionState,
+} from '../../source/session/quiz-session-types';
 
 export const SessionFixtures = {
+  controller(state: QuizSessionState | null = null): QuizSessionController {
+    return {
+      state,
+      loading: false,
+      busy: false,
+      expired: false,
+      error: null,
+      deliveryError: null,
+      start: vi.fn(async () => undefined),
+      continueStep: vi.fn(async () => undefined),
+      back: vi.fn(async () => undefined),
+      recordResultAction: vi.fn(async () => undefined),
+      retry: vi.fn(async () => undefined),
+    };
+  },
+
   state() {
     return QuizSessionApi.parse({
       sessionIdentifier: '00000000-0000-4000-8000-000000000001',

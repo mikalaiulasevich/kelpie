@@ -1,3 +1,4 @@
+import { QuizPreview } from '../session/quiz-preview';
 import { QuizContent } from './quiz-content';
 import { Check } from 'lucide-react';
 import { Button } from '../components/button';
@@ -24,6 +25,21 @@ export function QuizSessionContent({ session }: QuizSessionContentProperties) {
       (candidate) => candidate.id === state?.currentStepIdentifier,
     ) ?? 0;
   const step = evaluation?.route.steps[stepIndex];
+
+  if (!state && QuizPreview.active()) {
+    if (session.error) {
+      return null;
+    }
+
+    return (
+      <section className="quiz-alert" aria-labelledby="preview-unavailable">
+        <div>
+          <h1 id="preview-unavailable">{translate(QuizContent.Shell.PreviewUnavailable)}</h1>
+          <p>{translate(QuizContent.Shell.PreviewRecovery)}</p>
+        </div>
+      </section>
+    );
+  }
 
   if (!state || step?.type === 'info') {
     return <QuizWelcome step={step} session={session} />;

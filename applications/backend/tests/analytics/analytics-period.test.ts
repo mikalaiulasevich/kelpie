@@ -82,6 +82,19 @@ describe('analytics cohort periods', () => {
     });
   });
 
+  it('accepts leap days and explicit offsets without changing the requested period', () => {
+    expect(
+      AnalyticsInputs.query({
+        funnelIdentifier: 'example',
+        from: '2024-02-29T00:00:00+03:00',
+        to: '2024-03-01T00:00:00.000+03:00',
+      }),
+    ).toMatchObject({
+      from: '2024-02-29T00:00:00+03:00',
+      to: '2024-03-01T00:00:00.000+03:00',
+    });
+  });
+
   it('rejects unpaired dates, unzoned timestamps and invalid timezones', () => {
     expect(() =>
       AnalyticsInputs.query({ funnelIdentifier: 'example', from: '2026-01-01T00:00:00Z' }),

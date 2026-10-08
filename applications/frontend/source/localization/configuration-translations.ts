@@ -29,7 +29,7 @@ export const ConfigurationTranslations: Readonly<Record<string, string>> = {
   'View activation history': 'История активаций',
   'Versions cannot be edited. Publishing affects only new sessions. Existing sessions keep their original configuration.':
     'Версии нельзя редактировать. Публикация влияет только на новые сессии. Текущие сессии сохраняют исходную конфигурацию.',
-  'Search versions on this page': 'Поиск версий на этой странице',
+  'Search versions': 'Поиск версий',
   'Search by version, schema or checksum…': 'Версия, схема или контрольная сумма…',
   'All statuses': 'Все статусы',
   'Filter by status': 'Фильтр по статусу',

@@ -173,6 +173,11 @@ describe('analytics SQLite session sets', () => {
     await expect(backend.getService(AnalyticsService).read(query)).rejects.toMatchObject({
       status: 400,
     });
+    const response = await backend.request(
+      `/api/administration/analytics?${new URLSearchParams(query)}`,
+      { headers: { cookie } },
+    );
+    expect(response.status).toBe(400);
   });
 
   it('binds campaign values as data rather than SQL', async () => {

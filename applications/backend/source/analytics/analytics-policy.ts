@@ -19,6 +19,8 @@ export const AnalyticsPolicy = {
   MaximumCampaignLength: 200,
   RateLimit: { max: 30, timeWindow: '1 minute' },
   TransactionTimeout: 10000,
+  TimestampPattern:
+    '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})$',
   MaximumPeriodMilliseconds: 367 * 24 * 60 * 60 * 1000,
   MillisecondsPerHour: 60 * 60 * 1000,
   MaximumAcquisitionOptions: 100,

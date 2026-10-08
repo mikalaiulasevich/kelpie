@@ -11,7 +11,7 @@ export const ConfigurationContent = {
   ViewHistory: 'View activation history',
   VersionSafety:
     'Versions cannot be edited. Publishing affects only new sessions. Existing sessions keep their original configuration.',
-  Search: 'Search versions on this page',
+  Search: 'Search versions',
   SearchPlaceholder: 'Search by version, schema or checksum…',
   AllStatuses: 'All statuses',
   FilterStatus: 'Filter by status',

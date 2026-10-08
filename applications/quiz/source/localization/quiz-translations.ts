@@ -1,4 +1,7 @@
 export const QuizRussianMessages = {
+  'This preview is no longer available': 'Предпросмотр больше недоступен',
+  'Return to the configuration in administration and choose Test this version to create a new preview. Then reopen it from administration. Your normal quiz session is unchanged.':
+    'Вернитесь к конфигурации в админке и нажмите «Протестировать версию», чтобы создать новый предпросмотр. Затем откройте его из админки. Обычная сессия опроса не изменена.',
   'Administrator preview · synthetic traffic. Your normal session is unchanged.':
     'Предпросмотр администратора · тестовый трафик. Обычная сессия не изменена.',
   'Page not found': 'Страница не найдена',

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { isError } from 'es-toolkit/predicate';
-import { ManagementError } from '../management/management-error';
+import { match } from 'ts-pattern';
+import { AnalyticsGoalCommand } from './analytics-goal-command';
 
 export function useAnalyticsGoalCommand(onUnauthorized: () => void, onChanged?: () => void) {
   const controller = useRef(new AbortController());
@@ -25,20 +25,21 @@ export function useAnalyticsGoalCommand(onUnauthorized: () => void, onChanged?: 
     const signal = controller.current.signal;
 
     try {
-      await operation(signal);
-      if (!signal.aborted) {
-        setSequence((value) => value + 1);
-        setMessage('Saved.');
-        onChanged?.();
-      }
-    } catch (error) {
-      if (!signal.aborted) {
-        if (error instanceof ManagementError && error.status === 401) {
-          onUnauthorized();
-        }
+      const result = await AnalyticsGoalCommand.run({ operation, signal, onChanged });
 
-        setMessage(isError(error) ? error.message : 'Unable to save. Retry with the same details.');
+      if (signal.aborted) {
+        return;
       }
+
+      match(result)
+        .with({ status: 'saved' }, ({ message }) => {
+          setSequence((value) => value + 1);
+          setMessage(message);
+        })
+        .with({ status: 'failed' }, ({ message }) => setMessage(message))
+        .with({ status: 'unauthorized' }, () => onUnauthorized())
+        .with({ status: 'cancelled' }, () => undefined)
+        .exhaustive();
     } finally {
       inFlight.current = false;
       if (!signal.aborted) {

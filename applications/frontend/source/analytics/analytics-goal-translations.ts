@@ -1,4 +1,6 @@
 export const AnalyticsGoalTranslations: Readonly<Record<string, string>> = {
+  'Saved, but the report could not refresh. Reload to see the latest data.':
+    'Сохранено, но отчёт не обновился. Перезагрузите страницу, чтобы увидеть актуальные данные.',
   'Target met': 'Цель достигнута',
   'End date reached': 'Дата наступила',
   'Observed difference · B − A': 'Наблюдаемая разница · B − A',
