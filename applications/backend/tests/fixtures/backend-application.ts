@@ -1,4 +1,5 @@
 import type { Type } from '@nestjs/common';
+import { omit } from 'es-toolkit/object';
 import { isNull, isString, isUndefined } from 'es-toolkit/predicate';
 import 'reflect-metadata';
 import { execFile } from 'node:child_process';
@@ -130,7 +131,7 @@ export class BackendApplicationFixture {
           {
             cwd: applicationDirectory,
             env: {
-              ...process.env,
+              ...omit(process.env, [EnvironmentFields.DatabaseAuthToken]),
               [EnvironmentFields.DatabaseUrl]: databaseUrl,
               [EnvironmentFields.Mode]: ApplicationMode.Test,
             },

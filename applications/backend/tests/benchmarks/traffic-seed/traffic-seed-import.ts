@@ -201,7 +201,10 @@ const ImportStorage = {
     for (const graph of graphs) {
       const stored = byIdentifier.get(graph.identifier);
 
-      if (isUndefined(stored) || !isDeepStrictEqual(ImportIdentity.comparable(stored), ImportIdentity.comparable(graph))) {
+      if (
+        isUndefined(stored) ||
+        !isDeepStrictEqual(ImportIdentity.comparable(stored), ImportIdentity.comparable(graph))
+      ) {
         throw new Error(TrafficSeedImportMessages.Conflict);
       }
     }
@@ -260,7 +263,12 @@ export const TrafficSeedImport = {
           throw new Error(TrafficSeedImportMessages.ProjectionChangedOwner);
         }
 
-        return ImportIdentity.graph(projected, version, options.runIdentifier, receipt.sessions + ordinal);
+        return ImportIdentity.graph(
+          projected,
+          version,
+          options.runIdentifier,
+          receipt.sessions + ordinal,
+        );
       });
       const inserted = await target.$transaction(
         async (transaction) => {

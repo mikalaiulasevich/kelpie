@@ -8,6 +8,9 @@ coverage/
 !.env.example
 data/
 generated/
+tmp/*
+tmp/**/*
+output/*
 *.sqlite
 *.sqlite-*
 *.db

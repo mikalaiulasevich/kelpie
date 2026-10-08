@@ -9,7 +9,13 @@ import { TrafficOracle } from '../traffic-oracle/traffic-oracle.js';
 import { TrafficSeedMessages } from './traffic-seed-messages.js';
 import { TrafficSeedPolicy } from './traffic-seed-policy.js';
 import { TrafficSeedFiles } from './traffic-seed-files.js';
-import { TrafficSeedCheckpointSchema, TrafficSeedSourceReportSchema, type TrafficSeedOptions, type TrafficSeedCheckpoint as SeedCheckpoint, type TrafficSeedSourceReport } from './traffic-seed-types.js';
+import {
+  TrafficSeedCheckpointSchema,
+  TrafficSeedSourceReportSchema,
+  type TrafficSeedOptions,
+  type TrafficSeedCheckpoint as SeedCheckpoint,
+  type TrafficSeedSourceReport,
+} from './traffic-seed-types.js';
 
 const CheckpointValidators = {
   checkpoint: new Ajv().compile<SeedCheckpoint>(TrafficSeedCheckpointSchema),
@@ -40,7 +46,7 @@ export const TrafficSeedCheckpoint = {
     try {
       await access(reportPath);
     } catch (error) {
-      if (!(isError(error)) || !('code' in error) || error.code !== 'ENOENT') {
+      if (!isError(error) || !('code' in error) || error.code !== 'ENOENT') {
         throw error;
       }
 
@@ -71,7 +77,7 @@ export const TrafficSeedCheckpoint = {
     };
     const evidencePath = resolve(options.output, 'dataset-evidence.json');
 
-    if (!await TrafficSeedFiles.writeOnce(evidencePath, JSON.stringify(evidence, null, 2))) {
+    if (!(await TrafficSeedFiles.writeOnce(evidencePath, JSON.stringify(evidence, null, 2)))) {
       const previous: unknown = JSON.parse(await readFile(evidencePath, 'utf8'));
       assert.deepEqual(previous, evidence, TrafficSeedMessages.Source);
     }

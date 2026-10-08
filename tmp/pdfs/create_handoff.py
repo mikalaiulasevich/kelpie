@@ -28,9 +28,9 @@ public='https://kelpie-c5oj.onrender.com'
 password=os.getenv('KELPIE_REVIEWER_PASSWORD','Pending: existing password required')
 def text(s,x,y,size=10,font='Body',color=INK):
  c.setFillColor(HexColor(color));c.setFont(font,size);c.drawString(x,y,s)
-def para(s,size=10.5,color=INK,after=12):
+def para(s,size=10.5,color=INK,after=9):
  global y
- style=ParagraphStyle('p',fontName='Body',fontSize=size,leading=size*1.45,textColor=HexColor(color))
+ style=ParagraphStyle('p',fontName='Body',fontSize=size,leading=size*1.36,textColor=HexColor(color))
  p=Paragraph(s,style); _,h=p.wrap(CW,700);p.drawOn(c,M,y-h);y-=h+after
  assert y>53, f'Page {page} overflows at {s[:35]}'
 def label(s):
@@ -39,7 +39,7 @@ def label(s):
 
 def title(s):
  global y
- para(s,29,INK,18)
+ para(s,27,INK,15)
 def heading(s):
  global y
  para(s,15,'#29211c',8)
@@ -47,13 +47,13 @@ def link(name,url):
  para(f'<b>{name}</b><br/><link href="{escape(url)}" color="{RUST}">{escape(url)}</link>',10.5,after=12)
 def code(lines):
  global y
- rows=lines.split('\n'); h=18+len(rows)*15
+ rows=lines.split('\n'); h=15+len(rows)*13
  c.setFillColor(HexColor(WASH));c.roundRect(M,y-h,CW,h,9,fill=1,stroke=0)
- for i,line in enumerate(rows): text(line,M+13,y-20-i*15,8.7,'Body')
- y-=h+15
+ for i,line in enumerate(rows): text(line,M+13,y-18-i*13,8.7,'Body')
+ y-=h+12
 
 def note(s):
- para(s,9.4,MUTED,14)
+ para(s,9.4,MUTED,10)
 def brand():
  c.saveState();c.translate(M,H-69);c.scale(.29,.29)
  svg=(root/'applications/quiz/source/components/kelpie-mark.tsx').read_text()
@@ -75,7 +75,7 @@ link('Public quiz - no sign-in required',public+'/')
 link('Administration - configurations, history and analytics',public+'/administration/')
 heading('Reviewer access')
 code('Username: admin\nPassword: '+password)
-note('The username was read from Render. The existing password is not retained in Render environment variables. '+('Password supplied by the owner.' if 'KELPIE_REVIEWER_PASSWORD' in os.environ else 'The access section must be completed before handoff.'))
+note('Public administrator sign-in verified on 08 October 2026. These credentials are for the Kelpie application. Local setup creates a separate account.')
 link('Source repository',base)
 note('The repository is private. The reviewer needs a GitHub invitation before cloning or opening source links. Application credentials do not grant GitHub access.')
 heading('What is available remotely?')

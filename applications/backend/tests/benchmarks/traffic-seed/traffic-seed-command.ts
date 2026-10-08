@@ -10,19 +10,14 @@ import { TrafficSeedImport } from './traffic-seed-import.js';
 import { TrafficSeedTimeline } from './traffic-seed-timeline.js';
 import { TrafficSeedMessages } from './traffic-seed-messages.js';
 import { TrafficSeedPolicy } from './traffic-seed-policy.js';
-import {
-  TrafficSeedOptionsSchema,
-  type TrafficSeedOptions,
-} from './traffic-seed-types.js';
+import { TrafficSeedOptionsSchema, type TrafficSeedOptions } from './traffic-seed-types.js';
 import type { TrafficSeedSessionGraph } from './traffic-seed-import-types.js';
 import { TrafficSeedCheckpoint } from './traffic-seed-checkpoint.js';
 import { TrafficSeedTarget } from './traffic-seed-target.js';
 
 const Validators = {
   options: new Ajv().compile<TrafficSeedOptions>(TrafficSeedOptionsSchema),
-
 } as const;
-
 
 const SeedSummary = {
   add(
@@ -86,7 +81,9 @@ export const TrafficSeedCommand = {
       sessions: Number(values['sessions'] ?? TrafficPolicy.Sessions),
       days: Number(values['days'] ?? TrafficSeedPolicy.Days),
       seed: Number(values['seed'] ?? TrafficPolicy.Seed),
-      output: values['output'] ?? `test-results/traffic-seed-${values['run'] ?? 'missing'}-${values['target'] ?? 'missing'}`,
+      output:
+        values['output'] ??
+        `test-results/traffic-seed-${values['run'] ?? 'missing'}-${values['target'] ?? 'missing'}`,
     };
     assert.ok(Validators.options(options), TrafficSeedMessages.Arguments);
 
@@ -117,7 +114,10 @@ export const TrafficSeedCommand = {
     const destination = await this.destination(options);
     const checkpoint = await TrafficSeedCheckpoint.read(options);
     const target = new PrismaClient({
-      adapter: DatabaseAdapters.create(destination, options.target === 'remote' ? process.env['DATABASE_AUTH_TOKEN'] : undefined),
+      adapter: DatabaseAdapters.create(
+        destination,
+        options.target === 'remote' ? process.env['DATABASE_AUTH_TOKEN'] : undefined,
+      ),
     });
 
     try {

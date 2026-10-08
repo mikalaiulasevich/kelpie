@@ -23,7 +23,11 @@ const TimelineJson = {
     }
 
     if (isPlainObject(value)) {
-      return Object.fromEntries(Object.entries(value).filter(([, child]) => !isUndefined(child)).map(([key, child]) => [key, TimelineJson.value(child)]));
+      return Object.fromEntries(
+        Object.entries(value)
+          .filter(([, child]) => !isUndefined(child))
+          .map(([key, child]) => [key, TimelineJson.value(child)]),
+      );
     }
 
     throw new Error(TrafficSeedMessages.Timeline);
@@ -36,11 +40,16 @@ export const TrafficSeedTimeline = {
     ordinal: number,
     options: TrafficSeedTimelineOptions,
   ): TrafficSeedSessionGraph {
-    const random = TrafficSession.random(options.seed + ordinal * TrafficSeedPolicy.SessionSeedStride);
+    const random = TrafficSession.random(
+      options.seed + ordinal * TrafficSeedPolicy.SessionSeedStride,
+    );
     const anchor = Date.parse(options.anchor);
     assert.ok(Number.isFinite(anchor), TrafficSeedMessages.Timeline);
     // Recent cohorts are larger; this is deliberately synthetic history.
-    const age = Math.pow(random(), TrafficSeedPolicy.RecentWeight) * options.days * TrafficSeedPolicy.DayMilliseconds;
+    const age =
+      Math.pow(random(), TrafficSeedPolicy.RecentWeight) *
+      options.days *
+      TrafficSeedPolicy.DayMilliseconds;
     const createdAt = new Date(anchor - TrafficSeedPolicy.RecentSafetyMilliseconds - age);
     const duration =
       TrafficSeedPolicy.MinimumJourneyMilliseconds +
@@ -58,15 +67,17 @@ export const TrafficSeedTimeline = {
       ]),
     ].sort((left, right) => left - right);
     const positions = new Map(timestamps.map((timestamp, index) => [timestamp, index]));
-    const timeline = { projectTime(date: Date) {
-      const position = positions.get(date.getTime());
-      assert.notEqual(position, undefined, TrafficSeedMessages.Timeline);
+    const timeline = {
+      projectTime(date: Date) {
+        const position = positions.get(date.getTime());
+        assert.notEqual(position, undefined, TrafficSeedMessages.Timeline);
 
-      return new Date(
-        createdAt.getTime() +
-          Math.round(((position ?? 0) / Math.max(1, timestamps.length - 1)) * duration),
-      );
-    } };
+        return new Date(
+          createdAt.getTime() +
+            Math.round(((position ?? 0) / Math.max(1, timestamps.length - 1)) * duration),
+        );
+      },
+    };
 
     const lifetime = graph.expiresAt.getTime() - graph.createdAt.getTime();
     assert.ok(lifetime > duration, TrafficSeedMessages.Timeline);

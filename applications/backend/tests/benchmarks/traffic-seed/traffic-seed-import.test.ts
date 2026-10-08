@@ -1,5 +1,6 @@
+import { BackendApplicationFixture } from '../../fixtures/backend-application.js';
 import { SessionSnapshots } from '../../../source/sessions/session-snapshots.js';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { TrafficSeedReplayCases } from '../../cases/traffic-seed/traffic-seed-replay-cases.js';
 import { TrafficSeedImportFixture } from '../../fixtures/traffic-seed-import-fixture.js';
 import { TrafficSeedImport } from './traffic-seed-import.js';
@@ -43,7 +44,7 @@ describe('synthetic dataset import', () => {
         where: {
           sessionIdentifier_stepIdentifier: {
             sessionIdentifier: 'source-session',
-            stepIdentifier: 'question',
+            stepIdentifier: 'work_mode',
           },
         },
         data: { value: 'conflicting' },
@@ -92,14 +93,18 @@ describe('synthetic dataset import', () => {
         expect(imported.versionIdentifier).not.toBe(original.versionIdentifier);
         expect(state.configuration.description).toBe('source-session');
         expect(state.answers).toEqual([
-          { stepIdentifier: 'question', value: 'source-operation', confirmationRevision: null },
+          { stepIdentifier: 'work_mode', value: 'source-operation', confirmationRevision: null },
         ]);
         expect(imported.answers[0]?.value).toBe('source-operation');
         expect(imported.events[0]?.properties).toEqual(properties);
-        expect(state.configuration).toEqual(SessionSnapshots.read(
-          (await source.database.sessionOperation.findFirstOrThrow()).response,
-          await source.database.session.findFirstOrThrow({ include: TrafficSeedImportPolicy.Include }),
-        ).configuration);
+        expect(state.configuration).toEqual(
+          SessionSnapshots.read(
+            (await source.database.sessionOperation.findFirstOrThrow()).response,
+            await source.database.session.findFirstOrThrow({
+              include: TrafficSeedImportPolicy.Include,
+            }),
+          ).configuration,
+        );
       } finally {
         await Promise.all([source.close(), target.close()]);
       }
@@ -111,14 +116,50 @@ describe('synthetic dataset import', () => {
 
     try {
       await source.database.sessionOperation.updateMany({ data: { response: { invalid: true } } });
-      await expect(TrafficSeedImport.run(source.database, target.database, {
-        runIdentifier: 'invalid-replay',
-        projectSession: TrafficSeedImportFixture.projectSession,
-      })).rejects.toThrow();
+      await expect(
+        TrafficSeedImport.run(source.database, target.database, {
+          runIdentifier: 'invalid-replay',
+          projectSession: TrafficSeedImportFixture.projectSession,
+        }),
+      ).rejects.toThrow();
       expect(await target.database.session.count()).toBe(0);
       expect(await target.database.sessionOperation.count()).toBe(0);
     } finally {
       await Promise.all([source.close(), target.close()]);
+    }
+  });
+
+  it('preserves setup and cleanup failures while releasing every acquired backend', async () => {
+    const source = await BackendApplicationFixture.create();
+    const target = await BackendApplicationFixture.create();
+    const closeSource = source.close.bind(source);
+    const closeTarget = target.close.bind(target);
+    const primary = new Error('Import setup failed');
+    const cleanup = new Error('Target disconnect failed');
+
+    try {
+      vi.spyOn(BackendApplicationFixture, 'create')
+        .mockResolvedValueOnce(source)
+        .mockResolvedValueOnce(target);
+      vi.spyOn(source.configurationImports, 'import').mockRejectedValueOnce(primary);
+      const sourceClose = vi.spyOn(source, 'close');
+      vi.spyOn(target, 'close').mockImplementationOnce(async () => {
+        await closeTarget();
+
+        throw cleanup;
+      });
+      const failure: unknown = await TrafficSeedImportFixture.create().catch(
+        (error: unknown) => error,
+      );
+
+      expect(failure).toBeInstanceOf(AggregateError);
+      expect(failure).toMatchObject({ cause: primary, errors: [primary, cleanup] });
+      expect(sourceClose).toHaveBeenCalledOnce();
+      expect(() => source.getApplication()).toThrow();
+      expect(() => target.getApplication()).toThrow();
+    } finally {
+      vi.restoreAllMocks();
+      await Promise.all([closeSource(), closeTarget()]);
     }
   });
 
