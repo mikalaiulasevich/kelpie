@@ -194,3 +194,5 @@ Created release and development branches and configured Render Free auto-deploy 
 ### October 8 — 10,000-session profiling and analytics query corrections
 
 Added a reproducible administrator-authorized HTTP workload, independent metric oracle, coverage gate, retained SQLite snapshots and resumable checkpoints. Two full synthetic generations exposed global and filtered SQL plan regressions; corrected repeated cohort/fact scans and result-click grouping without increasing timeouts. The final retained dataset contains 10,000 sessions and 230,030 events; complete and filtered HTTP reports passed independent reconciliation after resuming on a copy. Full-report median is 2.009 seconds locally; generation answer p95 is 77.94 ms. Measurements and failed-attempt evidence are retained in the engineering review and benchmark reports. Large replay-record storage, hosted capacity and backup/restore remain explicit next steps; no public traffic load was performed.
+
+Final integrated `npm run verify:bun` passed: 827 Node tests and 419 Bun backend tests, static checks and production builds.

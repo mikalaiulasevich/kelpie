@@ -49,7 +49,9 @@ const HistoricalObservations = {
     revision: number,
   ): Promise<Optional<SessionState>> {
     if (revision === 0) {
-      return isNull(session.initialState) ? undefined : SessionSnapshots.read(session.initialState);
+      return isNull(session.initialState)
+        ? undefined
+        : SessionSnapshots.read(session.initialState, session);
     }
 
     const transition = await transaction.sessionTransition.findUnique({
@@ -57,7 +59,9 @@ const HistoricalObservations = {
       select: { operation: { select: { response: true } } },
     });
 
-    return isNull(transition) ? undefined : SessionSnapshots.read(transition.operation.response);
+    return isNull(transition)
+      ? undefined
+      : SessionSnapshots.read(transition.operation.response, session);
   },
 
   properties(state: SessionState, event: ObservationEvent): Optional<ObservationProperties> {

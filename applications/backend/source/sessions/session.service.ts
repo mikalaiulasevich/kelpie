@@ -118,7 +118,7 @@ const SessionCreation = {
       );
     }
 
-    return SessionSnapshots.read(previousOperation.response);
+    return SessionSnapshots.read(previousOperation.response, session);
   },
 } as const;
 
@@ -225,12 +225,26 @@ export class SessionService {
           );
         }
 
+        const session = await transaction.session.findUniqueOrThrow({
+          where: { identifier: existing.sessionIdentifier },
+          include: SessionPolicy.RecordInclude,
+        });
+
+        if (session.expiresAt.getTime() <= Date.now()) {
+          throw new PublicRequestError(
+            HttpStatus.UNAUTHORIZED,
+            SessionErrorCode.Unauthorized,
+            SessionMessages.Unauthorized,
+          );
+        }
+
+        const response = SessionSnapshots.read(existing.response, session);
         await transaction.session.update({
           where: { identifier: existing.sessionIdentifier },
           data: { accessTokenHash: credentialHash },
         });
 
-        return SessionSnapshots.read(existing.response);
+        return response;
       }
 
       return this.createOwned(transaction, credentialHash, body, acquisition, {

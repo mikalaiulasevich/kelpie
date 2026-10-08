@@ -25,7 +25,7 @@ import { SessionCommandMessages } from './session-command-messages.js';
 import type { SessionCommand, SessionCommandContext } from './session-command-types.js';
 
 const SessionCommandChecks = {
-  replay(operation: SessionOperation, fingerprint: string): SessionState {
+  replay(operation: SessionOperation, fingerprint: string, owner: OwnedSession): SessionState {
     if (operation.requestFingerprint !== fingerprint) {
       throw new PublicRequestError(
         HttpStatus.CONFLICT,
@@ -34,7 +34,7 @@ const SessionCommandChecks = {
       );
     }
 
-    return SessionSnapshots.read(operation.response);
+    return SessionSnapshots.read(operation.response, owner);
   },
 
   revision(record: OwnedSession, command: SessionCommand): void {
@@ -116,7 +116,7 @@ export class SessionCommandsService {
         );
 
         if (!isNull(operation)) {
-          return SessionCommandChecks.replay(operation, fingerprint);
+          return SessionCommandChecks.replay(operation, fingerprint, record);
         }
 
         return this.apply(transaction, record, credentialHash, command, fingerprint);
@@ -138,7 +138,7 @@ export class SessionCommandsService {
           throw error;
         }
 
-        return SessionCommandChecks.replay(winner, fingerprint);
+        return SessionCommandChecks.replay(winner, fingerprint, record);
       });
     }
   }
