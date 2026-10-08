@@ -7,5 +7,6 @@ export const DatabaseMessages = {
   RemoteMigrationForeignKeys: 'The migrated database contains foreign key violations.',
   RemoteMigrationCleanupFailed: 'Remote migration and rollback both failed.',
   RemoteMigrationRequired: 'Remote migration requires a libSQL database URL.',
+  RemoteMigrationClientCleanupFailed: 'Remote migration and client cleanup both failed.',
   RemoteMigrationFailed: 'Remote database migration failed.',
 } as const;

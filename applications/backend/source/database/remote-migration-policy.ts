@@ -1,4 +1,7 @@
 export const RemoteMigrationPolicy = {
+  // A hosted covering index over 219k events took 102 seconds; another attempt exceeded 120.
+  // Bound bulk migration requests separately from the 30-second operational request deadline.
+  RequestTimeoutMilliseconds: 300_000,
   ChecksumAlgorithm: 'sha256',
   ChecksumEncoding: 'hex',
   MigrationFilename: 'migration.sql',

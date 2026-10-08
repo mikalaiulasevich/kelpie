@@ -1,52 +1,38 @@
-import { isNull, isString } from 'es-toolkit/predicate';
-import { createServer } from 'node:http';
-import { once } from 'node:events';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { RemoteDatabaseRequests } from '../../source/database/remote-database-requests.js';
+import { RemoteDatabaseRequestCases } from '../cases/remote-database-request-cases.js';
+import { RemoteDatabaseRequestFixture } from '../fixtures/remote-database-request-fixture.js';
 
-// A real stalled socket proves cancellation covers network IO, including response bodies.
+// Real stalled sockets prove cancellation covers response bodies after headers arrive.
 describe('remote database request deadlines', () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('aborts a stalled response body after receiving headers', async () => {
-    const originalTimeout = AbortSignal.timeout;
-    const timeout = vi
-      .spyOn(AbortSignal, 'timeout')
-      .mockImplementation(() => originalTimeout(1_000));
-    const server = createServer((_request, response) => {
-      response.writeHead(200);
-      response.write('partial response');
-    });
-    server.listen(0, '127.0.0.1');
-    await once(server, 'listening');
+  it.each(RemoteDatabaseRequestCases)(
+    'aborts the $name response body at its owned deadline',
+    async ({ fetch, timeoutMilliseconds }) => {
+      const originalTimeout = AbortSignal.timeout;
+      const timeout = vi
+        .spyOn(AbortSignal, 'timeout')
+        .mockImplementation(() => originalTimeout(1_000));
 
-    try {
-      const address = server.address();
+      await RemoteDatabaseRequestFixture.stalled(async (url) => {
+        const response = await fetch(new Request(url));
+        await expect(response.text()).rejects.toThrow();
+        expect(timeout).toHaveBeenCalledWith(timeoutMilliseconds);
+      });
+    },
+  );
 
-      if (isNull(address) || isString(address)) {
-        throw new Error('Expected a listening TCP address.');
-      }
-
-      const response = await RemoteDatabaseRequests.fetch(
-        new Request(`http://127.0.0.1:${address.port}`),
-      );
-      await expect(response.text()).rejects.toThrow();
-      expect(timeout).toHaveBeenCalledWith(30_000);
-    } finally {
-      server.closeAllConnections();
-      await new Promise<void>((resolve) => server.close(() => resolve()));
-    }
-  });
-
-  it('preserves cancellation requested by the database client', async () => {
-    const cancellation = new AbortController();
-    cancellation.abort();
-    await expect(
-      RemoteDatabaseRequests.fetch(
-        new Request('https://example.invalid', { signal: cancellation.signal }),
-      ),
-    ).rejects.toThrow();
-  });
+  it.each(RemoteDatabaseRequestCases)(
+    'preserves client cancellation during the $name response body',
+    async ({ fetch }) => {
+      await RemoteDatabaseRequestFixture.stalled(async (url) => {
+        const cancellation = new AbortController();
+        const response = await fetch(new Request(url, { signal: cancellation.signal }));
+        cancellation.abort();
+        await expect(response.text()).rejects.toThrow();
+      });
+    },
+  );
 });
