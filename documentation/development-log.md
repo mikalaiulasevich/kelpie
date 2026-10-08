@@ -196,3 +196,8 @@ Created release and development branches and configured Render Free auto-deploy 
 Added a reproducible administrator-authorized HTTP workload, independent metric oracle, coverage gate, retained SQLite snapshots and resumable checkpoints. Two full synthetic generations exposed global and filtered SQL plan regressions; corrected repeated cohort/fact scans and result-click grouping without increasing timeouts. The final retained dataset contains 10,000 sessions and 230,030 events; complete and filtered HTTP reports passed independent reconciliation after resuming on a copy. Full-report median is 2.009 seconds locally; generation answer p95 is 77.94 ms. Measurements and failed-attempt evidence are retained in the engineering review and benchmark reports. Large replay-record storage, hosted capacity and backup/restore remain explicit next steps; no public traffic load was performed.
 
 Final integrated `npm run verify:bun` passed: 827 Node tests and 419 Bun backend tests, static checks and production builds.
+
+
+### October 8 — Replay storage and local recovery
+
+Removed repeated immutable configuration/result data from replay storage while retaining legacy reads and exact historical replies. Fixed preview cookie publication before transaction success. Added opt-in bounded compaction and validated local SQLite backup/restore. The copied 10,000-session dataset shrank from 1.257 GB to 247 MB as a standalone snapshot; all 92,999 historical states and unchanged columns across 14 tables matched the original. Real HTTP recovery preserved cookies, pinned versions, retries, events and analytics. Hosted Turso recovery and remote CI remain separate acceptance work.
