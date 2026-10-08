@@ -1,5 +1,5 @@
 import { Type, type Static } from 'typebox';
-const AnalyticsSchemas = { Count: Type.Integer({ minimum: 0 }) } as const;
+const AnalyticsSchemas = { Count: Type.Integer({ minimum: 0 }) };
 
 const Counts = {
   started: AnalyticsSchemas.Count,
@@ -9,7 +9,43 @@ const Counts = {
 const Timestamp = Type.Union([Type.String(), Type.Null()]);
 const NullableNumber = Type.Union([Type.Number(), Type.Null()]);
 
+const ExperimentRow = Type.Object({
+  versionIdentifier: Type.String(),
+  primaryMetric: Type.String(),
+  cohortFrom: Type.String(),
+  cohortTo: Type.String(),
+  plannedEndAt: Type.String(),
+  targetSamplePerVariant: AnalyticsSchemas.Count,
+  expectedAllocationA: Type.Number(),
+  startedA: AnalyticsSchemas.Count,
+  startedB: AnalyticsSchemas.Count,
+  convertedA: AnalyticsSchemas.Count,
+  convertedB: AnalyticsSchemas.Count,
+  sampleTargetReached: Type.Boolean(),
+  plannedEndReached: Type.Boolean(),
+  followUpComplete: Type.Boolean(),
+  trafficOrigin: Type.String(),
+  conversionWindowHours: NullableNumber,
+  difference: NullableNumber,
+  lower: NullableNumber,
+  upper: NullableNumber,
+  sampleRatioStatistic: NullableNumber,
+  sampleRatioMismatch: Type.Union([Type.Boolean(), Type.Null()]),
+});
+
 export const AnalyticsInsightSchemas = {
+  ExperimentRow,
+  ExperimentCountRow: Type.Object({
+    variant: Type.String(),
+    started: AnalyticsSchemas.Count,
+    converted: AnalyticsSchemas.Count,
+  }),
+  BusinessOutcomeRow: Type.Object({
+    kind: Type.String(),
+    sessions: AnalyticsSchemas.Count,
+    manualSessions: AnalyticsSchemas.Count,
+    integrationSessions: AnalyticsSchemas.Count,
+  }),
   Counts: Type.Object(Counts),
   TrendRow: Type.Object({ date: Type.String(), ...Counts }),
   AcquisitionRow: Type.Object({
@@ -36,6 +72,15 @@ export const AnalyticsInsightSchemas = {
     averageSeconds: NullableNumber,
   }),
   Insights: Type.Object({
+    experiments: Type.Array(ExperimentRow),
+    businessOutcomes: Type.Array(
+      Type.Object({
+        kind: Type.String(),
+        sessions: AnalyticsSchemas.Count,
+        manualSessions: AnalyticsSchemas.Count,
+        integrationSessions: AnalyticsSchemas.Count,
+      }),
+    ),
     period: Type.Object({
       from: Timestamp,
       to: Timestamp,
@@ -106,3 +151,9 @@ export type AnalyticsQualityRow = Static<typeof AnalyticsInsightSchemas.QualityR
 export type AnalyticsStepTimingRow = Static<typeof AnalyticsInsightSchemas.StepTimingRow>;
 
 export type AnalyticsCounts = Static<typeof AnalyticsInsightSchemas.Counts>;
+
+export type AnalyticsBusinessOutcomeRow = Static<typeof AnalyticsInsightSchemas.BusinessOutcomeRow>;
+
+export type AnalyticsExperimentRow = Static<typeof AnalyticsInsightSchemas.ExperimentRow>;
+
+export type AnalyticsExperimentCountRow = Static<typeof AnalyticsInsightSchemas.ExperimentCountRow>;

@@ -42,7 +42,7 @@ describe('isolated administrator preview transport', () => {
     vi.stubGlobal('fetch', request);
     await QuizSessionApi.send('/api/sessions/current');
     expect(request).toHaveBeenCalledWith(
-      '/api/sessions/current',
+      '/api/administration/preview/sessions/current',
       expect.objectContaining({ headers: expect.objectContaining({ 'X-Kelpie-Preview': '1' }) }),
     );
   });

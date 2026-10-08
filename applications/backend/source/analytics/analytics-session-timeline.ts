@@ -37,10 +37,15 @@ export const AnalyticsSessionTimeline = {
       throw new BadRequestException(AnalyticsMessages.InvalidQuery);
     }
 
-    return {
-      query: AnalyticsInputs.query(omit(input, ['stepIdentifier', 'sessionIdentifier', 'variant'])),
-      selection,
-    };
+    const query = AnalyticsInputs.query(
+      omit(input, ['stepIdentifier', 'sessionIdentifier', 'variant']),
+    );
+
+    if (isUndefined(query.versionIdentifier)) {
+      throw new BadRequestException(AnalyticsMessages.InvalidQuery);
+    }
+
+    return { query, selection };
   },
 
   async read(
@@ -55,7 +60,7 @@ export const AnalyticsSessionTimeline = {
         ...(query.versionIdentifier ? { identifier: query.versionIdentifier } : {}),
       },
       select: { identifier: true },
-      take: AnalyticsPolicy.MaximumTimelineVersions,
+      take: 1,
     });
     const metadata = {
       generatedAt: now.toISOString(),

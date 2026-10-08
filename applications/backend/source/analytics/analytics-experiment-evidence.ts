@@ -7,6 +7,7 @@ import {
   type AnalyticsExperimentCountRow,
   type AnalyticsExperimentRow,
 } from './analytics-insight-types.js';
+import { AnalyticsPolicy } from './analytics-policy.js';
 import { AnalyticsQueries } from './analytics-queries.js';
 import { AnalyticsRows } from './analytics-results.js';
 import type { AnalyticsQuery } from './analytics-types.js';
@@ -77,6 +78,14 @@ export const AnalyticsExperimentEvidence = {
         convertedB: second.converted,
         sampleTargetReached: Math.min(first.started, second.started) >= plan.targetSamplePerVariant,
         plannedEndReached: now >= plan.plannedEndAt,
+        followUpComplete: Boolean(
+          query.conversionWindowHours &&
+          now.getTime() >=
+            plan.plannedEndAt.getTime() +
+              query.conversionWindowHours * AnalyticsPolicy.MillisecondsPerHour,
+        ),
+        trafficOrigin: query.trafficOrigin,
+        conversionWindowHours: query.conversionWindowHours ?? null,
         ...AnalyticsExperimentStatistics.evidence(first, second, allocation),
       });
     }

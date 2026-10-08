@@ -24,7 +24,10 @@ export const QuizSessionApi = {
       throw new QuizRequestError(403);
     }
 
-    const response = await fetch(path, {
+    const requestPath = QuizPreview.active()
+      ? `/api/administration/preview${path.slice('/api'.length)}`
+      : path;
+    const response = await fetch(requestPath, {
       method: isUndefined(body) ? 'GET' : 'POST',
       credentials: 'same-origin',
       cache: 'no-store',

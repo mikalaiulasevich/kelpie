@@ -13,7 +13,6 @@ export const AnalyticsPolicy = {
   Route: 'administration/analytics',
   SessionsRoute: 'sessions',
   MaximumTimelineEvents: 200,
-  MaximumTimelineVersions: 1000,
   DefaultLimit: 10,
   MaximumLimit: 20,
   MaximumCampaignLength: 200,

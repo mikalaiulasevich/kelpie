@@ -95,8 +95,17 @@ describe('analytics insight cohort boundaries and privacy', () => {
       convertedB: 0,
       sampleTargetReached: false,
       plannedEndReached: true,
+      followUpComplete: false,
+      conversionWindowHours: null,
+      trafficOrigin: 'production',
       sampleRatioMismatch: null,
     });
+  });
+
+  it('requires an explicit version for session history instead of silently truncating version scope', async () => {
+    await expect(
+      backend.getService(AnalyticsService).sessions({ funnelIdentifier: 'workstyle-planner' }),
+    ).rejects.toThrow();
   });
 
   it('returns filtered session histories without event payloads or credentials', async () => {
