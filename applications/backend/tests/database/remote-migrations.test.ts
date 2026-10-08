@@ -9,12 +9,12 @@ describe('Remote migration SQL and ledger contract with real libSQL', () => {
     const database = await RemoteMigrationDatabase.create();
 
     try {
-      expect(await RemoteMigrations.apply(database.client)).toBe(9);
+      expect(await RemoteMigrations.apply(database.client)).toBe(10);
       expect(await RemoteMigrations.apply(database.client)).toBe(0);
       const history = await database.client.execute(
         'SELECT count(*) AS total FROM _prisma_migrations',
       );
-      expect(history.rows[0]?.total).toBe(9);
+      expect(history.rows[0]?.total).toBe(10);
       const client = new PrismaClient({ adapter: new PrismaLibSql({ url: database.url }) });
 
       try {
@@ -64,7 +64,7 @@ describe('Remote migration SQL and ledger contract with real libSQL', () => {
       const history = await database.client.execute('SELECT * FROM _prisma_migrations');
       expect(history.rows).toHaveLength(0);
       await database.client.execute('DROP TABLE Administrator');
-      expect(await RemoteMigrations.apply(database.client)).toBe(9);
+      expect(await RemoteMigrations.apply(database.client)).toBe(10);
     } finally {
       await database.close();
     }
@@ -84,7 +84,7 @@ describe('Remote migration SQL and ledger contract with real libSQL', () => {
       );
       await expect(RemoteMigrations.apply(database.client)).rejects.toThrow('checksum differs');
       const history = await database.client.execute('SELECT * FROM _prisma_migrations');
-      expect(history.rows).toHaveLength(8);
+      expect(history.rows).toHaveLength(9);
     } finally {
       await database.close();
     }
@@ -95,10 +95,7 @@ describe('Remote migration SQL and ledger contract with real libSQL', () => {
 
     try {
       await RemoteMigrations.apply(database.client);
-      await database.client.execute('ALTER TABLE ExperimentPlan DROP COLUMN conversionWindowHours');
-      await database.client.execute(
-        "DELETE FROM _prisma_migrations WHERE migration_name = '20261008000400_experiment_conversion_window'",
-      );
+      await RemoteMigrationDatabase.restoreBeforeConversionWindow(database.client);
       await database.client.execute('PRAGMA foreign_keys = OFF');
       await database.client.execute(
         "INSERT INTO AdministratorSession (identifier, accessTokenHash, administratorIdentifier, expiresAt) VALUES ('orphan', 'hash', 'missing', 0)",
@@ -109,10 +106,22 @@ describe('Remote migration SQL and ledger contract with real libSQL', () => {
       );
       const columns = await database.client.execute('PRAGMA table_info(ExperimentPlan)');
       expect(columns.rows.map((row) => row.name)).not.toContain('conversionWindowHours');
+      const indexes = await database.client.execute('PRAGMA index_list("Event")');
+      expect(indexes.rows.map((row) => row.name)).not.toContain(
+        'Event_sessionIdentifier_name_source_serverTimestamp_stepIdentifier_idx',
+      );
       const history = await database.client.execute('SELECT * FROM _prisma_migrations');
       expect(history.rows).toHaveLength(8);
       await database.client.execute("DELETE FROM AdministratorSession WHERE identifier = 'orphan'");
-      expect(await RemoteMigrations.apply(database.client)).toBe(1);
+      expect(await RemoteMigrations.apply(database.client)).toBe(2);
+      const completed = await database.client.execute(
+        'SELECT migration_name FROM _prisma_migrations ORDER BY migration_name DESC LIMIT 2',
+      );
+      expect(completed.rows.map((row) => row.migration_name)).toEqual([
+        '20261008000500_event_analytics_covering_index',
+        '20261008000400_experiment_conversion_window',
+      ]);
+      expect(await RemoteMigrations.apply(database.client)).toBe(0);
     } finally {
       await database.close();
     }
