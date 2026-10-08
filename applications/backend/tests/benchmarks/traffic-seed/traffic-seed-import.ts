@@ -30,14 +30,14 @@ const ImportIdentity = {
     // Validate the source snapshot against its pinned owner before mapping only owned fields.
     SessionSnapshots.read(response, owner);
 
-    if (!isPlainObject(response)) {
+    if (!isPlainObject(response) || Array.isArray(response)) {
       throw new Error(TrafficSeedImportMessages.Conflict);
     }
 
     if (SessionSnapshots.isCompact(response)) {
       const state = response['state'];
 
-      if (!isPlainObject(state)) {
+      if (!isPlainObject(state) || Array.isArray(state)) {
         throw new Error(TrafficSeedImportMessages.Conflict);
       }
 
@@ -62,6 +62,7 @@ const ImportIdentity = {
     ordinal: number,
   ): TrafficSeedSessionGraph {
     const identifier = ImportIdentity.identifier(runIdentifier, `session:${ordinal}`);
+
     return {
       ...graph,
       identifier,
