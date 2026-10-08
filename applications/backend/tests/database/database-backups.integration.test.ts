@@ -35,8 +35,8 @@ describe('database recovery', () => {
       publication.administrator.identifier,
     );
     const query = {
-      startDate: '2026-10-01',
-      endDate: '2026-10-08',
+      from: '2026-10-01T00:00:00Z',
+      to: '2026-10-09T00:00:00Z',
       funnelIdentifier: 'workstyle-planner',
       versionIdentifier: publication.firstVersion.identifier,
       trafficOrigin: 'all',

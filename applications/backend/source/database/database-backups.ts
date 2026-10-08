@@ -191,13 +191,14 @@ export const DatabaseBackups = {
       const report = await this.validate(temporaryPath);
       // The private directory protects secrets; hard-link publication refuses destination races.
       await link(temporaryPath, request.destinationPath);
+
       return report;
     } catch (error) {
       try {
         await rm(directory, { recursive: true, force: true });
       } catch (cleanupError) {
         throw new AggregateError([error, cleanupError], DatabaseBackupMessages.CleanupFailed, {
-          cause: error,
+          cause: cleanupError,
         });
       }
 

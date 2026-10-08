@@ -43,6 +43,7 @@ export const SessionStorageCompactionCommand = {
       throw new Error(SessionStorageCompactionMessages.InvalidOptions);
     }
 
+    const sessionCursor = values.get('--after-session');
     const options: SessionStorageCompactionOptions = {
       apply: values.has('--apply'),
       batchSize: Number(
@@ -51,11 +52,10 @@ export const SessionStorageCompactionCommand = {
       maximumRecords: Number(
         values.get('--maximum-records') ?? SessionStorageCompactionPolicy.DefaultMaximumRecords,
       ),
-      sessionCursor: values.get('--after-session'),
-      operationCursor:
-        isUndefined(operationSession) || isUndefined(operationIdentifier)
-          ? undefined
-          : { sessionIdentifier: operationSession, operationIdentifier },
+      ...(isUndefined(sessionCursor) ? {} : { sessionCursor }),
+      ...(isUndefined(operationSession) || isUndefined(operationIdentifier)
+        ? {}
+        : { operationCursor: { sessionIdentifier: operationSession, operationIdentifier } }),
     };
     SessionStorageCompaction.validate(options);
 

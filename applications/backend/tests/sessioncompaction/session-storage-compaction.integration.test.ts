@@ -1,3 +1,4 @@
+import { isUndefined } from 'es-toolkit/predicate';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { BackendApplicationFixture } from '../fixtures/backend-application.js';
 import { SessionStorageCompactionFixture } from '../fixtures/sessioncompaction/session-storage-compaction-fixture.js';
@@ -64,8 +65,8 @@ describe('operator-controlled historical session snapshot compaction', () => {
       apply: true,
       batchSize: 1,
       maximumRecords: 10,
-      operationCursor: first.operations.cursor,
-      sessionCursor: first.sessions.cursor,
+      ...(isUndefined(first.operations.cursor) ? {} : { operationCursor: first.operations.cursor }),
+      ...(isUndefined(first.sessions.cursor) ? {} : { sessionCursor: first.sessions.cursor }),
     });
     expect(second.operations.complete).toBe(true);
     expect(second.operations.converted).toBe(1);
@@ -106,6 +107,10 @@ describe('operator-controlled historical session snapshot compaction', () => {
     expect(() => SessionStorageCompactionCommand.options(['--batch-size=101'])).toThrow();
     expect(() => SessionStorageCompactionCommand.options(['--after-operation=x'])).toThrow();
     expect(() => SessionStorageCompactionCommand.options(['--apply=yes'])).toThrow();
+    expect(() => SessionStorageCompactionCommand.options(['--apply='])).toThrow();
+    expect(() => SessionStorageCompactionCommand.options(['--apply', '--apply'])).toThrow();
+    expect(() => SessionStorageCompactionCommand.options(['--maximum-records=NaN'])).toThrow();
+    expect(() => SessionStorageCompactionCommand.options(['--batch-size=1.5'])).toThrow();
     expect(() => SessionStorageCompactionCommand.options(['--remote-url=x'])).toThrow();
   });
 });

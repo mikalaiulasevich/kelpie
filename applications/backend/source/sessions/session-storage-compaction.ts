@@ -18,6 +18,20 @@ const validateOptions = new Ajv({ strict: true }).compile<SessionStorageCompacti
   SessionStorageCompactionSchemas.Options,
 );
 
+const CompactionSnapshots = {
+  snapshot(value: Prisma.JsonValue, owner: OwnedSession) {
+    const state = SessionSnapshots.read(value, owner);
+    const compact = SessionSnapshots.json(state);
+
+    return {
+      compact,
+      alreadyCompact: SessionSnapshots.isCompact(value),
+      before: Buffer.byteLength(JSON.stringify(value)),
+      after: Buffer.byteLength(JSON.stringify(compact)),
+    };
+  },
+} as const;
+
 const CompactionMeasurements = {
   empty(): SessionStorageCompactionPhase {
     return {
@@ -30,21 +44,9 @@ const CompactionMeasurements = {
     };
   },
 
-  snapshot(value: Prisma.JsonValue, owner: OwnedSession) {
-    const state = SessionSnapshots.read(value, owner);
-    const compact = SessionSnapshots.json(state);
-
-    return {
-      compact,
-      alreadyCompact: SessionSnapshots.isCompact(value),
-      before: Buffer.byteLength(JSON.stringify(value)),
-      after: Buffer.byteLength(JSON.stringify(compact)),
-    };
-  },
-
   add(
     total: SessionStorageCompactionPhase,
-    measurements: ReadonlyList<ReturnType<typeof CompactionMeasurements.snapshot>>,
+    measurements: ReadonlyList<ReturnType<typeof CompactionSnapshots.snapshot>>,
   ): SessionStorageCompactionPhase {
     return measurements.reduce(
       (result, item) => ({
@@ -104,7 +106,7 @@ export const SessionStorageCompaction = {
             include: { session: { include: SessionPolicy.RecordInclude } },
           });
           const measurements = rows.map((row) =>
-            CompactionMeasurements.snapshot(row.response, row.session),
+            CompactionSnapshots.snapshot(row.response, row.session),
           );
 
           if (options.apply) {
@@ -142,13 +144,13 @@ export const SessionStorageCompaction = {
       total = CompactionMeasurements.add(total, batch.measurements);
 
       if (isUndefined(batch.last)) {
-        return { ...total, complete: true, cursor };
+        return { ...total, complete: true, ...(isUndefined(cursor) ? {} : { cursor }) };
       }
 
       cursor = batch.last;
     }
 
-    return { ...total, cursor };
+    return { ...total, ...(isUndefined(cursor) ? {} : { cursor }) };
   },
 
   async sessions(database: PrismaClient, options: SessionStorageCompactionOptions) {
@@ -170,7 +172,7 @@ export const SessionStorageCompaction = {
             include: SessionPolicy.RecordInclude,
           });
           const measurements = rows.map((row) =>
-            CompactionMeasurements.snapshot(row.initialState, row),
+            CompactionSnapshots.snapshot(row.initialState, row),
           );
 
           if (options.apply) {
@@ -193,12 +195,12 @@ export const SessionStorageCompaction = {
       total = CompactionMeasurements.add(total, batch.measurements);
 
       if (isUndefined(batch.last)) {
-        return { ...total, complete: true, cursor };
+        return { ...total, complete: true, ...(isUndefined(cursor) ? {} : { cursor }) };
       }
 
       cursor = batch.last;
     }
 
-    return { ...total, cursor };
+    return { ...total, ...(isUndefined(cursor) ? {} : { cursor }) };
   },
 } as const;

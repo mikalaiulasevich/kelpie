@@ -139,6 +139,7 @@ export class SessionOwnershipService {
     const payload = `${token}.${Date.now()}`;
     const signature = CredentialSignatures.sign(payload, await this.secret());
     const credential = `${payload}.${signature}`;
+
     return { hash: CredentialSignatures.hash(credential), value: credential };
   }
 
