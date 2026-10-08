@@ -131,15 +131,27 @@ export const QuizObservations = {
       throw new Error(QuizSessionMessages.Delivery);
     }
 
+    const submittedIdentifiers = new Set(events.map((event) => event.event_id));
     const identifiers = new Set(response.receipts.map((receipt) => receipt.event_id));
 
-    await QuizBrowserLocks.run(QuizObservations.key(state), () =>
-      QuizObservations.remove(state, identifiers),
-    );
-
-    if (response.receipts.some((receipt) => receipt.status === 'rejected')) {
-      localStorage.setItem(`${QuizObservations.key(state)}.rejected`, 'true');
+    if (
+      response.receipts.length !== events.length ||
+      identifiers.size !== events.length ||
+      response.receipts.some(
+        (receipt) => !receipt.event_id || !submittedIdentifiers.has(receipt.event_id),
+      )
+    ) {
+      throw new Error(QuizSessionMessages.Delivery);
     }
+
+    await QuizBrowserLocks.run(QuizObservations.key(state), () => {
+      // Keep rejected events retryable until their durable warning is saved.
+      if (response.receipts.some((receipt) => receipt.status === 'rejected')) {
+        localStorage.setItem(`${QuizObservations.key(state)}.rejected`, 'true');
+      }
+
+      QuizObservations.remove(state, identifiers);
+    });
 
     QuizObservations.checkRejected(state);
   },
