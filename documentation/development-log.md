@@ -182,3 +182,7 @@ Final verification: `npm run verify:bun` passed, including 760 Node tests, 364 B
 ### October 8 — Readability and predictable controls
 
 Improved table header legibility, wrapped long configuration/report names and differentiated successful report actions from failures using text, icons and semantic colors. Configuration search now accurately says it covers versions rather than only the current page. Loading keeps search and sort controls mounted without showing stale actionable rows. Browser checks on isolated HTTP fixtures confirmed focus remains in search after Enter and on sorting after refresh. Frontend typecheck, scoped ESLint, 217 tests and production build passed; the loading regression checks rendered controls, while focus continuity was verified separately in the browser.
+
+### October 8 — Technical integration and failure recovery
+
+Completed independent backend, administration and quiz reviews and corrected invalid analytics dates, saved-write versus refresh-failure handling, and expired-preview recovery. The full verify:bun gate passed 776 Node tests and 368 Bun backend tests; dependency audits reported zero known vulnerabilities. A production-build quiz preview completed through a real isolated backend and reconciled with administration at one start/result/recommendation open. Runtime benchmark results were refreshed. Remote CI startup failure and external release gates remain documented in the foundation review.
