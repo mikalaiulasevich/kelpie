@@ -13,29 +13,20 @@ export const AnalyticsInsightQueries = {
       GROUP BY o.kind ORDER BY o.kind`;
   },
 
-  outcomes(cohort: Prisma.Sql): Prisma.Sql {
-    return Prisma.sql`${cohort}, outcomes AS (
-      SELECT c.*,
-        EXISTS (SELECT 1 FROM eligible_events e WHERE e."sessionIdentifier" = c."identifier" AND e."name" = 'result_viewed' AND e."source" = 'client') AS result,
-        EXISTS (SELECT 1 FROM eligible_events e WHERE e."sessionIdentifier" = c."identifier" AND e."name" = 'cta_clicked' AND e."source" = 'client') AS clicked
-      FROM cohort c
-    )`;
-  },
-
   totals(cohort: Prisma.Sql): Prisma.Sql {
-    return Prisma.sql`${AnalyticsInsightQueries.outcomes(cohort)}
+    return Prisma.sql`${AnalyticsQueries.outcomes(cohort)}
       SELECT COUNT(*) AS started, COALESCE(SUM(result), 0) AS results, COALESCE(SUM(clicked), 0) AS clicks FROM outcomes`;
   },
 
   trend(cohort: Prisma.Sql, buckets: Prisma.Sql): Prisma.Sql {
-    return Prisma.sql`${AnalyticsInsightQueries.outcomes(cohort)}, daily AS (
+    return Prisma.sql`${AnalyticsQueries.outcomes(cohort)}, daily AS (
       SELECT ${buckets} AS date, c.result, c.clicked FROM outcomes c
     ) SELECT date, COUNT(*) AS started, SUM(result) AS results, SUM(clicked) AS clicks
       FROM daily WHERE date IS NOT NULL GROUP BY date ORDER BY date`;
   },
 
   acquisition(cohort: Prisma.Sql): Prisma.Sql {
-    return Prisma.sql`${AnalyticsInsightQueries.outcomes(cohort)}
+    return Prisma.sql`${AnalyticsQueries.outcomes(cohort)}
       SELECT source, medium, campaign, COUNT(*) AS started, SUM(result) AS results, SUM(clicked) AS clicks
       FROM outcomes GROUP BY source, medium, campaign ORDER BY started DESC, source, medium, campaign
       LIMIT ${AnalyticsPolicy.MaximumInsightGroups + 1}`;
@@ -43,13 +34,14 @@ export const AnalyticsInsightQueries = {
 
   results(cohort: Prisma.Sql): Prisma.Sql {
     return Prisma.sql`${cohort}, result_sessions AS (
-      SELECT DISTINCT e."sessionIdentifier", json_extract(e.properties, '$.result_id') AS "resultIdentifier"
-      FROM eligible_events e WHERE e.name = 'result_viewed' AND e.source = 'client'
+      SELECT e."sessionIdentifier", json_extract(e.properties, '$.result_id') AS "resultIdentifier",
+        MAX(e.name = 'result_viewed') AS viewed, MAX(e.name = 'cta_clicked') AS clicked
+      FROM eligible_events e WHERE e.name IN ('result_viewed', 'cta_clicked') AND e.source = 'client'
         AND json_type(e.properties, '$.result_id') = 'text'
-    ) SELECT r."resultIdentifier", COUNT(*) AS sessions,
-      SUM(EXISTS(SELECT 1 FROM eligible_events e WHERE e."sessionIdentifier" = r."sessionIdentifier"
-        AND e.name = 'cta_clicked' AND e.source = 'client' AND json_extract(e.properties, '$.result_id') = r."resultIdentifier")) AS clicks
-      FROM result_sessions r GROUP BY r."resultIdentifier" ORDER BY sessions DESC, r."resultIdentifier"
+      GROUP BY e."sessionIdentifier", json_extract(e.properties, '$.result_id')
+    ) SELECT r."resultIdentifier", COUNT(*) AS sessions, SUM(r.clicked) AS clicks
+      FROM result_sessions r WHERE r.viewed = 1
+      GROUP BY r."resultIdentifier" ORDER BY sessions DESC, r."resultIdentifier"
       LIMIT ${AnalyticsPolicy.MaximumInsightGroups + 1}`;
   },
 

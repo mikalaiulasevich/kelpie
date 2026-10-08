@@ -88,7 +88,7 @@ export const AnalyticsQueries = {
       WHERE ${AnalyticsQueries.timestamp(Prisma.sql`e."serverTimestamp"`)} <= c.deadline
     ), views AS (
       SELECT DISTINCT e."sessionIdentifier", e."stepIdentifier"
-      FROM eligible_events e JOIN cohort c ON c."identifier" = e."sessionIdentifier"
+      FROM eligible_events e
       WHERE e."name" = 'step_viewed' AND e."source" = 'client' AND e."stepIdentifier" IS NOT NULL
     ), forwards AS (
       SELECT DISTINCT t."sessionIdentifier", t."fromStepIdentifier", t."toStepIdentifier"
@@ -99,13 +99,23 @@ export const AnalyticsQueries = {
     )`;
   },
 
+  outcomes(cohort: Prisma.Sql): Prisma.Sql {
+    // Aggregate observations once instead of rescanning materialized events for every session.
+    return Prisma.sql`${cohort}, outcome_events AS (
+      SELECT e."sessionIdentifier",
+        MAX(e."name" = 'result_viewed') AS result,
+        MAX(e."name" = 'cta_clicked') AS clicked
+      FROM eligible_events e
+      WHERE e."source" = 'client' AND e."name" IN ('result_viewed', 'cta_clicked')
+      GROUP BY e."sessionIdentifier"
+    ), outcomes AS (
+      SELECT c.*, COALESCE(e.result, 0) AS result, COALESCE(e.clicked, 0) AS clicked
+      FROM cohort c LEFT JOIN outcome_events e ON e."sessionIdentifier" = c."identifier"
+    )`;
+  },
+
   summary(cohort: Prisma.Sql): Prisma.Sql {
-    return Prisma.sql`${cohort}, outcomes AS (
-      SELECT c.*,
-        EXISTS (SELECT 1 FROM eligible_events e WHERE e."sessionIdentifier" = c."identifier" AND e."name" = 'result_viewed' AND e."source" = 'client') AS result,
-        EXISTS (SELECT 1 FROM eligible_events e WHERE e."sessionIdentifier" = c."identifier" AND e."name" = 'cta_clicked' AND e."source" = 'client') AS clicked
-      FROM cohort c
-    )
+    return Prisma.sql`${AnalyticsQueries.outcomes(cohort)}
     SELECT "versionIdentifier", "variant", COUNT(*) AS started,
       SUM(result) AS results, SUM(clicked) AS clicks, SUM(result AND clicked) AS "resultClicks"
     FROM outcomes GROUP BY "versionIdentifier", "variant"`;
