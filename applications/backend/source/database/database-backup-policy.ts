@@ -20,8 +20,4 @@ export const DatabaseBackupPolicy = {
   TemporaryPrefix: '.kelpie-recovery-',
   SnapshotFilename: 'snapshot.sqlite',
   ChecksumAlgorithm: 'sha256',
-  Integrity: 'PRAGMA integrity_check',
-  ForeignKeys: 'PRAGMA foreign_key_check',
-  Tables: `SELECT name FROM sqlite_schema WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name`,
-  Ledger: 'SELECT migration_name, checksum, finished_at, rolled_back_at FROM _prisma_migrations',
 } as const;

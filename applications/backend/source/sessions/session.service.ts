@@ -209,9 +209,10 @@ export class SessionService {
         ]),
       )
       .digest(SessionPolicy.HashEncoding);
-    const credentialHash = await this.ownership.issue(reply, true);
+    const credential = await this.ownership.prepareCredential();
+    const credentialHash = credential.hash;
 
-    return this.database.client.$transaction(async (transaction) => {
+    const state = await this.database.client.$transaction(async (transaction) => {
       const existing = await transaction.sessionOperation.findFirst({
         where: { operationIdentifier: body.operationIdentifier },
       });
@@ -253,6 +254,9 @@ export class SessionService {
         assignmentQuery,
       });
     });
+    this.ownership.publishCredential(reply, credential, true);
+
+    return state;
   }
 
   private async createOrReplay(

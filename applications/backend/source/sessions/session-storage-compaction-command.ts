@@ -27,19 +27,22 @@ export const SessionStorageCompactionCommand = {
           '--after-operation-session',
           '--after-operation',
         ].includes(key) ||
-        (key === '--apply' && value !== '') ||
+        (key === '--apply' && separator >= 0) ||
         (key !== '--apply' && value === '')
       ) {
         throw new Error(SessionStorageCompactionMessages.InvalidOptions);
       }
+
       values.set(key, value);
     }
+
     const operationSession = values.get('--after-operation-session');
     const operationIdentifier = values.get('--after-operation');
 
     if (isUndefined(operationSession) !== isUndefined(operationIdentifier)) {
       throw new Error(SessionStorageCompactionMessages.InvalidOptions);
     }
+
     const options: SessionStorageCompactionOptions = {
       apply: values.has('--apply'),
       batchSize: Number(

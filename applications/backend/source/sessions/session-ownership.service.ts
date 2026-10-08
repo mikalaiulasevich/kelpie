@@ -9,7 +9,7 @@ import { ApplicationMode } from '../environment/environment-policy.js';
 import { PublicRequestError } from '../transport/public-request-error.js';
 import { SessionPolicy, SessionErrorCode } from './session-policy.js';
 import { SessionMessages } from './session-messages.js';
-import type { CredentialVerification } from './session-types.js';
+import type { CredentialVerification, IssuedSessionCredential } from './session-types.js';
 
 const CredentialSignatures = {
   sign(payload: string, secret: string): string {
@@ -128,13 +128,26 @@ export class SessionOwnershipService {
   }
 
   async issue(reply: FastifyReply, preview = false): Promise<string> {
+    const credential = await this.prepareCredential();
+    this.publishCredential(reply, credential, preview);
+
+    return credential.hash;
+  }
+
+  async prepareCredential(): Promise<IssuedSessionCredential> {
     const token = randomBytes(SessionPolicy.TokenBytes).toString(SessionPolicy.BinaryEncoding);
     const payload = `${token}.${Date.now()}`;
     const signature = CredentialSignatures.sign(payload, await this.secret());
     const credential = `${payload}.${signature}`;
-    this.setCookie(reply, credential, SessionPolicy.CookieLifetimeMilliseconds, preview);
+    return { hash: CredentialSignatures.hash(credential), value: credential };
+  }
 
-    return CredentialSignatures.hash(credential);
+  publishCredential(
+    reply: FastifyReply,
+    credential: IssuedSessionCredential,
+    preview = false,
+  ): void {
+    this.setCookie(reply, credential.value, SessionPolicy.CookieLifetimeMilliseconds, preview);
   }
 
   private setCookie(

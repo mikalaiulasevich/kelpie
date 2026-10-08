@@ -80,6 +80,7 @@ describe('operator-controlled historical session snapshot compaction', () => {
     if (!last) {
       throw new Error('Missing test operation');
     }
+
     await backend.database.sessionOperation.update({
       where: {
         sessionIdentifier_operationIdentifier: {

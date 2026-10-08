@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { readFile, stat, writeFile } from 'node:fs/promises';
+import { readFile, stat, writeFile, readdir } from 'node:fs/promises';
+import { createClient } from '@libsql/client';
+import { pathToFileURL } from 'node:url';
+import { omit } from 'es-toolkit/object';
 import { resolve } from 'node:path';
 import { DatabaseBackups } from '../../source/database/database-backups.js';
 import { RecoveryFixture, RecoveryCleanup } from '../fixtures/database-recovery.js';
@@ -32,7 +35,10 @@ describe('database recovery', () => {
       publication.administrator.identifier,
     );
     const query = {
+      startDate: '2026-10-01',
+      endDate: '2026-10-08',
       funnelIdentifier: 'workstyle-planner',
+      versionIdentifier: publication.firstVersion.identifier,
       trafficOrigin: 'all',
       includeForced: 'true',
     };
@@ -51,7 +57,8 @@ describe('database recovery', () => {
       sourcePath: snapshot,
       destinationPath: recovered,
     });
-    expect(restoredReport.sha256).toBe(report.sha256);
+    expect(restoredReport.tables).toEqual(report.tables);
+    expect(restoredReport.migrations).toEqual(report.migrations);
     const restored = await RecoveryFixture.backend(recovered);
     const returning = new SessionBrowserFixture(restored);
     returning.cookie = browser.cookie;
@@ -73,11 +80,78 @@ describe('database recovery', () => {
       receipts: [{ status: 'duplicate', event_id: observation.event_id }],
     });
     expect(await restored.database.event.count()).toBe(eventCount);
-    expect(await EventAcceptanceFixture.analytics(restored, administratorCookie, query)).toEqual(
-      before,
-    );
+    const after = await EventAcceptanceFixture.analytics(restored, administratorCookie, query);
+    expect(omit(after, ['generatedAt'])).toEqual(omit(before, ['generatedAt']));
     const fresh = new SessionBrowserFixture(restored);
     expect((await fresh.create()).versionIdentifier).toBe(secondVersion.version.identifier);
+  });
+
+  it('restores committed WAL writes while the source connection remains open', async () => {
+    const backend = await RecoveryFixture.backend();
+    const directory = await RecoveryFixture.directory();
+    const source = resolve(directory, 'wal.sqlite');
+    await DatabaseBackups.create({
+      sourcePath: RecoveryFixture.path(backend),
+      destinationPath: source,
+    });
+    const client = createClient({ url: pathToFileURL(source).href });
+
+    try {
+      await client.execute('PRAGMA journal_mode=WAL');
+      await client.execute('PRAGMA wal_autocheckpoint=0');
+      await client.execute(`INSERT INTO Funnel (identifier, revision) VALUES ('wal-retained', 0)`);
+      expect((await stat(`${source}-wal`)).size).toBeGreaterThan(0);
+      const destination = resolve(directory, 'wal-restored.sqlite');
+      const report = await DatabaseBackups.restore({
+        sourcePath: source,
+        destinationPath: destination,
+      });
+      expect(report.tables.find((table) => table.name === 'Funnel')?.rows).toBe('1');
+    } finally {
+      client.close();
+    }
+  });
+
+  it('refuses schema drift and removes unpublished temporary files', async () => {
+    const backend = await RecoveryFixture.backend();
+    const directory = await RecoveryFixture.directory();
+    const source = resolve(directory, 'drift.sqlite');
+    await DatabaseBackups.create({
+      sourcePath: RecoveryFixture.path(backend),
+      destinationPath: source,
+    });
+    const client = createClient({ url: pathToFileURL(source).href });
+
+    try {
+      const indexes = await client.execute(
+        `SELECT name FROM sqlite_schema WHERE type = 'index' AND sql IS NOT NULL LIMIT 1`,
+      );
+      const name = String(indexes.rows[0]?.name).replaceAll('"', '""');
+      await client.execute(`DROP INDEX "${name}"`);
+    } finally {
+      client.close();
+    }
+
+    await expect(
+      DatabaseBackups.restore({
+        sourcePath: source,
+        destinationPath: resolve(directory, 'rejected.sqlite'),
+      }),
+    ).rejects.toThrow('validation');
+    expect(await readdir(directory)).toEqual(['drift.sqlite']);
+  });
+
+  it('rejects a tampered migration ledger', async () => {
+    const backend = await RecoveryFixture.backend();
+    const directory = await RecoveryFixture.directory();
+    await backend.database.$executeRawUnsafe(`UPDATE _prisma_migrations SET checksum = 'changed'`);
+    await expect(
+      DatabaseBackups.create({
+        sourcePath: RecoveryFixture.path(backend),
+        destinationPath: resolve(directory, 'rejected.sqlite'),
+      }),
+    ).rejects.toThrow('validation');
+    expect(await readdir(directory)).toEqual([]);
   });
 
   it('rejects existing destinations without altering their bytes', async () => {

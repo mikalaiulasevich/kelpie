@@ -14,6 +14,7 @@ const SessionFields = {
 } as const;
 
 export const SessionSchemas = {
+  Credential: Type.Object({ hash: Type.String(), value: Type.String() }),
   Create: Type.Object(
     {
       operationIdentifier: Type.String({ pattern: SessionPolicy.OperationPattern }),
@@ -41,6 +42,8 @@ export const SessionSchemas = {
     result: Type.Unknown(),
   }),
 } as const;
+
+export type IssuedSessionCredential = Readonly<Static<typeof SessionSchemas.Credential>>;
 
 export type CreateSessionRequest = Readonly<Static<typeof SessionSchemas.Create>>;
 

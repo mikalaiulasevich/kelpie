@@ -239,11 +239,28 @@ describe('version library and isolated previews', () => {
 
     const replay = await preview.post(preview.body);
     expect(replay.status).toBe(401);
+    expect(replay.headers.has('set-cookie')).toBe(false);
     expect(
       await backend.database.session.findUniqueOrThrow({
         where: { identifier: session.identifier },
       }),
     ).toMatchObject({ accessTokenHash: session.accessTokenHash });
     expect(await backend.database.sessionOperation.count()).toBe(1);
+  });
+  it('preserves the preview cookie when a conflicting retry is rejected', async () => {
+    const preview = await ConfigurationPreviewFixture.prepare(backend);
+    const created = await preview.post(preview.body);
+    expect(created.status).toBe(201);
+    expect(created.headers.has('set-cookie')).toBe(true);
+    const session = await backend.database.session.findFirstOrThrow();
+
+    const conflict = await preview.post({ ...preview.body, variant: 'B' });
+    expect(conflict.status).toBe(409);
+    expect(conflict.headers.has('set-cookie')).toBe(false);
+    expect(
+      await backend.database.session.findUniqueOrThrow({
+        where: { identifier: session.identifier },
+      }),
+    ).toMatchObject({ accessTokenHash: session.accessTokenHash });
   });
 });

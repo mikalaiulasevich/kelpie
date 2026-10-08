@@ -44,7 +44,10 @@
     "start:node": "npm run start --workspace=@kelpie/backend",
     "test:bun": "bun run --cwd applications/backend test:bun",
     "verify:bun": "npm run verify && npm run test:bun",
-    "development:quiz": "npm run development --workspace=@kelpie/quiz"
+    "development:quiz": "npm run development --workspace=@kelpie/quiz",
+    "database:backup": "npm run build:packages && npm run database:generate && npm run database:backup --workspace=@kelpie/backend --",
+    "database:restore": "npm run build:packages && npm run database:generate && npm run database:restore --workspace=@kelpie/backend --",
+    "storage:compact": "npm run build:packages && npm run database:generate && npm run storage:compact --workspace=@kelpie/backend --"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

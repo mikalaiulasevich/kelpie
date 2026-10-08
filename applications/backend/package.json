@@ -18,7 +18,13 @@
     "development:bun": "npm run build && concurrently --kill-others-on-fail \"tsc --project tsconfig.build.json --watch --preserveWatchOutput\" \"bun --watch distribution/source/main.js\"",
     "test:bun": "bun --bun ../../node_modules/vitest/vitest.mjs run",
     "configurations:import:bun": "bun distribution/source/configurations/import-configuration.js",
-    "administration:provision:bun": "bun distribution/source/administration/provision-administrator.js"
+    "administration:provision:bun": "bun distribution/source/administration/provision-administrator.js",
+    "database:backup": "tsx source/database/backup-database.ts",
+    "database:backup:bun": "bun distribution/source/database/backup-database.js",
+    "database:restore": "tsx source/database/restore-database.ts",
+    "database:restore:bun": "bun distribution/source/database/restore-database.js",
+    "storage:compact": "tsx source/sessions/compact-session-storage.ts",
+    "storage:compact:bun": "bun distribution/source/sessions/compact-session-storage.js"
   },
   "dependencies": {
     "@fastify/cookie": "11.1.2",

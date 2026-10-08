@@ -1,7 +1,37 @@
+import { isBoolean, isNull, isPlainObject, isString } from 'es-toolkit/predicate';
+import type { Prisma } from '../../../generated/prisma/client.js';
 import { SessionPolicy } from '../../../source/sessions/session-policy.js';
 import { SessionSnapshots } from '../../../source/sessions/session-snapshots.js';
 import type { BackendApplicationFixture } from '../backend-application.js';
 import { SessionBrowserFixture, SessionFlowFixture } from '../session-flow.js';
+
+const FixtureJson = {
+  value(value: unknown): Prisma.InputJsonValue | null {
+    if (isNull(value) || isString(value) || isBoolean(value)) {
+      return value;
+    }
+
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (Array.isArray(value)) {
+      return value.map(FixtureJson.value);
+    }
+
+    if (isPlainObject(value)) {
+      return FixtureJson.object(value);
+    }
+
+    throw new Error('Invalid legacy snapshot fixture JSON');
+  },
+
+  object(value: object): Prisma.InputJsonObject {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, child]) => [key, FixtureJson.value(child)]),
+    );
+  },
+} as const;
 
 export const SessionStorageCompactionFixture = {
   async prepare(backend: BackendApplicationFixture) {
@@ -28,12 +58,13 @@ export const SessionStorageCompactionFixture = {
             operationIdentifier: operation.operationIdentifier,
           },
         },
-        data: { response: SessionSnapshots.read(operation.response, owner) },
+        data: { response: FixtureJson.object(SessionSnapshots.read(operation.response, owner)) },
       });
     }
+
     await backend.database.session.update({
       where: { identifier: owner.identifier },
-      data: { initialState: initial },
+      data: { initialState: FixtureJson.object(initial) },
     });
 
     return { browser, initial, command, historical, owner };

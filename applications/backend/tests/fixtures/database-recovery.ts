@@ -25,7 +25,11 @@ export const RecoveryFixture = {
   },
 
   forget(backend: BackendApplicationFixture) {
-    resources.splice(resources.indexOf(backend), 1);
+    const index = resources.indexOf(backend);
+
+    if (index >= 0) {
+      resources.splice(index, 1);
+    }
   },
 
   path(backend: BackendApplicationFixture) {
@@ -37,12 +41,18 @@ export const RecoveryFixture = {
 
 export const RecoveryCleanup = {
   async run() {
-    for (const backend of resources.splice(0)) {
-      await backend.close();
-    }
+    const backends = await Promise.allSettled(
+      resources.splice(0).map((backend) => backend.close()),
+    );
+    const folders = await Promise.allSettled(
+      directories.splice(0).map((directory) => rm(directory, { recursive: true, force: true })),
+    );
+    const failures = [...backends, ...folders]
+      .filter((result) => result.status === 'rejected')
+      .map((result) => result.reason);
 
-    for (const directory of directories.splice(0)) {
-      await rm(directory, { recursive: true, force: true });
+    if (failures.length > 0) {
+      throw new AggregateError(failures, 'Recovery fixture cleanup failed.');
     }
   },
 } as const;

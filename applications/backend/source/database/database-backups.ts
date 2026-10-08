@@ -1,25 +1,15 @@
-import { isError, isNull } from 'es-toolkit/predicate';
+import { isError, isNull, isEqual } from 'es-toolkit/predicate';
 import { createClient } from '@libsql/client';
 import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
-import {
-  chmod,
-  constants,
-  copyFile,
-  link,
-  lstat,
-  mkdir,
-  mkdtemp,
-  open,
-  readFile,
-  rm,
-  stat,
-} from 'node:fs/promises';
+import { chmod, link, lstat, mkdir, mkdtemp, open, readFile, rm, stat } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { applicationDirectory } from '../application/application-directory.js';
 import { MigrationHistory } from './migration-history.js';
 import { DatabaseBackupMessages } from './database-backup-messages.js';
+import { DatabasePaths } from './database-paths.js';
+import { DatabaseBackupStatements } from './database-backup-statements.js';
 import { DatabaseBackupPolicy } from './database-backup-policy.js';
 import type { DatabaseBackupReport, DatabaseBackupRequest } from './database-backup-types.js';
 
@@ -65,9 +55,9 @@ export const DatabaseBackups = {
     const client = createClient({ url: pathToFileURL(path).href, intMode: 'bigint' });
 
     try {
-      const integrity = await client.execute(DatabaseBackupPolicy.Integrity);
-      const foreignKeys = await client.execute(DatabaseBackupPolicy.ForeignKeys);
-      const ledger = await client.execute(DatabaseBackupPolicy.Ledger);
+      const integrity = await client.execute(DatabaseBackupStatements.Integrity);
+      const foreignKeys = await client.execute(DatabaseBackupStatements.ForeignKeys);
+      const ledger = await client.execute(DatabaseBackupStatements.Ledger);
       const migrations = [...(await MigrationHistory.expected())].sort();
 
       if (
@@ -81,7 +71,7 @@ export const DatabaseBackups = {
 
       for (const name of migrations) {
         const document = await readFile(
-          resolve(applicationDirectory, 'prisma/migrations', name, 'migration.sql'),
+          resolve(applicationDirectory, DatabasePaths.Migrations, name, 'migration.sql'),
         );
         const checksum = createHash(DatabaseBackupPolicy.ChecksumAlgorithm)
           .update(document)
@@ -98,7 +88,7 @@ export const DatabaseBackups = {
         }
       }
 
-      const schema = await client.execute(DatabaseBackupPolicy.Tables);
+      const schema = await client.execute(DatabaseBackupStatements.Tables);
       const names = schema.rows.map((row) => String(row.name));
 
       if (
@@ -108,12 +98,32 @@ export const DatabaseBackups = {
         throw new Error(DatabaseBackupMessages.InvalidDatabase);
       }
 
+      const reference = createClient({ url: ':memory:' });
+
+      try {
+        for (const name of migrations) {
+          const document = await readFile(
+            resolve(applicationDirectory, DatabasePaths.Migrations, name, 'migration.sql'),
+            'utf8',
+          );
+          await reference.executeMultiple(document);
+        }
+
+        const expected = await reference.execute(DatabaseBackupStatements.Schema);
+        const actual = await client.execute(DatabaseBackupStatements.Schema);
+
+        if (!isEqual(actual.rows, expected.rows)) {
+          throw new Error(DatabaseBackupMessages.InvalidDatabase);
+        }
+      } finally {
+        reference.close();
+      }
+
       const tables = [];
 
       for (const row of schema.rows) {
         const name = String(row.name);
-        const quoted = name.replaceAll('"', '""');
-        const counts = await client.execute(`SELECT COUNT(*) FROM "${quoted}"`);
+        const counts = await client.execute(DatabaseBackupStatements.count(name));
         tables.push({ name, rows: String(counts.rows[0]?.[0]) });
       }
 
@@ -129,14 +139,14 @@ export const DatabaseBackups = {
   },
 
   async create(request: DatabaseBackupRequest): Promise<DatabaseBackupReport> {
-    return this.transfer(request, true);
+    return this.transfer(request);
   },
 
   async restore(request: DatabaseBackupRequest): Promise<DatabaseBackupReport> {
-    return this.transfer(request, false);
+    return this.transfer(request);
   },
 
-  async transfer(request: DatabaseBackupRequest, snapshot: boolean): Promise<DatabaseBackupReport> {
+  async transfer(request: DatabaseBackupRequest): Promise<DatabaseBackupReport> {
     await BackupFiles.source(request.sourcePath);
     await BackupFiles.destination(request.destinationPath);
     await mkdir(dirname(request.destinationPath), {
@@ -148,18 +158,25 @@ export const DatabaseBackups = {
     );
     const temporaryPath = join(directory, DatabaseBackupPolicy.SnapshotFilename);
 
-    try {
-      if (snapshot) {
-        const source = createClient({ url: pathToFileURL(request.sourcePath).href });
+    const report = await this.writeSnapshot(request, temporaryPath, directory);
+    await rm(directory, { recursive: true, force: true });
 
-        try {
-          await source.execute({ sql: 'VACUUM INTO ?', args: [temporaryPath] });
-        } finally {
-          source.close();
-        }
-      } else {
-        await this.validate(request.sourcePath);
-        await copyFile(request.sourcePath, temporaryPath, constants.COPYFILE_EXCL);
+    return report;
+  },
+
+  async writeSnapshot(
+    request: DatabaseBackupRequest,
+    temporaryPath: string,
+    directory: string,
+  ): Promise<DatabaseBackupReport> {
+    try {
+      const source = createClient({ url: pathToFileURL(request.sourcePath).href });
+
+      try {
+        // SQLite includes committed WAL records in a consistent standalone snapshot.
+        await source.execute({ sql: DatabaseBackupStatements.Snapshot, args: [temporaryPath] });
+      } finally {
+        source.close();
       }
 
       await chmod(temporaryPath, DatabaseBackupPolicy.FilePermissions);
@@ -172,17 +189,15 @@ export const DatabaseBackups = {
       }
 
       const report = await this.validate(temporaryPath);
-      // The private directory protects secrets before publication. EXCL handles destination races.
+      // The private directory protects secrets; hard-link publication refuses destination races.
       await link(temporaryPath, request.destinationPath);
-      await rm(directory, { recursive: true, force: true });
-
       return report;
     } catch (error) {
       try {
         await rm(directory, { recursive: true, force: true });
       } catch (cleanupError) {
         throw new AggregateError([error, cleanupError], DatabaseBackupMessages.CleanupFailed, {
-          cause: cleanupError,
+          cause: error,
         });
       }
 

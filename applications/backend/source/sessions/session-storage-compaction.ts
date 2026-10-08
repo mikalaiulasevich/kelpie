@@ -1,16 +1,22 @@
+import { Ajv } from 'ajv';
 import { isUndefined } from 'es-toolkit/predicate';
 import { Prisma, type PrismaClient } from '../../generated/prisma/client.js';
 import { SessionSnapshots } from './session-snapshots.js';
 import { SessionPolicy } from './session-policy.js';
 import { SessionStorageCompactionPolicy } from './session-storage-compaction-policy.js';
 import { SessionStorageCompactionMessages } from './session-storage-compaction-messages.js';
+import type { OwnedSession } from './session-types.js';
+import { SessionStorageCompactionSchemas } from './session-storage-compaction-types.js';
 import type {
   SessionStorageCompactionOptions,
   SessionStorageCompactionResult,
   SessionStorageCompactionPhase,
   SessionStorageOperationCursor,
-  SessionStorageSnapshotMeasurement,
 } from './session-storage-compaction-types.js';
+
+const validateOptions = new Ajv({ strict: true }).compile<SessionStorageCompactionOptions>(
+  SessionStorageCompactionSchemas.Options,
+);
 
 const CompactionMeasurements = {
   empty(): SessionStorageCompactionPhase {
@@ -24,7 +30,7 @@ const CompactionMeasurements = {
     };
   },
 
-  snapshot(value: Prisma.JsonValue, owner: Parameters<typeof SessionSnapshots.read>[1]) {
+  snapshot(value: Prisma.JsonValue, owner: OwnedSession) {
     const state = SessionSnapshots.read(value, owner);
     const compact = SessionSnapshots.json(state);
 
@@ -38,7 +44,7 @@ const CompactionMeasurements = {
 
   add(
     total: SessionStorageCompactionPhase,
-    measurements: ReadonlyList<SessionStorageSnapshotMeasurement>,
+    measurements: ReadonlyList<ReturnType<typeof CompactionMeasurements.snapshot>>,
   ): SessionStorageCompactionPhase {
     return measurements.reduce(
       (result, item) => ({
@@ -56,14 +62,7 @@ const CompactionMeasurements = {
 
 export const SessionStorageCompaction = {
   validate(options: SessionStorageCompactionOptions): void {
-    if (
-      !Number.isSafeInteger(options.batchSize) ||
-      options.batchSize < 1 ||
-      options.batchSize > SessionStorageCompactionPolicy.MaximumBatchSize ||
-      !Number.isSafeInteger(options.maximumRecords) ||
-      options.maximumRecords < 1 ||
-      options.maximumRecords > SessionStorageCompactionPolicy.MaximumRecords
-    ) {
+    if (!validateOptions(options)) {
       throw new Error(SessionStorageCompactionMessages.InvalidOptions);
     }
   },
@@ -125,6 +124,7 @@ export const SessionStorageCompaction = {
               }
             }
           }
+
           const last = rows.at(-1);
 
           return {
@@ -144,6 +144,7 @@ export const SessionStorageCompaction = {
       if (isUndefined(batch.last)) {
         return { ...total, complete: true, cursor };
       }
+
       cursor = batch.last;
     }
 
@@ -194,6 +195,7 @@ export const SessionStorageCompaction = {
       if (isUndefined(batch.last)) {
         return { ...total, complete: true, cursor };
       }
+
       cursor = batch.last;
     }
 
