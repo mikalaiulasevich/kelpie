@@ -8,7 +8,7 @@ import { ErrorDiagnostics } from '../diagnostics/error-diagnostics.js';
 import { ApplicationPolicy } from '../application/application-policy.js';
 import { DatabaseMessages } from './database-messages.js';
 import { RemoteDatabaseRequests } from './remote-database-requests.js';
-import { RemoteMigrations } from './remote-migrations.js';
+import { RemoteMigrationExecution } from './remote-migration-execution.js';
 import { SQLitePolicy } from './sqlite-policy.js';
 
 const RemoteMigrationCommand = {
@@ -21,18 +21,14 @@ const RemoteMigrationCommand = {
 
     const client = createClient({
       url: environment.databaseUrl,
-      fetch: RemoteDatabaseRequests.fetch,
+      fetch: RemoteDatabaseRequests.fetchMigration,
       ...(isUndefined(environment.databaseAuthToken)
         ? {}
         : { authToken: environment.databaseAuthToken }),
     });
 
-    try {
-      const applied = await RemoteMigrations.apply(client);
-      process.stdout.write(`${JSON.stringify({ appliedMigrations: applied })}\n`);
-    } finally {
-      client.close();
-    }
+    const applied = await RemoteMigrationExecution.run(client);
+    process.stdout.write(`${JSON.stringify({ appliedMigrations: applied })}\n`);
   },
 } as const;
 

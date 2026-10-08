@@ -1,4 +1,5 @@
 export const RemoteMigrationPolicy = {
+  RequestTimeoutMilliseconds: 120_000,
   ChecksumAlgorithm: 'sha256',
   ChecksumEncoding: 'hex',
   MigrationFilename: 'migration.sql',
