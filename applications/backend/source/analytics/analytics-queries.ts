@@ -103,13 +103,24 @@ export const AnalyticsQueries = {
     )`;
   },
 
-  summary(cohort: Prisma.Sql): Prisma.Sql {
+  observedEvent(name: string): Prisma.Sql {
+    // The caller already owns the cohort row; querying its indexed events avoids rejoining that cohort.
+    return Prisma.sql`EXISTS (SELECT 1 FROM "Event" e
+      WHERE e."sessionIdentifier" = c."identifier" AND e."name" = ${name} AND e."source" = 'client'
+        AND ${AnalyticsQueries.timestamp(Prisma.sql`e."serverTimestamp"`)} <= c.deadline)`;
+  },
+
+  outcomes(cohort: Prisma.Sql): Prisma.Sql {
     return Prisma.sql`${cohort}, outcomes AS (
       SELECT c.*,
-        EXISTS (SELECT 1 FROM eligible_events e WHERE e."sessionIdentifier" = c."identifier" AND e."name" = 'result_viewed' AND e."source" = 'client') AS result,
-        EXISTS (SELECT 1 FROM eligible_events e WHERE e."sessionIdentifier" = c."identifier" AND e."name" = 'cta_clicked' AND e."source" = 'client') AS clicked
+        ${AnalyticsQueries.observedEvent('result_viewed')} AS result,
+        ${AnalyticsQueries.observedEvent('cta_clicked')} AS clicked
       FROM cohort c
-    )
+    )`;
+  },
+
+  summary(cohort: Prisma.Sql): Prisma.Sql {
+    return Prisma.sql`${AnalyticsQueries.outcomes(cohort)}
     SELECT "versionIdentifier", "variant", COUNT(*) AS started,
       SUM(result) AS results, SUM(clicked) AS clicks, SUM(result AND clicked) AS "resultClicks"
     FROM outcomes GROUP BY "versionIdentifier", "variant"`;

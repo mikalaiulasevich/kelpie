@@ -5,6 +5,7 @@ import type { DatabaseReadQuery } from './database-read-types.js';
 import { DatabaseReadPolicy } from './database-read-policy.js';
 import { DatabaseReadMessages } from './database-read-messages.js';
 import { DatabaseReadStatements } from './database-read-statements.js';
+import { SQLitePolicy } from './sqlite-policy.js';
 
 export class DatabaseReadAdapter extends PrismaLibSql {
   private activeTransaction: Optional<Transaction>;
@@ -27,7 +28,7 @@ export class DatabaseReadAdapter extends PrismaLibSql {
       this.transactionAcquisition = acquisition;
 
       try {
-        const transaction = await acquisition;
+        const transaction = await this.prepare(await acquisition, configuration.url);
         this.activeTransaction = transaction;
 
         return transaction;
@@ -37,6 +38,32 @@ export class DatabaseReadAdapter extends PrismaLibSql {
     };
 
     return client;
+  }
+
+  private async prepare(transaction: Transaction, url: string): Promise<Transaction> {
+    // Hosted Turso rejects query_only PRAGMA; its stream uses the native READ transaction mode.
+    if (url.startsWith(SQLitePolicy.RemoteUrlPrefix)) {
+      return transaction;
+    }
+
+    try {
+      // Local libSQL accepts READONLY syntax without enforcing it; guard the exact connection.
+      await transaction.execute(DatabaseReadStatements.EnableReadOnlyConnection);
+
+      return transaction;
+    } catch (error) {
+      try {
+        transaction.close();
+      } catch (cleanupError) {
+        throw new AggregateError(
+          [error, cleanupError],
+          DatabaseReadMessages.SnapshotSetupCleanupFailed,
+          { cause: cleanupError },
+        );
+      }
+
+      throw error;
+    }
   }
 
   queries(): DatabaseReadQuery {

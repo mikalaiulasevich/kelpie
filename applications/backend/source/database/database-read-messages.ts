@@ -6,5 +6,6 @@ export const DatabaseReadMessages = {
   InvalidBinding: 'A database read statement contains an unsupported parameter.',
   InvalidResult: 'The database read batch returned invalid results.',
   InvalidOptions: 'The database read options are invalid.',
+  SnapshotSetupCleanupFailed: 'Database read snapshot setup and cleanup both failed.',
   InitializationCleanupFailed: 'Database read initialization and cleanup both failed.',
 } as const;

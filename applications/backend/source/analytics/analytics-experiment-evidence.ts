@@ -55,7 +55,7 @@ export const AnalyticsExperimentEvidence = {
       );
       const converted =
         plan.primaryMetric === 'recommendation_open'
-          ? Prisma.sql`EXISTS (SELECT 1 FROM eligible_events e WHERE e."sessionIdentifier" = c.identifier AND e.name = 'cta_clicked' AND e.source = 'client')`
+          ? AnalyticsQueries.observedEvent('cta_clicked')
           : Prisma.sql`EXISTS (SELECT 1 FROM "BusinessOutcome" o WHERE o."sessionIdentifier" = c.identifier AND o.kind = ${plan.primaryMetric} AND ${AnalyticsQueries.timestamp(Prisma.sql`o."occurredAt"`)} >= c."startedAt" AND ${AnalyticsQueries.timestamp(Prisma.sql`o."occurredAt"`)} <= c.deadline)`;
 
       return Prisma.sql`${cohort} SELECT c.variant, COUNT(*) AS started, SUM(${converted}) AS converted FROM cohort c JOIN "Session" s ON s.identifier = c.identifier WHERE s."assignmentSource" = 'random' GROUP BY c.variant`;
