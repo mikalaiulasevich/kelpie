@@ -1,6 +1,6 @@
 import { EventEmitter, once } from 'node:events';
 import { vi } from 'vitest';
-import { DatabaseReadService } from '../../source/database/database-read.service.js';
+import type { DatabaseReadService } from '../../source/database/database-read.service.js';
 
 const AnalyticsReadIsolationMessages = {
   ReportFinishedBeforeHold: 'The analytics response finished before the snapshot was held.',

@@ -96,7 +96,7 @@ export const AnalyticsQueries = {
       SELECT DISTINCT "sessionIdentifier", "stepIdentifier" FROM view_events
     ), forwards AS (
       SELECT DISTINCT t."sessionIdentifier", t."fromStepIdentifier", t."toStepIdentifier"
-      FROM "SessionTransition" t JOIN cohort c ON c."identifier" = t."sessionIdentifier"
+      FROM cohort c CROSS JOIN "SessionTransition" t ON t."sessionIdentifier" = c."identifier"
       WHERE t."kind" = 'forward' AND ${AnalyticsQueries.timestamp(Prisma.sql`t."createdAt"`)} <= c.deadline
     ), completions AS (
       SELECT DISTINCT "sessionIdentifier", "fromStepIdentifier" FROM forwards
@@ -128,19 +128,20 @@ export const AnalyticsQueries = {
 
   steps(cohort: Prisma.Sql): Prisma.Sql {
     return Prisma.sql`${cohort}, step_facts AS (
-      SELECT "sessionIdentifier", "stepIdentifier" FROM views
-      UNION SELECT "sessionIdentifier", "fromStepIdentifier" FROM completions
+      SELECT "sessionIdentifier", "stepIdentifier", 1 AS reached, 0 AS completed FROM views
+      UNION ALL SELECT "sessionIdentifier", "fromStepIdentifier", 0, 1 FROM completions
+    ), step_sessions AS (
+      SELECT "sessionIdentifier", "stepIdentifier", MAX(reached) AS reached, MAX(completed) AS completed
+      FROM step_facts GROUP BY "sessionIdentifier", "stepIdentifier"
     )
     SELECT c."versionIdentifier", c."variant", facts."stepIdentifier",
-      SUM(v."sessionIdentifier" IS NOT NULL) AS reached,
-      SUM(f."sessionIdentifier" IS NOT NULL) AS completed,
-      SUM(v."sessionIdentifier" IS NOT NULL AND f."sessionIdentifier" IS NOT NULL) AS "observedCompleted",
-      SUM(v."sessionIdentifier" IS NOT NULL AND c.expired) AS "expiredReached",
-      SUM(v."sessionIdentifier" IS NOT NULL AND f."sessionIdentifier" IS NULL AND NOT c.expired) AS "openNoncompletion",
-      SUM(v."sessionIdentifier" IS NOT NULL AND f."sessionIdentifier" IS NULL AND c.expired) AS "expiredNoncompletion"
-    FROM step_facts facts JOIN cohort c ON c."identifier" = facts."sessionIdentifier"
-    LEFT JOIN views v ON v."sessionIdentifier" = facts."sessionIdentifier" AND v."stepIdentifier" = facts."stepIdentifier"
-    LEFT JOIN completions f ON f."sessionIdentifier" = facts."sessionIdentifier" AND f."fromStepIdentifier" = facts."stepIdentifier"
+      SUM(facts.reached) AS reached,
+      SUM(facts.completed) AS completed,
+      SUM(facts.reached AND facts.completed) AS "observedCompleted",
+      SUM(facts.reached AND c.expired) AS "expiredReached",
+      SUM(facts.reached AND NOT facts.completed AND NOT c.expired) AS "openNoncompletion",
+      SUM(facts.reached AND NOT facts.completed AND c.expired) AS "expiredNoncompletion"
+    FROM step_sessions facts JOIN cohort c ON c."identifier" = facts."sessionIdentifier"
     GROUP BY c."versionIdentifier", c."variant", facts."stepIdentifier"`;
   },
 
