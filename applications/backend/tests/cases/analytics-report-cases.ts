@@ -29,7 +29,23 @@ export const AnalyticsReportCases = {
     },
     {
       name: 'unsafe integer count',
-      rows: [{ report: JSON.stringify({ ...AnalyticsReportFixture.empty(), summaries: [{ versionIdentifier: 'version-one', variant: 'A', started: 9007199254740992, results: 0, clicks: 0, resultClicks: 0 }] }) }],
+      rows: [
+        {
+          report: JSON.stringify({
+            ...AnalyticsReportFixture.empty(),
+            summaries: [
+              {
+                versionIdentifier: 'version-one',
+                variant: 'A',
+                started: 9007199254740992,
+                results: 0,
+                clicks: 0,
+                resultClicks: 0,
+              },
+            ],
+          }),
+        },
+      ],
     },
     {
       name: 'unexpected projection',
