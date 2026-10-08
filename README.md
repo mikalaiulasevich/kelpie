@@ -81,7 +81,7 @@ The deployment gate passed `npm run verify:bun`: 804 tests on Node.js 24.16.0 an
 
 For a reviewer walkthrough, start all three applications using the commands above, provision an administrator, import the three original configurations, and publish v3 in Configurations. Open the quiz, choose Hybrid and Compliance to exercise both conditional questions, reload an unfinished answer, then continue to the result and open its recommendations. Refresh Analytics for v3 to see the received views and CTA. Publish v2 while retaining the v3 browser session; the session must retain its original questions and recommendation. Publication and rollback affect only new sessions.
 
-Public hosting and a reproducible 10,000-session profiling command are available. Remaining acceptance includes backup/restore recovery, the complete version-compatibility sequence, remote CI, and browser expiry, cross-tab, accessibility and device scenarios. Profiling evidence and its local-versus-hosted limits are recorded below and in the engineering review.
+Public hosting and a reproducible 10,000-session profiling command are available. Remaining acceptance includes hosted Turso backup/restore recovery, the complete version-compatibility sequence, remote CI, and browser expiry, cross-tab, accessibility and device scenarios. Profiling evidence and its local-versus-hosted limits are recorded below and in the engineering review.
 
 ## User-session API
 
@@ -102,7 +102,7 @@ State contains session/version/funnel identifiers, funnel version, variant, pinn
 
 Retry an uncertain command with the identical body and operation identifier. Ownership and expiry are checked before replay; an identical retry returns its original committed revision. Changed intent returns `operation_conflict`; an outdated revision returns `stale_revision` (409). Fetch current state before replacing newer UI state with an older replay. Invalid answers return 422 without changing state. Answers, revision, navigation transition, authoritative events and the replay response commit atomically. Creation stores an initial snapshot and `session_started`; answer/Back events contain bounded metadata, never raw answers. Information Continue records a forward transition without inventing an answer event. Client observations use the event batch API below; the quiz queues observations durably with stable identifiers, bounded batches and receipt-driven removal. Delivery failures stay visible, with bounded exponential retry and an explicit retry action. Unsent observations cannot arrive if the browser never returns.
 
-The `kelpie_session` cookie is HttpOnly, SameSite=Strict, scoped to `/api`, and Secure in production. Its HMAC signing key is generated once and persisted in `ApplicationSecret`; storage keeps credential hashes, not plaintext browser cookies. Creation/replay renew the same cookie to the remaining configured session lifetime (72 hours in supplied configurations), without extending server expiry. Preserve the database, including its signing key, in protected backups; losing the key invalidates existing cookies. Backup/restore drills remain pending.
+The `kelpie_session` cookie is HttpOnly, SameSite=Strict, scoped to `/api`, and Secure in production. Its HMAC signing key is generated once and persisted in `ApplicationSecret`; storage keeps credential hashes, not plaintext browser cookies. Creation/replay renew the same cookie to the remaining configured session lifetime (72 hours in supplied configurations), without extending server expiry. Preserve the database, including its signing key, in protected backups; losing the key invalidates existing cookies. A local SQLite HTTP recovery drill preserves existing participant/administrator cookies, pinned versions, command replay and event deduplication. Hosted Turso recovery remains pending.
 
 ## Event ingestion API
 
@@ -221,7 +221,7 @@ The drain deadline cannot interrupt synchronous SQLite work. Backpressure drops 
 
 Implemented controls include validated environment input, loopback binding by default, body limits, security headers, server timeouts, redacted exceptions and database/migration readiness. Compressed JSON is unsupported (415). Frontend Ky requests have cancellation, no retries and a five-second total deadline.
 
-Administrator authentication, origin/header CSRF checks, sign-in throttling and publication command idempotency are implemented. User-session authorization, revision checks and command replay are also implemented. Tested backup/restore, browser coordination and public hosting remain pending. SQLite targets one backend instance with persistent storage. Dependency override rationale is in [the engineering review](documentation/foundation-review.md#dependency-decisions); avoid unreviewed `npm audit fix --force` changes.
+Administrator authentication, origin/header CSRF checks, sign-in throttling and publication command idempotency are implemented. User-session authorization, revision checks and command replay are also implemented. Local SQLite recovery and public hosting have been verified; hosted Turso recovery and outstanding browser coordination scenarios remain pending. SQLite targets one backend instance with persistent storage. Dependency override rationale is in [the engineering review](documentation/foundation-review.md#dependency-decisions); avoid unreviewed `npm audit fix --force` changes.
 
 Local verification is not deployed/browser acceptance. The last documented remote CI attempt failed before jobs started; a current remote CI result has not been established. Follow the implementation plan's acceptance gates before claiming delivery.
 
@@ -236,6 +236,28 @@ Set secret `DATABASE_URL` to the Turso libsql URL and `DATABASE_AUTH_TOKEN` to a
 The backend readiness endpoint is `/api/health/ready`. A free external cron-job.org task can GET this URL every five minutes without credentials, session creation or analytics events. Render Cron is not free and is not provisioned by the blueprint. The standalone `KELPIE_PUBLIC_ORIGIN=https://your-host node scripts/deployment/warmup.mjs` additionally verifies quiz and administration responses with a bounded deadline; it requires installed project dependencies. Scheduled pings do not guarantee uptime or extend provider quotas.
 
 Remote database migrations use `bun applications/backend/distribution/source/database/migrate-remote-database.js` after compilation. Local development retains the original Prisma migration command and Node SQLite fallback. Before promoting a release, verify a real remote transaction, publication, quiz completion, observation delivery, and persistence across a service restart; local libSQL tests alone do not establish networked database acceptance.
+
+## Local database recovery and replay storage
+
+After installation, create a consistent standalone snapshot with absolute local paths:
+
+```sh
+npm run database:backup -- --source=/absolute/path/runtime.sqlite --destination=/absolute/path/backup.sqlite
+npm run database:restore -- --source=/absolute/path/backup.sqlite --destination=/absolute/path/recovered.sqlite
+```
+
+Both commands use SQLite `VACUUM INTO`, including committed WAL writes. They validate integrity, foreign keys, the exact migration ledger/checksums, tables and migration-derived schema/indexes before publishing a new file. Existing destinations are never overwritten. Snapshots have mode 0600 and contain raw answers and the signing key; preserve them as protected data. Restore into a new path and point a stopped application at it after validation. A failure after publication reports that the snapshot exists but temporary cleanup failed. Power-loss durability and offsite retention are not established by these tests. Validation hash/size describe the standalone output; validating a live WAL source is not a standalone backup. These commands do not export a remote `libsql://` database.
+
+New session operation records store historical answers/revisions instead of duplicating the immutable pinned configuration and derived result. Reads support both legacy and compact records. Configuration rollback remains supported; deploying an older binary that cannot read compact replay records is unsafe. Use a compatible application build when restoring snapshots.
+
+Inspect legacy rows without writes, then apply bounded batches explicitly:
+
+```sh
+npm run storage:compact -- --batch-size=100 --maximum-records=200000
+npm run storage:compact -- --apply --batch-size=100 --maximum-records=200000
+```
+
+The cap applies separately to operation records and session initial states. Output includes per-phase counts, JSON byte totals and resume cursors. Resume operation processing with the paired `--after-operation-session`/`--after-operation` values, and session processing with `--after-session`. A malformed row rolls back its batch; earlier batches remain committed. Retry is idempotent. Newly inserted identifiers behind a cursor require a later full pass. Run against a protected copy or an appropriately scheduled database; this is not an automatic background migration. Logical compaction frees database pages without reducing the existing file immediately; create a validated standalone snapshot to reclaim physical space.
 
 ## Synthetic traffic profiling
 
