@@ -1,26 +1,18 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { ExperimentVariant } from '@kelpie/contracts';
-import { Type, type Static } from 'typebox';
 import type { FastifyReply } from 'fastify';
 import { DatabaseService } from '../database/database.service.js';
 import { SessionService } from '../sessions/session.service.js';
-import { SessionPolicy } from '../sessions/session-policy.js';
 import { SessionInputs } from '../sessions/session-inputs.js';
 import { SchemaCompiler } from '../validation/schema-compiler.js';
 import { ConfigurationManagementInputs } from './configuration-management-inputs.js';
 import { ConfigurationManagementMessages } from './configuration-management-messages.js';
 import { ConfigurationImportDocument } from './configuration-import-document.js';
+import {
+  ConfigurationPreviewSchema,
+  type ConfigurationPreviewRequest,
+} from './configuration-preview-types.js';
 
-const previewSchema = Type.Object(
-  {
-    operationIdentifier: Type.String({ pattern: SessionPolicy.OperationPattern }),
-    clientTimestamp: Type.String({ pattern: SessionPolicy.TimestampPattern }),
-    variant: Type.Enum(ExperimentVariant),
-  },
-  { additionalProperties: false },
-);
-
-const validate = SchemaCompiler.compile<Static<typeof previewSchema>>(previewSchema);
+const validate = SchemaCompiler.compile<ConfigurationPreviewRequest>(ConfigurationPreviewSchema);
 
 @Injectable()
 export class ConfigurationPreviewService {
@@ -67,6 +59,7 @@ export class ConfigurationPreviewService {
       { identifier: record.identifier, configuration: prepared.configuration },
       input.variant,
       administratorIdentifier,
+      input.acquisition ?? {},
     );
   }
 }

@@ -186,9 +186,16 @@ export class SessionService {
     reply: FastifyReply,
     body: CreateSessionRequest,
     configuration: ActiveSessionConfiguration,
-    variant: ExperimentVariant,
+    variant: Optional<ExperimentVariant>,
     administratorIdentifier: string,
+    acquisition: SessionQuery = {},
   ): Promise<SessionState> {
+    const acquisitionEntries = sortBy(Object.entries(SessionInputs.acquisition(acquisition)), [
+      ([key]) => key,
+    ]);
+    const assignmentQuery: SessionQuery = isUndefined(variant)
+      ? {}
+      : { [configuration.configuration.experiment.overrideQueryParam]: variant };
     const fingerprint = createHash(SessionPolicy.HashAlgorithm)
       .update(
         JSON.stringify([
@@ -197,6 +204,8 @@ export class SessionService {
           configuration.identifier,
           variant,
           body.clientTimestamp,
+          // Preserve fingerprints of previews created before acquisition was supported.
+          ...(acquisitionEntries.length > 0 ? [acquisitionEntries] : []),
         ]),
       )
       .digest(SessionPolicy.HashEncoding);
@@ -224,13 +233,11 @@ export class SessionService {
         return SessionSnapshots.read(existing.response);
       }
 
-      return this.createOwned(
-        transaction,
-        credentialHash,
-        body,
-        { [configuration.configuration.experiment.overrideQueryParam]: variant },
-        { configuration, fingerprint },
-      );
+      return this.createOwned(transaction, credentialHash, body, acquisition, {
+        configuration,
+        fingerprint,
+        assignmentQuery,
+      });
     });
   }
 
@@ -279,7 +286,11 @@ export class SessionService {
     credentialHash: string,
     body: CreateSessionRequest,
     query: SessionQuery,
-    preview?: { configuration: ActiveSessionConfiguration; fingerprint: string },
+    preview?: {
+      configuration: ActiveSessionConfiguration;
+      fingerprint: string;
+      assignmentQuery: SessionQuery;
+    },
   ): Promise<SessionState> {
     const active =
       preview?.configuration ??
@@ -287,7 +298,7 @@ export class SessionService {
     const { configuration } = active;
     const fingerprint =
       preview?.fingerprint ?? SessionCreation.fingerprint(body, query, configuration);
-    const assignment = SessionCreation.assignment(configuration, query);
+    const assignment = SessionCreation.assignment(configuration, preview?.assignmentQuery ?? query);
     const firstStep = FunnelEvaluation.evaluate(configuration, assignment.variant, {}).route
       .steps[0];
 

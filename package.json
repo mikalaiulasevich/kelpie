@@ -33,6 +33,7 @@
     "database:validate": "npm run database:validate --workspace=@kelpie/backend",
     "configurations:verify": "node scripts/verify-configurations.mjs",
     "benchmark:runtime": "npm run build:packages && tsx packages/funnel-runtime/tests/benchmarks/run-benchmarks.ts",
+    "traffic:profile": "npm run build:packages && npm run database:generate && tsx --tsconfig applications/backend/tsconfig.json applications/backend/tests/benchmarks/traffic/run-traffic.ts",
     "verify": "npm run configurations:verify && npm run tests:layout && npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build && npm run database:validate",
     "tests:layout": "node scripts/verify-test-layout.mjs",
     "configurations:import": "npm run build:packages && npm run database:generate && npm run configurations:import --workspace=@kelpie/backend --",

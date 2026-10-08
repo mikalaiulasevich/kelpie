@@ -1,4 +1,6 @@
 import { randomUUID } from 'node:crypto';
+import { ConfigurationPreviewFixture } from '../fixtures/configuration-preview-fixture.js';
+import { AnalyticsService } from '../../source/analytics/analytics.service.js';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AdministrationFixture } from '../fixtures/administration.js';
 import type { BackendApplicationFixture } from '../fixtures/backend-application.js';
@@ -111,5 +113,119 @@ describe('version library and isolated previews', () => {
       headers: { cookie: `${cookie}; ${previewCookie}` },
     });
     expect(await normal.json()).toMatchObject({ state: null });
+  });
+  it('creates random synthetic traffic with acquisition and excludes it from production analytics', async () => {
+    const preview = await ConfigurationPreviewFixture.prepare(backend);
+    const response = await preview.post(preview.body);
+    expect(response.status).toBe(201);
+    const original = await response.json();
+    const session = await backend.database.session.findFirstOrThrow();
+    expect(session).toMatchObject({
+      trafficOrigin: 'synthetic',
+      assignmentSource: 'random',
+      campaign: 'isolated-run',
+      acquisitionParameters: { utm_source: 'load-test', utm_campaign: 'isolated-run' },
+    });
+    expect(['A', 'B']).toContain(session.variant);
+
+    const replay = await preview.post({
+      ...preview.body,
+      acquisition: { utm_campaign: 'isolated-run', utm_source: 'load-test' },
+    });
+    expect(replay.status).toBe(201);
+    expect(await replay.json()).toEqual(original);
+    expect(await backend.database.session.count()).toBe(1);
+    const analytics = backend.getService(AnalyticsService);
+    const query = {
+      funnelIdentifier: 'workstyle-planner',
+      versionIdentifier: preview.versionIdentifier,
+    };
+    const production = await analytics.read(query);
+    expect(
+      production.versions
+        .flatMap((version) => version.variants)
+        .reduce((sum, variant) => sum + variant.started, 0),
+    ).toBe(0);
+    const synthetic = await analytics.read({
+      ...query,
+      trafficOrigin: 'synthetic',
+      campaign: 'isolated-run',
+    });
+    expect(
+      synthetic.versions
+        .flatMap((version) => version.variants)
+        .reduce((sum, variant) => sum + variant.started, 0),
+    ).toBe(1);
+  });
+
+  it('rejects changed acquisition or assignment on replay without changing the stored session', async () => {
+    const preview = await ConfigurationPreviewFixture.prepare(backend);
+    expect((await preview.post(preview.body)).status).toBe(201);
+    const original = await backend.database.session.findFirstOrThrow();
+    expect(
+      (await preview.post({ ...preview.body, acquisition: { utm_campaign: 'different-run' } }))
+        .status,
+    ).toBe(409);
+    expect((await preview.post({ ...preview.body, variant: original.variant })).status).toBe(409);
+    expect(await backend.database.session.count()).toBe(1);
+    expect(await backend.database.session.findFirstOrThrow()).toEqual(original);
+  });
+
+  it('requires authorization and validates bounded acquisition before creating traffic', async () => {
+    const preview = await ConfigurationPreviewFixture.prepare(backend);
+    expect((await preview.post(preview.body, '')).status).toBe(401);
+    expect(
+      (await preview.post({ ...preview.body, acquisition: { utm_campaign: 'x'.repeat(201) } }))
+        .status,
+    ).toBe(400);
+    expect(
+      (await preview.post({ ...preview.body, acquisition: { trafficOrigin: 'production' } }))
+        .status,
+    ).toBe(400);
+    expect((await preview.post({ ...preview.body, trafficOrigin: 'production' })).status).toBe(400);
+    expect(await backend.database.session.count()).toBe(0);
+  });
+  it('keeps acquisition independent from a colliding configured variant override', async () => {
+    const cookie = AdministrationFixture.cookie(await AdministrationFixture.signIn(backend));
+    const original = ConfigurationImportFixtures.original(3);
+    const imported = await backend.configurationImports.import({
+      ...original,
+      experiment: { ...original.experiment, overrideQueryParam: 'utm_campaign' },
+    });
+    const body = {
+      operationIdentifier: randomUUID(),
+      clientTimestamp: new Date().toISOString(),
+      acquisition: { utm_campaign: 'A' },
+    };
+    const randomResponse = await PublicationHttpFixtures.post(
+      backend,
+      `configurations/${imported.version.identifier}/preview`,
+      cookie,
+      body,
+    );
+    expect(randomResponse.status).toBe(201);
+    const randomSession = await backend.database.session.findFirstOrThrow();
+    expect(randomSession).toMatchObject({
+      assignmentSource: 'random',
+      campaign: 'A',
+      trafficOrigin: 'synthetic',
+    });
+
+    const forcedResponse = await PublicationHttpFixtures.post(
+      backend,
+      `configurations/${imported.version.identifier}/preview`,
+      cookie,
+      { ...body, operationIdentifier: randomUUID(), variant: 'B' },
+    );
+    expect(forcedResponse.status).toBe(201);
+    const forcedSession = await backend.database.session.findFirstOrThrow({
+      where: { assignmentSource: 'forced' },
+    });
+    expect(forcedSession).toMatchObject({
+      variant: 'B',
+      campaign: 'A',
+      trafficOrigin: 'synthetic',
+      acquisitionParameters: { utm_campaign: 'A' },
+    });
   });
 });
