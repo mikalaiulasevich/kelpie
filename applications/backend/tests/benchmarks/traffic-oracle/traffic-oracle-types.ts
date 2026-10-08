@@ -49,3 +49,18 @@ export const TrafficOracleSelectionSchema = Type.Object({
 });
 
 export type TrafficOracleSelection = Static<typeof TrafficOracleSelectionSchema>;
+
+export const TrafficCoverageSpecificationSchema = Type.Object(
+  {
+    version: Type.Integer({ minimum: 1, maximum: 3 }),
+    variants: Type.Array(Type.Union([Type.Literal('A'), Type.Literal('B')]), {
+      minItems: 2,
+      uniqueItems: true,
+    }),
+    resultIdentifiers: Type.Array(Type.String(), { minItems: 1, uniqueItems: true }),
+    conditionalStepIdentifiers: Type.Array(Type.String(), { uniqueItems: true }),
+  },
+  { additionalProperties: false },
+);
+
+export type TrafficCoverageSpecification = Static<typeof TrafficCoverageSpecificationSchema>;

@@ -1,0 +1,362 @@
+import { applicationDirectory } from '../../../source/application/application-directory.js';
+import { TrafficProfileDatabase } from '../traffic-profile-database.js';
+import { TrafficQueryPlans } from '../traffic-query-plans.js';
+import { TrafficOracle } from '../traffic-oracle/traffic-oracle.js';
+import {
+  AnalyticsResponseSchemas,
+  type AnalyticsResponse,
+} from '../../../source/analytics/analytics-response.js';
+import { FunnelConfigurations } from '@kelpie/contracts';
+import type { TrafficCoverageSpecification } from '../traffic-oracle/traffic-oracle-types.js';
+import { Ajv } from 'ajv';
+import assert from 'node:assert/strict';
+import { readFile, mkdir, writeFile } from 'node:fs/promises';
+import { cpus, platform, release, totalmem } from 'node:os';
+import { resolve } from 'node:path';
+import { BackendApplicationFixture } from '../../fixtures/backend-application.js';
+import { TrafficHttp } from '../../fixtures/traffic/traffic-http.js';
+import { TrafficSession } from '../../fixtures/traffic/traffic-session.js';
+import { AdministrationService } from '../../../source/administration/administration.service.js';
+import { TrafficPolicy } from './traffic-policy.js';
+import { TrafficMessages } from './traffic-messages.js';
+import { TrafficOptionsSchema, type TrafficOptions } from './traffic-types.js';
+import type { TrafficSessionManifest } from '../traffic-oracle/traffic-oracle-types.js';
+
+interface TrafficPreparedProfile {
+  cookie: string;
+  versions: string[];
+  specifications: TrafficCoverageSpecification[];
+}
+
+interface TrafficLoadMeasurement {
+  elapsedMilliseconds: number;
+  processorMicroseconds: NodeJS.CpuUsage;
+  peakResidentBytes: number;
+  traffic: ReturnType<TrafficHttp['report']>;
+}
+
+interface TrafficAnalyticsMeasurement {
+  response: Optional<AnalyticsResponse>;
+  measuredAnalytics: ReturnType<TrafficHttp['report']>;
+}
+
+export class TrafficProfile {
+  readonly http: TrafficHttp;
+
+  readonly manifest: TrafficSessionManifest[] = [];
+
+  private snapshot: Optional<Awaited<ReturnType<typeof TrafficProfileDatabase.snapshot>>>;
+
+  constructor(
+    readonly backend: BackendApplicationFixture,
+    readonly options: TrafficOptions,
+  ) {
+    this.http = new TrafficHttp(backend);
+  }
+
+  async execute(): Promise<void> {
+    try {
+      const prepared = await this.prepare();
+      const load = await this.generate(prepared);
+      this.snapshot = await TrafficProfileDatabase.snapshot(this.backend, this.options.output);
+      await this.checkCoverage(prepared.specifications);
+      const analytics = await this.measureAnalytics(prepared.cookie);
+      await this.verifyFilters(prepared);
+      await this.save(prepared, load, analytics);
+    } catch (error) {
+      await this.recover(error);
+    }
+
+    await this.backend.close();
+  }
+
+  private async prepare() {
+    const { backend, http } = this;
+    await backend
+      .getService(AdministrationService)
+      .provision(TrafficPolicy.Credentials.username, TrafficPolicy.Credentials.password);
+    const signedIn = await http.request('/api/administration/sign-in', TrafficPolicy.Credentials);
+    const cookie = signedIn.headers.getSetCookie()[0]?.split(';')[0];
+    assert.ok(cookie, TrafficMessages.MissingCookie);
+    const versions: string[] = [];
+    const specifications: TrafficCoverageSpecification[] = [];
+
+    for (const version of [1, 2, 3]) {
+      const document: unknown = JSON.parse(
+        await readFile(
+          resolve(applicationDirectory, `../../configurations/funnel-v${version}.json`),
+          'utf8',
+        ),
+      );
+      const validation = FunnelConfigurations.validate(document);
+      assert.ok(validation.valid, TrafficMessages.MissingVersion);
+      specifications.push({
+        version,
+        variants: ['A', 'B'],
+        resultIdentifiers: Object.keys(validation.configuration.results),
+        conditionalStepIdentifiers: Object.values(validation.configuration.steps)
+          .filter((step) => step.visibleWhen)
+          .map((step) => step.id),
+      });
+      const imported = await backend.configurationImports.import(document);
+      versions.push(imported.version.identifier);
+    }
+
+    return { cookie, versions, specifications };
+  }
+
+  private async generate(prepared: TrafficPreparedProfile) {
+    const { http, manifest, options } = this;
+    const { cookie, versions } = prepared;
+    http.measurements.clear();
+    const started = performance.now();
+    const processorStarted = process.cpuUsage();
+    let peakResidentBytes = process.memoryUsage().rss;
+    const sampler = setInterval(() => {
+      peakResidentBytes = Math.max(peakResidentBytes, process.memoryUsage().rss);
+    }, 100);
+    let nextIndex = 0;
+    const worker = async () => {
+      while (nextIndex < options.sessions) {
+        const index = nextIndex;
+        nextIndex += 1;
+        const version = versions[index % versions.length];
+        assert.ok(version, TrafficMessages.MissingVersion);
+        manifest.push(await TrafficSession.run(http, cookie, version, index, options.seed));
+
+        if (manifest.length % 100 === 0) {
+          process.stdout.write(`${manifest.length}/${options.sessions} synthetic sessions\n`);
+        }
+      }
+    };
+
+    try {
+      const results = await Promise.allSettled(Array.from({ length: options.concurrency }, worker));
+      const errors = results.flatMap((result) =>
+        result.status === 'rejected' ? [result.reason] : [],
+      );
+
+      if (errors.length > 0) {
+        throw new AggregateError(errors, TrafficMessages.RequestFailed);
+      }
+    } finally {
+      clearInterval(sampler);
+    }
+
+    const elapsedMilliseconds = performance.now() - started;
+    const processorMicroseconds = process.cpuUsage(processorStarted);
+    const traffic = http.report();
+    http.measurements.clear();
+
+    return { elapsedMilliseconds, processorMicroseconds, peakResidentBytes, traffic };
+  }
+
+  private async checkCoverage(specifications: TrafficCoverageSpecification[]) {
+    const { backend, manifest, options } = this;
+    TrafficOracle.validate(manifest);
+    assert.equal(manifest.length, options.sessions);
+
+    if (options.sessions >= 10000) {
+      TrafficOracle.verifyCoverage(manifest, specifications);
+    }
+
+    assert.equal(await backend.database.session.count(), options.sessions);
+  }
+
+  private async measureAnalytics(cookie: string) {
+    const { http, manifest } = this;
+    const analytics: AnalyticsResponse[] = [];
+    const analyticsValidator = new Ajv().compile<AnalyticsResponse>(
+      AnalyticsResponseSchemas.Response,
+    );
+
+    for (let repeat = 0; repeat < 6; repeat += 1) {
+      const response = await http.request(
+        '/api/administration/analytics?funnelIdentifier=workstyle-planner&trafficOrigin=synthetic&includeForced=true',
+        undefined,
+        cookie,
+        200000 + repeat,
+      );
+      const payload: unknown = await response.json();
+      assert.ok(analyticsValidator(payload), TrafficMessages.RequestFailed);
+      analytics.push(payload);
+      TrafficOracle.verify(manifest, payload, { includeForced: true });
+
+      if (repeat === 0) {
+        http.measurements.clear();
+      }
+    }
+
+    const measuredAnalytics = http.report();
+    http.measurements.clear();
+
+    return { response: analytics.at(-1), measuredAnalytics };
+  }
+
+  private async verifyFilters(prepared: TrafficPreparedProfile) {
+    const { http, manifest } = this;
+    const { versions, cookie } = prepared;
+    const analyticsValidator = new Ajv().compile<AnalyticsResponse>(
+      AnalyticsResponseSchemas.Response,
+    );
+
+    for (const versionIdentifier of versions) {
+      for (const includeForced of [false, true]) {
+        const query = new URLSearchParams({
+          funnelIdentifier: 'workstyle-planner',
+          trafficOrigin: 'synthetic',
+          versionIdentifier,
+          includeForced: String(includeForced),
+        });
+        const response = await http.request(
+          `/api/administration/analytics?${query}`,
+          undefined,
+          cookie,
+          250000 + versions.indexOf(versionIdentifier),
+        );
+        const payload: unknown = await response.json();
+        assert.ok(analyticsValidator(payload), TrafficMessages.RequestFailed);
+        TrafficOracle.verify(manifest, payload, { versionIdentifier, includeForced });
+      }
+    }
+
+    for (const campaign of ['synthetic-0', 'synthetic-1', 'synthetic-2']) {
+      const query = new URLSearchParams({
+        funnelIdentifier: 'workstyle-planner',
+        trafficOrigin: 'synthetic',
+        campaign,
+        includeForced: 'true',
+      });
+      const payload: unknown = await (
+        await http.request(`/api/administration/analytics?${query}`, undefined, cookie, 260000)
+      ).json();
+      assert.ok(analyticsValidator(payload), TrafficMessages.RequestFailed);
+      TrafficOracle.verify(manifest, payload, { campaign, includeForced: true });
+    }
+  }
+
+  private async save(
+    prepared: TrafficPreparedProfile,
+    load: TrafficLoadMeasurement,
+    analytics: TrafficAnalyticsMeasurement,
+  ) {
+    const { backend, http, manifest, options } = this;
+    const { versions } = prepared;
+    const { elapsedMilliseconds, processorMicroseconds, peakResidentBytes, traffic } = load;
+    const { measuredAnalytics } = analytics;
+    const directory = resolve(options.output);
+    await mkdir(directory, { recursive: true });
+    manifest.sort((left, right) => left.index - right.index);
+    const report = {
+      options,
+      retainedDatabase: this.snapshot,
+      recordedAt: new Date().toISOString(),
+      transport:
+        'real HTTP on ephemeral loopback port; isolated temporary SQLite; one simulated proxy IP per session',
+      memoryScope:
+        'Backend and generator share one process; RSS sampled every 100ms during generation and CPU include both; not isolated backend measurements',
+      latencyUnit: 'milliseconds',
+      coverage: TrafficOracle.coverage(manifest),
+      coverageGate: options.sessions >= 10000 ? 'passed' : 'small-sample-not-required',
+      runtime: { node: process.version, bun: process.versions['bun'] ?? null },
+      operatingSystem: `${platform()} ${release()}`,
+      processor: cpus()[0]?.model,
+      logicalProcessors: cpus().length,
+      systemMemoryBytes: totalmem(),
+      elapsedMilliseconds,
+      sessionsPerSecond: options.sessions / (elapsedMilliseconds / 1000),
+      peakResidentBytes,
+      processorMicroseconds,
+      database: {
+        sessions: await backend.database.session.count(),
+        events: await backend.database.event.count(),
+      },
+      networkFailures: http.networkFailures,
+      traffic,
+      queryPlans: await TrafficQueryPlans.capture(backend, versions),
+      oracle: { verified: true, filteredRequests: http.report() },
+      analytics: { warmupQueries: 1, measuredQueries: 5, requests: measuredAnalytics },
+    };
+    await writeFile(resolve(directory, 'manifest.json'), JSON.stringify(manifest));
+    await writeFile(
+      resolve(directory, 'analytics.json'),
+      JSON.stringify(analytics.response, null, 2),
+    );
+    await writeFile(resolve(directory, 'report.json'), JSON.stringify(report, null, 2));
+    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+  }
+
+  private async recover(error: unknown): Promise<never> {
+    const { backend, http, manifest, options } = this;
+    const recovery = await Promise.allSettled([
+      (async () => {
+        await mkdir(resolve(options.output), { recursive: true });
+        await writeFile(
+          resolve(options.output, 'failure.json'),
+          JSON.stringify(
+            {
+              status: 'failed',
+              retainedDatabase: this.snapshot,
+              options,
+              completedSessions: manifest.length,
+              networkFailures: http.networkFailures,
+              requests: http.report(),
+            },
+            null,
+            2,
+          ),
+        );
+        await writeFile(resolve(options.output, 'partial-manifest.json'), JSON.stringify(manifest));
+      })(),
+      backend.close(),
+    ]);
+    const failures = recovery.flatMap((result) =>
+      result.status === 'rejected' ? [result.reason] : [],
+    );
+
+    if (failures.length > 0) {
+      throw new AggregateError([error, ...failures], TrafficMessages.RequestFailed, {
+        cause: error,
+      });
+    }
+
+    throw error;
+  }
+}
+
+export const TrafficRunner = {
+  options(arguments_: readonly string[] = process.argv.slice(2)): TrafficOptions {
+    const entries = arguments_.map((argument) => {
+      const separator = argument.indexOf('=');
+      const key = argument.slice(2, separator);
+      assert.ok(
+        argument.startsWith('--') &&
+          separator > 2 &&
+          ['sessions', 'concurrency', 'seed', 'output'].includes(key),
+        TrafficMessages.InvalidArguments,
+      );
+
+      return [key, argument.slice(separator + 1)];
+    });
+    const values = Object.fromEntries(entries);
+    const options = {
+      sessions: Number(values['sessions'] ?? TrafficPolicy.Sessions),
+      concurrency: Number(values['concurrency'] ?? TrafficPolicy.Concurrency),
+      seed: Number(values['seed'] ?? TrafficPolicy.Seed),
+      output: values['output'] ?? 'test-results/traffic',
+    };
+    const validate = new Ajv().compile<TrafficOptions>(TrafficOptionsSchema);
+    assert.ok(validate(options), TrafficMessages.InvalidArguments);
+
+    return options;
+  },
+
+  async run(options: TrafficOptions): Promise<void> {
+    process.env['TSX_TSCONFIG_PATH'] = resolve(applicationDirectory, 'tsconfig.json');
+    const backend = await BackendApplicationFixture.create({
+      TRUST_PROXY_LOOPBACK: 'true',
+      LOG_LEVEL: 'fatal',
+    });
+    await new TrafficProfile(backend, options).execute();
+  },
+} as const;

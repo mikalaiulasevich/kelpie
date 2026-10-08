@@ -52,7 +52,20 @@ export const TestLayoutPolicy = /** @type {const} */ ({
     'packages/contracts',
     'packages/funnel-runtime',
   ],
-  IgnoredDirectories: new Set(['node_modules', 'distribution', 'generated', 'coverage', '.next']),
+  IgnoredDirectories: new Set([
+    'node_modules',
+    'distribution',
+    'distribution-traffic',
+    'generated',
+    'coverage',
+    '.next',
+  ]),
   TestFilePattern: /[.-](?:test|spec|fixture|fixtures|case|cases|typecheck)\.[cm]?[jt]sx?$/,
   Directory: 'tests',
+});
+
+export const TrafficBuildPolicy = /** @type {const} */ ({
+  OutputDirectory: 'applications/backend/distribution-traffic',
+  CompilerPath: 'node_modules/typescript/bin/tsc',
+  ProjectPath: 'applications/backend/tsconfig.traffic.json',
 });

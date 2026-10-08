@@ -1,7 +1,53 @@
 import type { AnalyticsResponse } from '../../../source/analytics/analytics-response.js';
-import type { TrafficSessionManifest } from '../../benchmarks/traffic-oracle/traffic-oracle-types.js';
+import type {
+  TrafficSessionManifest,
+  TrafficCoverageSpecification,
+} from '../../benchmarks/traffic-oracle/traffic-oracle-types.js';
 
 export const TrafficOracleFixture = {
+  coverageSpecifications(): TrafficCoverageSpecification[] {
+    return [1, 2, 3].map((version) => ({
+      version,
+      variants: ['A', 'B'],
+      resultIdentifiers: ['remote', 'office'],
+      conditionalStepIdentifiers: ['office_days'],
+    }));
+  },
+
+  coveredManifest(): TrafficSessionManifest[] {
+    const manifest: TrafficSessionManifest[] = [];
+
+    for (const version of [1, 2, 3]) {
+      for (const variant of ['A', 'B'] as const) {
+        for (let scenario = 0; scenario < 8; scenario += 1) {
+          manifest.push(
+            TrafficOracleFixture.session({
+              index: manifest.length,
+              sessionIdentifier: `session-${manifest.length}`,
+              version,
+              versionIdentifier: `version-${version}`,
+              variant,
+              forced: scenario % 2 === 0,
+              completed: scenario % 4 < 2,
+              resultIdentifier: scenario < 4 ? 'remote' : 'office',
+              submittedSteps: scenario < 4 ? ['intro'] : ['intro', 'office_days'],
+              viewedSteps: [],
+              recommendationClicked: scenario < 4,
+              backChanges: 1,
+              acquisition: {
+                source: 'search',
+                medium: 'paid',
+                campaign: scenario < 4 ? 'one' : 'two',
+              },
+            }),
+          );
+        }
+      }
+    }
+
+    return manifest;
+  },
+
   response(): AnalyticsResponse {
     return {
       generatedAt: '2026-10-08T00:00:00.000Z',

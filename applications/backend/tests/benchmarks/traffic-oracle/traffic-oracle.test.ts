@@ -133,6 +133,33 @@ describe('independent synthetic traffic oracle', () => {
     });
   });
 
+  it('requires both assignments, outcomes and conditional branches in all six groups', () => {
+    const manifest = TrafficOracleFixture.coveredManifest();
+    const specifications = TrafficOracleFixture.coverageSpecifications();
+    expect(() => TrafficOracle.verifyCoverage(manifest, specifications)).not.toThrow();
+    const incompleteCoverage = manifest.filter(
+      (session) =>
+        !(session.version === 3 && session.variant === 'B' && session.forced && session.completed),
+    );
+    expect(() => TrafficOracle.verifyCoverage(incompleteCoverage, specifications)).toThrow(
+      'forced assignment with completion in v3/B',
+    );
+    const unseenResult = specifications.map((specification) => ({
+      ...specification,
+      resultIdentifiers: [...specification.resultIdentifiers, 'unseen-result'],
+    }));
+    expect(() => TrafficOracle.verifyCoverage(manifest, unseenResult)).toThrow(
+      'result unseen-result in v1/A',
+    );
+    const absentBranch = specifications.map((specification) => ({
+      ...specification,
+      conditionalStepIdentifiers: ['missing-branch'],
+    }));
+    expect(() => TrafficOracle.verifyCoverage(manifest, absentBranch)).toThrow(
+      'taken branch missing-branch in v1/A',
+    );
+  });
+
   it('keeps empty cohort rates not applicable', () => {
     expect(TrafficOracle.summary([])).toEqual({
       started: 0,

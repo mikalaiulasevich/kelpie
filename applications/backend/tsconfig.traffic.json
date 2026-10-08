@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "rootDir": ".",
+    "outDir": "distribution-traffic"
+  },
+  "include": ["tests/benchmarks/traffic/run-traffic.ts"],
+  "exclude": ["distribution", "distribution-traffic", "node_modules"]
+}

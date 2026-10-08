@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { TrafficCoverage } from './traffic-coverage.js';
 import { Ajv } from 'ajv';
 import { Type } from 'typebox';
 import { isNull, isUndefined } from 'es-toolkit/predicate';
@@ -8,6 +9,7 @@ import {
   TrafficSessionManifestSchema,
   type TrafficSessionManifest,
   type TrafficOracleSelection,
+  type TrafficCoverageSpecification,
 } from './traffic-oracle-types.js';
 
 const manifestValidator = new Ajv({ strict: true }).compile<TrafficSessionManifest[]>(
@@ -124,6 +126,14 @@ export const TrafficOracle = {
     };
   },
 
+  verifyCoverage(
+    manifest: readonly TrafficSessionManifest[],
+    specifications: readonly TrafficCoverageSpecification[],
+  ): void {
+    TrafficOracle.validate(manifest);
+    TrafficCoverage.verify(manifest, specifications);
+  },
+
   coverage(manifest: readonly TrafficSessionManifest[]) {
     const groups = new Map<string, TrafficSessionManifest[]>();
 
@@ -195,6 +205,11 @@ export const TrafficOracle = {
       ),
     );
 
+    assert.equal(
+      actualGroups.size,
+      response.versions.reduce((count, version) => count + version.variants.length, 0),
+    );
+
     for (const session of selected) {
       assert.ok(
         actualGroups.has(`${session.versionIdentifier}:${session.variant}`),
@@ -209,6 +224,7 @@ export const TrafficOracle = {
             session.versionIdentifier === version.versionIdentifier &&
             session.variant === variant.variant,
         );
+        assert.ok(sessions.every((session) => session.version === version.funnelVersion));
         const { started, resultCompletion, ctaConversion, ctaClickThrough } = variant;
         assert.deepEqual(
           { started, resultCompletion, ctaConversion, ctaClickThrough },

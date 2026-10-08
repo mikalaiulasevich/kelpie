@@ -3,6 +3,7 @@
 .codex
 **/node_modules
 **/distribution
+**/distribution-traffic
 **/.next
 **/generated
 **/coverage

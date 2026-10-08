@@ -1,6 +1,7 @@
 node_modules/
 dist/
 distribution/
+distribution-traffic/
 coverage/
 .env
 .env.*

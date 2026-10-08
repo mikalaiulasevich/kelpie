@@ -132,6 +132,7 @@ export default typescript.config(
     ignores: [
       '**/dist/**',
       '**/distribution/**',
+      '**/distribution-traffic/**',
       '**/generated/**',
       '**/node_modules/**',
       '**/coverage/**',
