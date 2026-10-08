@@ -5,8 +5,14 @@ FROM node:24.16.0-bookworm-slim@sha256:2c87ef9bd3c6a3bd4b472b4bec2ce9d16354b0c57
 
 WORKDIR /opt/kelpie
 ENV NEXT_TELEMETRY_DISABLED=1
-COPY . .
+COPY package.json package-lock.json ./
+COPY applications/backend/package.json ./applications/backend/package.json
+COPY applications/frontend/package.json ./applications/frontend/package.json
+COPY applications/quiz/package.json ./applications/quiz/package.json
+COPY packages/contracts/package.json ./packages/contracts/package.json
+COPY packages/funnel-runtime/package.json ./packages/funnel-runtime/package.json
 RUN npm ci
+COPY . .
 # Origins are resolved at runtime. No credentials or hosted database are needed to build.
 RUN VITE_BASE_PATH=/administration/ npm run build
 RUN npm prune --omit=dev
