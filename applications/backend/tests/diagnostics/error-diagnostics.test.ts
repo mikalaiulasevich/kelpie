@@ -2,8 +2,31 @@ import { describe, expect, it, vi } from 'vitest';
 import { ErrorDiagnostics } from '../../source/diagnostics/error-diagnostics.js';
 import { DiagnosticCases } from '../cases/diagnostic-cases.js';
 import { DiagnosticFixtures } from '../fixtures/diagnostic-errors.js';
+import { DatabaseFailureCases } from '../cases/database-failure-cases.js';
 
 describe('Error diagnostics', () => {
+  it.each(DatabaseFailureCases.Transient)(
+    'reports safe category and code for $name without reading its stack',
+    ({ create, code, category }) => {
+      const error = create();
+      const stack = vi.fn(() => {
+        throw new Error('private-stack');
+      });
+      Object.defineProperty(error, 'stack', { get: stack });
+      const description = ErrorDiagnostics.describe(error);
+      expect(description).toMatchObject({ classification: 'error', code, category });
+      expect(stack).not.toHaveBeenCalled();
+      expect(JSON.stringify(description)).not.toMatch(/private|Transaction API|SQLite error/);
+    },
+  );
+
+  it('distinguishes safe failure categories at the same reporting site', () => {
+    const descriptions = DatabaseFailureCases.Transient.slice(0, 3).map(({ create }) =>
+      ErrorDiagnostics.describe(create()),
+    );
+    expect(new Set(descriptions.map(({ fingerprint }) => fingerprint)).size).toBe(3);
+  });
+
   it('reports only an exact allowlisted environment message', () => {
     const safe = ErrorDiagnostics.describe(new Error('PORT must be an integer from 1 to 65535.'));
     const unsafe = ErrorDiagnostics.describe(

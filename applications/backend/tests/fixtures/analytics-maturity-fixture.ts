@@ -1,7 +1,11 @@
+import { DatabaseReadService } from '../../source/database/database-read.service.js';
+import { AnalyticsResultBatch } from '../../source/analytics/analytics-result-batch.js';
+import { AnalyticsPolicy } from '../../source/analytics/analytics-policy.js';
 import { AnalyticsInputs } from '../../source/analytics/analytics-inputs.js';
 import { AnalyticsQueries } from '../../source/analytics/analytics-queries.js';
 import { AnalyticsInsightsRead } from '../../source/analytics/analytics-insights.js';
-import { AnalyticsResults } from '../../source/analytics/analytics-results.js';
+import { AnalyticsReportRead } from '../../source/analytics/analytics-report.js';
+import { AnalyticsPeriod } from '../../source/analytics/analytics-period.js';
 import type { BackendApplicationFixture } from './backend-application.js';
 import { AnalyticsFixture } from './analytics-fixture.js';
 import { ConfigurationImportFixtures } from './configuration-import-fixtures.js';
@@ -58,20 +62,35 @@ export const AnalyticsMaturityFixture = {
     });
     const timestamp = new Date(now);
 
-    return backend.database.$transaction(async (transaction) => {
-      const cohort = AnalyticsQueries.cohort(query, [versionIdentifier], timestamp);
-      const steps = AnalyticsResults.steps(
-        await transaction.$queryRaw<unknown[]>(AnalyticsQueries.steps(cohort)),
-      );
-      const insights = await AnalyticsInsightsRead.read(
-        transaction,
-        query,
-        [versionIdentifier],
-        timestamp,
-        { summaries: [], steps, edges: [] },
-      );
+    return backend.getService(DatabaseReadService).read(
+      async (snapshot) => {
+        const cohort = AnalyticsQueries.cohort(query, [versionIdentifier], timestamp);
+        const plan = await AnalyticsInsightsRead.prepare(
+          snapshot.transaction,
+          query,
+          [versionIdentifier],
+          timestamp,
+        );
+        const statements = [
+          AnalyticsReportRead.query(cohort, AnalyticsPeriod.buckets(query, timestamp)),
+          ...plan.statements,
+        ];
+        const batch = new AnalyticsResultBatch(
+          await snapshot.queryMany(statements),
+          statements.length,
+        );
+        const report = AnalyticsReportRead.project(batch.next());
+        const steps = report.steps;
+        const insights = AnalyticsInsightsRead.project(
+          plan,
+          { summaries: [], steps, edges: [] },
+          report,
+          batch,
+        );
 
-      return { steps, insights };
-    });
+        return { steps, insights };
+      },
+      { timeout: AnalyticsPolicy.TransactionTimeout },
+    );
   },
 } as const;

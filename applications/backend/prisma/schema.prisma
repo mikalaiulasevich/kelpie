@@ -125,6 +125,7 @@ model Event {
   session             Session  @relation(fields: [sessionIdentifier], references: [identifier], onDelete: Restrict, onUpdate: Restrict)
 
   @@index([sessionIdentifier, name, stepIdentifier])
+  @@index([sessionIdentifier, name, source, serverTimestamp, stepIdentifier])
   @@index([name, stepIdentifier, sessionIdentifier])
   @@index([serverTimestamp])
 }

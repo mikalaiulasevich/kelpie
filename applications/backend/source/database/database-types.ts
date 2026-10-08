@@ -1,4 +1,5 @@
 import type { Prisma } from '../../generated/prisma/client.js';
+import type { DatabaseFailureKind } from './database-failure-policy.js';
 
 export type DatabaseAdapter = DefinedPropertyOf<Prisma.PrismaClientOptions, 'adapter'>;
 
@@ -15,6 +16,12 @@ export interface SQLiteForeignKeySetting {
 }
 
 export const DatabaseErrorCode = { UniqueConstraint: 'P2002', OperationTimeout: 'P1008' } as const;
+
+export interface DatabaseFailureDescription {
+  readonly kind: ValueOf<typeof DatabaseFailureKind>;
+  readonly code: string;
+  readonly unavailable: boolean;
+}
 
 export interface RemoteMigrationDocument {
   readonly name: string;

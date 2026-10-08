@@ -3,6 +3,7 @@ import { Diagnostics, RequestContext } from '../../source/diagnostics/diagnostic
 import { RequestFailureFixture } from '../fixtures/request-failure.js';
 import { DatabaseService } from '../../source/database/database.service.js';
 import { BackendApplicationFixture } from '../fixtures/backend-application.js';
+import { DatabaseFailureCases } from '../cases/database-failure-cases.js';
 
 describe('Request diagnostics and privacy', () => {
   let backend: BackendApplicationFixture;
@@ -23,6 +24,42 @@ describe('Request diagnostics and privacy', () => {
     } finally {
       vi.restoreAllMocks();
     }
+  });
+
+  it.each(DatabaseFailureCases.Transient)(
+    'returns private HTTP503 for $name and a safe diagnostic',
+    async ({ create, code, category }) => {
+      await backend.close();
+      RequestFailureFixture.install(create());
+      backend = await BackendApplicationFixture.create();
+      records.length = 0;
+      const response = await backend.request('/api/health/live');
+      expect(response.status).toBe(503);
+      expect(response.headers.get('retry-after')).toBe('1');
+      expect(await response.json()).toEqual({
+        statusCode: 503,
+        code: 'unavailable',
+        requestIdentifier: response.headers.get('x-request-id'),
+        message: 'Application is not ready.',
+      });
+      expect(records).toContainEqual(
+        expect.objectContaining({
+          event: 'request_failed',
+          status: 503,
+          error: expect.objectContaining({ code, category }),
+        }),
+      );
+      expect(JSON.stringify(records)).not.toMatch(/private|Transaction API|SQLite error/);
+    },
+  );
+
+  it('keeps a programmer transaction error as HTTP500 without a retry hint', async () => {
+    await backend.close();
+    RequestFailureFixture.install(DatabaseFailureCases.NonTransient[0].create());
+    backend = await BackendApplicationFixture.create();
+    const response = await backend.request('/api/health/live');
+    expect(response.status).toBe(500);
+    expect(response.headers.get('retry-after')).toBeNull();
   });
 
   it('isolates concurrent requests and never trusts client correlation identifiers', async () => {

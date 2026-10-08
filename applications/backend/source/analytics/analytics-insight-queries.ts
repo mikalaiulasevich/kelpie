@@ -4,7 +4,11 @@ import { AnalyticsPolicy } from './analytics-policy.js';
 
 export const AnalyticsInsightQueries = {
   businessOutcomes(cohort: Prisma.Sql): Prisma.Sql {
-    return Prisma.sql`${cohort} SELECT o.kind, COUNT(DISTINCT c.identifier) AS sessions,
+    return Prisma.sql`${cohort} ${AnalyticsInsightQueries.businessOutcomeRows()}`;
+  },
+
+  businessOutcomeRows(): Prisma.Sql {
+    return Prisma.sql`SELECT o.kind, COUNT(DISTINCT c.identifier) AS sessions,
       COUNT(DISTINCT CASE WHEN o.provenance = 'manual' THEN c.identifier END) AS "manualSessions",
       COUNT(DISTINCT CASE WHEN o.provenance = 'integration' THEN c.identifier END) AS "integrationSessions"
       FROM "BusinessOutcome" o JOIN cohort c ON c.identifier = o."sessionIdentifier"
@@ -13,36 +17,38 @@ export const AnalyticsInsightQueries = {
       GROUP BY o.kind ORDER BY o.kind`;
   },
 
-  outcomes(cohort: Prisma.Sql): Prisma.Sql {
-    return Prisma.sql`${cohort}, outcomes AS (
-      SELECT c.*,
-        EXISTS (SELECT 1 FROM eligible_events e WHERE e."sessionIdentifier" = c."identifier" AND e."name" = 'result_viewed' AND e."source" = 'client') AS result,
-        EXISTS (SELECT 1 FROM eligible_events e WHERE e."sessionIdentifier" = c."identifier" AND e."name" = 'cta_clicked' AND e."source" = 'client') AS clicked
-      FROM cohort c
-    )`;
-  },
-
   totals(cohort: Prisma.Sql): Prisma.Sql {
-    return Prisma.sql`${AnalyticsInsightQueries.outcomes(cohort)}
+    return Prisma.sql`${AnalyticsQueries.outcomes(cohort)}
       SELECT COUNT(*) AS started, COALESCE(SUM(result), 0) AS results, COALESCE(SUM(clicked), 0) AS clicks FROM outcomes`;
   },
 
   trend(cohort: Prisma.Sql, buckets: Prisma.Sql): Prisma.Sql {
-    return Prisma.sql`${AnalyticsInsightQueries.outcomes(cohort)}, daily AS (
+    return Prisma.sql`${AnalyticsQueries.outcomes(cohort)} SELECT * FROM (${AnalyticsInsightQueries.trendRows(buckets)})`;
+  },
+
+  trendRows(buckets: Prisma.Sql): Prisma.Sql {
+    return Prisma.sql`WITH daily AS (
       SELECT ${buckets} AS date, c.result, c.clicked FROM outcomes c
     ) SELECT date, COUNT(*) AS started, SUM(result) AS results, SUM(clicked) AS clicks
       FROM daily WHERE date IS NOT NULL GROUP BY date ORDER BY date`;
   },
 
   acquisition(cohort: Prisma.Sql): Prisma.Sql {
-    return Prisma.sql`${AnalyticsInsightQueries.outcomes(cohort)}
-      SELECT source, medium, campaign, COUNT(*) AS started, SUM(result) AS results, SUM(clicked) AS clicks
+    return Prisma.sql`${AnalyticsQueries.outcomes(cohort)} ${AnalyticsInsightQueries.acquisitionRows()}`;
+  },
+
+  acquisitionRows(): Prisma.Sql {
+    return Prisma.sql`SELECT source, medium, campaign, COUNT(*) AS started, SUM(result) AS results, SUM(clicked) AS clicks
       FROM outcomes GROUP BY source, medium, campaign ORDER BY started DESC, source, medium, campaign
       LIMIT ${AnalyticsPolicy.MaximumInsightGroups + 1}`;
   },
 
   results(cohort: Prisma.Sql): Prisma.Sql {
-    return Prisma.sql`${cohort}, result_sessions AS (
+    return Prisma.sql`${cohort} SELECT * FROM (${AnalyticsInsightQueries.resultRows()})`;
+  },
+
+  resultRows(): Prisma.Sql {
+    return Prisma.sql`WITH result_sessions AS (
       SELECT e."sessionIdentifier", json_extract(e.properties, '$.result_id') AS "resultIdentifier",
         MAX(e.name = 'result_viewed') AS viewed, MAX(e.name = 'cta_clicked') AS clicked
       FROM eligible_events e WHERE e.name IN ('result_viewed', 'cta_clicked') AND e.source = 'client'
@@ -55,15 +61,22 @@ export const AnalyticsInsightQueries = {
   },
 
   quality(cohort: Prisma.Sql): Prisma.Sql {
-    return Prisma.sql`${cohort}
-      SELECT (SELECT MAX(${AnalyticsQueries.timestamp(Prisma.sql`e."serverTimestamp"`)})
+    return Prisma.sql`${cohort} ${AnalyticsInsightQueries.qualityRows()}`;
+  },
+
+  qualityRows(): Prisma.Sql {
+    return Prisma.sql`SELECT (SELECT MAX(${AnalyticsQueries.timestamp(Prisma.sql`e."serverTimestamp"`)})
         FROM "Event" e JOIN cohort c ON c."identifier" = e."sessionIdentifier") AS "latestEventAt",
         COALESCE(SUM(NOT "conversionMature"), 0) AS "openSessions", COALESCE(SUM("conversionMature"), 0) AS "matureSessions"
       FROM cohort`;
   },
 
   stepTimings(cohort: Prisma.Sql): Prisma.Sql {
-    return Prisma.sql`${cohort}, first_views AS (
+    return Prisma.sql`${cohort} SELECT * FROM (${AnalyticsInsightQueries.stepTimingRows()})`;
+  },
+
+  stepTimingRows(): Prisma.Sql {
+    return Prisma.sql`WITH first_views AS (
       SELECT e."sessionIdentifier", e."stepIdentifier", MIN(${AnalyticsQueries.timestamp(Prisma.sql`e."serverTimestamp"`)}) AS viewed
       FROM view_events e
       GROUP BY e."sessionIdentifier", e."stepIdentifier"

@@ -1,3 +1,5 @@
+import type { AnalyticsResultBatch } from './analytics-result-batch.js';
+import type { AnalyticsExperimentPlan } from './analytics-read-types.js';
 import { Prisma } from '../../generated/prisma/client.js';
 import { ConfigurationImportDocument } from '../configurations/configuration-import-document.js';
 import { SchemaCompiler } from '../validation/schema-compiler.js';
@@ -19,19 +21,22 @@ const Validators = {
 } as const;
 
 export const AnalyticsExperimentEvidence = {
-  async read(
+  async plans(
     transaction: Prisma.TransactionClient,
-    query: AnalyticsQuery,
     versionIdentifiers: readonly string[],
-    now: Date,
-  ): Promise<readonly AnalyticsExperimentRow[]> {
-    const plans = await transaction.experimentPlan.findMany({
+  ): Promise<readonly AnalyticsExperimentPlan[]> {
+    return transaction.experimentPlan.findMany({
       where: { versionIdentifier: { in: [...versionIdentifiers] } },
       include: { version: { select: { document: true } } },
     });
-    const evidence: AnalyticsExperimentRow[] = [];
+  },
 
-    for (const plan of plans) {
+  prepare(
+    plans: readonly AnalyticsExperimentPlan[],
+    query: AnalyticsQuery,
+    now: Date,
+  ): readonly Prisma.Sql[] {
+    return plans.map((plan) => {
       const cohort = AnalyticsQueries.cohort(
         {
           funnelIdentifier: query.funnelIdentifier,
@@ -50,21 +55,28 @@ export const AnalyticsExperimentEvidence = {
       );
       const converted =
         plan.primaryMetric === 'recommendation_open'
-          ? Prisma.sql`EXISTS (SELECT 1 FROM eligible_events e WHERE e."sessionIdentifier" = c.identifier AND e.name = 'cta_clicked' AND e.source = 'client')`
+          ? AnalyticsQueries.observedEvent('cta_clicked')
           : Prisma.sql`EXISTS (SELECT 1 FROM "BusinessOutcome" o WHERE o."sessionIdentifier" = c.identifier AND o.kind = ${plan.primaryMetric} AND ${AnalyticsQueries.timestamp(Prisma.sql`o."occurredAt"`)} >= c."startedAt" AND ${AnalyticsQueries.timestamp(Prisma.sql`o."occurredAt"`)} <= c.deadline)`;
-      const rows = AnalyticsRows.validate(
-        await transaction.$queryRaw<unknown[]>(
-          Prisma.sql`${cohort} SELECT c.variant, COUNT(*) AS started, SUM(${converted}) AS converted FROM cohort c JOIN "Session" s ON s.identifier = c.identifier WHERE s."assignmentSource" = 'random' GROUP BY c.variant`,
-        ),
-        Validators.counts,
-      );
+
+      return Prisma.sql`${cohort} SELECT c.variant, COUNT(*) AS started, SUM(${converted}) AS converted FROM cohort c JOIN "Session" s ON s.identifier = c.identifier WHERE s."assignmentSource" = 'random' GROUP BY c.variant`;
+    });
+  },
+
+  project(
+    plans: readonly AnalyticsExperimentPlan[],
+    query: AnalyticsQuery,
+    now: Date,
+    batch: AnalyticsResultBatch,
+  ): readonly AnalyticsExperimentRow[] {
+    return plans.map((plan) => {
+      const rows = AnalyticsRows.validate(batch.next(), Validators.counts);
       const first = rows.find((row) => row.variant === 'A') ?? { started: 0, converted: 0 };
       const second = rows.find((row) => row.variant === 'B') ?? { started: 0, converted: 0 };
       const variants = ConfigurationImportDocument.validate(plan.version.document).experiment
         .variants;
       const allocation = variants.A.weight / (variants.A.weight + variants.B.weight);
 
-      evidence.push({
+      return {
         versionIdentifier: plan.versionIdentifier,
         primaryMetric: plan.primaryMetric,
         cohortFrom: plan.createdAt.toISOString(),
@@ -87,9 +99,7 @@ export const AnalyticsExperimentEvidence = {
         trafficOrigin: query.trafficOrigin,
         conversionWindowHours: plan.conversionWindowHours ?? null,
         ...AnalyticsExperimentStatistics.evidence(first, second, allocation),
-      });
-    }
-
-    return evidence;
+      };
+    });
   },
 } as const;

@@ -4,6 +4,7 @@ import type {
   DiagnosticPhase,
   DiagnosticReason,
   ErrorClassification,
+  DiagnosticFailureCategory,
 } from './diagnostic-policy.js';
 
 export interface ErrorFrame {
@@ -13,10 +14,11 @@ export interface ErrorFrame {
 }
 
 export interface ErrorDescription {
+  readonly category?: ValueOf<typeof DiagnosticFailureCategory>;
   readonly safeMessage: Optional<string>;
   readonly classification: ValueOf<typeof ErrorClassification>;
   readonly code: Optional<string>;
-  /** Identifies the server reporting site, not the original thrown stack. */
+  /** Identifies the safe failure category/code and server reporting site, never the thrown stack. */
   readonly fingerprint: string;
   /** Bounded frames captured when diagnostics are reported. */
   readonly frames: ReadonlyList<ErrorFrame>;
