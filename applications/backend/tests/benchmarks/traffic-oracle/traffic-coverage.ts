@@ -76,10 +76,8 @@ export const TrafficCoverage = {
     manifest: readonly TrafficSessionManifest[],
     specifications: readonly TrafficCoverageSpecification[],
   ): void {
-    assert.deepEqual(
-      specifications.map((specification) => specification.version).sort(),
-      [1, 2, 3],
-    );
+    assert.equal(specifications.length, 3);
+    assert.equal(new Set(specifications.map((specification) => specification.version)).size, 3);
 
     for (const specification of specifications) {
       assert.deepEqual([...specification.variants].sort(), ['A', 'B']);

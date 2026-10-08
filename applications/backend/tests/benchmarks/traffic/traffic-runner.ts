@@ -177,7 +177,7 @@ export class TrafficProfile {
       const validation = FunnelConfigurations.validate(document);
       assert.ok(validation.valid, TrafficMessages.MissingVersion);
       specifications.push({
-        version,
+        version: validation.configuration.version,
         variants: ['A', 'B'],
         resultIdentifiers: Object.keys(validation.configuration.results),
         conditionalStepIdentifiers: Object.values(validation.configuration.steps)

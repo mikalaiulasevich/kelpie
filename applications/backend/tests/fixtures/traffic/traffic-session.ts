@@ -14,6 +14,7 @@ import type { TrafficSessionManifest } from '../../benchmarks/traffic-oracle/tra
 import { TrafficPolicy } from '../../benchmarks/traffic/traffic-policy.js';
 import { TrafficMessages } from '../../benchmarks/traffic/traffic-messages.js';
 import type { TrafficHttp } from './traffic-http.js';
+import { TrafficScenario } from './traffic-scenario.js';
 
 const receiptValidator = new Ajv({ strict: true }).compile<EventBatchResponse>(
   EventBatchResponseSchema,
@@ -50,20 +51,7 @@ export const TrafficSession = {
   },
 
   answer(step: FunnelStep, random: () => number): unknown {
-    if (step.type === 'number') {
-      const slots = Math.floor((step.input.max - step.input.min) / step.input.step);
-
-      return step.input.min + Math.floor(random() * (slots + 1)) * step.input.step;
-    }
-
-    if (step.type === 'single-select' || step.type === 'multi-select') {
-      const option = step.input.options[Math.floor(random() * step.input.options.length)];
-      assert.ok(option, TrafficMessages.MissingStep);
-
-      return step.type === 'single-select' ? option.value : [option.value];
-    }
-
-    return null;
+    return TrafficScenario.answer(step, random);
   },
 
   event(state: SessionState, name: string, properties: Record<string, TextOrNumber>) {
@@ -87,10 +75,11 @@ export const TrafficSession = {
   ): Promise<TrafficSessionManifest> {
     const random = this.random(seed + index * 7919);
     const forced = index % 10 === 0;
+    const campaign = TrafficScenario.campaign(index);
     const acquisition = {
-      source: ['search', 'newsletter', 'social', ''][index % 4] ?? '',
-      medium: ['organic', 'email', 'paid', ''][index % 4] ?? '',
-      campaign: `synthetic-${Math.floor(index / 3) % 3}`,
+      source: campaign.source,
+      medium: campaign.medium,
+      campaign: campaign.campaign,
     };
     const created = await http.request(
       `/api/administration/configurations/${versionIdentifier}/preview`,
@@ -135,10 +124,8 @@ export const TrafficSession = {
       backChanges: 0,
       transitions: [],
     };
-    const dropout =
-      Math.floor(index / 7) % 5 === 0
-        ? 1 + Math.floor(random() * 5)
-        : TrafficPolicy.MaximumTransitions;
+    const initialRoute = FunnelEvaluation.evaluate(state.configuration, state.variant, {}).route;
+    const dropout = TrafficScenario.dropout(index, state.variant, initialRoute.steps.length, random);
 
     for (let transition = 0; transition < TrafficPolicy.MaximumTransitions; transition += 1) {
       const evaluation = FunnelEvaluation.evaluate(
@@ -199,7 +186,7 @@ export const TrafficSession = {
         const resultEvents = [this.event(state, 'result_viewed', { result_id: state.result.id })];
         manifest.resultViewed = true;
 
-        if (Math.floor(index / 3) % 3 !== 0) {
+        if (TrafficScenario.clicks(index, state.variant, random)) {
           resultEvents.push(
             this.event(state, 'cta_clicked', {
               result_id: state.result.id,

@@ -105,15 +105,14 @@ export const SessionStorageCompaction = {
             take: Math.min(options.batchSize, remaining),
             include: { session: { include: SessionPolicy.RecordInclude } },
           });
-          const measurements = rows.map((row) =>
-            CompactionSnapshots.snapshot(row.response, row.session),
-          );
+          const snapshots = rows.map((row) => ({
+            row,
+            measurement: CompactionSnapshots.snapshot(row.response, row.session),
+          }));
 
           if (options.apply) {
-            for (const [index, row] of rows.entries()) {
-              const measurement = measurements[index];
-
-              if (!isUndefined(measurement) && !measurement.alreadyCompact) {
+            for (const { row, measurement } of snapshots) {
+              if (!measurement.alreadyCompact) {
                 await transaction.sessionOperation.update({
                   where: {
                     sessionIdentifier_operationIdentifier: {
@@ -130,7 +129,7 @@ export const SessionStorageCompaction = {
           const last = rows.at(-1);
 
           return {
-            measurements,
+            measurements: snapshots.map(({ measurement }) => measurement),
             last: isUndefined(last)
               ? undefined
               : {
@@ -171,15 +170,14 @@ export const SessionStorageCompaction = {
             take: Math.min(options.batchSize, remaining),
             include: SessionPolicy.RecordInclude,
           });
-          const measurements = rows.map((row) =>
-            CompactionSnapshots.snapshot(row.initialState, row),
-          );
+          const snapshots = rows.map((row) => ({
+            row,
+            measurement: CompactionSnapshots.snapshot(row.initialState, row),
+          }));
 
           if (options.apply) {
-            for (const [index, row] of rows.entries()) {
-              const measurement = measurements[index];
-
-              if (!isUndefined(measurement) && !measurement.alreadyCompact) {
+            for (const { row, measurement } of snapshots) {
+              if (!measurement.alreadyCompact) {
                 await transaction.session.update({
                   where: { identifier: row.identifier },
                   data: { initialState: measurement.compact },
@@ -188,7 +186,10 @@ export const SessionStorageCompaction = {
             }
           }
 
-          return { measurements, last: rows.at(-1)?.identifier };
+          return {
+            measurements: snapshots.map(({ measurement }) => measurement),
+            last: rows.at(-1)?.identifier,
+          };
         },
         { timeout: SessionStorageCompactionPolicy.TransactionTimeoutMilliseconds },
       );

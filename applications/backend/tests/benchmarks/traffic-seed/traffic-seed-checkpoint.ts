@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { access, mkdir, readFile, realpath, writeFile } from 'node:fs/promises';
+import { access, mkdir, readFile, realpath } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { Ajv } from 'ajv';
 import { isEqual, isError } from 'es-toolkit/predicate';
@@ -8,6 +8,7 @@ import { TrafficPolicy } from '../traffic/traffic-policy.js';
 import { TrafficOracle } from '../traffic-oracle/traffic-oracle.js';
 import { TrafficSeedMessages } from './traffic-seed-messages.js';
 import { TrafficSeedPolicy } from './traffic-seed-policy.js';
+import { TrafficSeedFiles } from './traffic-seed-files.js';
 import { TrafficSeedCheckpointSchema, TrafficSeedSourceReportSchema, type TrafficSeedOptions, type TrafficSeedCheckpoint as SeedCheckpoint, type TrafficSeedSourceReport } from './traffic-seed-types.js';
 
 const CheckpointValidators = {
@@ -21,23 +22,13 @@ export const TrafficSeedCheckpoint = {
     const path = resolve(options.output, TrafficSeedPolicy.CheckpointFilename);
     const checkpoint = { options, anchor: new Date().toISOString() };
 
-    try {
-      await writeFile(path, JSON.stringify(checkpoint, null, 2), { flag: 'wx', mode: 0o600 });
-
+    if (await TrafficSeedFiles.writeOnce(path, JSON.stringify(checkpoint, null, 2))) {
       return checkpoint;
-    } catch (error) {
-      if (!(isError(error)) || !('code' in error) || error.code !== 'EEXIST') {
-        throw error;
-      }
     }
 
     const existing: unknown = JSON.parse(await readFile(path, 'utf8'));
     assert.ok(CheckpointValidators.checkpoint(existing), TrafficSeedMessages.Checkpoint);
-    // A verified dataset can be installed in both targets without regenerating or moving dates.
-    assert.ok(
-      isEqual({ ...existing.options, target: options.target }, options),
-      TrafficSeedMessages.Checkpoint,
-    );
+    assert.ok(isEqual(existing.options, options), TrafficSeedMessages.Checkpoint);
 
     return existing;
   },
@@ -58,17 +49,33 @@ export const TrafficSeedCheckpoint = {
         concurrency: TrafficPolicy.Concurrency,
         seed: options.seed,
         output: directory,
+        configurationDirectory: resolve(options.output, 'configurations'),
       });
     }
 
     const report: unknown = JSON.parse(await readFile(reportPath, 'utf8'));
     assert.ok(CheckpointValidators.report(report), TrafficSeedMessages.Source);
+    assert.equal(report.options.sessions, options.sessions, TrafficSeedMessages.Source);
+    assert.equal(report.options.seed, options.seed, TrafficSeedMessages.Source);
+    assert.equal(report.database.sessions, options.sessions, TrafficSeedMessages.Source);
     const manifest = TrafficOracle.validate(
       JSON.parse(await readFile(resolve(directory, 'manifest.json'), 'utf8')),
     );
     assert.equal(manifest.length, options.sessions, TrafficSeedMessages.Source);
 
-    return { path: await realpath(report.retainedDatabase.path), manifest };
+    const path = await realpath(report.retainedDatabase.path);
+    const evidence = {
+      databaseHash: await TrafficSeedFiles.digest(path),
+      manifestHash: await TrafficSeedFiles.digest(resolve(directory, 'manifest.json')),
+      reportHash: await TrafficSeedFiles.digest(reportPath),
+    };
+    const evidencePath = resolve(options.output, 'dataset-evidence.json');
+
+    if (!await TrafficSeedFiles.writeOnce(evidencePath, JSON.stringify(evidence, null, 2))) {
+      const previous: unknown = JSON.parse(await readFile(evidencePath, 'utf8'));
+      assert.deepEqual(previous, evidence, TrafficSeedMessages.Source);
+    }
+
+    return { path, manifest };
   },
 } as const;
-

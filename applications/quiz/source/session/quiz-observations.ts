@@ -4,7 +4,39 @@ import { QuizSessionValidators } from './quiz-session-types';
 import { QuizSessionEvaluation } from './quiz-session-evaluation';
 import { QuizSessionMessages } from './quiz-session-messages';
 import { QuizSessionPolicy } from './quiz-session-policy';
+import { isUndefined } from 'es-toolkit/predicate';
 import type { QuizObservation, QuizObservationInput, QuizSessionState } from './quiz-session-types';
+
+const QuizObservationReceipts = {
+  read(events: ReadonlyList<QuizObservation>, response: unknown) {
+    if (!QuizSessionValidators.receipts(response) || response.receipts.length !== events.length) {
+      throw new Error(QuizSessionMessages.Delivery);
+    }
+
+    const submittedIdentifiers = new Set(events.map((event) => event.event_id));
+    const identifiers = new Set<string>();
+
+    for (const receipt of response.receipts) {
+      const identifier = receipt.event_id;
+
+      if (
+        isUndefined(identifier) ||
+        identifier.length === 0 ||
+        !submittedIdentifiers.has(identifier) ||
+        identifiers.has(identifier)
+      ) {
+        throw new Error(QuizSessionMessages.Delivery);
+      }
+
+      identifiers.add(identifier);
+    }
+
+    return {
+      identifiers,
+      rejected: response.receipts.some((receipt) => receipt.status === 'rejected'),
+    };
+  },
+} as const;
 
 export const QuizObservations = {
   key(state: QuizSessionState): string {
@@ -126,31 +158,15 @@ export const QuizObservations = {
     }
 
     const response = await QuizSessionApi.request(QuizSessionPolicy.Events, { events });
-
-    if (!QuizSessionValidators.receipts(response)) {
-      throw new Error(QuizSessionMessages.Delivery);
-    }
-
-    const submittedIdentifiers = new Set(events.map((event) => event.event_id));
-    const identifiers = new Set(response.receipts.map((receipt) => receipt.event_id));
-
-    if (
-      response.receipts.length !== events.length ||
-      identifiers.size !== events.length ||
-      response.receipts.some(
-        (receipt) => !receipt.event_id || !submittedIdentifiers.has(receipt.event_id),
-      )
-    ) {
-      throw new Error(QuizSessionMessages.Delivery);
-    }
+    const acknowledgement = QuizObservationReceipts.read(events, response);
 
     await QuizBrowserLocks.run(QuizObservations.key(state), () => {
       // Keep rejected events retryable until their durable warning is saved.
-      if (response.receipts.some((receipt) => receipt.status === 'rejected')) {
+      if (acknowledgement.rejected) {
         localStorage.setItem(`${QuizObservations.key(state)}.rejected`, 'true');
       }
 
-      QuizObservations.remove(state, identifiers);
+      QuizObservations.remove(state, acknowledgement.identifiers);
     });
 
     QuizObservations.checkRejected(state);
@@ -162,7 +178,7 @@ export const QuizObservations = {
     }
   },
 
-  remove(state: QuizSessionState, identifiers: ReadonlySet<Optional<string>>): void {
+  remove(state: QuizSessionState, identifiers: ReadonlySet<string>): void {
     const remaining = QuizObservations.read(state).filter(
       (event) => !identifiers.has(event.event_id),
     );

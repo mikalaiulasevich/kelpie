@@ -53,8 +53,9 @@ const ImportIdentity = {
     graph: TrafficSeedSessionGraph,
     version: TrafficSeedSessionGraph['version'],
     runIdentifier: string,
+    ordinal: number,
   ): TrafficSeedSessionGraph {
-    const identifier = ImportIdentity.identifier(runIdentifier, graph.identifier);
+    const identifier = ImportIdentity.identifier(runIdentifier, `session:${ordinal}`);
     const identifiers = new Map([
       [graph.identifier, identifier],
       [graph.versionIdentifier, version.identifier],
@@ -266,7 +267,7 @@ export const TrafficSeedImport = {
           throw new Error(TrafficSeedImportMessages.ProjectionChangedOwner);
         }
 
-        return ImportIdentity.graph(projected, version, options.runIdentifier);
+        return ImportIdentity.graph(projected, version, options.runIdentifier, receipt.sessions + ordinal);
       });
       const inserted = await target.$transaction(
         async (transaction) => {

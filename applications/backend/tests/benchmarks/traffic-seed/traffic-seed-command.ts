@@ -16,6 +16,7 @@ import {
 } from './traffic-seed-types.js';
 import type { TrafficSeedSessionGraph } from './traffic-seed-import-types.js';
 import { TrafficSeedCheckpoint } from './traffic-seed-checkpoint.js';
+import { TrafficSeedTarget } from './traffic-seed-target.js';
 
 const Validators = {
   options: new Ajv().compile<TrafficSeedOptions>(TrafficSeedOptionsSchema),
@@ -85,7 +86,7 @@ export const TrafficSeedCommand = {
       sessions: Number(values['sessions'] ?? TrafficPolicy.Sessions),
       days: Number(values['days'] ?? TrafficSeedPolicy.Days),
       seed: Number(values['seed'] ?? TrafficPolicy.Seed),
-      output: values['output'] ?? `test-results/traffic-seed-${values['run'] ?? 'missing'}`,
+      output: values['output'] ?? `test-results/traffic-seed-${values['run'] ?? 'missing'}-${values['target'] ?? 'missing'}`,
     };
     assert.ok(Validators.options(options), TrafficSeedMessages.Arguments);
 
@@ -115,17 +116,15 @@ export const TrafficSeedCommand = {
   async run(options: TrafficSeedOptions): Promise<void> {
     const destination = await this.destination(options);
     const checkpoint = await TrafficSeedCheckpoint.read(options);
-    const dataset = await TrafficSeedCheckpoint.dataset(options);
-    assert.notEqual(destination, `file:${dataset.path}`, TrafficSeedMessages.Target);
-    const source = new PrismaClient({ adapter: DatabaseAdapters.create(`file:${dataset.path}`) });
+    const target = new PrismaClient({
+      adapter: DatabaseAdapters.create(destination, options.target === 'remote' ? process.env['DATABASE_AUTH_TOKEN'] : undefined),
+    });
 
     try {
-      const target = new PrismaClient({
-        adapter: DatabaseAdapters.create(
-          destination,
-          options.target === 'remote' ? process.env['DATABASE_AUTH_TOKEN'] : undefined,
-        ),
-      });
+      await TrafficSeedTarget.prepare(target, options);
+      const dataset = await TrafficSeedCheckpoint.dataset(options);
+      assert.notEqual(destination, `file:${dataset.path}`, TrafficSeedMessages.Target);
+      const source = new PrismaClient({ adapter: DatabaseAdapters.create(`file:${dataset.path}`) });
 
       try {
         assert.equal(await source.session.count(), options.sessions, TrafficSeedMessages.Source);
@@ -177,10 +176,10 @@ export const TrafficSeedCommand = {
         );
         process.stdout.write(`${JSON.stringify(receipt)}\n`);
       } finally {
-        await target.$disconnect();
+        await source.$disconnect();
       }
     } finally {
-      await source.$disconnect();
+      await target.$disconnect();
     }
   },
 } as const;

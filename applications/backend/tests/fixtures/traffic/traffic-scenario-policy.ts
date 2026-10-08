@@ -1,0 +1,22 @@
+export const TrafficScenarioPolicy = {
+  // Synthetic acquisition cohorts illustrate filters; they are not measured campaign performance.
+  Campaigns: [
+    { source: 'google', medium: 'organic', campaign: 'team-planning-guide', completion: 0.76, click: 0.54 },
+    { source: 'google', medium: 'cpc', campaign: 'remote-work-search', completion: 0.64, click: 0.48 },
+    { source: 'linkedin', medium: 'paid-social', campaign: 'operations-leaders', completion: 0.58, click: 0.42 },
+    { source: 'linkedin', medium: 'organic-social', campaign: 'workplace-research', completion: 0.67, click: 0.46 },
+    { source: 'newsletter', medium: 'email', campaign: 'october-workstyle-digest', completion: 0.85, click: 0.69 },
+    { source: 'newsletter', medium: 'email', campaign: 'planning-follow-up', completion: 0.88, click: 0.73 },
+    { source: 'partner', medium: 'referral', campaign: 'people-operations-community', completion: 0.79, click: 0.61 },
+    { source: 'reddit', medium: 'organic-social', campaign: 'distributed-teams', completion: 0.52, click: 0.35 },
+    { source: '', medium: '', campaign: '', completion: 0.72, click: 0.51 },
+  ],
+  NumericAnswers: {
+    team_size: [2, 3, 5, 7, 9, 12, 15, 20, 25, 35, 50, 80, 120, 180],
+    office_days: [0, 1, 2, 2, 3, 3, 4, 5],
+    meeting_hours: [1, 3, 5, 6, 8, 10, 12, 14, 16, 20, 24, 30],
+    tool_count: [2, 3, 4, 4, 5, 6, 7, 8, 10, 12, 16, 22],
+  },
+  VariantCompletionUplift: 0.025,
+  VariantClickUplift: 0.02,
+} as const;

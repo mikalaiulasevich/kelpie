@@ -5,7 +5,7 @@ export const TrafficSessionManifestSchema = Type.Object(
     index: Type.Integer({ minimum: 0 }),
     sessionIdentifier: Type.String({ minLength: 1 }),
     versionIdentifier: Type.String({ minLength: 1 }),
-    version: Type.Integer({ minimum: 1, maximum: 3 }),
+    version: Type.Integer({ minimum: 1 }),
     variant: Type.Union([Type.Literal('A'), Type.Literal('B')]),
     forced: Type.Boolean(),
     acquisition: Type.Object(
@@ -52,7 +52,7 @@ export type TrafficOracleSelection = Static<typeof TrafficOracleSelectionSchema>
 
 export const TrafficCoverageSpecificationSchema = Type.Object(
   {
-    version: Type.Integer({ minimum: 1, maximum: 3 }),
+    version: Type.Integer({ minimum: 1 }),
     variants: Type.Array(Type.Union([Type.Literal('A'), Type.Literal('B')]), {
       minItems: 2,
       uniqueItems: true,
