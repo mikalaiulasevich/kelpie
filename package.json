@@ -47,7 +47,8 @@
     "development:quiz": "npm run development --workspace=@kelpie/quiz",
     "database:backup": "npm run build:packages && npm run database:generate && npm run database:backup --workspace=@kelpie/backend --",
     "database:restore": "npm run build:packages && npm run database:generate && npm run database:restore --workspace=@kelpie/backend --",
-    "storage:compact": "npm run build:packages && npm run database:generate && npm run storage:compact --workspace=@kelpie/backend --"
+    "storage:compact": "npm run build:packages && npm run database:generate && npm run storage:compact --workspace=@kelpie/backend --",
+    "traffic:seed": "npm run build:packages && npm run database:generate && tsx --tsconfig applications/backend/tsconfig.json applications/backend/tests/benchmarks/traffic-seed/run-traffic-seed.ts"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

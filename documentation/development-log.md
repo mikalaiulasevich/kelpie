@@ -210,3 +210,5 @@ Added the complete v1/v2/v3/rollback HTTP acceptance sequence and checked per-ve
 Added two real HTTP lost-ack acceptance scenarios and tested quiz Retry/reload/API-outage recovery in an isolated production-build browser. Fixed receipt validation deleting unrelated queued observations and rejection-warning persistence after queue removal. Nine regressions cover invalid receipts, concurrent queue changes and storage failures. Hosted deployment and physical-network/browser-crash behavior are separate from these local checks.
 
 Final integrated npm run verify:bun passed 868 Node tests and 442 Bun backend tests, static checks and production builds. After rebuild, browser observation delivery recovered automatically from a dropped acknowledgement with valid real backend receipts, the warning cleared and the session revision remained unchanged. No new public deployment is implied.
+
+Parallel traffic-seed tooling changes appeared after this completed verification gate and were preserved without inclusion in its acceptance claim.
